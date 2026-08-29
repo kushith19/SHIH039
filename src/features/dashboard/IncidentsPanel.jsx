@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { AlertTriangle, ChevronDown, Radio } from 'lucide-react'
 import {
   DETECTION_TYPES,
@@ -43,25 +43,57 @@ function railClass(severity) {
 }
 
 function explanationPreview(inc) {
+  if (inc.explanationStatus === 'pending') return 'Generating…'
+  if (inc.explanationStatus === 'fallback') return 'Template facts — AI Commander unavailable'
+  if (inc.explanationStatus === 'error') return 'Commander could not explain this detection'
   const t = String(inc.explanation ?? '').trim()
   if (t) return t.length > 110 ? `${t.slice(0, 107)}…` : t
-  if (inc.explanationStatus === 'pending') return 'Generating…'
   return 'No explanation yet'
+}
+
+function streamKey(inc) {
+  return String(inc.endpointId || inc.id || '')
 }
 
 export default function IncidentsPanel({ incidents = [], onSelectEndpoint }) {
   const [typeFilter, setTypeFilter] = useState(null)
   const [openId, setOpenId] = useState(null)
+  const orderRef = useRef({ seq: 0, byKey: new Map() })
+
+  const orderedIncidents = useMemo(() => {
+    const list = Array.isArray(incidents) ? incidents : []
+    const { byKey } = orderRef.current
+    const live = new Set()
+    const newcomers = []
+    for (const inc of list) {
+      const key = streamKey(inc)
+      if (!key) continue
+      live.add(key)
+      if (!byKey.has(key)) newcomers.push(key)
+    }
+    for (let i = newcomers.length - 1; i >= 0; i -= 1) {
+      orderRef.current.seq += 1
+      byKey.set(newcomers[i], orderRef.current.seq)
+    }
+    for (const key of [...byKey.keys()]) {
+      if (!live.has(key)) byKey.delete(key)
+    }
+    return [...list].sort((a, b) => {
+      const ka = byKey.get(streamKey(a)) ?? 0
+      const kb = byKey.get(streamKey(b)) ?? 0
+      if (kb !== ka) return kb - ka
+      return streamKey(a).localeCompare(streamKey(b))
+    })
+  }, [incidents])
 
   const rows = useMemo(() => {
-    const list = Array.isArray(incidents) ? incidents : []
-    if (!typeFilter) return list
-    return list.filter(
+    if (!typeFilter) return orderedIncidents
+    return orderedIncidents.filter(
       (inc) =>
         inc.detectionType === typeFilter ||
         (inc.detectionTypes ?? []).includes(typeFilter)
     )
-  }, [incidents, typeFilter])
+  }, [orderedIncidents, typeFilter])
 
   const presentTypes = useMemo(() => {
     const set = new Set()
@@ -115,13 +147,14 @@ export default function IncidentsPanel({ incidents = [], onSelectEndpoint }) {
         ) : (
           <ul className="space-y-2">
             {rows.map((inc) => {
-              const expanded = openId === inc.id
+              const cardKey = streamKey(inc)
+              const expanded = openId === cardKey
               const evidence = Array.isArray(inc.evidence) ? inc.evidence : []
               const deps = Array.isArray(inc.affectedDependencies)
                 ? inc.affectedDependencies
                 : []
               return (
-                <li key={inc.id}>
+                <li key={cardKey}>
                   <article
                     className={[
                       'overflow-hidden rounded-xl border bg-white/80 dark:bg-slate-900/40',
@@ -146,7 +179,7 @@ export default function IncidentsPanel({ incidents = [], onSelectEndpoint }) {
                             className="shrink-0 rounded p-0.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5"
                             aria-expanded={expanded}
                             aria-label={expanded ? 'Collapse incident' : 'Expand incident'}
-                            onClick={() => setOpenId((id) => (id === inc.id ? null : inc.id))}
+                            onClick={() => setOpenId((id) => (id === cardKey ? null : cardKey))}
                           >
                             <ChevronDown
                               className={`h-3.5 w-3.5 transition ${expanded ? 'rotate-180' : ''}`}
@@ -156,7 +189,7 @@ export default function IncidentsPanel({ incidents = [], onSelectEndpoint }) {
                         <button
                           type="button"
                           className="mt-1.5 w-full text-left"
-                          onClick={() => setOpenId((id) => (id === inc.id ? null : inc.id))}
+                          onClick={() => setOpenId((id) => (id === cardKey ? null : cardKey))}
                         >
                         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                           <span
@@ -205,16 +238,25 @@ export default function IncidentsPanel({ incidents = [], onSelectEndpoint }) {
                           <div className="mb-1 font-medium text-slate-700 dark:text-slate-200">
                             Explanation
                           </div>
-                          {inc.explanationStatus === 'pending' && !inc.explanation ? (
+                          {inc.explanationStatus === 'pending' ? (
                             <p className="text-slate-400">Generating explanation…</p>
+                          ) : inc.explanationStatus === 'fallback' ? (
+                            <>
+                              <p className="text-slate-400">
+                                AI Commander unavailable. Showing a short template; numeric facts are below.
+                              </p>
+                              {inc.explanation ? (
+                                <p className="mt-1 text-slate-600 dark:text-slate-300">{inc.explanation}</p>
+                              ) : null}
+                            </>
+                          ) : inc.explanationStatus === 'error' ? (
+                            <p className="text-slate-400">
+                              Commander could not explain this detection. Numeric facts are below.
+                            </p>
                           ) : inc.explanation ? (
                             <p className="text-slate-600 dark:text-slate-300">{inc.explanation}</p>
                           ) : (
-                            <p className="text-slate-400">
-                              {inc.explanationStatus === 'error'
-                                ? 'Commander could not explain this detection. Numeric facts are below.'
-                                : 'No explanation yet.'}
-                            </p>
+                            <p className="text-slate-400">No explanation yet.</p>
                           )}
                         </div>
                         <div className="grid gap-3 md:grid-cols-1">

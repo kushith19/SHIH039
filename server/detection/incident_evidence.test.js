@@ -127,6 +127,7 @@ test('promoteIncidents attaches numeric Level-1 evidence', () => {
 
   const incidents = promoteIncidents(result, input)
   assert.equal(incidents.length, 1)
+  assert.equal(incidents[0].id, 'inc-node-a')
   const ev = incidents[0].evidence
   assert.ok(ev.length > 0)
 

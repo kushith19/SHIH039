@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import re
@@ -93,7 +94,7 @@ class CommanderService:
         try:
             response = await llm.ainvoke(messages)
         except Exception:
-            response = llm.invoke(messages)
+            response = await asyncio.to_thread(llm.invoke, messages)
         content = getattr(response, "content", None) or str(response)
         summary = _parse_summary(content)
         if not summary:

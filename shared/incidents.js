@@ -66,8 +66,8 @@ export function emptyIncident() {
   }
 }
 
-export function incidentId(endpointId, detectionType) {
-  return `inc-${String(endpointId ?? '')}-${String(detectionType ?? 'unknown')}`
+export function incidentId(endpointId) {
+  return `inc-${String(endpointId ?? '')}`
 }
 
 /**

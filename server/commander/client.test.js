@@ -7,6 +7,13 @@ import {
   ollamaFallbackEnabled,
   toDetectionInput,
   toOllamaExplainPayload,
+  attachExplanations,
+  enqueueIncidentExplanations,
+  clearExplanationCache,
+  _openCommanderCircuitForTests,
+  _resetCommanderCircuitForTests,
+  _seedExplanationCacheForTests,
+  _explanationQueueLengthForTests,
 } from './client.js'
 
 test('mapDetectionType maps UK spelling', () => {
@@ -130,4 +137,160 @@ test('toOllamaExplainPayload omits full detection metadata', () => {
 
 test('ollama fallback is off unless OLLAMA_FALLBACK is set', () => {
   assert.equal(ollamaFallbackEnabled(), false)
+})
+
+test('fallbackExplanation dedupes repeated metrics and keeps top signals', () => {
+  const text = fallbackExplanation({
+    endpointLabel: 'Power Substation',
+    detectionType: 'behavioural_anomaly',
+    severity: 'critical',
+    evidence: [
+      { code: 'metric_deviation', metric: 'httpRequestsPerMin', deviationPct: 821 },
+      { code: 'edge_pps', metric: 'packetsPerSecond', deviationPct: 121 },
+      { code: 'metric_deviation', metric: 'packetsPerSecond', deviationPct: 121 },
+      { code: 'metric_deviation', metric: 'filesDownloaded', deviationPct: 80000 },
+      { code: 'metric_deviation', metric: 'cpu_usage', deviationPct: 37 },
+      { code: 'metric_deviation', metric: 'memory_usage', deviationPct: 38 },
+      { code: 'metric_deviation', metric: 'voltage', deviationPct: 38 },
+      { code: 'metric_deviation', metric: 'frequency', deviationPct: 5 },
+      { code: 'tgnn_embed' },
+      { code: 'context_mismatch:heavy_rain' },
+      { code: 'critical_infrastructure' },
+    ],
+  })
+  assert.match(text, /Power Substation/)
+  assert.match(text, /filesDownloaded/)
+  assert.match(text, /tgnn_embed/)
+  assert.match(text, /critical infrastructure/)
+  assert.equal(text.split('packetsPerSecond').length - 1, 1)
+  assert.equal(text.includes('frequency'), false)
+})
+
+test('circuit-open path does not mark ready', () => {
+  _resetCommanderCircuitForTests()
+  clearExplanationCache('room-circuit')
+  _openCommanderCircuitForTests()
+  const incident = {
+    id: 'inc-power-behavioural_anomaly',
+    endpointId: 'power-1',
+    endpointLabel: 'Power Substation',
+    detectionType: 'behavioural_anomaly',
+    severity: 'critical',
+    evidence: [{ code: 'metric_deviation', metric: 'httpRequestsPerMin', deviationPct: 821 }],
+  }
+  const room = { id: 'room-circuit', detection: { incidents: [incident] } }
+  enqueueIncidentExplanations(room)
+  attachExplanations(room, room.detection.incidents)
+  assert.equal(room.detection.incidents[0].explanationStatus, 'fallback')
+  assert.match(room.detection.incidents[0].explanation, /Power Substation/)
+  _resetCommanderCircuitForTests()
+  clearExplanationCache('room-circuit')
+})
+
+function liveIncident(overrides = {}) {
+  return {
+    id: 'inc-water-1',
+    endpointId: 'water-1',
+    endpointLabel: 'Water PLC',
+    detectionType: 'behavioural_anomaly',
+    severity: 'high',
+    evidence: [{ code: 'metric_deviation', metric: 'packetsPerSecond', deviationPct: 63 }],
+    ...overrides,
+  }
+}
+
+test('enqueue does not regenerate when live evidence or type changes after ready or pending', () => {
+  _resetCommanderCircuitForTests()
+  clearExplanationCache('room-churn')
+  const original = liveIncident()
+  const drifted = liveIncident({
+    detectionType: 'graph_propagation',
+    evidence: [
+      { code: 'metric_deviation', metric: 'packetsPerSecond', deviationPct: 80 },
+      { code: 'graph_propagation' },
+    ],
+  })
+  assert.notEqual(fingerprintIncident(original), fingerprintIncident(drifted))
+
+  _seedExplanationCacheForTests('room-churn', original.id, {
+    fingerprint: fingerprintIncident(original),
+    status: 'ready',
+    summary: 'Stable explanation.',
+  })
+  const readyRoom = { id: 'room-churn', detection: { incidents: [liveIncident(drifted)] } }
+  enqueueIncidentExplanations(readyRoom)
+  assert.equal(_explanationQueueLengthForTests(), 0)
+  assert.notEqual(readyRoom.detection.incidents[0].explanationStatus, 'pending')
+  attachExplanations(readyRoom, readyRoom.detection.incidents)
+  assert.equal(readyRoom.detection.incidents[0].explanationStatus, 'ready')
+  assert.equal(readyRoom.detection.incidents[0].explanation, 'Stable explanation.')
+
+  _resetCommanderCircuitForTests()
+  clearExplanationCache('room-churn')
+  _seedExplanationCacheForTests('room-churn', original.id, {
+    fingerprint: fingerprintIncident(original),
+    status: 'pending',
+    summary: 'Generating…',
+  })
+  const pendingRoom = { id: 'room-churn', detection: { incidents: [liveIncident(drifted)] } }
+  enqueueIncidentExplanations(pendingRoom)
+  assert.equal(_explanationQueueLengthForTests(), 0)
+  assert.notEqual(pendingRoom.detection.incidents[0].explanationStatus, 'pending')
+
+  _resetCommanderCircuitForTests()
+  clearExplanationCache('room-churn')
+})
+
+test('fallback does not immediately re-enqueue when the commander circuit closes', () => {
+  _resetCommanderCircuitForTests()
+  clearExplanationCache('room-fallback-backoff')
+  _openCommanderCircuitForTests()
+  const incident = liveIncident({
+    id: 'inc-power-1',
+    endpointId: 'power-1',
+    endpointLabel: 'Power Substation',
+    severity: 'critical',
+    evidence: [{ code: 'metric_deviation', metric: 'httpRequestsPerMin', deviationPct: 821 }],
+  })
+  const room = { id: 'room-fallback-backoff', detection: { incidents: [incident] } }
+  enqueueIncidentExplanations(room)
+  assert.equal(room.detection.incidents[0].explanationStatus, 'fallback')
+
+  _resetCommanderCircuitForTests()
+  const retried = liveIncident({
+    id: 'inc-power-1',
+    endpointId: 'power-1',
+    endpointLabel: 'Power Substation',
+    severity: 'critical',
+    evidence: [
+      { code: 'metric_deviation', metric: 'httpRequestsPerMin', deviationPct: 821 },
+      { code: 'graph_propagation' },
+    ],
+  })
+  const room2 = { id: 'room-fallback-backoff', detection: { incidents: [retried] } }
+  enqueueIncidentExplanations(room2)
+  assert.equal(_explanationQueueLengthForTests(), 0)
+  assert.notEqual(room2.detection.incidents[0].explanationStatus, 'pending')
+  attachExplanations(room2, room2.detection.incidents)
+  assert.equal(room2.detection.incidents[0].explanationStatus, 'fallback')
+
+  _resetCommanderCircuitForTests()
+  clearExplanationCache('room-fallback-backoff')
+})
+
+test('attachExplanations uses fallback status when cache is empty', () => {
+  clearExplanationCache('room-empty')
+  const incidents = [
+    {
+      id: 'inc-1',
+      endpointLabel: 'Water PLC',
+      detectionType: 'behavioural_anomaly',
+      severity: 'high',
+      evidence: [{ code: 'metric_deviation', metric: 'packetsPerSecond', deviationPct: 63 }],
+    },
+  ]
+  attachExplanations({ id: 'room-empty' }, incidents)
+  assert.equal(incidents[0].explanationStatus, 'fallback')
+  assert.match(incidents[0].explanation, /Water PLC/)
+  clearExplanationCache('room-empty')
 })

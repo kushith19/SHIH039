@@ -5,12 +5,25 @@ const OLLAMA_URL = process.env.OLLAMA_URL ?? 'http://localhost:11434'
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL ?? 'qwen2.5:7b-instruct'
 const MAX_IN_FLIGHT = 1
 const MAX_QUEUE = 5
-const COMMANDER_TIMEOUT_MS = 25_000
-const COMMANDER_HEALTH_TIMEOUT_MS = 1_500
+const COMMANDER_TIMEOUT_MS = 45_000
+const COMMANDER_HEALTH_TIMEOUT_MS = 3_000
+const HEALTH_TTL_MS = 5_000
 const OLLAMA_TIMEOUT_MS = 60_000
 const OLLAMA_NUM_PREDICT = 120
 const ERROR_RETRY_MS = 15_000
+const FALLBACK_TOP_N = 5
+const FALLBACK_ALWAYS_PREFIXES = Object.freeze([
+  'tgnn_embed',
+  'context_mismatch',
+  'critical_infrastructure',
+  'override',
+  'origin_spread',
+  'edge_contract',
+])
+
 let commanderDownUntil = 0
+let commanderHealthyUntil = 0
+let circuitOpenLogged = false
 
 const TYPE_MAP = {
   behavioural_anomaly: 'behavioral_anomaly',
@@ -44,12 +57,44 @@ export function fingerprintIncident(incident) {
   return `${incident?.id ?? ''}:${incident?.detectionType ?? ''}:${evidenceFingerprint(incident?.evidence)}`
 }
 
+function isAlwaysFallbackCode(code) {
+  const c = String(code ?? '')
+  return FALLBACK_ALWAYS_PREFIXES.some((p) => c === p || c.startsWith(`${p}:`) || c.startsWith(`${p}_`))
+}
+
+function pickFallbackLines(evidence) {
+  const items = Array.isArray(evidence) ? evidence : []
+  const seen = new Set()
+  const lines = []
+
+  function add(ev) {
+    const line = formatEvidenceItem(ev)
+    if (!line || seen.has(line)) return false
+    seen.add(line)
+    lines.push(line)
+    return true
+  }
+
+  for (const ev of items) {
+    if (isAlwaysFallbackCode(ev?.code)) add(ev)
+  }
+
+  const ranked = [...items].sort(
+    (a, b) => Math.abs(Number(b?.deviationPct) || 0) - Math.abs(Number(a?.deviationPct) || 0)
+  )
+  let metricCount = 0
+  for (const ev of ranked) {
+    if (metricCount >= FALLBACK_TOP_N) break
+    if (isAlwaysFallbackCode(ev?.code)) continue
+    if (add(ev)) metricCount += 1
+  }
+  return lines
+}
+
 export function fallbackExplanation(incident) {
   const endpoint = incident?.endpointLabel || incident?.endpointId || 'Endpoint'
   const type = detectionTypeLabel(incident?.detectionType)
-  const lines = (Array.isArray(incident?.evidence) ? incident.evidence : [])
-    .map((ev) => formatEvidenceItem(ev))
-    .filter(Boolean)
+  const lines = pickFallbackLines(incident?.evidence)
   const severity = incident?.severity || 'low'
   if (lines.length === 0) {
     return `${endpoint} was flagged as ${type} at ${severity} severity.`
@@ -117,6 +162,34 @@ export function clearExplanationCache(roomId) {
   if (roomId) caches.delete(String(roomId))
 }
 
+function circuitIsOpen() {
+  return Date.now() < commanderDownUntil
+}
+
+function openCircuit(reason) {
+  const alreadyOpen = circuitIsOpen()
+  commanderDownUntil = Date.now() + ERROR_RETRY_MS
+  commanderHealthyUntil = 0
+  if (!alreadyOpen || !circuitOpenLogged) {
+    circuitOpenLogged = true
+    console.warn('[commander] circuit open:', reason?.message ?? reason)
+  }
+}
+
+function markCommanderHealthy() {
+  commanderDownUntil = 0
+  commanderHealthyUntil = Date.now() + HEALTH_TTL_MS
+  circuitOpenLogged = false
+}
+
+/** @param {'ready' | 'pending' | 'error' | 'fallback' | string | undefined} status */
+function explanationStatusOf(status, fallback = 'fallback') {
+  if (status === 'ready' || status === 'pending' || status === 'error' || status === 'fallback') {
+    return status
+  }
+  return fallback
+}
+
 export function attachExplanations(room, incidents) {
   const cache = cacheFor(room?.id)
   for (const inc of incidents ?? []) {
@@ -125,29 +198,41 @@ export function attachExplanations(room, incidents) {
     const fallback = fallbackExplanation(inc)
     if (row && row.fingerprint === fp && row.summary) {
       inc.explanation = row.summary
-      inc.explanationStatus = row.status
+      inc.explanationStatus = explanationStatusOf(row.status)
     } else if (row?.status === 'ready' && row.summary) {
       inc.explanation = row.summary
       inc.explanationStatus = 'ready'
     } else if (row?.summary) {
       inc.explanation = row.summary
-      inc.explanationStatus = row.status === 'error' ? 'error' : row.status === 'pending' ? 'pending' : 'ready'
+      inc.explanationStatus = explanationStatusOf(row.status)
     } else {
       inc.explanation = fallback
-      inc.explanationStatus = row?.status === 'pending' ? 'pending' : row?.status === 'error' ? 'error' : 'ready'
+      inc.explanationStatus = explanationStatusOf(row?.status)
     }
   }
 }
 
-function mergeExplanation(room, incidentId, fp, { status, summary }) {
+function mergeExplanation(room, incidentId, _fp, { status, summary }) {
   const incidents = room?.detection?.incidents
   if (!Array.isArray(incidents)) return
   for (const inc of incidents) {
     if (inc.id !== incidentId) continue
-    if (fingerprintIncident(inc) !== fp) continue
     inc.explanation = summary ?? fallbackExplanation(inc)
     inc.explanationStatus = status
   }
+}
+
+function applyFallback(room, incident, fingerprint, { status = 'fallback' } = {}) {
+  const summary = fallbackExplanation(incident)
+  cacheFor(room.id).set(incident.id, {
+    fingerprint,
+    status,
+    summary,
+    lastAttempt: Date.now(),
+  })
+  mergeExplanation(room, incident.id, fingerprint, { status, summary })
+  incident.explanation = summary
+  incident.explanationStatus = status
 }
 
 function parseSummary(raw) {
@@ -196,15 +281,17 @@ async function fetchJson(url, { body, timeoutMs, method = 'POST', signal: outer 
 }
 
 async function commanderAvailable() {
-  if (Date.now() < commanderDownUntil) return false
+  if (circuitIsOpen()) return false
+  if (Date.now() < commanderHealthyUntil) return true
   try {
     await fetchJson(`${AI_COMMANDER_URL}/health`, {
       method: 'GET',
       timeoutMs: COMMANDER_HEALTH_TIMEOUT_MS,
     })
+    commanderHealthyUntil = Date.now() + HEALTH_TTL_MS
     return true
-  } catch {
-    commanderDownUntil = Date.now() + ERROR_RETRY_MS
+  } catch (err) {
+    openCircuit(err ?? new Error('health check failed'))
     return false
   }
 }
@@ -221,10 +308,10 @@ async function explainViaCommander(incident) {
     })
     const summary = String(data?.summary ?? '').trim()
     if (!summary) throw new Error('empty commander summary')
-    commanderDownUntil = 0
+    markCommanderHealthy()
     return summary
   } catch (err) {
-    commanderDownUntil = Date.now() + ERROR_RETRY_MS
+    openCircuit(err)
     throw err
   }
 }
@@ -257,33 +344,42 @@ async function explainViaOllama(incident) {
   return summary
 }
 
-async function explainIncident(incident) {
+async function tryOllamaExplanation(incident) {
+  if (!ollamaFallbackEnabled()) return null
   try {
-    return await explainViaCommander(incident)
+    const summary = await explainViaOllama(incident)
+    return { summary, status: 'ready' }
   } catch (err) {
-    console.warn('[commander] explain via AI Commander failed:', err?.message ?? err)
-    if (ollamaFallbackEnabled()) {
-      return explainViaOllama(incident)
+    console.warn('[commander] ollama fallback failed:', err?.message ?? err)
+    return { summary: fallbackExplanation(incident), status: 'error' }
+  }
+}
+
+async function explainIncident(incident) {
+  if (circuitIsOpen()) {
+    return (await tryOllamaExplanation(incident)) ?? {
+      summary: fallbackExplanation(incident),
+      status: 'fallback',
     }
-    return fallbackExplanation(incident)
+  }
+  try {
+    const summary = await explainViaCommander(incident)
+    return { summary, status: 'ready' }
+  } catch {
+    return (
+      (await tryOllamaExplanation(incident)) ?? {
+        summary: fallbackExplanation(incident),
+        status: 'fallback',
+      }
+    )
   }
 }
 
 function settleDroppedJob(job) {
   const cache = cacheFor(job.room.id)
   const row = cache.get(job.incident.id)
-  if (!row || row.fingerprint !== job.fingerprint || row.status !== 'pending') return
-  const summary = fallbackExplanation(job.incident)
-  cache.set(job.incident.id, {
-    fingerprint: job.fingerprint,
-    status: 'ready',
-    summary,
-    lastAttempt: Date.now(),
-  })
-  mergeExplanation(job.room, job.incident.id, job.fingerprint, {
-    status: 'ready',
-    summary,
-  })
+  if (!row || row.status !== 'pending') return
+  applyFallback(job.room, job.incident, job.fingerprint, { status: 'fallback' })
 }
 
 function trimQueue() {
@@ -298,38 +394,28 @@ function pump() {
   inFlight += 1
   const cache = cacheFor(job.room.id)
   const row = cache.get(job.incident.id)
-  if (!row || row.fingerprint !== job.fingerprint) {
+  if (!row || row.status !== 'pending') {
     inFlight -= 1
     pump()
     return
   }
   explainIncident(job.incident)
-    .then((summary) => {
+    .then(({ summary, status }) => {
       cache.set(job.incident.id, {
         fingerprint: job.fingerprint,
-        status: 'ready',
+        status,
         summary,
         lastAttempt: Date.now(),
       })
       mergeExplanation(job.room, job.incident.id, job.fingerprint, {
-        status: 'ready',
+        status,
         summary,
       })
       job.onAfter?.(job.room)
     })
     .catch((err) => {
       console.warn('[commander] explain failed:', err?.message ?? err)
-      const summary = fallbackExplanation(job.incident)
-      cache.set(job.incident.id, {
-        fingerprint: job.fingerprint,
-        status: 'error',
-        summary,
-        lastAttempt: Date.now(),
-      })
-      mergeExplanation(job.room, job.incident.id, job.fingerprint, {
-        status: 'error',
-        summary,
-      })
+      applyFallback(job.room, job.incident, job.fingerprint, { status: 'error' })
       job.onAfter?.(job.room)
     })
     .finally(() => {
@@ -343,16 +429,23 @@ export function enqueueIncidentExplanations(room, onAfter) {
   if (!room?.id || !Array.isArray(incidents) || incidents.length === 0) return
   const cache = cacheFor(room.id)
   const now = Date.now()
+  const open = circuitIsOpen()
   for (const inc of incidents) {
     if (!inc?.id) continue
     const fp = fingerprintIncident(inc)
     const row = cache.get(inc.id)
-    if (row && row.status === 'ready' && row.fingerprint === fp) continue
-    if (row && row.fingerprint === fp) {
-      if (row.status === 'pending') continue
-      if (row.status === 'error' && now - (row.lastAttempt || 0) < ERROR_RETRY_MS) continue
+    if (row?.status === 'ready' || row?.status === 'pending') continue
+    if (
+      (row?.status === 'error' || row?.status === 'fallback') &&
+      now - (row.lastAttempt || 0) < ERROR_RETRY_MS
+    ) {
+      continue
     }
-    const seed = row?.fingerprint === fp && row.summary ? row.summary : fallbackExplanation(inc)
+    if (open && !ollamaFallbackEnabled()) {
+      applyFallback(room, inc, fp, { status: 'fallback' })
+      continue
+    }
+    const seed = row?.summary ? row.summary : fallbackExplanation(inc)
     cache.set(inc.id, {
       fingerprint: fp,
       status: 'pending',
@@ -365,4 +458,31 @@ export function enqueueIncidentExplanations(room, onAfter) {
   }
   trimQueue()
   pump()
+}
+
+export function _openCommanderCircuitForTests(ms = ERROR_RETRY_MS) {
+  commanderDownUntil = Date.now() + ms
+  commanderHealthyUntil = 0
+  circuitOpenLogged = true
+}
+
+export function _resetCommanderCircuitForTests() {
+  commanderDownUntil = 0
+  commanderHealthyUntil = 0
+  circuitOpenLogged = false
+  queue.length = 0
+  inFlight = 0
+}
+
+export function _seedExplanationCacheForTests(roomId, incidentId, row) {
+  cacheFor(roomId).set(incidentId, {
+    fingerprint: row?.fingerprint ?? '',
+    status: row?.status ?? 'ready',
+    summary: row?.summary ?? '',
+    lastAttempt: row?.lastAttempt ?? Date.now(),
+  })
+}
+
+export function _explanationQueueLengthForTests() {
+  return queue.length
 }

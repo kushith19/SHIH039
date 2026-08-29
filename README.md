@@ -132,6 +132,8 @@ From the **repo root**:
 ```bash
 npm install
 npm install --prefix server
+npm start                 # full stack (Ollama, Qdrant, Commander, UI, API)
+# or just the browser app + game server:
 npm run dev:all
 ```
 
@@ -139,23 +141,55 @@ That starts Vite (`5173`) and the API (`3001`). Open http://localhost:5173
 
 API-only: `npm run dev:server`. UI-only: `npm run dev`.
 
-## 5. Optional telemetry ingestion
+## 5. Telemetry ingestion (Timescale on :3000)
 
-Needs Postgres matching `tele-ingestion/.env` (`DATABASE_URL`).
+`npm start` starts this by default:
+
+- TimescaleDB via `tele-ingestion/docker-compose.yml` (`postgres` on port 5432)
+- `npm run db:init` then the ingest API on **port 3000**
+
+The live dashboard waits for `http://127.0.0.1:3000/health`. Skip ingest with `npm start -- --no-ingest`.
+
+Manual-only:
 
 ```bash
 cd tele-ingestion
 npm install
+docker compose up -d postgres
 npm run db:init
 npm run dev
 ```
 
 ## Suggested start order
 
-1. Ollama with `qwen2.5:7b-instruct` running  
-2. `docker compose up -d qdrant` in `ai-com-v1`  
-3. Commander (`uvicorn` on 8000)  
-4. `npm run dev:all` at the repo root  
+From the **repo root**, after `npm install` and `npm install --prefix server`:
+
+```bash
+npm start
+```
+
+That one command:
+
+1. Copies missing `.env` files from the examples  
+2. Starts Ollama if it is not already on port 11434, and pulls `qwen2.5:7b-instruct` if needed  
+3. Starts Qdrant via `ai-com-v1/docker-compose.yml`  
+4. Starts TimescaleDB, initializes the schema, and runs tele-ingestion on port 3000  
+5. Creates `ai-com-v1/venv` and installs Python deps if needed, then runs Commander on port 8000  
+6. Starts the Vite UI (`5173`) and Node API (`3001`)
+
+Open http://localhost:5173
+
+Ctrl+C stops Commander, the UI, and the API. Qdrant (and Ollama if it was already running) stay up.
+
+Skip Timescale + tele-ingestion:
+
+```bash
+npm start -- --no-ingest
+```
+
+First-time RAG ingest is still manual (`python -m src.rag.ingest` in `ai-com-v1`). Incident explanations do not need it.
+
+To run only the UI + API (Commander already up): `npm run dev:all`.  
 
 ## Tests
 

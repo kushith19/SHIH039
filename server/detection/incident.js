@@ -315,7 +315,7 @@ function buildIncident({
   }
 
   return {
-    id: incidentId(ep.id, detectionType),
+    id: incidentId(ep.id),
     timestamp,
     endpointId: ep.id,
     endpointLabel: ep.label ?? ep.id,
@@ -417,6 +417,6 @@ export function promoteIncidents(result, input) {
     consider(id, true)
   }
 
-  incidents.sort((a, b) => b.anomalyScore - a.anomalyScore || a.endpointId.localeCompare(b.endpointId))
+  incidents.sort((a, b) => String(a.endpointId).localeCompare(String(b.endpointId)))
   return incidents
 }
