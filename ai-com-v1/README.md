@@ -30,7 +30,7 @@
 - **Incident & Campaign Consumption:** Analyzes individual incident events (`DetectionInput`) as well as multi-incident campaign packages (`CampaignInput`) supplied by upstream correlation engines.
 - **Authoritative Grounding:** Queries an indexed vector store of domain-specific standards (NIST SP 800-61, NIST SP 800-82, MITRE ATT&CK, CISA, NCIIPC) to prevent LLM hallucinations.
 - **Deterministic OT/ICS Safety:** Enforces strict operational continuity rules to prevent catastrophic blind shutdowns of critical physical controllers, SCADA, or PLCs.
-- **Dual-LLM Architecture:** Uses Groq Cloud API (`openai/gpt-oss-20b`) as the high-speed primary inference provider with an automatic local fallback to Ollama (`qwen3:8b`).
+- **Dual-LLM Architecture:** Uses Groq Cloud API (`openai/gpt-oss-20b`) as the high-speed primary inference provider with an automatic local fallback to Ollama (`qwen2.5:7b-instruct`).
 
 ---
 
@@ -94,7 +94,7 @@ flowchart TD
         SuffNode -.-> Wrapper
         
         Wrapper -->|Primary| Groq[Groq API: openai/gpt-oss-20b]
-        Wrapper -.->|On Network/API Failure| Ollama[Local Ollama: qwen3:8b]
+        Wrapper -.->|On Network/API Failure| Ollama[Local Ollama: qwen2.5:7b-instruct]
     end
 
     subgraph Vector Knowledge Base
@@ -234,7 +234,7 @@ curl -X POST http://localhost:8000/commander/analyze \
 - **Python:** 3.10, 3.11, or 3.14 (Virtual environment recommended)
 - **Docker:** Required for running the local Qdrant vector database
 - **Groq API Key:** Required for primary cloud inference (`openai/gpt-oss-20b`)
-- **Ollama (Optional):** Required for local fallback (`ollama run qwen3:8b`)
+- **Ollama (Optional):** Required for local fallback (`ollama pull qwen2.5:7b-instruct`)
 
 ### 8.2 Environment Configuration
 Create a `.env` file from the example template:
@@ -258,7 +258,7 @@ GROQ_API_KEY=your_groq_api_key_here
 GROQ_MODEL=openai/gpt-oss-20b
 
 # Ollama Fallback Settings
-OLLAMA_MODEL=qwen3:8b
+OLLAMA_MODEL=qwen2.5:7b-instruct
 OLLAMA_BASE_URL=http://localhost:11434
 
 # Qdrant Vector Store
@@ -355,7 +355,7 @@ Final Evidence Count: 6 chunks
 
 ### 9.4 Established V1 Benchmarks
 
-| Metric / Scenario | Groq Primary (`openai/gpt-oss-20b`) | Ollama Fallback (`qwen3:8b`) | Notes |
+| Metric / Scenario | Groq Primary (`openai/gpt-oss-20b`) | Ollama Fallback (`qwen2.5:7b-instruct`) | Notes |
 |---|---|---|---|
 | **Simple Incident Assessment Latency** | **~1.6 s** | ~45.0 s | **~28x faster inference** |
 | **Simple Incident Total Latency (INC-001)** | **~1.7 s** (1 call) | ~46.2 s (1 call) | Bypasses Planner & Sufficiency |

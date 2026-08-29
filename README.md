@@ -1,68 +1,170 @@
-# TrustNetAI (smarthackathon)
+# TrustNet
 
-Browser-based IoT topology lab with trust scoring, live-match attack simulation, and **2-player multiplayer** (defender vs attacker) in a **single shared session**.
+Smart-city cyber-resilience demo: live topology and attack simulation in the browser, a Node API for rooms/telemetry, and an AI Commander service that turns detections into grounded incident assessments.
 
-## Quick start
+## What you need
+
+| Requirement | Version / notes |
+|---|---|
+| **Node.js** | 20 or newer (root UI + `server/`; `tele-ingestion` also expects Node 20+) |
+| **Python** | 3.10–3.12 recommended (`ai-com-v1`) |
+| **Docker** | For Qdrant (`ai-com-v1/docker-compose.yml`) |
+| **Ollama** | Local LLM at `http://localhost:11434` |
+| **Groq API key** | Optional. Faster primary LLM; Commander falls back to Ollama if Groq is unset or fails |
+| **PostgreSQL / TimescaleDB** | Only if you run `tele-ingestion` |
+
+RAM: `qwen2.5:7b-instruct` typically needs about **8 GB** free. Smaller machines can use a 3B instruct model (see below).
+
+## Ollama model
+
+The repo is wired to this model name:
+
+**`qwen2.5:7b-instruct`**
+
+It is the default in:
+
+- `ai-com-v1` (`OLLAMA_MODEL`, `src/config/settings.py`)
+- `server` (`OLLAMA_MODEL` in `.env.example`)
+
+Install Ollama, then pull and run that tag:
+
+```bash
+# https://ollama.com — install the app or CLI for your OS
+
+ollama pull qwen2.5:7b-instruct
+ollama serve          # if the daemon is not already running
+ollama list           # confirm qwen2.5:7b-instruct is present
+```
+
+Keep the Ollama server on **port 11434** (default).
+
+If you change the model, use the **same** name in both env files:
+
+- `ai-com-v1/.env` → `OLLAMA_MODEL=...`
+- `server/.env` → `OLLAMA_MODEL=...`
+
+Example lighter alternative: `qwen2.5:3b-instruct` (set both env vars; quality of Commander JSON will be worse).
+
+Optional Groq (faster, used as primary when `LLM_PROVIDER=groq`):
+
+- Model: `openai/gpt-oss-20b`
+- Set `GROQ_API_KEY` in `ai-com-v1/.env`
+
+The Node server’s local Ollama explain path is **off** by default (`OLLAMA_FALLBACK=0`) so live attacks do not spin the laptop. Commander still uses Ollama when `LLM_PROVIDER=ollama` or as Groq fallback.
+
+## Repo layout
+
+| Path | Role | Default URL |
+|---|---|---|
+| `/` (Vite + React) | Dashboard UI | http://localhost:5173 |
+| `server/` | Rooms, sockets, detection, optional Commander client | http://localhost:3001 |
+| `ai-com-v1/` | FastAPI AI Commander + RAG (Qdrant) | http://localhost:8000 |
+| `tele-ingestion/` | Optional CitySnapshot → TimescaleDB | http://localhost:3000 |
+
+## 1. Clone and env files
+
+```bash
+cd trustNet
+
+cp server/.env.example server/.env
+cp ai-com-v1/.env.example ai-com-v1/.env
+# optional:
+cp tele-ingestion/.env.example tele-ingestion/.env
+```
+
+In `ai-com-v1/.env` (local-only, no Groq):
+
+```ini
+LLM_PROVIDER=ollama
+OLLAMA_MODEL=qwen2.5:7b-instruct
+OLLAMA_BASE_URL=http://localhost:11434
+```
+
+In `server/.env`, leave `AI_COMMANDER_URL=http://localhost:8000` so the UI/API can call Commander. Keep `OLLAMA_FALLBACK=0` unless you explicitly want the Node process to call Ollama.
+
+Never commit `.env` files or API keys.
+
+## 2. Qdrant (required for Commander RAG)
+
+```bash
+cd ai-com-v1
+docker compose up -d qdrant
+```
+
+Dashboard: http://localhost:6333/dashboard
+
+First-time knowledge ingest (from `ai-com-v1/` with the venv active):
+
+```bash
+python -m src.rag.ingest --input data/processed --batch-size 256
+```
+
+Embeddings use **`sentence-transformers/all-MiniLM-L6-v2`** (downloaded on first run; no Ollama needed for embeddings).
+
+## 3. AI Commander
+
+```bash
+cd ai-com-v1
+python3 -m venv venv
+source venv/bin/activate          # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Health:
+
+```bash
+curl http://localhost:8000/health
+```
+
+Analyze a mock incident:
+
+```bash
+curl -X POST http://localhost:8000/commander/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"incidentId": "INC-001"}'
+```
+
+## 4. Node API + web UI
+
+From the **repo root**:
 
 ```bash
 npm install
-cd server && npm install && cd ..
+npm install --prefix server
 npm run dev:all
 ```
 
-Open [http://localhost:5173](http://localhost:5173). The game server must be running (port 3001).
+That starts Vite (`5173`) and the API (`3001`). Open http://localhost:5173
 
-### Live telemetry (tele-ingestion)
+API-only: `npm run dev:server`. UI-only: `npm run dev`.
 
-During a match the game server **generates** jittered city snapshots each second, **POSTs** them to tele-ingestion, then **reads** `GET /api/telemetry/recent` for detection, the dashboard, the graph, and AI incident evidence.
+## 5. Optional telemetry ingestion
+
+Needs Postgres matching `tele-ingestion/.env` (`DATABASE_URL`).
 
 ```bash
 cd tele-ingestion
-docker compose up -d
-pnpm install
-pnpm db:init
-```
-
-Keep that Compose stack running (API on **port 3000**, Timescale on **5432**). Then start TrustNet (`npm run dev:all`). No separate friend generator is required. Override the URL with `TELE_INGESTION_URL` if needed (`http://127.0.0.1:3000` by default).
-
-Or run frontend and server in separate terminals:
-
-```bash
-# Terminal 1
-cd server && npm run dev
-
-# Terminal 2
+npm install
+npm run db:init
 npm run dev
 ```
 
-### Play flow
+## Suggested start order
 
-There is one shared session. No room codes.
+1. Ollama with `qwen2.5:7b-instruct` running  
+2. `docker compose up -d qdrant` in `ai-com-v1`  
+3. Commander (`uvicorn` on 8000)  
+4. `npm run dev:all` at the repo root  
 
-1. **You (explainer):** open the app. You are assigned **defender**. Load **Default architecture**, pick the detection model, and build or walk through the topology.
-2. **Judge (or second window):** open the **same URL** in another browser, tab, or device. They are assigned **attacker**.
-3. When both are connected, the match starts automatically (`playing` phase).
-4. **Attacker:** select a node and use the **Inspector** or **Attack tools** presets (traffic flood, data exfiltration, API abuse, credential spray). Spike packets/s, HTTP requests, file downloads, or failed logins. Drop **rogue** devices from **Attack tools** and wire them into the mesh.
-5. **Defender:** watch trust/anomaly colors; select suspicious nodes → **Quarantine**.
+## Tests
 
-A third client is rejected (session full). If both disconnect, the next pair starts a fresh session.
+```bash
+# Commander (from ai-com-v1, venv on)
+pytest tests/test_agent.py tests/test_phase_6b.py tests/test_phase_6c_1.py tests/test_phase_6c_2.py tests/rag/
 
-### Production deploy
+# Ingestion
+cd tele-ingestion && npm test
+```
 
-- **Frontend:** build with `npm run build`, host static files (Vercel, Netlify, etc.).
-- **Server:** deploy `server/` (Render, Fly, Railway, etc.) and set `CLIENT_ORIGIN` to your frontend URL.
-- **Frontend env:** set `VITE_WS_URL` to your server origin (e.g. `https://your-api.onrender.com`). Leave empty in dev to use the Vite proxy to `localhost:3001`.
-
-## Routes
-
-| Path | Description |
-|------|-------------|
-| `/` | Live session (first client = defender, second = attacker) |
-| `/play` | Same session |
-| `/play/:roomId` | Redirects to `/play` |
-| `/default` | Same session, loads default topology when the graph is empty |
-| `/dashboard` | Static demo KPIs (live metrics when opened from a match as defender) |
-
-## Stack
-
-React 19, Vite, React Flow, Tailwind, client-side TGNN anomaly detection, Socket.IO (multiplayer).
+Architecture, LangGraph nodes, and API contracts for Commander: [ai-com-v1/README.md](ai-com-v1/README.md).
