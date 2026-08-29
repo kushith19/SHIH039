@@ -1,0 +1,508 @@
+================================================================================
+  TRUSTNETAI (smarthackathon) — SYSTEM REPORT
+  How the application works, trust models, and anomaly detection
+  Generated: May 15, 2026
+================================================================================
+
+TABLE OF CONTENTS
+-----------------
+  1.  Executive summary
+  2.  Technology stack
+  3.  Application structure and routes
+  4.  User workflow (canvas)
+  5.  IoT asset catalog
+  6.  Graph canvas (React Flow)
+  7.  Persistence and import/export
+  8.  Compromise scenario (“hack simulator”)
+  9.  Trust score model (composite, 0–100)
+ 10.  Peer trust and topology metrics
+ 11.  TGNN anomaly detection (the ML model)
+ 12.  Attack spread simulation
+ 13.  Security scan pipeline (end-to-end)
+ 14.  Visual indicators on the canvas
+ 15.  Inspector panel
+ 16.  Dashboard page
+ 17.  Key source files
+ 18.  How to try anomaly detection
+ 19.  Limitations and design notes
+
+
+================================================================================
+1. EXECUTIVE SUMMARY
+================================================================================
+
+TrustNetAI is a browser-based IoT network topology editor and security
+demonstration tool. Users build a directed graph of devices (nodes) and
+connections (edges) on an interactive canvas. Each device has a type (sensor,
+gateway, firewall, etc.), a label, and a “packets per second” (PPS) traffic
+rate.
+
+The core security story:
+
+  • In normal mode, nodes show a composite TRUST SCORE derived from device
+    class, neighbor topology, traffic stability, and link consistency.
+
+  • In COMPROMISE SCENARIO mode, the user can change PPS values without
+    altering the saved baseline. The app compares “baseline” vs “effective”
+    traffic and runs a TGNN (temporal graph neural network) to flag which
+    device’s behavior is most anomalous relative to the rest of the network.
+
+  • After anomalies are found, an ATTACK SPREAD model simulates how compromise
+    might propagate to the highest-risk neighbor and downstream assets.
+
+There is no backend server in this project. All logic runs in the browser.
+Graph state is saved to localStorage. The /dashboard route shows static demo
+metrics only (not connected to live canvas data).
+
+
+================================================================================
+2. TECHNOLOGY STACK
+================================================================================
+
+  Framework:     React 19 + Vite 8
+  Routing:       react-router-dom (/, /default, /dashboard)
+  Graph UI:      @xyflow/react (React Flow) — nodes, edges, pan/zoom
+  ML:            client-side TGNN in tgnnAnomaly.js (no external ML npm package)
+  Icons:         lucide-react
+  Styling:       Tailwind CSS 4
+  IDs:           crypto.randomUUID() for new nodes/edges
+
+
+================================================================================
+3. APPLICATION STRUCTURE AND ROUTES
+================================================================================
+
+Entry: src/main.jsx
+  • Wraps App in StrictMode and BrowserRouter
+  • Loads React Flow CSS and global styles
+
+Routes (src/App.jsx):
+
+  /              LobbyPage — create/join multiplayer rooms (default)
+  /play          LobbyPage (alias)
+  /default       Redirect to /?loadDefault=1 for default topology on create
+  /play/:roomId  GamePage — live defender vs attacker match
+  /dashboard     DashboardPage — static operations overview (dummy KPIs)
+
+GamePage layout:
+  • Header: logo, room code, role/phase, link to lobby
+  • Left:   SidebarAssets — devices + attack tools (role-gated)
+  • Center: GraphCanvas — topology editor (server-synced)
+  • Right:  InspectorPanel — edit selected node/edge + trust/anomaly info
+
+
+================================================================================
+4. USER WORKFLOW (CANVAS)
+================================================================================
+
+Building a topology:
+  1. Drag a device from the left sidebar onto the canvas.
+  2. Connect devices by dragging from a source handle to a target handle.
+  3. New edges default to label "API" and 0 pkt/s until edited.
+  4. Select a node or edge to edit label and PPS in the Inspector.
+
+Canvas toolbar (top-left panel on graph):
+  • Zoom +/-, Fit view
+  • Clear all — removes entire topology
+  • Default architecture — loads built-in 10-node IoT demo mesh
+  • Compromise scenario — toggles attack simulation mode on/off
+  • Reset scenario — clears scenario PPS overrides (keeps baselines locked)
+  • Export / Import JSON — save or load topology files
+
+Selection:
+  • Click a node or edge; Inspector opens (on mobile, use panel buttons).
+  • Inspector shows trust score; in scenario mode also anomaly and threat role.
+
+
+================================================================================
+5. IOT ASSET CATALOG
+================================================================================
+
+File: src/features/graph/assetCatalog.js
+
+Each asset type defines:
+  • type              — machine id (e.g. env_sensor, firewall)
+  • title             — display name
+  • defaultPacketsPerSecond — default traffic when dropped on canvas
+  • intrinsicTrust    — 0–100 reputation for that device class
+  • Icon              — Lucide icon component
+  • handles           — connection points (top/left/right/bottom in/out)
+
+Device types (14 total):
+  env_sensor, smart_actuator, edge_gateway, ip_camera, wearables_hub,
+  plc_controller, cloud_ingest, mqtt_broker, app_server, database_server,
+  api_gateway, load_balancer, firewall, object_storage
+
+Intrinsic trust examples:
+  • Firewall: 94 (high trust)
+  • Environmental sensor: 58 (lower trust)
+  • Default if unknown type: 50
+
+Higher intrinsic trust means the device is considered more “reliable” by
+class. This feeds both the visible trust score and attack spread resistance.
+
+
+================================================================================
+6. GRAPH CANVAS (REACT FLOW)
+================================================================================
+
+File: src/features/graph/GraphCanvas.jsx
+
+State managed inside GraphCanvas:
+  • nodes, edges          — React Flow graph
+  • hackSimulator         — compromise scenario overlays
+  • snapToGrid, viewport  — UI preferences
+  • export/import modals
+
+Node type:  iotDevice  → IoTDeviceNode.jsx
+Edge type:  directedLabeled → DirectedLabeledEdge.jsx
+
+HackSimulatorContext:
+  • Provided to all nodes/edges under the canvas
+  • Contains active flag, overrides, baselines, and computed security scan:
+      - isolationScoresByNodeId
+      - anomalyNodeIds
+      - spreadEdgeIds, compromisedNodeIds
+      - atRiskNodeIds, atRiskEdgeIds
+      - primarySpreadNodeId, primarySpreadEdgeId
+
+Security scan runs on every graph or scenario change via:
+  collectActiveAnomalies(nodes, edges, hackSimulator)
+  (defined in peerTrust.js)
+
+When anomalies appear, a toast notification shows flagged node names and
+whether spread reached a high-risk neighbor.
+
+
+================================================================================
+7. PERSISTENCE AND IMPORT/EXPORT
+================================================================================
+
+File: src/features/graph/graphIO.js
+
+Storage key: localStorage "smarthackathon.canvas.graph.v1"
+
+Payload format (version 4):
+  • version, nodes, edges, viewport
+  • graph — derived directedEdges, directedAdjacency, connections
+  • hackSimulator — active, overrides, scenario baselines
+
+Auto-save:
+  • Debounced ~400ms after nodes, edges, or hackSimulator change
+  • Viewport saved ~500ms after pan/zoom ends
+
+Default architecture:
+  • 10 nodes: field sensors/PLC/camera → edge gateway/MQTT → firewall/LB
+    → API/app → cloud ingest
+  • 20 directed edges with realistic labels and PPS values
+  • Loaded via “Default architecture” button or /default route once
+
+Legacy import:
+  • Older graph versions (v1–v3) migrate asset types and risk→PPS fields
+
+
+================================================================================
+8. COMPROMISE SCENARIO (“HACK SIMULATOR”)
+================================================================================
+
+Purpose: Simulate an attack or misconfiguration WITHOUT permanently changing
+the user’s baseline topology until they turn scenario mode off.
+
+When user clicks “Compromise scenario” (toggleHackMode):
+
+  ON:
+    • active = true
+    • nodeScenarioBaselines and edgeScenarioBaselines are SNAPSHOTS of current
+      PPS values on every node/edge at activation time
+    • These baselines stay fixed for the duration of the scenario
+
+  OFF:
+    • active = false
+    • All overrides and baselines cleared
+    • Canvas returns to live node/edge data only
+
+Editing PPS in scenario mode:
+  • Changes go into nodeOverrides / edgeOverrides (not into permanent node.data
+    until scenario is off)
+  • If override equals baseline, override entry is removed
+  • Inspector and nodes show EFFECTIVE PPS (override or baseline)
+
+Reset scenario:
+  • Clears overrides only; baselines remain locked until scenario is toggled off
+
+Why baselines matter:
+  • TGNN embeds baseline vs effective temporal rows and scores reconstruction
+    “effective” rows — so only devices whose traffic CHANGED in the scenario
+    can be flagged as drift candidates.
+
+
+================================================================================
+9. TRUST SCORE MODEL (COMPOSITE, 0–100)
+================================================================================
+
+File: src/features/graph/peerTrust.js — computeTrustScore()
+
+The trust score is a weighted blend of four components (not the same as
+anomaly detection; it is a user-facing reliability metric):
+
+  Component                    Weight   Meaning
+  ---------------------------  ------   ----------------------------------------
+  Intrinsic trust              25%      Device class reputation from catalog
+  Structural peer trust        30%      Average intrinsic trust of neighbors
+  Behavioral trust             25%      Penalty when PPS drifts from baseline
+  Interaction trust            20%      Edge throughput vs endpoint capacity
+
+Behavioral trust:
+  • deviationRatio = |effectivePps - baselinePps| / baselinePps
+  • Linear penalty: at 35% deviation (BEHAVIORAL_TRUST_FULL_PENALTY_RATIO),
+    behavioral component hits 0
+
+Interaction trust:
+  • For each incident edge, compare edge effective PPS to min(source, target)
+    effective PPS
+  • quality = min(edge, cap) / max(edge, cap); average × 100
+  • No edges → 100 (neutral)
+
+Displayed on every IoT node card as “Trust score: NN%”.
+
+
+================================================================================
+10. PEER TRUST AND TOPOLOGY METRICS
+================================================================================
+
+computePeerTrustMetrics(nodes, edges):
+  • Builds undirected neighbor map from edges
+  • degree = number of connected neighbors
+  • peerTrust = average intrinsicTrust of neighbors (or self trust if isolated)
+
+Used by:
+  • Trust score (structural component)
+  • TGNN feature vectors (peerTrustNorm, degreeNorm, metric deviations)
+  • Attack spread resistance
+
+
+================================================================================
+11. TGNN ANOMALY DETECTION (THE ML MODEL)
+================================================================================
+
+File: src/features/graph/tgnnAnomaly.js
+Library: none (pure JavaScript, runs in browser)
+
+WHAT IS TGNN HERE?
+  Temporal Graph Neural Network: each node has baseline (t0) and effective (t1)
+  feature vectors; embeddings are refined with neighbor message passing on the
+  live graph. Anomaly score = sigmoid of L2 distance between current embedding
+  and baseline-only reference embedding.
+
+WHEN IT RUNS:
+  Only when hackSimulator.active === true and there is at least one node.
+  If scenario is off, all nodes get isolationScore 0.5 and isAnomaly false.
+
+PIPELINE (runTgnnAnomaly):
+
+  Step 1 — Build feature matrix per node (two modes):
+    • baseline mode: locked scenario metrics
+    • effective mode: overrides if present
+
+  Step 2 — Eleven normalized features per node (0–1 range):
+    deviationLogNorm, ppsDeltaNorm, effectivePpsNorm,
+    httpDeviationNorm, filesDeviationNorm, loginDeviationNorm,
+    peerTrustNorm, degreeNorm, intrinsicTrustNorm,
+    behavioralNorm, interactionNorm
+
+  Step 3 — Temporal input + graph forward:
+    • Concatenate baseline + effective → 22-d input per node
+    • Two layers: tanh(W·x) + neighbor mean aggregation (fixed weights)
+    • baseline_emb from [baseline, baseline]; current_emb from [baseline, effective]
+    • score = sigmoid(α · ||current_emb − baseline_emb||)
+
+  Step 4 — Classify anomalies (classifyTgnnScores):
+
+    Only nodes with SCENARIO DRIFT and deviationRatio ≥ 10%
+    (TGNN_MIN_DEVIATION_RATIO), OR any metric spike ≥ 50%, are candidates.
+
+    Flag each drift candidate if:
+      • score ≥ 0.58 (TGNN_ANOMALY_SCORE_THRESHOLD)
+      • score ≥ 0.50 (TGNN_RELATIVE_MIN_SCORE) OR (spread ≥ 0.06 AND gap ≥ 0.04)
+
+    Small graphs (< 3 nodes): each qualifying candidate with score ≥ 0.55.
+
+  OUTPUT:
+    • isolationScoresByNodeId — float per node (field name kept for UI compat)
+    • anomalyNodeIds — list of flagged node ids (attack origins)
+    • nodeResults — per-node label, score, isAnomaly flag
+
+IMPORTANT: File/HTTP/login features use linear scaling (not log-damped) so
+large jumps (e.g. files 10→80) register strongly. Optimistic sim patches on
+the client make drift/anomaly UI update before server round-trip.
+
+
+================================================================================
+12. ATTACK SPREAD SIMULATION
+================================================================================
+
+File: src/features/graph/attackSpread.js — computeAttackSpread()
+
+Triggered after TGNN produces anomalyNodeIds (seeds).
+
+Concept:
+  • Seeds = compromised / anomaly origin nodes (red)
+  • Among direct neighbors of seeds, simulate BFS spread into nodes with
+    resistance below SPREAD_TRUST_CUTOFF (65)
+  • Resistance = max(intrinsicTrust, peerTrust) for that node
+  • High-trust devices (firewall, database, etc.) block deeper propagation
+
+pickPrimarySpreadTarget:
+  • For each seed neighbor, run simulateSpreadReach (BFS)
+  • Choose neighbor with largest downstream reach
+  • Tie-break: lower resistance, then higher degree
+
+Results:
+  • primarySpreadNodeId / primarySpreadEdgeId — “highest spread risk” (red)
+  • compromisedNodeIds — seeds + primary target
+  • spreadEdgeIds — edge to primary target
+  • atRiskNodeIds / atRiskEdgeIds — other downstream or alternate first-hop
+    targets (purple “may be attacked”)
+
+This is a graph heuristic demo, not a real exploit model.
+
+
+================================================================================
+13. SECURITY SCAN PIPELINE (END-TO-END)
+================================================================================
+
+collectActiveAnomalies(nodes, edges, sim) in peerTrust.js:
+
+  if (!sim.active) → empty result
+
+  1. tgnnResult = runTgnnAnomaly(nodes, edges, sim)
+  2. spread = computeAttackSpread({ nodes, edges, anomalyNodeIds })
+  3. Build nodeHits (anomaly nodes with scores) and edgeHits (spread edges)
+  4. Return combined object for UI and HackSimulatorContext
+
+GraphCanvas useMemo:
+  securityScan = collectActiveAnomalies(...)
+  → fed into hackContextValue → HackSimulatorContext
+
+IoTDeviceNode reads context to color nodes and show badges:
+  • Anomaly detected (amber badge) — TGNN flag on seed
+  • Highest spread risk (rose) — primary spread target
+  • May be attacked (violet) — at-risk downstream
+
+DirectedLabeledEdge colors:
+  • Rose stroke — primary spread edge
+  • Violet — at-risk path edges
+  • Amber chip — drift (PPS changed)
+  • Slate — unchanged under scenario
+
+
+================================================================================
+14. VISUAL INDICATORS ON THE CANVAS
+================================================================================
+
+Normal mode (scenario off):
+  • Nodes: green styling
+  • Edges: green-tinted labels
+
+Scenario on:
+  • No drift: muted slate nodes
+  • Drift (PPS changed, not anomaly): amber/orange
+  • Anomaly seed OR primary spread target: red (HACK_TAMPERED)
+  • At-risk nodes: purple (HACK_ATTACK_ORIGIN style)
+
+Trust score and PPS always visible on node cards.
+
+
+================================================================================
+15. INSPECTOR PANEL
+================================================================================
+
+File: src/features/inspector/InspectorPanel.jsx
+
+For selected node:
+  • Edit label and PPS (scenario-aware labeling)
+  • Trust score %
+  • In scenario mode: Anomaly Yes/No, Threat label:
+      Attack origin | Spread target | At risk | Anomaly | Drift
+
+getNodeTrustInsights() aggregates:
+  • trust model components
+  • anomaly evaluation
+  • attackOrigin, spreadReached, atRisk, onSpreadPath flags
+
+For selected edge:
+  • Edit label and PPS
+  • Delete edge
+
+
+================================================================================
+16. DASHBOARD PAGE
+================================================================================
+
+File: src/pages/DashboardPage.jsx
+
+Static demo only — hardcoded KPIs, charts, daily report, device table.
+Does NOT read from canvas or run TGNN.
+Use canvas + compromise scenario for live security demo.
+
+
+================================================================================
+17. KEY SOURCE FILES
+================================================================================
+
+  src/main.jsx                          App bootstrap
+  src/App.jsx                           Routes
+  src/pages/LobbyPage.jsx               Multiplayer lobby
+  src/pages/GamePage.jsx                Live match shell
+  src/pages/DashboardPage.jsx           Static dashboard
+  src/features/assets/SidebarAssets.jsx Device palette
+  src/features/graph/GraphCanvas.jsx    Canvas + scenario toggle + scan
+  src/features/graph/graphIO.js         Save/load/default topology
+  src/features/graph/assetCatalog.js    Device types and intrinsic trust
+  src/features/graph/peerTrust.js       Trust score + scan orchestration
+  src/features/graph/tgnnAnomaly.js             ML anomaly detection (TGNN)
+  src/features/graph/attackSpread.js    Spread simulation
+  src/features/graph/hackSimulatorContext.js  React context types
+  src/features/graph/nodeTypes/IoTDeviceNode.jsx
+  src/features/graph/edgeTypes/DirectedLabeledEdge.jsx
+  src/features/inspector/InspectorPanel.jsx
+
+
+================================================================================
+18. HOW TO TRY ANOMALY DETECTION
+================================================================================
+
+  1. npm run dev:all — open http://localhost:5173
+  2. Defender: Create room → Default architecture
+  3. Attacker: Join room; match auto-starts when both connected
+  4. Attacker: select a field device (e.g. Environmental sensor)
+  5. In Inspector, raise “Files downloaded” or PPS (e.g. 10 → 80)
+  6. Watch for:
+     • Toast: “Anomaly detected” with device name
+     • Node turns red / “Anomaly detected” badge
+     • Possible “Highest spread risk” on a neighbor
+     • Purple “May be attacked” on downstream low-trust nodes
+  7. Click “Reset scenario” to clear overrides; toggle scenario off to exit
+
+Tip: Changing many nodes at once can dilute relative scores; a single strong
+outlier on a low-trust edge device usually triggers clearest results.
+
+
+================================================================================
+19. LIMITATIONS AND DESIGN NOTES
+================================================================================
+
+  • All ML runs client-side on the current graph only — no historical training
+  • TGNN thresholds (0.58 flag floor, 10% drift, 50% metric spike) tuned for
+    live multiplayer attacker/defender matches
+  • Trust score and anomaly detection are separate: a node can have lowered
+    trust from drift without being the TGNN “winner” among drift candidates
+  • Attack spread is a trust-topology heuristic, not CVE/exploit modeling
+  • Dashboard metrics are placeholders
+  • No authentication, multi-user, or real telemetry ingestion
+  • Edge PPS overrides affect interaction trust features but anomaly seeds
+    are node-level from TGNN node feature matrix
+
+================================================================================
+  END OF REPORT
+================================================================================

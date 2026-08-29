@@ -1,0 +1,47 @@
+id: major_event
+priority: 15
+description: >
+  Large public gathering (festival, concert, major sporting event).
+  Localized surge concentrated in transportation, telecom, public
+  safety, and finance around the event zone.
+
+modifiers:
+
+  transportation:
+    activityLevel: peak
+    communicationPattern: continuous
+    workload: heavy
+    networkActivity: high
+    expectedOperations: high
+
+  telecommunications:
+    activityLevel: peak
+    communicationPattern: continuous
+    workload: heavy
+    networkActivity: high
+
+  public-safety:
+    activityLevel: peak
+    communicationPattern: continuous
+    workload: heavy
+    expectedOperations: high
+
+  emergency-services:
+    activityLevel: high
+    workload: heavy
+    expectedOperations: high
+
+  finance:
+    activityLevel: high
+    workload: moderate
+    expectedUsers: high
+
+  healthcare:
+    activityLevel: high
+    workload: moderate
+    expectedOperations: high
+
+  energy:
+    activityLevel: high
+    workload: heavy
+    networkActivity: high

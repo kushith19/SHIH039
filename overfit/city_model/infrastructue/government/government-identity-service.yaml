@@ -1,0 +1,202 @@
+id: government-identity-service
+name: Government Identity Service
+
+category: government
+type: government_identity_service
+
+description: >
+  Central identity and authentication service responsible for verifying
+  identities, managing authentication sessions, and providing controlled
+  access to government digital services for citizens, employees, and
+  authorized administrators.
+
+criticality: critical
+
+operating_schedule:
+  defaultPhase: 24x7
+
+  phases:
+    - id: daytime
+      start: "06:00"
+      end: "22:00"
+      priority: 8
+
+    - id: night
+      start: "22:00"
+      end: "06:00"
+      priority: 5
+
+behaviour:
+
+  normal:
+    activityLevel: moderate
+    communicationPattern: continuous
+    workload: moderate
+    administrativeActivity: moderate
+    networkActivity: high
+    expectedOperations: identity_authentication
+    expectedUsers: high
+    healthStatus: healthy
+
+  peak:
+    activityLevel: high
+    communicationPattern: continuous
+    workload: heavy
+    administrativeActivity: high
+    networkActivity: very_high
+    expectedOperations: identity_authentication
+    expectedUsers: very_high
+    healthStatus: healthy
+
+  night:
+    activityLevel: low
+    communicationPattern: continuous
+    workload: light
+    administrativeActivity: low
+    networkActivity: moderate
+    expectedOperations: identity_authentication
+    expectedUsers: moderate
+    healthStatus: healthy
+
+states:
+
+  healthy:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: moderate
+    healthStatus: healthy
+
+  busy:
+    workload: heavy
+    networkActivity: very_high
+    administrativeActivity: high
+    healthStatus: healthy
+
+  degraded:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: high
+    healthStatus: degraded
+
+  recovering:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: very_high
+    healthStatus: recovering
+
+  suspicious:
+    workload: elevated
+    networkActivity: very_high
+    administrativeActivity: high
+    healthStatus: suspicious
+
+  under_attack:
+    workload: heavy
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: critical
+
+  compromised:
+    workload: abnormal
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: compromised
+
+telemetry:
+
+  metrics:
+
+    - name: active_sessions
+      unit: sessions
+      min: 0
+      max: 1000000
+
+    - name: authentication_requests
+      unit: requests/s
+      min: 0
+      max: 100000
+
+    - name: successful_authentications
+      unit: authentications/s
+      min: 0
+      max: 100000
+
+    - name: failed_authentications
+      unit: failures/min
+      min: 0
+      max: 20000
+
+    - name: identity_verification_requests
+      unit: requests/min
+      min: 0
+      max: 50000
+
+    - name: authorization_requests
+      unit: requests/s
+      min: 0
+      max: 50000
+
+    - name: authentication_latency
+      unit: milliseconds
+      min: 1
+      max: 5000
+
+    - name: suspicious_authentication_events
+      unit: events/min
+      min: 0
+      max: 10000
+
+    - name: active_administrators
+      unit: users
+      min: 0
+      max: 1000
+
+    - name: cpu_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: memory_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: network_bytes
+      unit: bytes/s
+      min: 0
+      max: 500000000
+
+actors:
+
+  - citizens
+  - government-employees
+  - government-administrators
+  - service-operators
+
+dependencies: []
+
+metadata:
+
+  environment: production
+
+  protocols:
+    - HTTPS
+    - TLS
+    - OAuth2
+    - OpenID_Connect
+
+  capabilities:
+    - identity_verification
+    - authentication
+    - authorization
+    - session_management
+    - access_control
+
+  security:
+    encrypted_communication: true
+    multi_factor_authentication: true
+    audit_logging: true
+
+  location:
+    facility: government_data_center
+    zone: government_identity_network

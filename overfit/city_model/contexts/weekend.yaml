@@ -1,0 +1,46 @@
+id: weekend
+priority: 3
+description: >
+  Weekend daytime operations. Education and government drop sharply
+  (most facilities closed); healthcare, emergency services, and
+  public safety stay near baseline since demand doesn't disappear.
+
+modifiers:
+
+  education:
+    activityLevel: low
+    communicationPattern: periodic
+    workload: light
+    expectedUsers: low
+
+  government:
+    activityLevel: low
+    administrativeActivity: low
+    networkActivity: low
+
+  finance:
+    activityLevel: moderate
+    workload: light
+    expectedUsers: moderate
+
+  transportation:
+    activityLevel: moderate
+    workload: moderate
+    networkActivity: moderate
+
+  telecommunications:
+    activityLevel: moderate
+    networkActivity: moderate
+
+  healthcare:
+    activityLevel: normal
+    workload: moderate
+    expectedOperations: normal
+
+  public-safety:
+    activityLevel: moderate
+    workload: moderate
+
+  emergency-services:
+    activityLevel: normal
+    workload: light

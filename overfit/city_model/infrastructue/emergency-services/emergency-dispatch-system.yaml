@@ -1,0 +1,205 @@
+id: emergency-dispatch-system
+name: Emergency Dispatch System
+
+category: emergency-services
+type: emergency_dispatch_system
+
+description: >
+  Central emergency response platform responsible for receiving emergency
+  incidents, creating and prioritizing response cases, dispatching
+  emergency resources, tracking incident status, and coordinating
+  response operations across city emergency services.
+
+criticality: critical
+
+operating_schedule:
+  defaultPhase: 24x7
+
+  phases:
+    - id: daytime
+      start: "06:00"
+      end: "22:00"
+      priority: 8
+
+    - id: night
+      start: "22:00"
+      end: "06:00"
+      priority: 5
+
+behaviour:
+
+  normal:
+    activityLevel: moderate
+    communicationPattern: continuous
+    workload: moderate
+    administrativeActivity: moderate
+    networkActivity: high
+    expectedOperations: emergency_dispatch
+    expectedUsers: moderate
+    healthStatus: healthy
+
+  peak:
+    activityLevel: very_high
+    communicationPattern: continuous
+    workload: heavy
+    administrativeActivity: high
+    networkActivity: very_high
+    expectedOperations: emergency_dispatch
+    expectedUsers: high
+    healthStatus: healthy
+
+  night:
+    activityLevel: moderate
+    communicationPattern: continuous
+    workload: moderate
+    administrativeActivity: low
+    networkActivity: high
+    expectedOperations: emergency_dispatch
+    expectedUsers: low
+    healthStatus: healthy
+
+states:
+
+  healthy:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: moderate
+    healthStatus: healthy
+
+  busy:
+    workload: heavy
+    networkActivity: very_high
+    administrativeActivity: high
+    healthStatus: healthy
+
+  degraded:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: high
+    healthStatus: degraded
+
+  recovering:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: very_high
+    healthStatus: recovering
+
+  suspicious:
+    workload: elevated
+    networkActivity: very_high
+    administrativeActivity: high
+    healthStatus: suspicious
+
+  under_attack:
+    workload: heavy
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: critical
+
+  compromised:
+    workload: abnormal
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: compromised
+
+telemetry:
+
+  metrics:
+
+    - name: active_incidents
+      unit: incidents
+      min: 0
+      max: 10000
+
+    - name: incoming_incidents
+      unit: incidents/min
+      min: 0
+      max: 5000
+
+    - name: dispatch_requests
+      unit: requests/min
+      min: 0
+      max: 5000
+
+    - name: active_response_units
+      unit: units
+      min: 0
+      max: 5000
+
+    - name: average_dispatch_time
+      unit: seconds
+      min: 0
+      max: 3600
+
+    - name: incident_processing_latency
+      unit: milliseconds
+      min: 1
+      max: 5000
+
+    - name: failed_dispatches
+      unit: failures/min
+      min: 0
+      max: 1000
+
+    - name: communication_failures
+      unit: failures/min
+      min: 0
+      max: 1000
+
+    - name: active_operator_sessions
+      unit: sessions
+      min: 0
+      max: 500
+
+    - name: cpu_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: memory_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: network_bytes
+      unit: bytes/s
+      min: 0
+      max: 500000000
+
+actors:
+
+  - emergency-dispatchers
+  - emergency-responders
+  - police-operators
+  - fire-operators
+  - ambulance-operators
+  - emergency-administrators
+
+dependencies: []
+
+metadata:
+
+  environment: production
+
+  protocols:
+    - HTTPS
+    - TLS
+    - REST
+    - SIP
+
+  capabilities:
+    - incident_management
+    - emergency_dispatch
+    - response_coordination
+    - resource_tracking
+    - incident_prioritization
+
+  security:
+    authentication: true
+    encrypted_communication: true
+    access_control: true
+    audit_logging: true
+
+  location:
+    facility: emergency_operations_center
+    zone: emergency_services_network

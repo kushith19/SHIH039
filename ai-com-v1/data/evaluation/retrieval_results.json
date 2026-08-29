@@ -1,0 +1,561 @@
+{
+  "timestamp": "2026-08-26T21:53:14.114076",
+  "model": "sentence-transformers/all-MiniLM-L6-v2",
+  "evaluations": [
+    {
+      "id": "1",
+      "query": "What cybersecurity considerations apply to interconnected smart-city infrastructure?",
+      "expected_categories": [
+        "smart-city"
+      ],
+      "expected_sources": [],
+      "embedding_latency_ms": 147.84245800001372,
+      "search_latency_ms": 14.548667000781279,
+      "total_latency_ms": 162.391125000795,
+      "results": [
+        {
+          "rank": 1,
+          "score": 0.65753365,
+          "category": "india",
+          "source": "CERT-In",
+          "document_name": "CIGU-2025-0001",
+          "section": "Smart City Infrastructure",
+          "page_number": 8,
+          "text": "insights needed to prioritize cybersecurity investments and prepare for an\n\nevolving threat landscape. The list of types of risks connected to cybersecurity\n\nmight be as follows (but not limited to):\n\n\uf0b7 Safety, including public safety risks\n\n\uf0b7 Privacy risks\n\n\uf0b7 Unlawful surveillance\n\n\uf0b7 Wrongful announcement\n\n\uf0b7 Data tampering\n\n\uf0b7 Property risks\n\n\uf0b7 Risks of service unavailability (DoS) / Defacement\n\n\uf0b7 Financial and operational risks for the service operators\n\n\uf0b7 Risks connected to the use of infrastructure for unintended purpose.\n\nDifferent stakeholders are involved and they can bear different kinds of risks.\n\nThis is quite important for the proper consideration of the threat landscape. It\n\nmight be useful to consider different risks and concerns for the different groups\n\nof stakeholders.\n\nEach and every system or group of systems within a Smart City may be of interest\n\nto attackers \u2013 from adversarial states to cybercriminals, saboteurs, hacktivists and\n\neven cyber terrorists. Some examples of Smart City functional areas with\n\ncorresponding threats list is provided here.\n\n2.1. Intelligent Transportation System\n\nFigure. 2. Intelligent Transport System\n\nIntelligent Transportation System (ITS) can comprise of many components as\n\npresented in Figure 2. Each element of ITS plays a key role in ensuring safe and\n\nefficient urban mobility. However, their interconnectivity and reliance on digital\n\nsystems expose them to distinct cyber and physical threats.",
+          "chunk_id": "57f49453ad58111e203f5958b29cd3f96d58ae571c9d69585d3bc609583e9a9e"
+        },
+        {
+          "rank": 2,
+          "score": 0.6490142,
+          "category": "india",
+          "source": "CERT-In",
+          "document_name": "CIGU-2025-0001",
+          "section": "Smart City Infrastructure",
+          "page_number": 43,
+          "text": "evolving regulations and industry standards.\n\n20.   Conclusion\n\nThe document aims to provide a comprehensive, forward-looking approach to\n\nsupport the secure growth of Smart Cities by enhancing their ability to serve\n\ncitizens in an increasingly digital world. It also emphasises the importance of a\n\nproactive, layered, and adaptable cybersecurity strategy for Smart Cities. As\n\nurban areas become increasingly dependent on digital infrastructure,\n\ncybersecurity must be integrated into every aspect of Smart City development,\n\nfrom the design phase to daily operations. The document reiterates that Smart\n\nCities are not just technological innovations but essential services that support\n\ncitizens' well-being and safety.\n\nWe need to understand the importance of collaborative efforts among various\n\nstakeholders namely - CERT-In, smart city operators, technology providers, and\n\nGovernment bodies. By working together, all the stakeholders can ensure that\n\nSmart City systems are not only innovative but also secure, resilient, and\n\ncompliant with regulatory standards.\n\nReferences\n\n1. \nhttps://mohua.gov.in/cms/smart-cities.php\n\n2. \nhttps://smartcities.gov.in/advisory\n\n3. \nwww.iiconsortium.org\n\n4. \nwww.nist.gov\n\nUseful Guidelines and Materials\n\na) CERT-In Directions.\n\nhttps://www.cert-in.org.in/PDF/CERT-In_Directions_70B_28.04.2022.pdf\n\nb) Technical Guidelines on SBOM\n\nhttps://www.cert-in.org.in/PDF/SBOM_Guidelines.pdf\n\nc) Information Security Best Practices for Government entities",
+          "chunk_id": "60e3f7a33d2e956eb3bfa7cccb03d5aed452d71dcaf9e5183d1db5d3623735e3"
+        },
+        {
+          "rank": 3,
+          "score": 0.64751315,
+          "category": "india",
+          "source": "CERT-In",
+          "document_name": "CIGU-2025-0001",
+          "section": "Smart City Infrastructure",
+          "page_number": 7,
+          "text": "The document aims to provide a high-level overview of the role that cybersecurity\n\nplays in Smart Cities and why it is essential for maintaining public trust, ensuring\n\nsafety, and preventing operational disruptions. Key challenges, such as the need\n\nfor interoperability across diverse systems and the potential for cyber-physical\n\nharm, are also emphasized. The document also addresses how emerging\n\ntechnologies, including IoT, cloud computing and artificial intelligence (AI),\n\nheighten both the potential and vulnerabilities of Smart City initiatives.\n\n2. Threat Landscape for Smart Cities\n\nThe Smart City ecosystem, with its integration of IoT, cloud computing, and\n\nartificial intelligence, creates a complex attack surface vulnerable to a wide range\n\nof cyber threats.\n\nBy interconnecting different systems, a smart city creates a \u201csystem of systems\u201d.\n\nPrimary challenge with respect to security solution for Smart cities are\n\nheterogeneity of data types, interfaces and carrier types. The complexity of such\n\ncollaborating systems increases exponentially to manage data and privacy of a\n\nSmart City implementation. This creates a huge and complex attack surface with\n\na cascade effect as there are numerous points of attack because of the\n\ninterconnected sensors and devices creating an Internet of Everything.\n\nUnderstanding the threat landscape is vital for developing robust defensive\n\nstrategies.  Key cyber threats include cyber-physical attacks where adversaries",
+          "chunk_id": "4e3ab6ffc4dc5574f4a83763ea5b34dc0a89f55a95c4a30d08eacaf09015d314"
+        },
+        {
+          "rank": 4,
+          "score": 0.63671684,
+          "category": "india",
+          "source": "CERT-In",
+          "document_name": "CIGU-2025-0001",
+          "section": "Smart City Infrastructure",
+          "page_number": 1,
+          "text": "Smart City Infrastructure\n\nIn collaboration with\n\nTable of Contents\n\nTitle \nPage No.\n\n1 Introduction \n2\n\n2 Threat Landscape for Smart Cities \n6\n\n3 Cybersecurity Standards and Frameworks for Smart Cities \n14\n\n4 Smart City Cybersecurity Architecture \n15\n\n5 Network Security in Smart City Environments \n19\n\n6 Identity and Access Management (IAM) \n20\n\n7 Data security and Privacy \n22\n\n8 Operational Security for Smart City Command and Control \nCentres\n\n23\n\n9 Internet of Things (IoT) Security in Smart Cities \n25\n\n10 Artificial Intelligence (AI) and Machine Learning (ML) Security \n28\n\n11 Disaster Recovery and Business Continuity Planning \n31\n\n12 Compliance and Legal Considerations \n32\n\n13 API Security \n33\n\n14 Training and Awareness \n35\n\n15 Crisis Management & Incident Response \n36\n\n16 Continuous Monitoring and Threat Intelligence \n38\n\n17 Supply Chain Security, Vendor Management and SBOM \n39\n\n18 Penetration Testing and Vulnerability Management \n40\n\n19 Security Audits and Compliance Checks \n42\n\n20 Conclusion  \n43\n\nReferences \n44\n\nUseful materials and Guidelines \n45\n\nAnnexure I \n46\n\nAnnexure II \n54\n\n1. Introduction\n\nSmart cities are a cornerstone of modern urban development, especially in a\n\nrapidly growing economy like India. The concept of smart cities goes beyond\n\nmere technological advancements, aiming to improve the quality of life for\n\nresidents, ensure sustainability, and drive economic growth. Smart cities provide",
+          "chunk_id": "bc66992e7109a027420f32c703e787f20b2a652449d4b8bacb0bce0a61573b3c"
+        },
+        {
+          "rank": 5,
+          "score": 0.6316745,
+          "category": "resilience",
+          "source": "CISA",
+          "document_name": "Infra Resilience Planning Framework",
+          "section": "2.1.1 Defining Cyber Infrastructure",
+          "page_number": 17,
+          "text": "2.1.1 Defining Cyber Infrastructure\n\nCommunities should understand their reliance on information technology \nand communications systems required to operate and monitor critical \ninfrastructure and to support key social and economic functions, such as \nthe provision of essential public services and continuity of operations. \nCyber infrastructure is essential for the operations and maintenance \nof critical infrastructure such as power plants, water and wastewater \nfacilities, hospitals, telecommunications systems, oil and gas refineries, \nand transportation networks. Due to the interconnectedness of physical \nand cyber infrastructure, community planners and stakeholders who \nparticipate in the planning process should have an understanding of the \ncyber infrastructure assets, systems, and cybersecurity networks that \nsupport and ensure the continued operations of infrastructure systems.\n\nCyber infrastructure includes a wide array of systems that should be \nconsidered, such as:\n\n> Computer systems;\n\n> Control systems used to monitor and control a plant or equipment\n\n(e.g., Supervisory Control and Data Acquisition (SCADA));\n\n> Networks, such as the Internet;\n\n> Cyber services (e.g., managed security services);\n\n> Data storage and processing systems, including mainframes, cloud\n\nproviders, server farms, data centers;\n\n> Hardware and software that process, store, and communicate",
+          "chunk_id": "c9871b9a51f8fbc05fcbf82ef98f52f4c07b55f382d583d2210029f99aa9ca43"
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "query": "What security capabilities should an IoT device have to protect against unauthorized access?",
+      "expected_categories": [
+        "iot"
+      ],
+      "expected_sources": [],
+      "embedding_latency_ms": 8.285416999569861,
+      "search_latency_ms": 5.822125000122469,
+      "total_latency_ms": 14.10754199969233,
+      "results": [
+        {
+          "rank": 1,
+          "score": 0.72354317,
+          "category": "iot",
+          "source": "NIST",
+          "document_name": "NIST IR 8259A",
+          "section": "Common Elements \nRationale \nIoT Reference Examples",
+          "page_number": 12,
+          "text": "Common Elements \nRationale \nIoT Reference Examples\n\nData Protection: The \nIoT device can protect \nthe data it stores and \ntransmits from \nunauthorized access \nand modification.\n\n1. The ability to use demonstrably secure \ncryptographic modules for \nstandardized cryptographic algorithms \n(e.g., encryption with authentication, \ncryptographic hashes, digital signature \nvalidation) to prevent the confidentiality \nand integrity of the device\u2019s stored and \ntransmitted data from being \ncompromised \n2. The ability for authorized entities to \nrender all data on the device \ninaccessible by all entities, whether \npreviously authorized or not (e.g., \nthrough a wipe of internal storage, \ndestruction of cryptographic keys for \nencrypted data) \n3. Configuration settings for use with the \nDevice Configuration capability \nincluding, but not limited to, the ability \nfor authorized entities to configure the \ncryptography use itself, such as \nchoosing a key length",
+          "chunk_id": "d968d0021f24abfbeb41a253493f56808fbad77a04f9bcdc929d68995dfb8bfe"
+        },
+        {
+          "rank": 2,
+          "score": 0.7105472,
+          "category": "iot",
+          "source": "NIST",
+          "document_name": "NIST IR 8259 Rev 1",
+          "section": "2.5. IoT Product Customer Cybersecurity Needs and Goals",
+          "page_number": 19,
+          "text": "such as bystanders and maintainers. Following the principle of least privilege, all authorized \nentities should have a clear and distinct purpose for access, and their access should be \nstrictly limited to what is necessary for the purpose. Limiting access to interfaces reduces \nthe attack surface of the product, giving attackers fewer opportunities to compromise it. \nFor the IoT device component of the product, this includes physical interfaces.\n\n\u2022 Data Protection: Prevent access to and tampering with data at rest or in transit that might \nexpose sensitive information or allow manipulation or disruption of IoT product operations \nthroughout the lifecycle including at disposal.\n\n\u2022 Incident Detection: Monitor and analyze IoT product activity for signs of incidents involving \ndata security across IoT products\u2019 components and throughout the products\u2019 lifecycles. \nThese signs can also be useful in investigating compromises and troubleshooting certain \noperational problems.",
+          "chunk_id": "27cafb068ceb59fb1033addaaa50383817d040e1195a1ec5474111c44e554d85"
+        },
+        {
+          "rank": 3,
+          "score": 0.7029078,
+          "category": "iot",
+          "source": "Unknown",
+          "document_name": "en_303645v030103p",
+          "section": "Provision 5.5-3 Cryptographic algorithms and primitives should be replaceable.",
+          "page_number": 21,
+          "text": "There are consumer IoT devices that include the ability to make data or services publicly available within a restricted \nnetwork. These devices will often make assumptions about the network connectivity and/or the sensitivity of the data \nwhich is being made publicly available as part of their expected use.\n\nEXAMPLE 2: \nSmart Television's, expecting to be in a user's home network, can make recorded media publicly \navailable without user authentication but access restricted to the home network only via services \nsuch as DLNA.\n\nThe consumer IoT device can be compromised via vulnerabilities in network services. A suitable authentication \nmechanism can protect against unauthorized access and can contribute to defence-in-depth in the consumer IoT device.\n\nProvision 5.5-5 Consumer IoT device functionality that allows security-relevant changes in configuration via a network \ninterface shall only be accessible after authentication. The exception is for network service protocols that are relied \nupon by the consumer IoT device and where the manufacturer cannot guarantee what configuration will be required for \nthe consumer IoT device to operate.\n\nNOTE 4: Protocols that are an exception include ARP, DHCP, DNS, ICMP, and NTP.\n\nEXAMPLE 3: \nSecurity-relevant changes include permission management, configuration of network keys and \npassword changes.",
+          "chunk_id": "39e1560e1fcc87f31e9863fbc6dc04a2587fdf480fa9aee52bde7afd225bc3db"
+        },
+        {
+          "rank": 4,
+          "score": 0.68732244,
+          "category": "iot",
+          "source": "NIST",
+          "document_name": "NIST IR 8259 Rev 1",
+          "section": "3.3. Activity 2: Research Customer Cybersecurity Needs and Goals",
+          "page_number": 30,
+          "text": "5. What will be the nature of the IoT product\u2019s data? There is a great deal of variability in \ndata stored by IoT devices and other IoT product components; some devices do not store \nany data, while others store data that could cause significant harm if accessed, aggregated, \nor modified by unauthorized entities, including potential human-safety and privacy \nimplications. Conversely, most backends store significant IoT product data, but some merely \npass data to other IoT product components. Understanding the expected data on all IoT \nproduct components for the anticipated use cases can help manufacturers identify which \nproduct cybersecurity capabilities (e.g., data encryption, device and user authentication, \ndata validation, access control, backup/restore) may be needed to protect data.\n\n6. What degree of trust in the IoT product may customers need? Customers may expect \ncertain cybersecurity capabilities and implementations of those capabilities that provide \nspecific assurances about the cybersecurity of the product and data. For example, in some \ncontexts, additional trust that data is protected could be achieved by adding protection of \ndata in use within the device. This would go beyond the usual goals of data protection (e.g., \nprotecting data at rest and in transit).",
+          "chunk_id": "aeb4c8a5f781f1edf1e51a0a0d717df587976e5a95d9b9177e1e7abca227fcc5"
+        },
+        {
+          "rank": 5,
+          "score": 0.6642854,
+          "category": "iot",
+          "source": "NIST",
+          "document_name": "NIST IR 8259A",
+          "section": "Common Elements \nRationale \nIoT Reference Examples",
+          "page_number": 14,
+          "text": "\u2022 This capability supports vulnerability management, \naccess management, data protection, and incident \ndetection. \n\u2022 Limiting access to interfaces reduces the attack \nsurface of the device, giving attackers fewer \nopportunities to compromise it. For example, \nunrestricted network access to an IoT device \nenables attackers to directly interact with the device, \nwhich significantly increases the likelihood of the \ndevice being compromised. \n\u2022 Access to interfaces may be partially or completely \nlimited based on the device\u2019s state. For example, if \na device has not been provisioned with proper \nnetwork credentials, all access to/from network \ninterfaces would be limited if using a secure on-\nboarding scheme.\n\n\u2022 AGELIGHT: 10, 13, 14, 15, \n16, 19 \n\u2022 BITAG: 7.1, 7.2, 7.3, 7.6 \n\u2022 CSA: 2, 4, 20 \n\u2022 CSDE: 5.1.2 \n\u2022 CTIA: 3.2, 3.3, 3.4, 4.2, 4.3, \n4.9, 5.2 \n\u2022 ENISA: GP-TM-08, GP-TM-\n09, GP-TM-21, GP-TM-22, \nGP-TM-25, GP-TM-27, GP-\nTM-29, GP-TM-33, GP-TM-\n42, GP-TM-44, GP-TM-45 \n\u2022 ETSI: 4.1-1, 4.4-1, 4.6-1, 4.6-\n2 \n\u2022 GSMA: CLP13_6.9.1, 6.12.1, \n6.20.1, 7.6.1, 8.2.1, 8.4.1 \n\u2022 IEC: CR 1.1, CR 1.2, CR 1.5, \nCR 1.7, CR 1.11, CR 2.1, CR \n2.2, CR 2.13, CR 7.7, EDR \n2.13 \n\u2022 IIC: 7.3, 7.4, 8.3, 8.6, 11.7 \n\u2022 IoTSF: 2.4.4.5, 2.4.4.9, \n2.4.5.5, 2.4.6.3, 2.4.6.4, \n2.4.7, 2.4.8 \n\u2022 ISOC/OTA: 3, 12, 13, 14, 15, \n16 \n\u2022 NEMA: Segmenting \nNetworks, User Management, \nHardening Devices \n\u2022 OCF: 5.1, 5.2, 10, 12 \n\u2022 PSA: C2.3, D2.1, D2.2, D2.3, \nD2.4, D3.1 D3.3, R3.1, R3.2, \nR3.3, R4.2, R4.5 R6.1",
+          "chunk_id": "9872568d6df61085b377378ee80a75969f86e9818d5dfb55cd59af34f8180a5e"
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "query": "What should be considered when responding to a cybersecurity incident affecting an industrial control system?",
+      "expected_categories": [
+        "ot-ics",
+        "incident-response"
+      ],
+      "expected_sources": [],
+      "embedding_latency_ms": 11.735957999917446,
+      "search_latency_ms": 6.3433750001422595,
+      "total_latency_ms": 18.079333000059705,
+      "results": [
+        {
+          "rank": 1,
+          "score": 0.8119074,
+          "category": "ot-ics",
+          "source": "Unknown",
+          "document_name": "final-RP_ics_cybersecurity_incident_response_100609",
+          "section": "Recommended Practice \nDeveloping an Industrial Control Systems \nCybersecurity Incident Response Capability",
+          "page_number": 10,
+          "text": "Recommended Practice \nDeveloping an Industrial Control Systems \nCybersecurity Incident Response Capability",
+          "chunk_id": "5447c2ec5880704e80d9775f0fcadb7290dd7fc0a1a6c457d9ebe6f12d8295f3"
+        },
+        {
+          "rank": 2,
+          "score": 0.7886826,
+          "category": "ot-ics",
+          "source": "Unknown",
+          "document_name": "final-RP_ics_cybersecurity_incident_response_100609",
+          "section": "Developing an Industrial Control Systems \nCybersecurity Incident Response Capability",
+          "page_number": 1,
+          "text": "Developing an Industrial Control Systems \nCybersecurity Incident Response Capability",
+          "chunk_id": "2e96a3f25ae3d94efb938a8b12380249713cc36336fe06bbb2c2619c52cc0305"
+        },
+        {
+          "rank": 3,
+          "score": 0.78664315,
+          "category": "ot-ics",
+          "source": "Unknown",
+          "document_name": "final-RP_ics_cybersecurity_incident_response_100609",
+          "section": "EXECUTIVE SUMMARY",
+          "page_number": 4,
+          "text": "EXECUTIVE SUMMARY\n\nThis document provides recommendations for those interested in protecting \nindustrial control systems (ICS) within a facility or organization. It is primarily \nfocused on preparing for and responding to a cyber-related incident in which ICS \nare either threatened or compromised. It discusses ways of preparing for and \npreventing an incident as well as ways to respond, analyze, and recover from one \nshould it occur.\n\nThe concept of incident response is familiar to most people in the context of \nemergency situations such as those caused by a natural disaster. The fundamental \nprinciples are the same in cyber incident response, including prevention, \npreparation, planning, incident management, recovery, mitigation, remediation, \npost incident analysis, and lessons learned. In cyber-oriented incident response, \nthe focus is directed to negative events specifically caused by malicious parties \nusing computers and related technologies. This document will not, for example, \ndiscuss physical security or non-cyber related issues.",
+          "chunk_id": "e0755e5d515aa775716c09a204f1d9ac077e379f44d55561e129d892d1a57cd8"
+        },
+        {
+          "rank": 4,
+          "score": 0.74239385,
+          "category": "ot-ics",
+          "source": "Unknown",
+          "document_name": "final-RP_ics_cybersecurity_incident_response_100609",
+          "section": "ABSTRACT",
+          "page_number": 4,
+          "text": "This document will present recommendations to help those facilities that use \ncontrol systems better prepare for and respond to a cyber incident regardless of \nsource. The document also suggests ways to learn from incidents and to \nstrengthen the system against potential attacks. The document includes accepted \nmethods and approaches from tradition information technology, but is primarily \nfocused on the unique aspects of industrial control systems.\n\niii\n\niv",
+          "chunk_id": "8aadebf00a03b05f1d1ccf7eb5b39a7df50a9815016f89dff99d062e42840b32"
+        },
+        {
+          "rank": 5,
+          "score": 0.7356367,
+          "category": "ot-ics",
+          "source": "Unknown",
+          "document_name": "final-RP_ics_cybersecurity_incident_response_100609",
+          "section": "1.1 \nAudience and Scope",
+          "page_number": 13,
+          "text": "This document provides high-level guidance on how to develop a focused cyber incident response \ncapability related to ICS with references and suggested readings for more detailed information. This is not \na rewrite or a consolidation of available documentation on creating an incident response program in IT. A \nlarge body of excellent documentation already exists and is readily available. Rather, this recommended \npractice provides background information, best practices, and highlights considerations that need to be \ntaken from proven incident response programs to be applied to the unique issues faced by the ICS \ncybersecurity team. The content is not technical, but a basic understanding of IT architecture and \npractices as well as ICS environments is expected. The ICS in this document are defined to include \nprocess control systems, Supervisory Control and Data Acquisition (SCADA), embedded systems, and \ndistributed control systems. Other regulatory guidance documents also will mention Industrial \nAutomation and Control Systems, which all will be called ICS in this paper.",
+          "chunk_id": "c2d159dc0ed4148779f07b0954768e44dca362ba249be2a38e73de73cb52e71f"
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "query": "What are the appropriate stages for containing and recovering from a cybersecurity incident?",
+      "expected_categories": [
+        "incident-response"
+      ],
+      "expected_sources": [],
+      "embedding_latency_ms": 11.205625000002328,
+      "search_latency_ms": 5.684750000000349,
+      "total_latency_ms": 16.890375000002678,
+      "results": [
+        {
+          "rank": 1,
+          "score": 0.74299103,
+          "category": "ot-ics",
+          "source": "NIST",
+          "document_name": "NIST SP 800-82 Rev 3",
+          "section": "\u2022 Establish recovery processes and procedures that will be executed to restore the OT \nassets and services affected by cybersecurity incidents.",
+          "page_number": 59,
+          "text": "\u2022 Establish recovery processes and procedures that will be executed to restore the OT \nassets and services affected by cybersecurity incidents.",
+          "chunk_id": "2ed87fe60650e9a75b983dac06037843b0b378080227e0ed7592c9895d1581e1"
+        },
+        {
+          "rank": 2,
+          "score": 0.70515287,
+          "category": "india",
+          "source": "CERT-In",
+          "document_name": "CIGU-2023-0001",
+          "section": "14. Security monitoring and incident management",
+          "page_number": 34,
+          "text": "\u2022 Containment and eradication: The purpose of this phase is to limit the effects of an \nincident for further damages. Affected hosts or systems are identified, isolated or \nmitigated, and when relevant stakeholders / affected parties are notified and \ninvestigative process established. This phase also includes short-term containment, \nbackup & restore, long-term containment, sub-procedures for seizure and evidence \nhandling, escalation, and communication.\n\n\u2022 Recovery & lessons learned: Recovery is the analysis of the incident for its procedural \nand policy implications, the gathering of metrics, and the incorporation of \u201clessons \nlearned\u201d into future response activities and training. A lesson learned meeting should \nbe called after a major incident with the goal of improving security as a whole and \nincident handling in particular.\n\n14.2. The organisation must ensure that apart from addressing an incident, the organisation \nshall mandatorily report cyber incidents to CERT-In within 6 hours of noticing such \nincidents or being brought to notice about such incidents. Also, the information about \nits occurrence shall be shared with relevant stakeholders such as NIC-CERT, sectoral \nCSIRT, Regulators etc. as applicable.\n\n14.3. Document procedures for reporting and handling a suspected incident, how NOT to \ntamper with potential evidence (i.e., NOT to attempt forensics when not authorized)\n\nGuidelines on Information Security Practices\n\nfor Government Entities",
+          "chunk_id": "fe8115e23fc4d4c95e797e7d0860ed508344131a0246f822f0e138a44e4a98da"
+        },
+        {
+          "rank": 3,
+          "score": 0.7014046,
+          "category": "incident-response",
+          "source": "NIST",
+          "document_name": "NIST SP 800-61 Rev 3",
+          "section": "Fig. 1. Previous incident response life cycle model",
+          "page_number": 11,
+          "text": "Fig. 1. Previous incident response life cycle model\n\nAt that time, incidents were relatively rare, the scope of most incidents was narrow and well-\ndefined, and incident response and recovery was usually completed within a day or two. Under \nthose conditions, it was realistic to treat incident response as a separate set of activities \nperformed by a separate team of personnel and to depict all incident response activities as part \nof a circular life cycle. Formal post-incident activities would identify needed improvements and \nfeed them into the preparation stage, thus starting the cycle again. Incident response activities \nwere typically intermittent rather than continuous.\n\nHowever, the current state of incident response has greatly changed since then. Today, \nincidents occur frequently and cause far more damage. Recovering from them often takes \nweeks or months due to their breadth, complexity, and dynamic nature. Incident response is \nnow considered a critical part of cybersecurity risk management that should be integrated \nacross organizational operations. The lessons learned during incident response should often be \nshared as soon as they are identified, not delayed until after recovery concludes. Continuous \nimprovement is increasingly necessary for all facets of cybersecurity risk management in order \nto keep up with modern threats.\n\nNIST SP 800-61r3 \n \nIncident Response Recommendations and \nApril 2025 \n \nConsiderations for Cyber Risk Management",
+          "chunk_id": "12a69c36336c27f34501297c9cf211491160f4933ef6370b804bc1b10776400b"
+        },
+        {
+          "rank": 4,
+          "score": 0.6937771,
+          "category": "ot-ics",
+          "source": "Unknown",
+          "document_name": "final-RP_ics_cybersecurity_incident_response_100609",
+          "section": "1. \nINTRODUCTION",
+          "page_number": 12,
+          "text": "Standard cyber incident remediation actions deployed in IT business systems may result in ineffective \nand even disastrous results when applied to ICS cyber incidents, if prior thought and planning specific to \noperational ICS is not done. The speed and effective actions required to respond to an ICS cyber incident \nis directly dependent on the amount of forethought and planning that took place in advance of the cyber \nevent. A great degree of preparation will be required of the cyber incident response team with the \nassociated security plans, policies, and procedures established and practiced before the incident.\n\nThis document discusses what and how incident response should be conducted in the context of ICS, \nleveraging proven practices that have been applied in the traditional IT environment, and highlighting the \ndifferences. This document will recommend how to handle the unique challenges facing process \nengineers when dealing with cybersecurity and cyber incident response management.",
+          "chunk_id": "6fe0eb0e51860e06b5a4b36c78fe28c8cc537184732bc86557b5483fe905588d"
+        },
+        {
+          "rank": 5,
+          "score": 0.68849033,
+          "category": "incident-response",
+          "source": "NIST",
+          "document_name": "NIST SP 800-61 Rev 3",
+          "section": "\u2022 Recover (RC): Assets and operations affected by a cybersecurity incident are restored.",
+          "page_number": 11,
+          "text": "\u2022 Recover (RC): Assets and operations affected by a cybersecurity incident are restored.\n\nAll six Functions have vital roles in incident response. Govern, Identify, and Protect help \norganizations prevent some incidents, prepare to handle incidents that do occur, reduce the \nimpact of those incidents, and improve incident response and cybersecurity risk management \npractices based on lessons learned. Detect, Respond, and Recover help organizations discover, \nmanage, prioritize, contain, eradicate, and recover from cybersecurity incidents, as well as \nperform incident reporting, notification, and other incident-related communications.",
+          "chunk_id": "ca406e0a19a4456736546460528b2986df93b5a3223f5cedc37d94d4696d57db"
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "query": "What cybersecurity practices are relevant to smart-city infrastructure in India?",
+      "expected_categories": [
+        "india",
+        "smart-city"
+      ],
+      "expected_sources": [
+        "BIS",
+        "CERT-In"
+      ],
+      "embedding_latency_ms": 12.211541999931796,
+      "search_latency_ms": 5.909833000259823,
+      "total_latency_ms": 18.12137500019162,
+      "results": [
+        {
+          "rank": 1,
+          "score": 0.7400891,
+          "category": "india",
+          "source": "CERT-In",
+          "document_name": "CIGU-2025-0001",
+          "section": "Smart City Infrastructure",
+          "page_number": 1,
+          "text": "Smart City Infrastructure\n\nIn collaboration with\n\nTable of Contents\n\nTitle \nPage No.\n\n1 Introduction \n2\n\n2 Threat Landscape for Smart Cities \n6\n\n3 Cybersecurity Standards and Frameworks for Smart Cities \n14\n\n4 Smart City Cybersecurity Architecture \n15\n\n5 Network Security in Smart City Environments \n19\n\n6 Identity and Access Management (IAM) \n20\n\n7 Data security and Privacy \n22\n\n8 Operational Security for Smart City Command and Control \nCentres\n\n23\n\n9 Internet of Things (IoT) Security in Smart Cities \n25\n\n10 Artificial Intelligence (AI) and Machine Learning (ML) Security \n28\n\n11 Disaster Recovery and Business Continuity Planning \n31\n\n12 Compliance and Legal Considerations \n32\n\n13 API Security \n33\n\n14 Training and Awareness \n35\n\n15 Crisis Management & Incident Response \n36\n\n16 Continuous Monitoring and Threat Intelligence \n38\n\n17 Supply Chain Security, Vendor Management and SBOM \n39\n\n18 Penetration Testing and Vulnerability Management \n40\n\n19 Security Audits and Compliance Checks \n42\n\n20 Conclusion  \n43\n\nReferences \n44\n\nUseful materials and Guidelines \n45\n\nAnnexure I \n46\n\nAnnexure II \n54\n\n1. Introduction\n\nSmart cities are a cornerstone of modern urban development, especially in a\n\nrapidly growing economy like India. The concept of smart cities goes beyond\n\nmere technological advancements, aiming to improve the quality of life for\n\nresidents, ensure sustainability, and drive economic growth. Smart cities provide",
+          "chunk_id": "bc66992e7109a027420f32c703e787f20b2a652449d4b8bacb0bce0a61573b3c"
+        },
+        {
+          "rank": 2,
+          "score": 0.7171016,
+          "category": "india",
+          "source": "CERT-In",
+          "document_name": "CIGU-2025-0001",
+          "section": "Smart City Infrastructure",
+          "page_number": 3,
+          "text": "systems to deliver on-demand digital services over a highly secure Internet-\n\nenabled cloud infrastructure. Such digital services and related digital networks\n\ncan help cities address urban challenges as well as improve their liveability index.\n\nThe document aims to establish a foundational digitally resilient framework for\n\nprotecting Smart City digital infrastructure against cyber threats. This document\n\noutlines good practices and architectural strategies for safeguarding Smart City\n\nsystems by the State/Union Territory (UT) Computer Security Incident Response\n\nTeam (CSIRT) and Smart City operators. Smart Cities rely heavily on\n\ninterconnected digital services, IoT devices, and centralized command centres to\n\noptimize urban operations, making them particularly vulnerable to a range of\n\ncyber threats. This document is a joint initiative of Indian Computer Emergency\n\nResponse Team (CERT-In) and M/s Kaspersky.\n\nThe building blocks of a smart city infrastructure consist of a digital network\n\nwhich deploys Internet Protocol (IP), including Wireless and Radio Frequency\n\n(RF) networks, Sensors, associated control systems / applications, Correlation\n\nplatform & a mobile / web / application platforms for citizen interaction. The\n\nbuilding blocks of a Smart City are as shown in Figure 1.\n\nFigure. 1. Components of a Smart city infrastructure\n\n1.1. Key Smart City Infrastructure components\n\nThe components of a Smart city infrastructure are briefly described below.",
+          "chunk_id": "631e3f654b8bb9d45336b9aae91c99374ee008bb92b220654655fe6b29bfbd5b"
+        },
+        {
+          "rank": 3,
+          "score": 0.6906071,
+          "category": "smart-city",
+          "source": "Unknown",
+          "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+          "section": "REFERENCES",
+          "page_number": 3,
+          "text": "REFERENCES\n\n[1] PwC US.  Smart Cities: Five Smart Steps to Cybersecurity.\n\nhttps://www.pwc.com/us/en/services/consulting/cybersecurit\n\ny/library/broader-perspectives/smart-cities.html. Published \nDec. 2017. Accessed on Nov 9, 2018. \n[2] Lohrmann, Dan. Securing the Smart City. Government\n\nTechnology.  https://www.govtech.com/security/Securing-\nthe-Samrt-City.html. Published April/May 2018. Accessed \non Dec 17, 2018. \n[3] Data Security Council of India: Nasscom Initiative. PwC\n\nIndia. Creating Cyber Secure Smart Cities. \nhttps//www.pwc.in/assets/pdfs/publications/2018/creating-\ncyber-secure-cities.pdf. Published 2018. Accessed on Dec \n17. 2018 \n[4] NIST. Framework for Cyber-Physical Systems.\n\nhttps://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.S\nP.1500-201.pdf.  Publish 2017. Accessed on Nov 10, 2018. \n[5] NIST. Global City Teams Challenge. Smart and Secure\n\nCities and Communities Challenge. \nhttp://pages.nist.gov/GCTC/. Accessed on Nov 6, 2018. \n[6] SmartAmerica Challenge. https://smartamerica.org/.\n\nAccessed on Feb 7, 2019 \n[7] Rhee, S. Catalyzing the Internet of Things and Smart Cities:\n\nGlobal City Teams Challenge.  2016; 1st International \nWorkshop on Science of Smart City Operations and \nPlatforms Engineering in partnership with Global City \nTeams Challenge, Pages 1-4, Vienna, Austria, April 11, \n2016, IEEE Explore Digital Library \n[8] Global City Teams Challenge Action Cluster.",
+          "chunk_id": "046639f49c7746c37d78bc8c45406ccdaa39925c418fb0821772a6a696e72fe4"
+        },
+        {
+          "rank": 4,
+          "score": 0.67001855,
+          "category": "india",
+          "source": "CERT-In",
+          "document_name": "CIGU-2025-0001",
+          "section": "Smart City Infrastructure",
+          "page_number": 43,
+          "text": "evolving regulations and industry standards.\n\n20.   Conclusion\n\nThe document aims to provide a comprehensive, forward-looking approach to\n\nsupport the secure growth of Smart Cities by enhancing their ability to serve\n\ncitizens in an increasingly digital world. It also emphasises the importance of a\n\nproactive, layered, and adaptable cybersecurity strategy for Smart Cities. As\n\nurban areas become increasingly dependent on digital infrastructure,\n\ncybersecurity must be integrated into every aspect of Smart City development,\n\nfrom the design phase to daily operations. The document reiterates that Smart\n\nCities are not just technological innovations but essential services that support\n\ncitizens' well-being and safety.\n\nWe need to understand the importance of collaborative efforts among various\n\nstakeholders namely - CERT-In, smart city operators, technology providers, and\n\nGovernment bodies. By working together, all the stakeholders can ensure that\n\nSmart City systems are not only innovative but also secure, resilient, and\n\ncompliant with regulatory standards.\n\nReferences\n\n1. \nhttps://mohua.gov.in/cms/smart-cities.php\n\n2. \nhttps://smartcities.gov.in/advisory\n\n3. \nwww.iiconsortium.org\n\n4. \nwww.nist.gov\n\nUseful Guidelines and Materials\n\na) CERT-In Directions.\n\nhttps://www.cert-in.org.in/PDF/CERT-In_Directions_70B_28.04.2022.pdf\n\nb) Technical Guidelines on SBOM\n\nhttps://www.cert-in.org.in/PDF/SBOM_Guidelines.pdf\n\nc) Information Security Best Practices for Government entities",
+          "chunk_id": "60e3f7a33d2e956eb3bfa7cccb03d5aed452d71dcaf9e5183d1db5d3623735e3"
+        },
+        {
+          "rank": 5,
+          "score": 0.6585056,
+          "category": "india",
+          "source": "CERT-In",
+          "document_name": "CIGU-2025-0001",
+          "section": "Smart City Infrastructure",
+          "page_number": 13,
+          "text": "\uf0b7 Insider Threats: Employees or contractors with privileged access might\n\nmisuse their roles to exfiltrate sensitive data, alter configurations, or insert\n\nmalicious software to compromise system integrity.\n\n\uf0b7 Unpatched Systems: Servers and workstations with outdated software are\n\nsusceptible to exploitation through known vulnerabilities, leading to\n\nunauthorized access, data exfiltration, ransomware or data manipulation.\n\n\uf0b7 Targeted Cyberattacks (APT): Data centres may be targeted by Advanced\n\nPersistent Threats (APTs) involving sophisticated and sustained attacks,\n\naimed at gaining unauthorized long-term access to extract valuable\n\ninformation.\n\n2.3. Malware and Vulnerable Systems analysis\n\nCERT-In carried out an analysis of 20 smart cities located in different parts of the\n\ncountry to understand the types of malware and vulnerable systems for the year\n\n2024.\n\nIn Western India, Central India and Northern India the majority of the malware\n\nwas trojans (a malicious digital pest whose sole aim is to wreak havoc on its\n\nvictims' computers unnoticed. It does this by reading passwords, recording\n\nkeyboard strokes or opening the door for further malware that can even take the\n\nentire computer hostage \u2013 as defined by Kaspersky). The top trojans were\n\navalanche-andromeda (the main functionality of this malware family is\n\ndownloading of other malware, which is most often used to electronically spy on\n\nusers) and gamarue (a malware family that is used as a botnet and modular",
+          "chunk_id": "e74ca541ebbca75d6dd998e0d65cdddc1f7fed16740c6e9f96a12fa409540d98"
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "query": "What ATT&CK for ICS techniques are associated with unauthorized access or network-based attacks?",
+      "expected_categories": [
+        "attack-intelligence"
+      ],
+      "expected_sources": [
+        "MITRE"
+      ],
+      "embedding_latency_ms": 36.65808300138451,
+      "search_latency_ms": 6.798791999244713,
+      "total_latency_ms": 43.456875000629225,
+      "results": [
+        {
+          "rank": 1,
+          "score": 0.6876366,
+          "category": "ot-ics",
+          "source": "NIST",
+          "document_name": "NIST SP 800-82 Rev 3",
+          "section": "D.3.5. MITRE ATT&CK for ICS",
+          "page_number": 202,
+          "text": "D.3.5. MITRE ATT&CK for ICS\n\nMITRE ATT&CK for ICS is a curated knowledge base for cyber adversary behavior in the ICS \ntechnology domain. It reflects the various phases of an adversary\u2019s attack life cycle and the \nassets and systems they are known to target. ATT&CK for ICS originated from MITRE internal \nresearch focused on applying the ATT&CK methodology to the ICS technology domain.",
+          "chunk_id": "90fe7db3f7b03fa653f0d4a364ccad603e8813f92bbc0923cd2ba33f2e039bf9"
+        },
+        {
+          "rank": 2,
+          "score": 0.65811956,
+          "category": "ot-ics",
+          "source": "NIST",
+          "document_name": "NIST SP 800-82 Rev 3",
+          "section": "[ATTACK-ICS] The MITRE Corporation (2022) ATT&CK\u00ae for Industrial Control Systems.",
+          "page_number": 148,
+          "text": "[ATTACK-ICS] The MITRE Corporation (2022) ATT&CK\u00ae for Industrial Control Systems.",
+          "chunk_id": "b2d0db3248e32fc0ed31eb9c3c660ae488185e54cb76e29f04c530e22f3d505a"
+        },
+        {
+          "rank": 3,
+          "score": 0.6011049,
+          "category": "ot-ics",
+          "source": "NIST",
+          "document_name": "NIST SP 800-82 Rev 3",
+          "section": "https://attack.mitre.org/techniques/ics/",
+          "page_number": 202,
+          "text": "https://attack.mitre.org/techniques/ics/",
+          "chunk_id": "07a47149cf22b5582f6c7f3c0dc831e2202c97c15e2a2652224c2061389622f0"
+        },
+        {
+          "rank": 4,
+          "score": 0.5889491,
+          "category": "ot-ics",
+          "source": "Unknown",
+          "document_name": "final-RP_ics_cybersecurity_incident_response_100609",
+          "section": "5.3 \nForensics and Legal Issues",
+          "page_number": 45,
+          "text": "\uf0b7 \nUnderstand intruder motivation. Because it would be difficult to assign resources to every aspect of \nthe ICS, it is practical to increase security in specific targeted areas. For example, if the motive is to \nsteal information, then databases would most likely be the target and securing key dat\nand management systems would be the immediate priority. If public chaos, harm, and publicity are \nthe desired outcomes, certain ICS components may need attention. If the motive is financial damage \nto the company, production processes might be targeted. Understanding the motives allows more \nimmediate and focused attention on specific aspects of the ICS environment.\n\nAssess and strengthen specific ICS components. Access methods typically involve the network,\nthe incident might expose vulnerabilities related to specific models or types of components. This \nassessment can expose un-patched components, outdated equipment, or open communications \nbetween components. Solutions include equipment replacement, patching, and strengthening \nboundaries aroun\n\nComplications can occur \nities. For example, many RTOS \nin control system components use \nrnels are erased when the power is \nrem\nters. If\n\ne\n\nthe offending component is isolated by \ndisc\ning it in a powered state.\n\normal\n\nay not be available due to poor configuration or inability of devices to\n\nIT elements. Several major impediments to activation of logging also \ninclude ho\narch\nt",
+          "chunk_id": "4cc344e28f4ed9288d688aab4383518d379c9fcf323a89dceb4047a2e4875b58"
+        },
+        {
+          "rank": 5,
+          "score": 0.576004,
+          "category": "attack-intelligence",
+          "source": "MITRE ATT&CK",
+          "document_name": "ICS ATT&CK",
+          "section": "Unauthorized Message",
+          "page_number": null,
+          "text": "Name: Unauthorized Message\nType: attack-pattern\nMITRE ID: T1692\nTactics: evasion, impair-process-control\n\nDescription:\nAdversaries may send unauthorized messages to ICS systems and devices to evade defenses or manipulate processes. Unauthorized messages can be categorized as either reporting messages that contain telemetry data about the current state of systems, devices, and processes or as command messages which instruct systems and devices on how to operate. By injecting unauthorized messages, adversaries can make it appear as if everything is working correctly when it isn\u2019t, trigger alarms to misdirect personnel or impact processes, and manipulate controls to disrupt processes.(Citation: Bonnie Zhu, Anthony Joseph, Shankar Sastry 2011)\n\nAdversaries may send unauthorized messages in an ICS environment using software found within the environment (living-off-the-land, vendor-specific interfaces, etc.), custom tooling leveraging OT protocols and libraries, or by positioning themselves between systems and devices and injecting messages into the communications such as the case with an [Adversary-in-the-Middle](https://attack.mitre.org/techniques/T0830) attack.\n",
+          "chunk_id": "745d4a639053ab0d9e1eb0c7e6a385587671208eff452655c2175af4f96a250b"
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "query": "A smart-city water treatment control system shows abnormal outbound network traffic and elevated workload. What security considerations should be investigated?",
+      "expected_categories": [
+        "smart-city",
+        "ot-ics",
+        "incident-response"
+      ],
+      "expected_sources": [],
+      "embedding_latency_ms": 13.093916999423527,
+      "search_latency_ms": 5.488708000484621,
+      "total_latency_ms": 18.58262499990815,
+      "results": [
+        {
+          "rank": 1,
+          "score": 0.52840185,
+          "category": "ot-ics",
+          "source": "NIST",
+          "document_name": "NIST SP 800-82 Rev 3",
+          "section": "AWWA \nAmerican Water Works Association",
+          "page_number": 162,
+          "text": "AWWA \nAmerican Water Works Association\n\nNIST SP 800-82r3 \n \nGuide to Operational Technology (OT) Security \nSeptember 2023",
+          "chunk_id": "a347d1d5eb0457e7036a39e9e971952c0a6a815875273cbafd1547029019a7db"
+        },
+        {
+          "rank": 2,
+          "score": 0.52646637,
+          "category": "india",
+          "source": "CERT-In",
+          "document_name": "CIGU-2025-0001",
+          "section": "Smart City Infrastructure",
+          "page_number": 8,
+          "text": "target infrastructure components like energy grids, water systems, large message\n\npublic displays, public address systems and public transportation, which can have\n\nsevere consequences for urban safety and functionality. Another major threat is\n\ndata privacy and breach risks, as Smart Cities handle large volumes of sensitive\n\ndata on citizens, making them attractive targets for hackers seeking to steal or\n\nmisuse personal information.\n\nDenial of Service (DoS) attacks pose another critical risk, where essential city\n\nservices can be rendered inoperative, causing widespread disruption to daily life.\n\nSimilarly, malware and ransomware attacks can infiltrate Smart City systems,\n\nencrypt data, and demand ransom payments to restore access, potentially\n\ncrippling municipal operations. The insider threat should not be overlooked, as\n\nmalicious insiders or negligent employees with privileged access could\n\nintentionally or unintentionally compromise security.\n\nThere is no common risk assessment framework for Smart Cities. For each and\n\nevery Smart City operator risk assessment exercise should be done. The risk\n\nassessment helps to identify high-priority risks, assess vulnerabilities, and\n\ndetermine their potential impact on the Smart City infrastructure. It is essential\n\nfor developing tailored security controls that align with the unique needs of each\n\nSmart City. Understanding these threats provides Smart City operators with the",
+          "chunk_id": "5b72482644177d580f764d4964b2caa1ce8fa620f28326063ace6d1c47512e79"
+        },
+        {
+          "rank": 3,
+          "score": 0.5192196,
+          "category": "india",
+          "source": "CERT-In",
+          "document_name": "CIGU-2025-0001",
+          "section": "Smart City Infrastructure",
+          "page_number": 35,
+          "text": "result in authorization flaws, enabling unauthorized access.\n\n\uf0b7 Unrestricted Access to Sensitive Business Flows: APIs exposing business\n\nflows without safeguards can be exploited for malicious purposes.\n\n\uf0b7 Server-Side Request Forgery (SSRF): APIs fetching remote resources without\n\nvalidation can be manipulated to send requests to unintended destinations.\n\n\uf0b7 Security Misconfiguration: Improper API configurations can open\n\nvulnerabilities, leading to potential exploitation.\n\n\uf0b7 Improper Inventory Management: Poor documentation and management of\n\nAPI endpoints and versions increase security risks.\n\n\uf0b7 Unsafe Consumption of APIs: Trusting third-party APIs without proper\n\nsecurity measures can lead to indirect compromises.\n\nThe API security best practices that smart cities needs to follow include\n\n\uf0b7 Implement strong authentication and authorization.\n\n\uf0b7 Use encryption for data in transit and at rest.\n\n\uf0b7 Validate and sanitize inputs to prevent injection attacks.\n\n\uf0b7 Limit data exposure with response filtering and access controls.\n\n\uf0b7 Throttle and rate-limit API requests.\n\n\uf0b7 Monitor and log API activities for auditing and threat detection.\n\n\uf0b7 Secure API endpoints using IP whitelisting and API gateways.\n\n\uf0b7 Keep APIs and dependencies up-to-date.\n\n\uf0b7 Use security tokens for session management.\n\n\uf0b7 Protect against unintended resource consumption with quotas and safeguards.\n\n\uf0b7 Adopt security-first development practices.\n\n\uf0b7 Educate and train stakeholders on API security.",
+          "chunk_id": "ed9f7c4c20d14d7986ee5362343155abeee4cd84009cc7509fb18b99aff85a82"
+        },
+        {
+          "rank": 4,
+          "score": 0.5172428,
+          "category": "india",
+          "source": "CERT-In",
+          "document_name": "CIGU-2025-0001",
+          "section": "Smart City Infrastructure",
+          "page_number": 41,
+          "text": "identifying and addressing security weaknesses within Smart City systems.\n\nIndustry standard best practices for conducting penetration tests, including both\n\ninternal and external assessments must be carried out to uncover potential\n\nvulnerabilities. These tests should be tightly controlled and performed by\n\nqualified professionals who can provide an objective analysis of the system\u2019s\n\nsecurity posture.\n\nThese tests can reveal security shortcomings which could be exploited to gain\n\nunauthorized access to critical network components. Penetration testing provides\n\nunderstanding of security flaws in IT infrastructure, revealing vulnerabilities,\n\nanalyzing the possible consequences of different forms of attack, evaluating the\n\neffectiveness of current security measures and suggesting remedial actions and\n\nimprovements. These tests should be tightly controlled and performed by\n\nqualified professionals with full regard to Smart City systems\u2019 confidentiality,\n\nintegrity and availability.\n\nSmart City critical applications should be analyzed in more detail. Application\n\nsecurity assessment involves identifying and testing vulnerabilities and\n\nweaknesses of various risk levels that could potentially pose threats to the Smart\n\nCity\u2019s applications and data. Assessment should take into consideration not just\n\ntechnological and functional capabilities of the application, but also should dive\n\ndeeper into business logic of the application to identify issues that may be missed",
+          "chunk_id": "af7583d266a995e2370076b3c852a1aefd12518168062e2b297e1ef4a9a5d843"
+        },
+        {
+          "rank": 5,
+          "score": 0.5141127,
+          "category": "resilience",
+          "source": "CISA",
+          "document_name": "Infra Resilience Planning Framework",
+          "section": "STEP 5\nSTEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+          "page_number": 18,
+          "text": "Based on this discussion, Amy and Aaron have uncovered some potential challenges as well as a couple of new \nstakeholders. First, they hold a meeting with businesses in the industrial district served by only one pumping \nstation. While not all the businesses show, they are able to have a productive conversation about water \nrequirements and impacts of water disruption using the IRPF\u2019s Meeting Facilitation Guide as well as possible \noptions for managing a disruption. While they see loss of water service due to a pumping station outage as \na problem, several businesses raise an issue that is even more pressing\u2014water reliability. They use large \nvolumes of water in their processes and the risk of shortages due to drought is their major concern. Next, Amy \nand Aaron reach out to the water utilities in Los Gatos and Hamilton. While these operators agree that there \nare interconnects with their systems in place, they aren\u2019t exactly sure how things would work in an emergency. \nThere aren\u2019t memoranda of understanding or documented procedures in place for using interconnected \nemergency water services, and the capability hasn\u2019t been exercised or tested. Finally, Aaron and Amy hold \na series of meetings with emergency management personnel, healthcare facilities, and members of the \ncommunity to identify how they rely on the water sector. Through this effort, they determine that while major \nhealthcare facilities in the community have ample onsite water storage and plans to replenish it, disruptions to \nthe wastewater system could take them offline in just over a day. Similarly, while evacuation centers have plans \nfor distributing bottled water, they don\u2019t have contracts for portable toilets in the event of wastewater system \ndisruption.",
+          "chunk_id": "52bde6d1ce7920ac3d9c3a9a3db12e59167fb7efe50b17cc0d65d438e3cdd2f2"
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "query": "A hospital infrastructure endpoint shows suspicious outbound traffic and degraded operational status. What incident-response and IoT/OT security guidance may be relevant?",
+      "expected_categories": [
+        "iot",
+        "ot-ics",
+        "incident-response"
+      ],
+      "expected_sources": [],
+      "embedding_latency_ms": 58.95283300014853,
+      "search_latency_ms": 7.94691700139083,
+      "total_latency_ms": 66.89975000153936,
+      "results": [
+        {
+          "rank": 1,
+          "score": 0.53942853,
+          "category": "ot-ics",
+          "source": "NIST",
+          "document_name": "NIST SP 800-82 Rev 3",
+          "section": "Vulnerability \nDescription \nUnauthorized personnel have \nphysical access to equipment",
+          "page_number": 193,
+          "text": "Vulnerability \nDescription \nUnauthorized personnel have \nphysical access to equipment\n\nPhysical access to OT equipment should be restricted to only the \nnecessary personnel while taking safety requirements into account, such as \nemergency shutdown or restarts. Improper access to OT equipment can \nlead to any of the following: \n\u2022 \nPhysical theft of data and hardware \n\u2022 \nPhysical damage to or destruction of data and hardware \n\u2022 \nModification of the operational process \n\u2022 \nUnauthorized changes to the functional environment (e.g., data \nconnections, unauthorized use of removable media, adding/removing \nresources) \n\u2022 \nDisconnection of physical data links \n \n\u2022 \nUndetectable interception of data (e.g., keystroke and other input \nlogging) \nRadio frequency, electromagnetic \npulse (EMP), static discharge, \nbrownouts, and voltage spikes",
+          "chunk_id": "d230e611e32648f72ded8bada4946d11f076bbe2700678914d42480d7de8f16f"
+        },
+        {
+          "rank": 2,
+          "score": 0.5320545,
+          "category": "ot-ics",
+          "source": "NIST",
+          "document_name": "NIST SP 800-82 Rev 3",
+          "section": "OT-Specific Recommendations and Guidance",
+          "page_number": 87,
+          "text": "OT-Specific Recommendations and Guidance\n\nOrganizations should consider whether the physical security of remote \nassets is implemented at differing levels and whether those differences \ncould create cyber risks. For example, one remote location may utilize \nonly a padlock with minimal electronic surveillance to secure access to \nnetwork equipment that, if bypassed, could allow a malicious actor to \ngain access to an OT network segment from the remote location.\n\nOrganizations should also consider whether secondary services, such as \nthe communications and power that support physical security devices \n(e.g., cameras, sensors, etc.), require additional redundancy, isolation, \nprotection, and monitoring.\n\nNIST SP 800-82r3 \n \nGuide to Operational Technology (OT) Security \nSeptember 2023",
+          "chunk_id": "ad38541b905c714bc5294dfef824b3b4d2157dee057785ccbf1459338f1a3b92"
+        },
+        {
+          "rank": 3,
+          "score": 0.52505654,
+          "category": "ot-ics",
+          "source": "Unknown",
+          "document_name": "final-RP_ics_cybersecurity_incident_response_100609",
+          "section": "2.3 \nBuilding the Cyber Incident Response Plan",
+          "page_number": 22,
+          "text": "4. Incident Notification. Once an abnormal event is identified, it needs to be prioritized to determine the \ncause and whether this is a minor system event or if it requires immediate escalation. This section of \nthe plan should identify the contact information for incident reporting. The section should include \nbasic work phone, mobile phone, e-mail, instant messaging, and pager information for internal staff, \nincluding system and network administrators. It also should address the following circumstances:\n\n\uf0b7 \nAfter-hours phone and pager\n\n\uf0b7 \nOffsite contact numbers\n\n\uf0b7 \nContact information for customers and partners\n\n\uf0b7 \nPhone or pager numbers for backup staff\n\n\uf0b7 \nContact information for management and rules for escalation\n\n\uf0b7 \nCriteria for filtering out false positives\n\n\uf0b7 \nContact information for any relevant regulatory authorities\n\n\uf0b7 \nICS-CERT/US-CERT contact numbers and information\n\n\uf0b7 \nVendor/integrator responsibilities and contact information \nThis contact information should be publicized to everyone that might identify a potential incident. A \nweekly and monthly duty call list issued to operations may be of help to let all employees know who is \navailable to call for assistance in the event of a cyber incident. Because external agencies may be \nreporting a potential incident, based on events at other sites, the contact information should be available to \nall necessary external organizations as well.",
+          "chunk_id": "dc0efa5cebbb09a5d273aa8ece8b26df140c5364665e27ec95481930b44d9bfa"
+        },
+        {
+          "rank": 4,
+          "score": 0.5219993,
+          "category": "ot-ics",
+          "source": "NIST",
+          "document_name": "NIST SP 1500-201",
+          "section": "Aspect \nConcern \nRequirements Analysis",
+          "page_number": 75,
+          "text": "Aspect \nConcern \nRequirements Analysis\n\nBoundaries \ncross-domain\n\nemergency response interacting with traffic control and, \u2026 \nsee domain list\n\nBoundaries \nconnectivity\n\ncell phone can connect with cell phone towers -- one hop \nto cell tower, GPS network receive broadcast\n\nBoundaries \nresponsibility\n\nTCS is the responsibility of municipal government traffic \nmanagement; \nThe holder of the phone has the ability to participate in \nthe scenario; \nThe E911 is the responsibility of the government e-\nresponse; \nThe ambulance is part of the emergency response function \nand may be fire/police/private;\n\nCompositio\nn\n\nadaptability\n\nwork with different cell phone technologies; \nuse cell towers or GPS for location;\n\nCompositio\nn\n\ncomplexity\n\nwork with older (flip phones); \ndeal with different kinds and managements of ambulance \nservices; \n\"green lighting\" can cause impact on other existing flows;\n\nCompositio\nn\n\nconstructivity\n\nEmergency response requires E911 system, the diversity of \ncell phones, cell phone networks,  and ambulance services; \ncoordination between neighbor TCS;\n\nCompositio\nn\n\ndiscoverability\n\nambulance location and capability; \ncellphone location; \ntraffic need to be determined; \npertinent TCS identity and capability;\n\nLifecycle \ndeployability\n\nN/A\n\nLifecycle \ndisposability\n\nN/A\n\nLifecycle \nengineerability\n\nN/A\n\nLifecycle \nmaintainability\n\nN/A\n\nLifecycle \noperatability\n\nN/A\n\nLifecycle \nprocureability\n\nN/A\n\nLifecycle \nproducibility\n\nN/A",
+          "chunk_id": "1c839b698e67ea3de6ae028f868eb30f9cc57de92bf92d991356f82c29741cc1"
+        },
+        {
+          "rank": 5,
+          "score": 0.5181072,
+          "category": "ot-ics",
+          "source": "NIST",
+          "document_name": "NIST SP 800-82 Rev 3",
+          "section": "8 For additional information on these options, refer to NIST SP 800-39 [SP800-39].",
+          "page_number": 67,
+          "text": "8 For additional information on these options, refer to NIST SP 800-39 [SP800-39].\n\nNIST SP 800-82r3 \n \nGuide to Operational Technology (OT) Security \nSeptember 2023\n\nFor example, the threat of an internet-connected system being scanned \nwould have a high likelihood and a low severity consequence, but the \nthreat of a nation-state actor disrupting a supply chain may have low \nlikelihood and high severity consequences.\n\nSince security countermeasures are typically developed for IT \nenvironments, organizations should consider how deploying security \ntechnologies into OT environments may negatively impact operations or \nsafety.",
+          "chunk_id": "4f3b3087f1269737c9396f69105aa3fdc21aa4990ba24a15d884d7cf6d20184b"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,296 @@
+[
+  {
+    "id": "hospital-api-gateway",
+    "name": "Hospital API Gateway",
+    "type": "api_gateway",
+    "sector": "healthcare",
+    "criticality": "high"
+  },
+  {
+    "id": "hospital-auth",
+    "name": "Hospital Authentication Server",
+    "type": "authentication_server",
+    "sector": "healthcare",
+    "criticality": "critical"
+  },
+  {
+    "id": "hospital-database",
+    "name": "Hospital Clinical Database",
+    "type": "database_server",
+    "sector": "healthcare",
+    "criticality": "critical"
+  },
+  {
+    "id": "hospital-emr",
+    "name": "Hospital Electronic Medical Records System",
+    "type": "electronic_medical_records",
+    "sector": "healthcare",
+    "criticality": "critical"
+  },
+  {
+    "id": "medical-iot-gateway",
+    "name": "Hospital Medical IoT Gateway",
+    "type": "medical_iot_gateway",
+    "sector": "healthcare",
+    "criticality": "high"
+  },
+  {
+    "id": "hospital-pharmacy",
+    "name": "Hospital Pharmacy Management System",
+    "type": "pharmacy_management_system",
+    "sector": "healthcare",
+    "criticality": "high"
+  },
+  {
+    "id": "public-transport-management",
+    "name": "Public Transport Management System",
+    "type": "public_transport_management",
+    "sector": "transportation",
+    "criticality": "high"
+  },
+  {
+    "id": "traffic-camera",
+    "name": "Traffic Camera",
+    "type": "traffic_camera",
+    "sector": "transportation",
+    "criticality": "high"
+  },
+  {
+    "id": "traffic-management-controller",
+    "name": "Traffic Management Controller",
+    "type": "traffic_management_controller",
+    "sector": "transportation",
+    "criticality": "critical"
+  },
+  {
+    "id": "traffic-sensor-gateway",
+    "name": "Traffic Sensor Gateway",
+    "type": "traffic_sensor_gateway",
+    "sector": "transportation",
+    "criticality": "high"
+  },
+  {
+    "id": "distribution-management-system",
+    "name": "Energy Distribution Management System",
+    "type": "distribution_management_system",
+    "sector": "energy",
+    "criticality": "critical"
+  },
+  {
+    "id": "power-substation-controller",
+    "name": "Power Substation Controller",
+    "type": "substation_controller",
+    "sector": "energy",
+    "criticality": "critical"
+  },
+  {
+    "id": "scada-control-server",
+    "name": "Energy SCADA Control Server",
+    "type": "scada_control_server",
+    "sector": "energy",
+    "criticality": "critical"
+  },
+  {
+    "id": "smart-meter-gateway",
+    "name": "Smart Electricity Meter Gateway",
+    "type": "smart_meter_gateway",
+    "sector": "energy",
+    "criticality": "high"
+  },
+  {
+    "id": "dns-dhcp-services",
+    "name": "DNS and DHCP Services",
+    "type": "dns_dhcp_services",
+    "sector": "telecommunications",
+    "criticality": "high"
+  },
+  {
+    "id": "mobile-network-core",
+    "name": "Mobile Network Core",
+    "type": "mobile_network_core",
+    "sector": "telecommunications",
+    "criticality": "critical"
+  },
+  {
+    "id": "network-management-system",
+    "name": "Telecommunications Network Management System",
+    "type": "network_management_system",
+    "sector": "telecommunications",
+    "criticality": "critical"
+  },
+  {
+    "id": "telecom-network-gateway",
+    "name": "Telecommunications Network Gateway",
+    "type": "network_gateway",
+    "sector": "telecommunications",
+    "criticality": "critical"
+  },
+  {
+    "id": "atm-network-gateway",
+    "name": "ATM Network Gateway",
+    "type": "atm_network_gateway",
+    "sector": "finance",
+    "criticality": "high"
+  },
+  {
+    "id": "bank-gateway",
+    "name": "Bank Gateway",
+    "type": "banking_gateway",
+    "sector": "finance",
+    "criticality": "critical"
+  },
+  {
+    "id": "core-banking-system",
+    "name": "Core Banking System",
+    "type": "core_banking_system",
+    "sector": "finance",
+    "criticality": "critical"
+  },
+  {
+    "id": "payment-processing-system",
+    "name": "Payment Processing System",
+    "type": "payment_processing_system",
+    "sector": "finance",
+    "criticality": "critical"
+  },
+  {
+    "id": "smart-water-meter-gateway",
+    "name": "Smart Water Meter Gateway",
+    "type": "smart_water_meter_gateway",
+    "sector": "water",
+    "criticality": "high"
+  },
+  {
+    "id": "water-distribution-management",
+    "name": "Water Distribution Management System",
+    "type": "water_distribution_management",
+    "sector": "water",
+    "criticality": "critical"
+  },
+  {
+    "id": "water-quality-monitoring",
+    "name": "Water Quality Monitoring System",
+    "type": "water_quality_monitoring",
+    "sector": "water",
+    "criticality": "high"
+  },
+  {
+    "id": "water-treatment-control",
+    "name": "Water Treatment Control System",
+    "type": "water_treatment_control",
+    "sector": "water",
+    "criticality": "critical"
+  },
+  {
+    "id": "ambulance-management-system",
+    "name": "Ambulance Management System",
+    "type": "ambulance_management_system",
+    "sector": "emergency-services",
+    "criticality": "critical"
+  },
+  {
+    "id": "emergency-communications-gateway",
+    "name": "Emergency Communications Gateway",
+    "type": "emergency_communications_gateway",
+    "sector": "emergency-services",
+    "criticality": "critical"
+  },
+  {
+    "id": "emergency-dispatch-system",
+    "name": "Emergency Dispatch System",
+    "type": "emergency_dispatch_system",
+    "sector": "emergency-services",
+    "criticality": "critical"
+  },
+  {
+    "id": "fire-services-management-system",
+    "name": "Fire Services Management System",
+    "type": "fire_services_management_system",
+    "sector": "emergency-services",
+    "criticality": "critical"
+  },
+  {
+    "id": "citizen-services-portal",
+    "name": "Citizen Services Portal",
+    "type": "citizen_services_portal",
+    "sector": "government",
+    "criticality": "high"
+  },
+  {
+    "id": "government-identity-service",
+    "name": "Government Identity Service",
+    "type": "government_identity_service",
+    "sector": "government",
+    "criticality": "critical"
+  },
+  {
+    "id": "government-network-gateway",
+    "name": "Government Network Gateway",
+    "type": "government_network_gateway",
+    "sector": "government",
+    "criticality": "critical"
+  },
+  {
+    "id": "municipal-management-system",
+    "name": "Municipal Management System",
+    "type": "municipal_management_system",
+    "sector": "government",
+    "criticality": "high"
+  },
+  {
+    "id": "campus-network-gateway",
+    "name": "Campus Network Gateway",
+    "type": "campus_network_gateway",
+    "sector": "education",
+    "criticality": "high"
+  },
+  {
+    "id": "education-management-system",
+    "name": "Education Management System",
+    "type": "education_management_system",
+    "sector": "education",
+    "criticality": "high"
+  },
+  {
+    "id": "learning-management-system",
+    "name": "Learning Management System",
+    "type": "learning_management_system",
+    "sector": "education",
+    "criticality": "high"
+  },
+  {
+    "id": "student-information-system",
+    "name": "Student Information System",
+    "type": "student_information_system",
+    "sector": "education",
+    "criticality": "critical"
+  },
+  {
+    "id": "police-management-system",
+    "name": "Police Management System",
+    "type": "police_management_system",
+    "sector": "public-safety",
+    "criticality": "critical"
+  },
+  {
+    "id": "public-safety-incident-system",
+    "name": "Public Safety Incident System",
+    "type": "public_safety_incident_system",
+    "sector": "public-safety",
+    "criticality": "critical"
+  },
+  {
+    "id": "public-safety-network-gateway",
+    "name": "Public Safety Network Gateway",
+    "type": "public_safety_network_gateway",
+    "sector": "public-safety",
+    "criticality": "critical"
+  },
+  {
+    "id": "surveillance-management-system",
+    "name": "Surveillance Management System",
+    "type": "surveillance_management_system",
+    "sector": "public-safety",
+    "criticality": "critical"
+  }
+]

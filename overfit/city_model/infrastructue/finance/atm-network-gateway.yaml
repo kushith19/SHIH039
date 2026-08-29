@@ -1,0 +1,203 @@
+id: atm-network-gateway
+name: ATM Network Gateway
+
+category: finance
+type: atm_network_gateway
+
+description: >
+  Network gateway responsible for securely connecting distributed
+  automated teller machines to banking infrastructure and routing
+  authentication, account, balance, withdrawal, deposit, and other
+  supported ATM transaction requests.
+
+criticality: high
+
+operating_schedule:
+  defaultPhase: 24x7
+
+  phases:
+    - id: daytime
+      start: "06:00"
+      end: "22:00"
+      priority: 8
+
+    - id: night
+      start: "22:00"
+      end: "06:00"
+      priority: 5
+
+behaviour:
+
+  normal:
+    activityLevel: moderate
+    communicationPattern: continuous
+    workload: moderate
+    administrativeActivity: low
+    networkActivity: high
+    expectedOperations: atm_transaction_processing
+    expectedUsers: high
+    healthStatus: healthy
+
+  peak:
+    activityLevel: high
+    communicationPattern: continuous
+    workload: heavy
+    administrativeActivity: moderate
+    networkActivity: very_high
+    expectedOperations: atm_transaction_processing
+    expectedUsers: very_high
+    healthStatus: healthy
+
+  night:
+    activityLevel: moderate
+    communicationPattern: continuous
+    workload: light
+    administrativeActivity: low
+    networkActivity: moderate
+    expectedOperations: atm_transaction_processing
+    expectedUsers: moderate
+    healthStatus: healthy
+
+states:
+
+  healthy:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: low
+    healthStatus: healthy
+
+  busy:
+    workload: heavy
+    networkActivity: very_high
+    administrativeActivity: moderate
+    healthStatus: healthy
+
+  degraded:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: high
+    healthStatus: degraded
+
+  recovering:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: high
+    healthStatus: recovering
+
+  suspicious:
+    workload: elevated
+    networkActivity: very_high
+    administrativeActivity: high
+    healthStatus: suspicious
+
+  under_attack:
+    workload: heavy
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: critical
+
+  compromised:
+    workload: abnormal
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: compromised
+
+telemetry:
+
+  metrics:
+
+    - name: connected_atms
+      unit: devices
+      min: 0
+      max: 10000
+
+    - name: active_atm_sessions
+      unit: sessions
+      min: 0
+      max: 10000
+
+    - name: transaction_requests
+      unit: transactions/min
+      min: 0
+      max: 10000
+
+    - name: withdrawal_requests
+      unit: requests/min
+      min: 0
+      max: 10000
+
+    - name: balance_inquiries
+      unit: requests/min
+      min: 0
+      max: 10000
+
+    - name: failed_transactions
+      unit: transactions/min
+      min: 0
+      max: 2000
+
+    - name: authentication_failures
+      unit: failures/min
+      min: 0
+      max: 2000
+
+    - name: atm_connection_failures
+      unit: failures/min
+      min: 0
+      max: 1000
+
+    - name: transaction_latency
+      unit: milliseconds
+      min: 1
+      max: 5000
+
+    - name: cpu_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: memory_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: network_bytes
+      unit: bytes/s
+      min: 0
+      max: 500000000
+
+actors:
+
+  - bank-customers
+  - bank-administrators
+  - atm-maintenance-technicians
+
+dependencies:
+
+  - endpoint: core-banking-system
+    type: required
+    weight: 1.0
+
+metadata:
+
+  environment: production
+
+  protocols:
+    - HTTPS
+    - TLS
+    - ISO_8583
+
+  capabilities:
+    - atm_connectivity
+    - transaction_routing
+    - authentication
+    - account_access
+
+  security:
+    encryption: true
+    authentication: true
+    transaction_auditing: true
+
+  location:
+    facility: distributed_atm_network
+    zone: finance_network

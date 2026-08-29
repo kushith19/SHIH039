@@ -1,0 +1,442 @@
+dependencies:
+
+  # ============================================================
+  # TELECOMMUNICATIONS FOUNDATION
+
+  # ============================================================
+
+  - source: hospital-api-gateway
+    target: telecom-network-gateway
+    type: required
+    weight: 0.9
+
+  - source: medical-iot-gateway
+    target: telecom-network-gateway
+    type: required
+    weight: 0.9
+
+  - source: traffic-management-controller
+    target: telecom-network-gateway
+    type: required
+    weight: 1.0
+
+  - source: traffic-camera
+    target: telecom-network-gateway
+    type: required
+    weight: 0.8
+
+  - source: traffic-sensor-gateway
+    target: telecom-network-gateway
+    type: required
+    weight: 0.9
+
+  - source: public-transport-management
+    target: telecom-network-gateway
+    type: required
+    weight: 0.8
+
+  - source: scada-control-server
+    target: telecom-network-gateway
+    type: required
+    weight: 1.0
+
+  - source: power-substation-controller
+    target: telecom-network-gateway
+    type: supporting
+    weight: 0.8
+
+  - source: distribution-management-system
+    target: telecom-network-gateway
+    type: required
+    weight: 0.9
+
+  - source: smart-meter-gateway
+    target: telecom-network-gateway
+    type: supporting
+    weight: 0.7
+
+  - source: water-treatment-control
+    target: telecom-network-gateway
+    type: required
+    weight: 0.9
+
+  - source: water-distribution-management
+    target: telecom-network-gateway
+    type: required
+    weight: 0.9
+
+  - source: smart-water-meter-gateway
+    target: telecom-network-gateway
+    type: supporting
+    weight: 0.7
+
+  - source: water-quality-monitoring
+    target: telecom-network-gateway
+    type: supporting
+    weight: 0.7
+
+  - source: emergency-communications-gateway
+    target: telecom-network-gateway
+    type: required
+    weight: 1.0
+
+  - source: government-network-gateway
+    target: telecom-network-gateway
+    type: required
+    weight: 0.9
+
+  - source: campus-network-gateway
+    target: telecom-network-gateway
+    type: required
+    weight: 0.8
+
+  - source: public-safety-network-gateway
+    target: telecom-network-gateway
+    type: required
+    weight: 1.0
+
+
+  - source: bank-gateway
+    target: telecom-network-gateway
+    type: required
+    weight: 0.9
+
+  - source: atm-network-gateway
+    target: telecom-network-gateway
+    type: required
+    weight: 0.9
+
+
+  - source: telecom-network-gateway
+    target: telecom-backup-gateway
+    type: backup
+    weight: 0.5
+
+
+  # ============================================================
+  # HEALTHCARE
+  # ============================================================
+
+  - source: hospital-api-gateway
+    target: hospital-auth
+    type: required
+    weight: 1.0
+
+  - source: hospital-emr
+    target: hospital-database
+    type: required
+    weight: 1.0
+
+
+  - source: hospital-emr
+    target: hospital-auth
+    type: required
+    weight: 0.8
+
+  - source: hospital-auth
+    target: hospital-database
+    type: required
+    weight: 0.9
+
+  - source: medical-iot-gateway
+    target: hospital-api-gateway
+    type: supporting
+    weight: 0.7
+
+  - source: hospital-pharmacy
+    target: hospital-emr
+    type: supporting
+    weight: 0.8
+
+  - source: hospital-database
+    target: hospital-backup-power
+    type: backup
+    weight: 0.6
+
+
+  # ============================================================
+  # TRANSPORTATION
+  # ============================================================
+
+  - source: traffic-management-controller
+    target: traffic-sensor-gateway
+    type: required
+    weight: 1.0
+
+  - source: traffic-management-controller
+    target: traffic-camera
+    type: supporting
+    weight: 0.7
+
+  - source: public-transport-management
+    target: traffic-management-controller
+    type: supporting
+    weight: 0.6
+
+
+  # ============================================================
+  # ENERGY
+  # ============================================================
+
+  - source: power-substation-controller
+    target: scada-control-server
+    type: supporting
+    weight: 1.0
+
+  - source: distribution-management-system
+    target: scada-control-server
+    type: supporting
+    weight: 0.9
+
+  - source: smart-meter-gateway
+    target: distribution-management-system
+    type: supporting
+    weight: 0.7
+
+  - source: scada-control-server
+    target: scada-backup-power
+    type: backup
+    weight: 0.5
+
+
+  # ============================================================
+  # WATER
+  # ============================================================
+
+  - source: water-quality-monitoring
+    target: water-treatment-control
+    type: supporting
+    weight: 0.8
+
+  - source: smart-water-meter-gateway
+    target: water-distribution-management
+    type: supporting
+    weight: 0.7
+
+
+  # ============================================================
+  # FINANCE
+  # ============================================================
+
+  - source: bank-gateway
+    target: core-banking-system
+    type: required
+    weight: 1.0
+
+  - source: atm-network-gateway
+    target: core-banking-system
+    type: required
+    weight: 1.0
+
+  - source: payment-processing-system
+    target: core-banking-system
+    type: supporting
+    weight: 0.8
+
+
+  - source: core-banking-system
+    target: core-banking-backup
+    type: backup
+    weight: 0.6
+
+
+  # ============================================================
+  # EMERGENCY SERVICES
+  # ============================================================
+
+  - source: emergency-dispatch-system
+    target: emergency-communications-gateway
+    type: required
+    weight: 1.0
+
+  - source: ambulance-management-system
+    target: emergency-communications-gateway
+    type: required
+    weight: 0.9
+
+  - source: fire-services-management-system
+    target: emergency-communications-gateway
+    type: required
+    weight: 0.9
+
+  - source: emergency-communications-gateway
+    target: telecom-backup-gateway
+    type: backup
+    weight: 0.7
+
+
+  # ============================================================
+  # EDUCATION
+  # ============================================================
+
+  - source: education-management-system
+    target: campus-network-gateway
+    type: required
+    weight: 0.9
+
+  - source: learning-management-system
+    target: campus-network-gateway
+    type: required
+    weight: 0.9
+
+  - source: student-information-system
+    target: campus-network-gateway
+    type: required
+    weight: 0.9
+
+  - source: learning-management-system
+    target: student-information-system
+    type: supporting
+    weight: 0.7
+
+
+  # ============================================================
+  # PUBLIC SAFETY
+  # ============================================================
+
+  - source: police-management-system
+    target: public-safety-incident-system
+    type: required
+    weight: 0.9
+
+  - source: surveillance-management-system
+    target: public-safety-incident-system
+    type: supporting
+    weight: 0.7
+
+  - source: police-management-system
+    target: public-safety-network-gateway
+    type: required
+    weight: 1.0
+
+  - source: public-safety-incident-system
+    target: public-safety-network-gateway
+    type: required
+    weight: 1.0
+
+  - source: surveillance-management-system
+    target: public-safety-network-gateway
+    type: required
+    weight: 1.0
+
+
+  # ============================================================
+  # GOVERNMENT
+  
+  # ============================================================
+
+  - source: citizen-services-portal
+    target: government-network-gateway
+    type: required
+    weight: 0.8
+
+  - source: government-identity-service
+    target: government-network-gateway
+    type: required
+    weight: 0.8
+
+
+  # ============================================================
+  # CROSS-SECTOR / SHARED SUPPORT SERVICES
+  # ============================================================
+
+  - source: hospital-api-gateway
+    target: dns-dhcp-services
+    type: supporting
+    weight: 0.6
+
+  - source: traffic-management-controller
+    target: dns-dhcp-services
+    type: supporting
+    weight: 0.5
+
+  - source: scada-control-server
+    target: dns-dhcp-services
+    type: supporting
+    weight: 0.5
+
+  - source: government-network-gateway
+    target: dns-dhcp-services
+    type: supporting
+    weight: 0.6
+
+  - source: campus-network-gateway
+    target: dns-dhcp-services
+    type: supporting
+    weight: 0.6
+
+  - source: public-safety-network-gateway
+    target: dns-dhcp-services
+    type: supporting
+    weight: 0.6
+
+  - source: bank-gateway
+    target: dns-dhcp-services
+    type: supporting
+    weight: 0.5
+
+  - source: emergency-communications-gateway
+    target: dns-dhcp-services
+    type: supporting
+    weight: 0.5
+
+
+ 
+  # Healthcare ↔ Energy
+  - source: medical-iot-gateway
+    target: power-substation-controller
+    type: required
+    weight: 0.9
+
+  # Transportation ↔ Energy
+  - source: traffic-management-controller
+    target: power-substation-controller
+    type: required
+    weight: 1.0
+
+  # Water ↔ Energy
+  - source: water-treatment-control
+    target: power-substation-controller
+    type: required
+    weight: 1.0
+
+  - source: water-distribution-management
+    target: power-substation-controller
+    type: required
+    weight: 0.9
+
+  # Emergency Services ↔ Healthcare
+  - source: ambulance-management-system
+    target: hospital-emr
+    type: supporting
+    weight: 0.7
+
+  # Emergency Services ↔ Transportation
+  - source: ambulance-management-system
+    target: traffic-management-controller
+    type: supporting
+    weight: 0.8
+
+  # Public Safety ↔ Transportation
+  - source: surveillance-management-system
+    target: traffic-management-controller
+    type: supporting
+    weight: 0.6
+
+  # Public Safety ↔ Emergency Services
+  - source: public-safety-incident-system
+    target: emergency-dispatch-system
+    type: supporting
+    weight: 0.8
+
+  # Government ↔ Finance
+  - source: citizen-services-portal
+    target: payment-processing-system
+    type: supporting
+    weight: 0.7
+
+  # Education ↔ Government
+  - source: education-management-system
+    target: government-identity-service
+    type: supporting
+    weight: 0.5

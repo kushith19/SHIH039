@@ -1,0 +1,73 @@
+id: hospital-backup-power
+name: Hospital Backup Power
+
+category: healthcare
+type: hospital_backup_power
+
+description: >
+  Standby electrical feed for hospital clinical systems when the
+  primary substation path is unavailable.
+
+criticality: critical
+
+operating_schedule:
+  defaultPhase: 24x7
+  phases:
+    - id: daytime
+      start: "06:00"
+      end: "22:00"
+      priority: 6
+    - id: night
+      start: "22:00"
+      end: "06:00"
+      priority: 6
+
+behaviour:
+  normal:
+    activityLevel: low
+    communicationPattern: periodic
+    workload: light
+    networkActivity: low
+    healthStatus: healthy
+  peak:
+    activityLevel: moderate
+    communicationPattern: continuous
+    workload: moderate
+    networkActivity: moderate
+    healthStatus: healthy
+  night:
+    activityLevel: low
+    communicationPattern: periodic
+    workload: light
+    networkActivity: low
+    healthStatus: healthy
+
+states:
+  healthy:
+    workload: light
+    networkActivity: low
+    healthStatus: healthy
+  degraded:
+    workload: moderate
+    networkActivity: high
+    healthStatus: degraded
+
+telemetry:
+  metrics:
+    - name: packets_forwarded
+      unit: packets/s
+      min: 0
+      max: 8000
+    - name: cpu_usage
+      unit: percent
+      min: 0
+      max: 100
+
+actors: []
+dependencies:
+  - endpoint: hospital-database
+    type: backup
+    weight: 0.85
+
+metadata:
+  role: backup

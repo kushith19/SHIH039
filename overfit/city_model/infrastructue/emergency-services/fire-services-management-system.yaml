@@ -1,0 +1,205 @@
+id: fire-services-management-system
+name: Fire Services Management System
+
+category: emergency-services
+type: fire_services_management_system
+
+description: >
+  Digital platform responsible for coordinating fire and rescue
+  operations, monitoring fire-service vehicle availability, managing
+  emergency response resources, tracking active incidents, and
+  supporting coordination between fire stations and emergency
+  response teams.
+
+criticality: critical
+
+operating_schedule:
+  defaultPhase: 24x7
+
+  phases:
+    - id: daytime
+      start: "06:00"
+      end: "22:00"
+      priority: 8
+
+    - id: night
+      start: "22:00"
+      end: "06:00"
+      priority: 5
+
+behaviour:
+
+  normal:
+    activityLevel: moderate
+    communicationPattern: continuous
+    workload: moderate
+    administrativeActivity: moderate
+    networkActivity: high
+    expectedOperations: fire_response_coordination
+    expectedUsers: moderate
+    healthStatus: healthy
+
+  peak:
+    activityLevel: very_high
+    communicationPattern: continuous
+    workload: heavy
+    administrativeActivity: high
+    networkActivity: very_high
+    expectedOperations: emergency_response
+    expectedUsers: high
+    healthStatus: healthy
+
+  night:
+    activityLevel: moderate
+    communicationPattern: continuous
+    workload: moderate
+    administrativeActivity: low
+    networkActivity: high
+    expectedOperations: fire_response_coordination
+    expectedUsers: low
+    healthStatus: healthy
+
+states:
+
+  healthy:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: moderate
+    healthStatus: healthy
+
+  busy:
+    workload: heavy
+    networkActivity: very_high
+    administrativeActivity: high
+    healthStatus: healthy
+
+  degraded:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: high
+    healthStatus: degraded
+
+  recovering:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: very_high
+    healthStatus: recovering
+
+  suspicious:
+    workload: elevated
+    networkActivity: very_high
+    administrativeActivity: high
+    healthStatus: suspicious
+
+  under_attack:
+    workload: heavy
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: critical
+
+  compromised:
+    workload: abnormal
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: compromised
+
+telemetry:
+
+  metrics:
+
+    - name: available_fire_vehicles
+      unit: vehicles
+      min: 0
+      max: 2000
+
+    - name: active_fire_vehicles
+      unit: vehicles
+      min: 0
+      max: 2000
+
+    - name: active_incidents
+      unit: incidents
+      min: 0
+      max: 5000
+
+    - name: dispatch_requests
+      unit: requests/min
+      min: 0
+      max: 5000
+
+    - name: response_units_dispatched
+      unit: units/min
+      min: 0
+      max: 2000
+
+    - name: vehicle_location_updates
+      unit: updates/min
+      min: 0
+      max: 10000
+
+    - name: average_response_time
+      unit: seconds
+      min: 0
+      max: 3600
+
+    - name: incident_processing_latency
+      unit: milliseconds
+      min: 1
+      max: 5000
+
+    - name: communication_failures
+      unit: failures/min
+      min: 0
+      max: 1000
+
+    - name: cpu_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: memory_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: network_bytes
+      unit: bytes/s
+      min: 0
+      max: 300000000
+
+actors:
+
+  - firefighters
+  - fire-dispatchers
+  - fire-station-operators
+  - emergency-dispatchers
+  - emergency-administrators
+
+dependencies: []
+
+metadata:
+
+  environment: production
+
+  protocols:
+    - HTTPS
+    - TLS
+    - MQTT
+    - GPS
+
+  capabilities:
+    - fire_dispatch
+    - rescue_coordination
+    - vehicle_tracking
+    - incident_management
+    - resource_management
+
+  security:
+    authentication: true
+    encrypted_communication: true
+    access_control: true
+    audit_logging: true
+
+  location:
+    facility: fire_operations_center
+    zone: emergency_services_network

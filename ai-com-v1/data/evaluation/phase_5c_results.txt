@@ -1,0 +1,622 @@
+Initializing Commander Graph...
+Loading local embedding model: sentence-transformers/all-MiniLM-L6-v2
+
+============================================================
+EVALUATING INCIDENT: INC-001
+============================================================
+
+--- RETRIEVAL PLAN ---
+- behavioral anomaly telecom-network-gateway hospital-api-gateway hospital-emr (Cat: None)
+- behavioral anomaly ot-ics (Cat: None)
+- behavioral anomaly smart-city (Cat: None)
+
+--- EVIDENCE DETAILS ---
+Total chunks returned: 9
+  [0.71] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.70] NIST / NIST SP 800-61 Rev 3 / incident-response
+  [0.62] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.59] Unknown / news_2024-10-11 / india
+  [0.58] Unknown / news_2024-10-11 / india
+  [0.57] CERT-In / CIGU-2025-0001 / india
+  [0.51] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.47] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.46] NIST / NIST SP 1500-201 / ot-ics
+
+--- SUFFICIENCY DECISION ---
+Sufficiency LLM Invoked: True
+Sufficient: False
+Missing Domains: ['anomaly_behavior', 'infrastructure_domain', 'incident_response']
+Rationale: Retrieved evidence provides general behavioral anomaly detection principles but lacks specifics about the detected traffic patterns, affected infrastructure context, and response protocols. Critical dimensions like anomaly thresholds, endpoint-specific behaviors, and incident mitigation strategies are missing.
+
+--- TARGETED RETRIEVAL ---
+Triggered: True
+Additional chunks retrieved: 2
+
+--- EXECUTION METRICS ---
+LLM Calls: 2
+Evidence Context Size: 5759 chars
+Final Evidence Count: 9
+
+--- FINAL RESPONSE ---
+{
+  "incident_id": "INC-001",
+  "assessment": {
+    "severity": "high",
+    "summary": "Unusual outbound traffic detected from critical infrastructure endpoints requiring immediate investigation.",
+    "confidence": 0.91
+  },
+  "impact": {
+    "affected_endpoints": [
+      "telecom-network-gateway",
+      "hospital-api-gateway",
+      "hospital-emr"
+    ],
+    "affected_sectors": [
+      "healthcare",
+      "telecommunications"
+    ],
+    "critical_infrastructure": [
+      "energy",
+      "water",
+      "transportation",
+      "public safety"
+    ]
+  },
+  "evidence": [
+    {
+      "type": "log_entry",
+      "description": "Unusual outbound traffic detected",
+      "source": "mock_tgnn",
+      "document": null,
+      "section": null,
+      "page": null
+    },
+    {
+      "type": "guideline",
+      "description": "Behavioral anomaly detection systems identify unusual network traffic patterns as potential security incidents",
+      "source": "NIST",
+      "document": "NIST SP 800-82 Rev 3",
+      "section": "E.2.5",
+      "page": null
+    },
+    {
+      "type": "risk_factor",
+      "description": "Smart city infrastructure handles sensitive data and faces risks like DoS, ransomware, and data breaches",
+      "source": "CERT-In",
+      "document": "CIGU-2025-0001",
+      "section": null,
+      "page": null
+    }
+  ],
+  "recommendations": [
+    {
+      "action": "Investigate the source and destination of the outbound traffic",
+      "priority": "high"
+    },
+    {
+      "action": "Review network segmentation and access controls for affected endpoints",
+      "priority": "high"
+    },
+    {
+      "action": "Coordinate with incident response teams for containment and analysis",
+      "priority": "critical"
+    },
+    {
+      "action": "Implement temporary traffic restrictions without disrupting critical services",
+      "priority": "high"
+    }
+  ]
+}
+
+--- LATENCY BREAKDOWN ---
+Planning: 0.03ms
+Retrieval: 769.86ms
+Sufficiency: 26220.91ms
+Targeted Retrieval: 670.33ms
+Assessment: 106957.57ms
+TOTAL: 134630.33ms
+
+
+============================================================
+EVALUATING INCIDENT: INC-002
+============================================================
+
+--- RETRIEVAL PLAN ---
+- how to contain IoT device compromise in water treatment systems (Cat: iot)
+- OT/ICS operational constraints during network traffic anomaly containment (Cat: ot-ics)
+- smart city water treatment security guidelines for network anomaly response (Cat: smart-city)
+- resilience strategies for water distribution system IoT devices (Cat: resilience)
+
+--- EVIDENCE DETAILS ---
+Total chunks returned: 10
+  [0.71] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.70] NIST / NIST SP 800-61 Rev 3 / incident-response
+  [0.64] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.61] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.59] Unknown / final-RP_ics_cybersecurity_incident_response_100609 / ot-ics
+  [0.57] NIST / NIST IR 8259 Rev 1 / iot
+  [0.57] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.56] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.56] NIST / NIST IR 8259 Rev 1 / iot
+  [0.54] NIST / NIST IR 8259 Rev 1 / iot
+
+--- SUFFICIENCY DECISION ---
+Sufficiency LLM Invoked: True
+Sufficient: False
+Missing Domains: ['incident_response', 'infrastructure_domain']
+Rationale: Evidence lacks detailed incident response protocols for behavioral anomalies and specific infrastructure details about water treatment systems. While OT/ICS and smart city principles are covered, targeted guidance on response actions and system-specific infrastructure resilience is missing.
+
+--- TARGETED RETRIEVAL ---
+Triggered: True
+Additional chunks retrieved: 4
+
+--- EXECUTION METRICS ---
+LLM Calls: 3
+Evidence Context Size: 8814 chars
+Final Evidence Count: 10
+
+--- FINAL RESPONSE ---
+{
+  "incident_id": "INC-002",
+  "assessment": {
+    "severity": "critical",
+    "summary": "Critical behavioral anomaly detected in water infrastructure systems with high confidence, indicating potential security incident requiring immediate containment and investigation.",
+    "confidence": 0.88
+  },
+  "impact": {
+    "affected_endpoints": [
+      "water-treatment-control",
+      "water-distribution-management",
+      "water-quality-monitoring",
+      "smart-water-meter-gateway"
+    ],
+    "affected_sectors": [
+      "water",
+      "public health"
+    ],
+    "critical_infrastructure": [
+      "water treatment",
+      "water distribution",
+      "smart metering"
+    ]
+  },
+  "evidence": [
+    {
+      "type": "metric_anomaly",
+      "description": "Abnormal outbound network traffic and elevated workload compared with normal operating baseline",
+      "source": "mock_tgnn_ot",
+      "document": null,
+      "section": null,
+      "page": null
+    },
+    {
+      "type": "security_guidance",
+      "description": "NIST SP 800-82r3 emphasizes anomaly detection in OT environments and monitoring of critical infrastructure systems",
+      "source": "NIST",
+      "document": "SP 800-82 Rev 3",
+      "section": "Section 4.2",
+      "page": null
+    },
+    {
+      "type": "security_guidance",
+      "description": "NIST IR 8259r1 highlights incident detection requirements for IoT devices in water systems",
+      "source": "NIST",
+      "document": "IR 8259 Rev 1",
+      "section": "Section 3.4",
+      "page": null
+    }
+  ],
+  "recommendations": [
+    {
+      "action": "Isolate affected endpoints from the network to prevent lateral movement",
+      "priority": "high"
+    },
+    {
+      "action": "Enhance network monitoring with IDS/IPS solutions tailored for OT protocols",
+      "priority": "high"
+    },
+    {
+      "action": "Conduct forensic analysis of anomalous traffic patterns",
+      "priority": "critical"
+    },
+    {
+      "action": "Review and update access control policies following least privilege principle",
+      "priority": "high"
+    },
+    {
+      "action": "Initiate incident response protocol per NIST SP 800-61 guidelines",
+      "priority": "critical"
+    }
+  ]
+}
+
+--- LATENCY BREAKDOWN ---
+Planning: 87543.94ms
+Retrieval: 653.20ms
+Sufficiency: 115546.99ms
+Targeted Retrieval: 288.59ms
+Assessment: 112037.60ms
+TOTAL: 316086.04ms
+
+
+============================================================
+EVALUATING INCIDENT: INC-003
+============================================================
+
+--- RETRIEVAL PLAN ---
+- network intrusion traffic-management-controller traffic-sensor-gateway (Cat: None)
+- network intrusion ot-ics (Cat: None)
+
+--- EVIDENCE DETAILS ---
+Total chunks returned: 10
+  [0.71] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.70] NIST / NIST SP 800-61 Rev 3 / incident-response
+  [0.63] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.63] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.63] Unknown / final-RP_ics_cybersecurity_incident_response_100609 / ot-ics
+  [0.59] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.58] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.54] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.53] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.52] CERT-In / CIGU-2023-0001 / india
+
+--- SUFFICIENCY DECISION ---
+Sufficiency LLM Invoked: True
+Sufficient: False
+Missing Domains: ['anomaly_behavior', 'infrastructure_domain', 'incident_response', 'smart_city']
+Rationale: Retrieved evidence lacks specific details about detected anomaly behavior patterns, infrastructure architecture of traffic management systems, incident response protocols, and smart city-specific security considerations. NIST documents mention general monitoring tools but do not address the unique behavioral or architectural context of the affected endpoints.
+
+--- TARGETED RETRIEVAL ---
+Triggered: True
+Additional chunks retrieved: 4
+
+--- EXECUTION METRICS ---
+LLM Calls: 2
+Evidence Context Size: 5078 chars
+Final Evidence Count: 10
+
+--- FINAL RESPONSE ---
+{
+  "incident_id": "INC-003",
+  "assessment": {
+    "severity": "high",
+    "summary": "Abnormal traffic patterns between traffic-management-controller and traffic-sensor-gateway suggest potential unauthorized communication. This requires immediate investigation to determine if it represents a cybersecurity incident.",
+    "confidence": 0.85
+  },
+  "impact": {
+    "affected_endpoints": [
+      "traffic-management-controller",
+      "traffic-sensor-gateway"
+    ],
+    "affected_sectors": [
+      "transportation",
+      "public infrastructure"
+    ],
+    "critical_infrastructure": [
+      "traffic systems"
+    ]
+  },
+  "evidence": [
+    {
+      "type": "network_flow",
+      "description": "Unexpected peer communication and abnormal traffic patterns observed between controllers",
+      "source": "mock_tgnn_traffic",
+      "document": "NIST SP 800-82 Rev 3",
+      "section": "ot-ics",
+      "page": null
+    },
+    {
+      "type": "security_guidance",
+      "description": "Organizations should consider collecting and correlating event data from multiple sources to improve detecting and alerting capabilities",
+      "source": "NIST SP 800-82 Rev 3",
+      "document": "NIST SP 800-82 Rev 3",
+      "section": "ot-ics",
+      "page": null
+    }
+  ],
+  "recommendations": [
+    {
+      "action": "Isolate affected endpoints from the network to prevent potential lateral movement",
+      "priority": "high"
+    },
+    {
+      "action": "Analyze traffic patterns using network monitoring tools to identify anomalous behavior",
+      "priority": "high"
+    },
+    {
+      "action": "Verify if communication is authorized by checking configuration baselines and access controls",
+      "priority": "medium"
+    },
+    {
+      "action": "Review logs from traffic-management-controller and traffic-sensor-gateway for signs of unauthorized access",
+      "priority": "high"
+    }
+  ]
+}
+
+--- LATENCY BREAKDOWN ---
+Planning: 0.06ms
+Retrieval: 252.87ms
+Sufficiency: 64728.25ms
+Targeted Retrieval: 382.59ms
+Assessment: 85107.90ms
+TOTAL: 150481.79ms
+
+
+============================================================
+EVALUATING INCIDENT: INC-004
+============================================================
+
+--- RETRIEVAL PLAN ---
+- behavioral anomaly smart-meter-gateway power-substation-controller scada-control-server (Cat: None)
+- behavioral anomaly ot-ics (Cat: None)
+- behavioral anomaly smart-city (Cat: None)
+
+--- EVIDENCE DETAILS ---
+Total chunks returned: 10
+  [0.71] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.70] NIST / NIST SP 800-61 Rev 3 / incident-response
+  [0.62] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.60] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.59] Unknown / news_2024-10-11 / india
+  [0.59] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.58] Unknown / news_2024-10-11 / india
+  [0.57] CERT-In / CIGU-2025-0001 / india
+  [0.56] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.53] CERT-In / CIGU-2025-0001 / india
+
+--- SUFFICIENCY DECISION ---
+Sufficiency LLM Invoked: True
+Sufficient: False
+Missing Domains: ['smart_city', 'infrastructure_domain', 'incident_response', 'resilience']
+Rationale: Retrieved evidence covers OT/ICS behavioral anomaly detection but lacks specific analysis of smart city infrastructure domains, incident response protocols, and resilience measures for the affected endpoints. Missing context on how smart city systems interdependencies and India-specific risks relate to the detected anomaly.
+
+--- TARGETED RETRIEVAL ---
+Triggered: True
+Additional chunks retrieved: 3
+
+--- EXECUTION METRICS ---
+LLM Calls: 2
+Evidence Context Size: 7059 chars
+Final Evidence Count: 10
+
+--- FINAL RESPONSE ---
+{
+  "incident_id": "INC-004",
+  "assessment": {
+    "severity": "medium",
+    "summary": "Behavioral anomaly detected in smart-meter infrastructure with elevated communication activity inconsistent with baseline. Potential risks to energy grid operations and SCADA systems.",
+    "confidence": 0.82
+  },
+  "impact": {
+    "affected_endpoints": [
+      "smart-meter-gateway",
+      "power-substation-controller",
+      "scada-control-server"
+    ],
+    "affected_sectors": [
+      "energy",
+      "public utilities"
+    ],
+    "critical_infrastructure": [
+      "power grid",
+      "SCADA systems"
+    ]
+  },
+  "evidence": [
+    {
+      "type": "behavioral_flag",
+      "description": "Smart-meter infrastructure exhibits unusual communication behavior and elevated activity inconsistent with baseline",
+      "source": "mock_tgnn_energy",
+      "document": "mock_tgnn_energy",
+      "section": "behavioral_anomaly",
+      "page": null
+    },
+    {
+      "type": "reference",
+      "description": "Behavioral anomaly detection (BAD) systems compare current state with baseline to identify abnormal activity",
+      "source": "NIST",
+      "document": "NIST SP 800-82 Rev 3",
+      "section": "E.2.5. Behavioral Anomaly Detection",
+      "page": null
+    },
+    {
+      "type": "reference",
+      "description": "SCADA systems and DCS are often networked together in power control environments",
+      "source": "NIST",
+      "document": "NIST SP 800-82 Rev 3",
+      "section": "SCADA systems and DCS",
+      "page": null
+    }
+  ],
+  "recommendations": [
+    {
+      "action": "Investigate unauthorized access or configuration changes to smart-meter gateway",
+      "priority": "high"
+    },
+    {
+      "action": "Monitor network traffic for unusual patterns between smart-meter gateway and substation controller",
+      "priority": "medium"
+    },
+    {
+      "action": "Review access controls and authentication mechanisms for SCADA-control-server",
+      "priority": "high"
+    },
+    {
+      "action": "Implement temporary network segmentation to isolate affected endpoints",
+      "priority": "medium"
+    }
+  ]
+}
+
+--- LATENCY BREAKDOWN ---
+Planning: 0.07ms
+Retrieval: 254.13ms
+Sufficiency: 70122.90ms
+Targeted Retrieval: 362.03ms
+Assessment: 76220.06ms
+TOTAL: 146973.82ms
+
+
+============================================================
+EVALUATING INCIDENT: INC-005
+============================================================
+
+--- RETRIEVAL PLAN ---
+- behavioral anomaly municipal-identity-provider city-hall-admin-server municipal-services-gateway (Cat: None)
+- behavioral anomaly smart-city (Cat: None)
+
+--- EVIDENCE DETAILS ---
+Total chunks returned: 9
+  [0.83] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.82] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.59] Unknown / news_2024-10-11 / india
+  [0.58] Unknown / news_2024-10-11 / india
+  [0.57] CERT-In / CIGU-2025-0001 / india
+  [0.55] NIST / NIST SP 800-61 Rev 3 / incident-response
+  [0.47] CERT-In / CIGU-2025-0001 / india
+  [0.47] Unknown / news_2024-10-11 / india
+  [0.46] NIST / NIST SP 800-82 Rev 3 / ot-ics
+
+--- SUFFICIENCY DECISION ---
+Sufficiency LLM Invoked: True
+Sufficient: False
+Missing Domains: ['anomaly_behavior', 'incident_response', 'infrastructure_domain']
+Rationale: Retrieved evidence provides general smart city threat context but lacks specific guidance on behavioral anomaly detection techniques, incident response protocols for municipal infrastructure, and domain-specific analysis of affected identity/services systems.
+
+--- TARGETED RETRIEVAL ---
+Triggered: True
+Additional chunks retrieved: 3
+
+--- EXECUTION METRICS ---
+LLM Calls: 2
+Evidence Context Size: 5658 chars
+Final Evidence Count: 9
+
+--- FINAL RESPONSE ---
+{
+  "incident_id": "INC-005",
+  "assessment": {
+    "severity": "high",
+    "summary": "Abnormal authentication patterns across critical municipal infrastructure suggest potential unauthorized access attempts. While no confirmed compromise is detected, the behavior aligns with known risks to identity services and public service systems in smart cities.",
+    "confidence": 0.89
+  },
+  "impact": {
+    "affected_endpoints": [
+      "municipal-identity-provider",
+      "city-hall-admin-server",
+      "municipal-services-gateway"
+    ],
+    "affected_sectors": [
+      "government",
+      "public services"
+    ],
+    "critical_infrastructure": [
+      "identity management systems",
+      "public service platforms"
+    ]
+  },
+  "evidence": [
+    {
+      "type": "auth_anomaly",
+      "description": "Government/municipal infrastructure shows abnormal authentication and network behavior affecting identity services",
+      "source": "mock_tgnn_gov",
+      "document": null,
+      "section": null,
+      "page": null
+    },
+    {
+      "type": "risk_indicator",
+      "description": "Smart city data management challenges and data privacy risks align with observed authentication anomalies",
+      "source": "CERT-In",
+      "document": "CIGU-2025-0001",
+      "section": null,
+      "page": null
+    },
+    {
+      "type": "mitre_technique",
+      "description": "Potential unauthorized access attempts could map to MITRE ATT&CK technique T1090 (Indicator Removal) or T1059 (Command and Scripting Interpreter) if further investigation confirms behavior",
+      "source": "NIST",
+      "document": "SP 800-82 Rev 3",
+      "section": null,
+      "page": null
+    }
+  ],
+  "recommendations": [
+    {
+      "action": "Investigate authentication logs for unauthorized access patterns",
+      "priority": "high"
+    },
+    {
+      "action": "Implement temporary network segmentation for affected endpoints",
+      "priority": "medium"
+    },
+    {
+      "action": "Validate identity provider configurations and revocation lists",
+      "priority": "high"
+    },
+    {
+      "action": "Enhance monitoring for lateral movement indicators in public service systems",
+      "priority": "medium"
+    }
+  ]
+}
+
+--- LATENCY BREAKDOWN ---
+Planning: 0.16ms
+Retrieval: 195.58ms
+Sufficiency: 22200.59ms
+Targeted Retrieval: 223.40ms
+Assessment: 51425.35ms
+TOTAL: 74052.42ms
+
+
+============================================================
+EVALUATING INCIDENT: INC-006
+============================================================
+
+--- RETRIEVAL PLAN ---
+- containment strategies for cross-sector coordinated attacks (Cat: incident-response)
+- securing ot-ics systems in smart city environments (Cat: ot-ics)
+- cross-sector authentication compromise mitigation in smart cities (Cat: smart-city)
+- india-specific guidelines for multi-sector cybersecurity incidents (Cat: india)
+
+--- EVIDENCE DETAILS ---
+Total chunks returned: 10
+  [0.74] CERT-In / CIGU-2023-0001 / india
+  [0.69] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.71] CERT-In / CIGU-2023-0001 / india
+  [0.71] CERT-In / CIGU-2023-0001 / india
+  [0.66] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.62] NIST / NIST SP 800-82 Rev 3 / ot-ics
+  [0.58] Unknown / 20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf / smart-city
+  [0.54] Unknown / 20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf / smart-city
+  [0.48] Unknown / 20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf / smart-city
+  [0.48] NIST / NIST SP 800-61 Rev 3 / incident-response
+
+--- SUFFICIENCY DECISION ---
+Sufficiency LLM Invoked: True
+Sufficient: True
+Missing Domains: []
+Rationale: Fallback due to error
+
+--- TARGETED RETRIEVAL ---
+Triggered: False
+
+--- EXECUTION METRICS ---
+LLM Calls: 3
+Evidence Context Size: 10582 chars
+Final Evidence Count: 10
+
+--- FINAL RESPONSE ---
+ERROR: Structured response validation failure
+
+--- LATENCY BREAKDOWN ---
+Planning: 53049.68ms
+Retrieval: 963.64ms
+Sufficiency: 115225.61ms
+Targeted Retrieval: 0.00ms
+Assessment: 89993.70ms
+Correction: 130738.34ms
+TOTAL: 389989.42ms
+

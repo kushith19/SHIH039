@@ -1,0 +1,66 @@
+id: night
+priority: 5
+description: >
+  Overnight operations (22:00-06:00). Education, government, and most
+  civic services drop sharply; transport and finance are quiet.
+  Healthcare, emergency services, and public safety stay on shift.
+
+modifiers:
+
+  education:
+    activityLevel: low
+    communicationPattern: periodic
+    workload: light
+    expectedUsers: low
+
+  government:
+    activityLevel: low
+    administrativeActivity: low
+    networkActivity: low
+
+  finance:
+    activityLevel: low
+    workload: light
+    expectedUsers: low
+
+  transportation:
+    activityLevel: low
+    communicationPattern: periodic
+    workload: light
+    networkActivity: low
+    expectedOperations: low
+
+  telecommunications:
+    activityLevel: low
+    communicationPattern: periodic
+    workload: light
+    networkActivity: low
+
+  energy:
+    activityLevel: low
+    workload: light
+    networkActivity: low
+
+  water:
+    activityLevel: low
+    communicationPattern: periodic
+    workload: light
+    networkActivity: low
+
+  healthcare:
+    activityLevel: moderate
+    communicationPattern: continuous
+    workload: moderate
+    expectedOperations: normal
+    expectedUsers: moderate
+
+  public-safety:
+    activityLevel: moderate
+    workload: moderate
+    networkActivity: moderate
+
+  emergency-services:
+    activityLevel: high
+    communicationPattern: continuous
+    workload: moderate
+    expectedOperations: moderate

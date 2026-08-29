@@ -1,0 +1,213 @@
+id: hospital-emr
+name: Hospital Electronic Medical Records System
+
+category: healthcare
+type: electronic_medical_records
+
+description: >
+  Central electronic medical records application used by doctors,
+  nurses, and authorized hospital staff to access and update patient
+  clinical records, diagnoses, treatment information, medication
+  records, and clinical documentation.
+
+criticality: critical
+
+operating_schedule:
+  defaultPhase: 24x7
+
+  phases:
+    - id: morning_shift
+      start: "06:00"
+      end: "10:00"
+      priority: 10
+
+    - id: daytime
+      start: "10:00"
+      end: "18:00"
+      priority: 8
+
+    - id: evening_shift
+      start: "18:00"
+      end: "23:00"
+      priority: 8
+
+    - id: night
+      start: "23:00"
+      end: "06:00"
+      priority: 5
+
+behaviour:
+
+  normal:
+    activityLevel: moderate
+    communicationPattern: continuous
+    workload: moderate
+    administrativeActivity: moderate
+    networkActivity: moderate
+    expectedOperations: patient_record_access
+    expectedUsers: moderate
+    healthStatus: healthy
+
+  peak:
+    activityLevel: high
+    communicationPattern: continuous
+    workload: heavy
+    administrativeActivity: high
+    networkActivity: high
+    expectedOperations: patient_record_access
+    expectedUsers: high
+    healthStatus: healthy
+
+  night:
+    activityLevel: low
+    communicationPattern: continuous
+    workload: light
+    administrativeActivity: low
+    networkActivity: low
+    expectedOperations: patient_record_access
+    expectedUsers: low
+    healthStatus: healthy
+
+states:
+
+  healthy:
+    workload: moderate
+    networkActivity: moderate
+    administrativeActivity: moderate
+    healthStatus: healthy
+
+  busy:
+    workload: heavy
+    networkActivity: high
+    administrativeActivity: high
+    healthStatus: healthy
+
+  degraded:
+    workload: moderate
+    networkActivity: low
+    administrativeActivity: high
+    healthStatus: degraded
+
+  recovering:
+    workload: moderate
+    networkActivity: moderate
+    administrativeActivity: high
+    healthStatus: recovering
+
+  suspicious:
+    workload: elevated
+    networkActivity: high
+    administrativeActivity: high
+    healthStatus: suspicious
+
+  under_attack:
+    workload: heavy
+    networkActivity: very_high
+    administrativeActivity: high
+    healthStatus: critical
+
+  compromised:
+    workload: abnormal
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: compromised
+
+telemetry:
+
+  metrics:
+
+    - name: patient_record_requests
+      unit: requests/s
+      min: 0
+      max: 1000
+
+    - name: patient_record_updates
+      unit: updates/s
+      min: 0
+      max: 300
+
+    - name: active_users
+      unit: users
+      min: 0
+      max: 2000
+
+    - name: active_sessions
+      unit: sessions
+      min: 0
+      max: 3000
+
+    - name: api_requests
+      unit: requests/s
+      min: 0
+      max: 2000
+
+    - name: response_latency
+      unit: milliseconds
+      min: 1
+      max: 5000
+
+    - name: error_rate
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: cpu_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: memory_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: network_bytes
+      unit: bytes/s
+      min: 0
+      max: 200000000
+
+    - name: database_queries
+      unit: queries/s
+      min: 0
+      max: 3000
+
+actors:
+
+  - doctors
+  - nurses
+  - hospital-administrators
+  - clinical-staff
+
+dependencies:
+
+  - endpoint: hospital-auth
+    type: required
+    weight: 1.0
+
+  - endpoint: hospital-api-gateway
+    type: required
+    weight: 1.0
+
+  - endpoint: hospital-database
+    type: required
+    weight: 1.0
+
+  - endpoint: telecom-network-gateway
+    type: required
+    weight: 0.9
+
+metadata:
+
+  environment: production
+
+  protocols:
+    - HTTPS
+    - TLS
+
+  dataClassification:
+    - protected_health_information
+    - clinical_data
+
+  location:
+    facility: hospital
+    zone: clinical_network

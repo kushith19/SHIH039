@@ -1,0 +1,211 @@
+id: smart-water-meter-gateway
+name: Smart Water Meter Gateway
+
+category: water
+type: smart_water_meter_gateway
+
+description: >
+  Edge gateway responsible for collecting and aggregating water
+  consumption data from connected residential and commercial smart
+  meters, validating meter readings, detecting abnormal consumption
+  patterns, and forwarding aggregated data to the city water
+  distribution management system.
+
+criticality: high
+
+operating_schedule:
+  defaultPhase: 24x7
+
+  phases:
+    - id: morning_demand
+      start: "06:00"
+      end: "10:00"
+      priority: 10
+
+    - id: daytime
+      start: "10:00"
+      end: "18:00"
+      priority: 6
+
+    - id: evening_demand
+      start: "18:00"
+      end: "22:00"
+      priority: 10
+
+    - id: night
+      start: "22:00"
+      end: "06:00"
+      priority: 5
+
+behaviour:
+
+  normal:
+    activityLevel: moderate
+    communicationPattern: periodic
+    workload: moderate
+    administrativeActivity: low
+    networkActivity: moderate
+    expectedOperations: meter_data_collection
+    expectedUsers: low
+    healthStatus: healthy
+
+  peak:
+    activityLevel: high
+    communicationPattern: continuous
+    workload: heavy
+    administrativeActivity: moderate
+    networkActivity: high
+    expectedOperations: meter_data_collection
+    expectedUsers: moderate
+    healthStatus: healthy
+
+  night:
+    activityLevel: low
+    communicationPattern: periodic
+    workload: light
+    administrativeActivity: low
+    networkActivity: low
+    expectedOperations: meter_data_collection
+    expectedUsers: low
+    healthStatus: healthy
+
+states:
+
+  healthy:
+    workload: moderate
+    networkActivity: moderate
+    administrativeActivity: low
+    healthStatus: healthy
+
+  busy:
+    workload: heavy
+    networkActivity: high
+    administrativeActivity: moderate
+    healthStatus: healthy
+
+  degraded:
+    workload: moderate
+    networkActivity: low
+    administrativeActivity: high
+    healthStatus: degraded
+
+  recovering:
+    workload: moderate
+    networkActivity: moderate
+    administrativeActivity: high
+    healthStatus: recovering
+
+  suspicious:
+    workload: elevated
+    networkActivity: high
+    administrativeActivity: high
+    healthStatus: suspicious
+
+  under_attack:
+    workload: heavy
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: critical
+
+  compromised:
+    workload: abnormal
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: compromised
+
+telemetry:
+
+  metrics:
+
+    - name: connected_meters
+      unit: meters
+      min: 0
+      max: 100000
+
+    - name: meter_readings
+      unit: readings/min
+      min: 0
+      max: 100000
+
+    - name: water_consumption_rate
+      unit: liters/min
+      min: 0
+      max: 100000
+
+    - name: meter_communication_latency
+      unit: milliseconds
+      min: 1
+      max: 5000
+
+    - name: failed_meter_readings
+      unit: readings/min
+      min: 0
+      max: 10000
+
+    - name: disconnected_meters
+      unit: meters
+      min: 0
+      max: 100000
+
+    - name: anomalous_consumption_events
+      unit: events/min
+      min: 0
+      max: 1000
+
+    - name: gateway_connection_errors
+      unit: errors/min
+      min: 0
+      max: 1000
+
+    - name: cpu_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: memory_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: network_bytes
+      unit: bytes/s
+      min: 0
+      max: 300000000
+
+actors:
+
+  - residential_consumers
+  - commercial_consumers
+  - water-network-operators
+  - municipal-administrators
+  - maintenance-technicians
+
+dependencies:
+
+  - endpoint: water-distribution-management
+    type: required
+    weight: 0.8
+
+metadata:
+
+  environment: production
+
+  protocols:
+    - MQTT
+    - HTTPS
+    - TLS
+
+  meterTypes:
+    - residential
+    - commercial
+    - industrial
+
+  capabilities:
+    - meter_data_collection
+    - consumption_monitoring
+    - anomaly_detection
+    - remote_meter_monitoring
+
+  location:
+    facility: distributed_water_network
+    zone: city_water_network

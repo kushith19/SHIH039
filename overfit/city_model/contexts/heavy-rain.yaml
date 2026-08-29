@@ -1,0 +1,49 @@
+id: heavy_rain
+priority: 20
+description: >
+  Severe weather event causing traffic disruption, drainage/water
+  system stress, and elevated emergency response. Highest priority
+  context — weather effects override normal time-of-day patterns.
+
+modifiers:
+
+  transportation:
+    activityLevel: high
+    communicationPattern: continuous
+    workload: heavy
+    networkActivity: high
+    expectedOperations: high
+
+  water:
+    activityLevel: high
+    workload: heavy
+    networkActivity: high
+    expectedOperations: high
+    healthStatus: degraded
+
+  energy:
+    activityLevel: high
+    workload: heavy
+    networkActivity: high
+    healthStatus: degraded
+
+  telecommunications:
+    activityLevel: high
+    workload: heavy
+    networkActivity: high
+
+  healthcare:
+    activityLevel: high
+    workload: heavy
+    expectedOperations: high
+
+  emergency-services:
+    activityLevel: high
+    communicationPattern: continuous
+    workload: heavy
+    expectedOperations: high
+
+  public-safety:
+    activityLevel: high
+    workload: heavy
+    networkActivity: high

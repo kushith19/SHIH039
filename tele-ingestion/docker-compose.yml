@@ -1,0 +1,30 @@
+services:
+  telemetry-ingestion:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://smartcity:smartcity_dev@postgres:5432/smart_city
+    depends_on:
+      - postgres
+
+  postgres:
+    image: timescale/timescaledb:latest-pg15
+    environment:
+      POSTGRES_USER: smartcity
+      POSTGRES_PASSWORD: smartcity_dev
+      POSTGRES_DB: smart_city
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smartcity -d smart_city"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

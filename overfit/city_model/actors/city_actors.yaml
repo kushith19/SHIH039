@@ -1,0 +1,679 @@
+actors:
+
+  - id: citizens
+    name: Citizens
+    description: >
+      Residents who interact with city digital services, transportation,
+      healthcare, utilities, financial services, and government platforms.
+
+    interacts_with:
+      - citizen-services-portal
+      - hospital-api-gateway
+      - public-transport-management
+      - traffic-management-controller
+      - smart-water-meter-gateway
+      - bank-gateway
+      - atm-network-gateway
+
+    activity:
+      normal_day: moderate
+      rush_hour: high
+      night: low
+      weekend: moderate
+      heavy_rain: moderate
+      major_event: high
+
+    operations:
+      - access_citizen_services
+      - submit_service_requests
+      - use_public_transport
+      - access_healthcare_services
+      - make_payments
+      - use_atms
+
+
+  - id: doctors
+    name: Doctors
+    description: >
+      Healthcare professionals who access clinical systems and patient
+      information during diagnosis, treatment, and hospital operations.
+
+    interacts_with:
+      - hospital-auth
+      - hospital-emr
+      - hospital-pharmacy
+
+    activity:
+      normal_day: high
+      rush_hour: very_high
+      night: moderate
+      weekend: moderate
+      heavy_rain: high
+      major_event: high
+
+    operations:
+      - authenticate
+      - access_patient_records
+      - update_medical_records
+      - review_medications
+      - submit_clinical_updates
+
+
+  - id: nurses
+    name: Nurses
+    description: >
+      Clinical staff who use hospital systems for patient care,
+      clinical documentation, medication coordination, and monitoring.
+
+    interacts_with:
+      - hospital-auth
+      - hospital-emr
+      - hospital-pharmacy
+      - medical-iot-gateway
+
+    activity:
+      normal_day: high
+      rush_hour: very_high
+      night: moderate
+      weekend: moderate
+      heavy_rain: high
+      major_event: high
+
+    operations:
+      - authenticate
+      - access_patient_records
+      - update_patient_status
+      - review_medications
+      - monitor_patient_data
+
+
+  - id: hospital-administrators
+    name: Hospital Administrators
+    description: >
+      Hospital management staff overseeing operations, records,
+      staffing, and reporting.
+
+    interacts_with:
+      - hospital-auth
+      - hospital-emr
+      - hospital-database
+
+    activity:
+      normal_day: moderate
+      rush_hour: high
+      night: low
+      weekend: low
+      heavy_rain: moderate
+      major_event: moderate
+
+    operations:
+      - authenticate
+      - manage_hospital_operations
+      - generate_reports
+      - manage_records
+      - monitor_system_activity
+
+
+  - id: drivers
+    name: Drivers
+    description: >
+      Road users whose movement contributes to traffic demand and
+      transportation activity across the city.
+
+    interacts_with:
+      - traffic-management-controller
+      - public-transport-management
+
+    activity:
+      normal_day: moderate
+      rush_hour: very_high
+      night: low
+      weekend: moderate
+      heavy_rain: high
+      major_event: very_high
+
+    operations:
+      - travel
+      - use_road_network
+      - follow_traffic_signals
+
+
+  - id: traffic-operators
+    name: Traffic Operators
+    description: >
+      City transportation personnel responsible for monitoring traffic
+      conditions and managing traffic infrastructure.
+
+    interacts_with:
+      - traffic-management-controller
+      - traffic-camera
+      - traffic-sensor-gateway
+      - public-transport-management
+
+    activity:
+      normal_day: moderate
+      rush_hour: high
+      night: moderate
+      weekend: moderate
+      heavy_rain: very_high
+      major_event: very_high
+
+    operations:
+      - monitor_traffic
+      - manage_traffic_signals
+      - investigate_incidents
+      - review_traffic_conditions
+
+
+  - id: public-transport-operators
+    name: Public Transport Operators
+    description: >
+      Personnel operating and coordinating public transit services
+      and routes.
+
+    interacts_with:
+      - public-transport-management
+      - traffic-management-controller
+
+    activity:
+      normal_day: high
+      rush_hour: very_high
+      night: moderate
+      weekend: moderate
+      heavy_rain: high
+      major_event: very_high
+
+    operations:
+      - manage_routes
+      - monitor_services
+      - update_vehicle_status
+      - coordinate_transport
+
+
+  - id: power-operators
+    name: Power Operators
+    description: >
+      Utility personnel responsible for monitoring and managing electrical
+      generation, substations, distribution, and grid operations.
+
+    interacts_with:
+      - scada-control-server
+      - power-substation-controller
+      - distribution-management-system
+      - smart-meter-gateway
+
+    activity:
+      normal_day: high
+      rush_hour: very_high
+      night: moderate
+      weekend: high
+      heavy_rain: very_high
+      major_event: very_high
+
+    operations:
+      - monitor_grid
+      - manage_substations
+      - manage_distribution
+      - respond_to_grid_events
+
+
+  - id: water-operators
+    name: Water Operators
+    description: >
+      Utility personnel monitoring and managing water treatment,
+      distribution, and quality.
+
+    interacts_with:
+      - water-treatment-control
+      - water-distribution-management
+      - water-quality-monitoring
+      - smart-water-meter-gateway
+
+    activity:
+      normal_day: high
+      rush_hour: high
+      night: moderate
+      weekend: high
+      heavy_rain: very_high
+      major_event: high
+
+    operations:
+      - monitor_water_treatment
+      - manage_distribution
+      - monitor_water_quality
+      - monitor_consumption
+
+
+  - id: bank-customers
+    name: Bank Customers
+    description: >
+      Individuals and businesses using banking services, ATMs, and
+      payment systems.
+
+    interacts_with:
+      - bank-gateway
+      - atm-network-gateway
+      - payment-processing-system
+
+    activity:
+      normal_day: moderate
+      rush_hour: high
+      night: low
+      weekend: moderate
+      heavy_rain: low
+      major_event: high
+
+    operations:
+      - authenticate
+      - check_balance
+      - make_payment
+      - withdraw_cash
+      - transfer_funds
+
+
+  - id: bank-employees
+    name: Bank Employees
+    description: >
+      Bank staff processing transactions and managing customer accounts.
+
+    interacts_with:
+      - bank-gateway
+      - core-banking-system
+      - payment-processing-system
+
+    activity:
+      normal_day: high
+      rush_hour: high
+      night: low
+      weekend: low
+      heavy_rain: moderate
+      major_event: high
+
+    operations:
+      - authenticate
+      - access_customer_accounts
+      - process_transactions
+      - manage_accounts
+      - review_transactions
+
+
+  - id: emergency-dispatchers
+    name: Emergency Dispatchers
+    description: >
+      Personnel who receive, classify, and dispatch emergency
+      response units.
+
+    interacts_with:
+      - emergency-dispatch-system
+      - emergency-communications-gateway
+      - ambulance-management-system
+      - fire-services-management-system
+
+    activity:
+      normal_day: high
+      rush_hour: very_high
+      night: high
+      weekend: high
+      heavy_rain: very_high
+      major_event: very_high
+
+    operations:
+      - receive_emergency_incidents
+      - classify_incidents
+      - dispatch_response_units
+      - track_incidents
+      - coordinate_response
+
+
+  - id: paramedics
+    name: Paramedics
+    description: >
+      Emergency medical responders providing on-scene care and
+      patient transport.
+
+    interacts_with:
+      - ambulance-management-system
+      - emergency-communications-gateway
+      - hospital-emr
+
+    activity:
+      normal_day: high
+      rush_hour: very_high
+      night: high
+      weekend: high
+      heavy_rain: very_high
+      major_event: very_high
+
+    operations:
+      - receive_dispatch
+      - update_ambulance_status
+      - transmit_location
+      - coordinate_patient_transport
+      - communicate_with_hospital
+
+
+  - id: firefighters
+    name: Firefighters
+    description: >
+      Emergency responders handling fire incidents and coordinated
+      response.
+
+    interacts_with:
+      - fire-services-management-system
+      - emergency-communications-gateway
+
+    activity:
+      normal_day: high
+      rush_hour: very_high
+      night: high
+      weekend: high
+      heavy_rain: very_high
+      major_event: high
+
+    operations:
+      - receive_dispatch
+      - update_unit_status
+      - transmit_location
+      - coordinate_fire_response
+
+
+  - id: government-employees
+    name: Government Employees
+    description: >
+      Municipal staff processing citizen service requests and records.
+
+    interacts_with:
+      - government-identity-service
+      - citizen-services-portal
+      - municipal-management-system
+      - government-network-gateway
+
+    activity:
+      normal_day: high
+      rush_hour: high
+      night: low
+      weekend: low
+      heavy_rain: moderate
+      major_event: moderate
+
+    operations:
+      - authenticate
+      - process_service_requests
+      - manage_records
+      - update_service_status
+
+
+  - id: municipal-administrators
+    name: Municipal Administrators
+    description: >
+      Senior staff overseeing municipal services and city-wide
+      operations.
+
+    interacts_with:
+      - municipal-management-system
+      - government-identity-service
+      - citizen-services-portal
+
+    activity:
+      normal_day: high
+      rush_hour: high
+      night: low
+      weekend: low
+      heavy_rain: high
+      major_event: high
+
+    operations:
+      - manage_municipal_services
+      - manage_work_orders
+      - monitor_city_operations
+      - generate_reports
+
+
+  - id: police-officers
+    name: Police Officers
+    description: >
+      Law enforcement personnel responding to incidents and
+      field operations.
+
+    interacts_with:
+      - police-management-system
+      - public-safety-incident-system
+      - surveillance-management-system
+      - public-safety-network-gateway
+
+    activity:
+      normal_day: high
+      rush_hour: very_high
+      night: high
+      weekend: high
+      heavy_rain: high
+      major_event: very_high
+
+    operations:
+      - receive_incident_information
+      - update_incident_status
+      - access_surveillance
+      - report_field_activity
+
+
+  - id: police-dispatchers
+    name: Police Dispatchers
+    description: >
+      Personnel who receive and dispatch police incidents to
+      patrol units.
+
+    interacts_with:
+      - police-management-system
+      - public-safety-incident-system
+      - public-safety-network-gateway
+
+    activity:
+      normal_day: high
+      rush_hour: very_high
+      night: high
+      weekend: high
+      heavy_rain: high
+      major_event: very_high
+
+    operations:
+      - receive_incidents
+      - dispatch_officers
+      - track_patrol_units
+      - coordinate_response
+
+
+  - id: surveillance-operators
+    name: Surveillance Operators
+    description: >
+      Personnel monitoring camera feeds and surveillance systems
+      for public safety.
+
+    interacts_with:
+      - surveillance-management-system
+      - public-safety-network-gateway
+
+    activity:
+      normal_day: high
+      rush_hour: very_high
+      night: high
+      weekend: high
+      heavy_rain: moderate
+      major_event: very_high
+
+    operations:
+      - monitor_camera_feeds
+      - review_video
+      - monitor_camera_health
+      - report_suspicious_activity
+
+
+  - id: students
+    name: Students
+    description: >
+      Learners accessing academic systems for coursework, records,
+      and enrollment.
+
+    interacts_with:
+      - learning-management-system
+      - student-information-system
+      - education-management-system
+
+    activity:
+      normal_day: high
+      rush_hour: very_high
+      night: moderate
+      weekend: low
+      heavy_rain: moderate
+      major_event: low
+
+    operations:
+      - authenticate
+      - access_learning_material
+      - submit_assignments
+      - view_academic_records
+      - register_for_courses
+
+
+  - id: teachers
+    name: Teachers
+    description: >
+      Educators managing courses, grading, and student records.
+
+    interacts_with:
+      - learning-management-system
+      - student-information-system
+      - education-management-system
+
+    activity:
+      normal_day: high
+      rush_hour: very_high
+      night: low
+      weekend: low
+      heavy_rain: moderate
+      major_event: low
+
+    operations:
+      - authenticate
+      - upload_learning_material
+      - manage_courses
+      - grade_assignments
+      - update_student_records
+
+
+  - id: education-administrators
+    name: Education Administrators
+    description: >
+      Staff overseeing academic operations, enrollment, faculty,
+      and reporting.
+
+    interacts_with:
+      - education-management-system
+      - student-information-system
+      - learning-management-system
+      - campus-network-gateway
+
+    activity:
+      normal_day: moderate
+      rush_hour: high
+      night: low
+      weekend: low
+      heavy_rain: moderate
+      major_event: low
+
+    operations:
+      - manage_students
+      - manage_courses
+      - manage_faculty
+      - generate_reports
+      - manage_academic_operations
+
+
+  - id: network-administrators
+    name: Network Administrators
+    description: >
+      IT personnel managing and monitoring the city's core network
+      infrastructure.
+
+    interacts_with:
+      - network-management-system
+      - telecom-network-gateway
+      - mobile-network-core
+      - dns-dhcp-services
+      - government-network-gateway
+      - public-safety-network-gateway
+
+    activity:
+      normal_day: moderate
+      rush_hour: high
+      night: moderate
+      weekend: moderate
+      heavy_rain: high
+      major_event: high
+
+    operations:
+      - monitor_network
+      - configure_network
+      - manage_connectivity
+      - investigate_network_events
+      - respond_to_network_failures
+
+
+  - id: system-administrators
+    name: System Administrators
+    description: >
+      IT personnel administering systems, access, and maintenance
+      across sectors.
+
+    interacts_with:
+      - hospital-api-gateway
+      - bank-gateway
+      - government-network-gateway
+      - education-management-system
+      - public-safety-network-gateway
+
+    activity:
+      normal_day: moderate
+      rush_hour: high
+      night: moderate
+      weekend: moderate
+      heavy_rain: high
+      major_event: high
+
+    operations:
+      - administer_systems
+      - manage_access
+      - monitor_system_health
+      - investigate_system_events
+      - perform_maintenance
+
+
+  - id: attackers
+    name: Attackers
+    description: >
+      Unauthorized actors attempting to discover, exploit, disrupt,
+      or compromise city digital infrastructure.
+
+    interacts_with:
+      - telecom-network-gateway
+      - government-network-gateway
+      - hospital-api-gateway
+      - bank-gateway
+      - traffic-management-controller
+      - public-safety-network-gateway
+      - citizen-services-portal
+
+    activity:
+      normal_day: low
+      rush_hour: moderate
+      night: moderate
+      weekend: low
+      heavy_rain: moderate
+      major_event: high
+
+    operations:
+      - reconnaissance
+      - authentication_attempts
+      - exploit_attempts
+      - credential_abuse
+      - service_disruption
+      - data_access_attempts
