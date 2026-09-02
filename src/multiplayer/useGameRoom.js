@@ -16,7 +16,7 @@ const emptyRoom = {
   cityContext: 'normal_day',
   cityContextLocked: false,
   simHour: 10,
-  detectionMode: 'fusion',
+  detectionMode: 'tgnn',
   detection: null,
   ingestionStatus: 'empty',
   liveTelemetryByNodeId: {},
@@ -37,7 +37,7 @@ function roomFromState(state) {
     cityContext: state.cityContext ?? 'normal_day',
     cityContextLocked: state.cityContextLocked === true,
     simHour: state.simHour ?? 10,
-    detectionMode: state.detectionMode === 'tgnn' ? 'tgnn' : 'fusion',
+    detectionMode: 'tgnn',
     detection: state.detection ?? null,
     ingestionStatus: state.ingestionStatus ?? 'empty',
     liveTelemetryByNodeId: state.liveTelemetryByNodeId ?? {},
@@ -160,12 +160,6 @@ export function useGameRoom() {
     return res.ok
   }, [emitAck])
 
-  const setDetectionMode = useCallback(async (detectionMode) => {
-    const res = await emitAck('room:setDetectionMode', { detectionMode })
-    if (!res.ok) setError(res.message ?? 'Cannot change detection model')
-    return res.ok
-  }, [emitAck])
-
   const startGame = useCallback(async () => {
     const res = await emitAck('game:start')
     if (!res.ok) setError(res.message ?? 'Cannot start match')
@@ -199,7 +193,6 @@ export function useGameRoom() {
     setError,
     joinRoom,
     startGame,
-    setDetectionMode,
     setCityContext,
     actions,
   }

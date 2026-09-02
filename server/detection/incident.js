@@ -49,8 +49,6 @@ function trustForEndpoint(ep, peerMetrics) {
 }
 
 function anomalyScoreOf(epId, result) {
-  const fused = result.fusedScoresByNodeId?.[epId]
-  if (Number.isFinite(fused)) return clamp01(fused)
   return clamp01(result.isolationScoresByNodeId?.[epId] ?? 0)
 }
 
@@ -274,9 +272,8 @@ function buildIncident({
 }) {
   const timestamp = result.timestamp ?? input.timestamp ?? null
   const isolationScore = clamp01(result.isolationScoresByNodeId?.[ep.id] ?? 0)
-  const temporalScore = clamp01(result.temporalScoresByNodeId?.[ep.id] ?? 0)
   const score = isPropagationOnly
-    ? Math.max(anomalyScoreOf(ep.id, result), isolationScore, temporalScore)
+    ? Math.max(anomalyScoreOf(ep.id, result), isolationScore)
     : anomalyScoreOf(ep.id, result)
   const expected = expectedTelemetryOf(ep)
   const drift = hasTelemetryDrift(expected, ep.telemetry)
@@ -321,7 +318,6 @@ function buildIncident({
     endpointLabel: ep.label ?? ep.id,
     severity: severityFromScore(score, ep.criticality),
     confidence: confidenceFromSignals({
-      temporalScore,
       isolationScore,
       hasDrift: drift,
       extraReasonCount,

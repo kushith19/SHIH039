@@ -81,7 +81,7 @@ export default function CityMapBackground() {
         {Object.values(DISTRICT_ANCHORS).map((d) => (
           <div
             key={d.label}
-            className="absolute -translate-x-1/2 rounded-full border border-white/40 bg-slate-950/50 px-2 py-px text-[9px] font-medium tracking-wide text-white/90 shadow-sm dark:border-slate-700/70 dark:bg-slate-950/65"
+            className="absolute -translate-x-1/2 border border-white/30 bg-black/55 px-2 py-0.5 text-xs font-medium text-white"
             style={{ left: d.x, top: Math.max(24, d.y - 56) }}
           >
             {d.label}

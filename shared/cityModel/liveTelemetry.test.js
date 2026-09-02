@@ -341,6 +341,29 @@ test('failed_authentication_attempts stays on its yaml name', () => {
   assert.notEqual(out.failedLoginsPerMin, out.failed_authentication_attempts)
 })
 
+test('yaml packets_per_second is the expected PPS for government gateway', () => {
+  const model = loadCityModelFromDisk()
+  applyCityModelOverlay(model)
+  const expected = expectedTelemetry(
+    {
+      packetsPerSecond: 17_000,
+      httpRequestsPerMin: 150,
+      filesDownloaded: 5,
+      failedLoginsPerMin: 3,
+    },
+    'normal_day',
+    {
+      type: 'government_services',
+      cityEndpointId: 'government-network-gateway',
+      sector: 'government',
+      tick: 1,
+      simHour: 10,
+    }
+  )
+  assert.ok(expected.packets_per_second > 100_000, `yaml pps ${expected.packets_per_second}`)
+  assert.equal(expected.packetsPerSecond, expected.packets_per_second)
+})
+
 test('ingested readings keep yaml names and fill camelCase from game ingest names', () => {
   const mapped = telemetryFromIngestedReadings([
     { metricName: 'packets_per_second', value: 1200, unit: 'packets/s' },

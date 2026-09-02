@@ -1,6 +1,6 @@
 import { buildAttackLayerFromGraph } from './nodeMetrics.js'
 import { emptyDetectionResult } from './detection/types.js'
-import { DETECTION_MODE_FUSION, normalizeDetectionMode } from './detection/modes.js'
+import { DETECTION_MODE_TGNN } from './detection/modes.js'
 import { parseCityContextOverride, resolveRoomCityContext, simHourAt } from '../shared/cityContext.js'
 
 export { buildAttackLayerFromGraph }
@@ -28,7 +28,7 @@ export function createEmptyRoom(id = DEMO_ROOM_ID) {
     matchEdgeIds: [],
     simulationTick: 0,
     cityContextOverride: null,
-    detectionMode: DETECTION_MODE_FUSION,
+    detectionMode: DETECTION_MODE_TGNN,
     detection: emptyDetectionResult(),
     neighborHistory: [],
     ingestionStatus: 'empty',
@@ -81,7 +81,7 @@ export function publicRoomState(room) {
     cityContext: resolveRoomCityContext(room),
     cityContextLocked: parseCityContextOverride(room.cityContextOverride) != null,
     simHour: simHourAt(room.simulationTick ?? 0),
-    detectionMode: normalizeDetectionMode(room.detectionMode),
+    detectionMode: DETECTION_MODE_TGNN,
     detection: room.detection ?? emptyDetectionResult(),
     ingestionStatus: room.ingestionStatus ?? 'empty',
     liveTelemetryByNodeId: room.liveTelemetryByNodeId ?? {},

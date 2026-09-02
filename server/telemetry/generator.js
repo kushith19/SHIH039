@@ -66,7 +66,7 @@ export async function ingestCitySnapshot(room, onAfter) {
   appendDetectionInput(input)
   const withMetrics = attachLookback(input, getLookback(room.id, LOOKBACK_TICKS))
   const withWindow = attachNeighborLookback(withMetrics, room.neighborHistory)
-  const detection = runDetection(withWindow, room.detectionMode)
+  const detection = runDetection(withWindow)
   room.neighborHistory = pushNeighborSnapshot(room.neighborHistory, withWindow, LOOKBACK_TICKS)
   attachExplanations(room, detection.incidents)
   saveDetectionRun(room.id, input.simulationTick, input.tsMs, detection)

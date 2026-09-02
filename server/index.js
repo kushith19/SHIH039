@@ -37,7 +37,6 @@ import { runtimeStateOf, telemetryOf } from './infrastructureNode.js'
 import { applyCityModelOverlay, parseCityContextOverride } from '../shared/cityContext.js'
 import '../shared/tgnnCore.js'
 import { CITY_MODEL_DIR, loadCityModelFromDisk } from './loadCityModel.js'
-import { normalizeDetectionMode } from './detection/modes.js'
 import {
   emitTelemetryNow,
   startTelemetryLoop,
@@ -163,25 +162,6 @@ function tryAutoStartMatch(room) {
 }
 
 io.on('connection', (socket) => {
-  socket.on('room:setDetectionMode', (...args) => {
-    const ack = resolveAck(args)
-    const payload =
-      typeof args[0] === 'object' && args[0] !== null && typeof args[0] !== 'function'
-        ? args[0]
-        : {}
-    const room = getSocketRoom(socket)
-    if (!room) return emitError(socket, 'Not in a room')
-    if (!isDefender(socket.id, room)) {
-      return emitError(socket, 'Only the defender can choose the detection model')
-    }
-    if (room.phase !== 'lobby') {
-      return emitError(socket, 'Detection model is locked after the match starts')
-    }
-    room.detectionMode = normalizeDetectionMode(payload.detectionMode)
-    if (typeof ack === 'function') ack({ ok: true, detectionMode: room.detectionMode })
-    broadcastState(room)
-  })
-
   socket.on('room:setCityContext', (...args) => {
     const ack = resolveAck(args)
     const payload =

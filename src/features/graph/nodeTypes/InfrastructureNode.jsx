@@ -34,9 +34,9 @@ const HACK_TAMPERED = {
 }
 
 const HACK_ATTACK_ORIGIN = {
-  base: '#a855f7',
-  border: '#9333ea',
-  bg: 'color-mix(in srgb, #a855f7 22%, transparent)',
+  base: '#b45309',
+  border: '#92400e',
+  bg: 'color-mix(in srgb, #d97706 18%, transparent)',
 }
 
 const HACK_DRIFT = {
@@ -158,10 +158,8 @@ function InfrastructureNode({ id, data, selected }) {
   return (
     <div
       className={[
-        'relative rounded-lg border shadow-md transition w-[128px]',
-        selected
-          ? 'ring-2 ring-slate-900/70 dark:ring-slate-100/80'
-          : 'hover:shadow-lg',
+        'relative w-[148px] rounded border transition',
+        selected ? 'ring-2 ring-[var(--tn-select)]' : '',
       ].join(' ')}
       style={{
         background: bg,
@@ -169,32 +167,32 @@ function InfrastructureNode({ id, data, selected }) {
       }}
     >
       {showAnomalyDetectedBadge ? (
-        <div className="pointer-events-none absolute -top-2 -right-2 z-10 max-w-[140px] rounded-md bg-amber-500 px-2 py-1 text-[10px] font-bold leading-tight text-amber-950 shadow text-center">
+        <div className="pointer-events-none absolute -top-2 -right-2 z-10 max-w-[140px] border border-[var(--tn-warn)] bg-[var(--tn-surface)] px-2 py-1 text-center text-xs font-medium leading-tight">
           Anomaly detected
         </div>
       ) : null}
       {showSpreadBadge ? (
-        <div className="pointer-events-none absolute -top-2 left-2 z-10 max-w-[140px] rounded-md bg-rose-600 px-2 py-1 text-[10px] font-bold leading-tight text-white shadow text-center">
+        <div className="pointer-events-none absolute -top-2 left-2 z-10 max-w-[140px] border border-[var(--tn-crit)] bg-[var(--tn-surface)] px-2 py-1 text-center text-xs font-medium leading-tight text-[var(--tn-crit)]">
           Highest spread risk
         </div>
       ) : null}
       {showAtRiskBadge ? (
-        <div className="pointer-events-none absolute -top-2 left-2 z-10 max-w-[120px] rounded-md bg-violet-600 px-2 py-1 text-[10px] font-bold leading-tight text-white shadow text-center">
+        <div className="pointer-events-none absolute -top-2 left-2 z-10 max-w-[120px] border border-[var(--tn-warn)] bg-[var(--tn-surface)] px-2 py-1 text-center text-xs font-medium leading-tight">
           May be attacked
         </div>
       ) : null}
       {isInjected ? (
-        <div className="pointer-events-none absolute -bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-md bg-rose-700 px-2 py-0.5 text-[10px] font-bold text-white shadow">
+        <div className="pointer-events-none absolute -bottom-2 left-1/2 z-10 -translate-x-1/2 border border-[var(--tn-crit)] bg-[var(--tn-surface)] px-2 py-0.5 text-xs font-medium text-[var(--tn-crit)]">
           Unknown node
         </div>
       ) : null}
       {isQuarantined ? (
-        <div className="pointer-events-none absolute inset-0 z-[5] rounded-lg bg-slate-900/25 dark:bg-slate-950/40" />
+        <div className="pointer-events-none absolute inset-0 z-[5] bg-black/25" />
       ) : null}
 
       <div className="p-1.5 flex items-start gap-1.5">
         <div
-          className="h-7 w-7 rounded-md bg-white/70 dark:bg-slate-950/40 border border-white/60 dark:border-slate-800/70 flex items-center justify-center shrink-0"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded border border-[var(--tn-line)] bg-[var(--tn-surface)]"
           style={{ color: base }}
           aria-hidden="true"
         >
@@ -202,18 +200,18 @@ function InfrastructureNode({ id, data, selected }) {
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] font-semibold text-slate-900 dark:text-slate-50 leading-tight line-clamp-2">
+          <div className="line-clamp-2 text-xs font-medium leading-tight">
             {label}
           </div>
           {sector ? (
-            <div className="mt-0.5 text-[8px] text-slate-500 dark:text-slate-400 truncate">
+            <div className="mt-0.5 truncate text-[11px] text-[var(--tn-muted)]">
               {sector}
             </div>
           ) : null}
           <div className="mt-0.5 flex items-center justify-between gap-1">
-            <div className="text-[8px] text-slate-600 dark:text-slate-300">pps</div>
+            <div className="text-[11px] text-[var(--tn-muted)]">pps</div>
             <div
-              className="text-[9px] font-semibold px-1 py-px rounded border tabular-nums"
+              className="text-xs font-semibold px-1 py-px rounded border tabular-nums"
               style={{
                 background: `color-mix(in srgb, ${base} 12%, transparent)`,
                 borderColor: `color-mix(in srgb, ${base} 35%, transparent)`,
@@ -224,9 +222,9 @@ function InfrastructureNode({ id, data, selected }) {
             </div>
           </div>
           <div className="mt-px flex items-center justify-between gap-1">
-            <div className="text-[8px] text-slate-600 dark:text-slate-300">trust</div>
+            <div className="text-[11px] text-[var(--tn-muted)]">trust</div>
             <div
-              className="text-[9px] font-semibold px-1 py-px rounded border tabular-nums"
+              className="text-xs font-semibold px-1 py-px rounded border tabular-nums"
               style={{
                 background: `color-mix(in srgb, ${base} 12%, transparent)`,
                 borderColor: `color-mix(in srgb, ${base} 35%, transparent)`,
@@ -237,7 +235,7 @@ function InfrastructureNode({ id, data, selected }) {
             </div>
           </div>
           {metricDriftHint ? (
-            <div className="mt-0.5 text-[8px] font-medium text-amber-800 dark:text-amber-300 truncate">
+            <div className="mt-0.5 truncate text-[11px] font-medium text-[var(--tn-warn)]">
               {metricDriftHint}
             </div>
           ) : null}

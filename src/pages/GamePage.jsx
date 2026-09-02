@@ -18,13 +18,13 @@ function defaultPanelsForRole(role) {
 
 const panelToggleBtn = (active) =>
   [
-    'rounded-lg border border-slate-200/80 dark:border-slate-700/80 bg-white/80 dark:bg-slate-900/40 p-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition',
-    active ? 'ring-2 ring-indigo-500/40 dark:ring-indigo-400/30' : '',
+    'tn-btn h-8 w-8 p-0',
+    active ? 'border-[var(--tn-text)]' : '',
   ].join(' ')
 
 const leftPanelClass = (open) => {
   const base =
-    'shrink-0 overflow-auto border-r border-slate-200/60 bg-slate-50/40 transition-all duration-200 ease-out dark:border-slate-800/60 dark:bg-slate-950/40 max-lg:fixed max-lg:top-14 max-lg:bottom-0 max-lg:left-0 max-lg:z-40 max-lg:max-w-[85vw]'
+    'shrink-0 overflow-auto border-r border-[var(--tn-line)] bg-[var(--tn-surface)] transition-[width] duration-150 ease-out max-lg:fixed max-lg:top-14 max-lg:bottom-0 max-lg:left-0 max-lg:z-40 max-lg:max-w-[85vw]'
   return open
     ? `${base} w-56 p-2 max-lg:translate-x-0 max-lg:w-56 max-lg:p-2`
     : `${base} w-0 overflow-hidden border-r-0 p-0 max-lg:-translate-x-full max-lg:w-60`
@@ -32,7 +32,7 @@ const leftPanelClass = (open) => {
 
 const rightPanelClass = (open) => {
   const base =
-    'shrink-0 overflow-auto border-l border-slate-200/60 bg-slate-50/40 transition-all duration-200 ease-out dark:border-slate-800/60 dark:bg-slate-950/40 max-lg:fixed max-lg:top-14 max-lg:bottom-0 max-lg:right-0 max-lg:z-40 max-lg:max-w-[90vw]'
+    'shrink-0 overflow-auto border-l border-[var(--tn-line)] bg-[var(--tn-surface)] transition-[width] duration-150 ease-out max-lg:fixed max-lg:top-14 max-lg:bottom-0 max-lg:right-0 max-lg:z-40 max-lg:max-w-[90vw]'
   return open
     ? `${base} w-[17.5rem] p-2.5 max-lg:translate-x-0 max-lg:w-[17.5rem] max-lg:p-2.5`
     : `${base} w-0 overflow-hidden border-l-0 p-0 max-lg:translate-x-full max-lg:w-[17.5rem]`
@@ -53,7 +53,6 @@ export default function GamePage() {
     error,
     actions,
     joinRoom,
-    setDetectionMode,
     setCityContext,
   } = useGameRoom()
 
@@ -98,7 +97,6 @@ export default function GamePage() {
     () => ({
       ...(activeHackSimulator ?? {}),
       ...(room.detection ?? {}),
-      detectionMode: room.detectionMode ?? room.detection?.detectionMode ?? 'fusion',
       simulationTick: room.simulationTick ?? 0,
       cityContext: room.cityContext,
       liveTelemetryByNodeId: room.liveTelemetryByNodeId ?? {},
@@ -106,7 +104,6 @@ export default function GamePage() {
     [
       activeHackSimulator,
       room.detection,
-      room.detectionMode,
       room.simulationTick,
       room.cityContext,
       room.liveTelemetryByNodeId,
@@ -218,51 +215,56 @@ export default function GamePage() {
   )
 
   return (
-    <div className="flex h-[100svh] flex-col overflow-hidden bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-50">
-      <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-slate-200/60 px-3 dark:border-slate-800/60 sm:px-4">
-        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+    <div className="tn-app flex h-[100svh] flex-col overflow-hidden">
+      <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-[var(--tn-line)] bg-[var(--tn-surface)] px-3 sm:px-4">
+        <div className="flex min-w-0 flex-1 items-center gap-2.5">
           <img
             src={trustNetLogo}
             alt="TrustNetAI"
-            className="h-8 w-8 shrink-0 rounded-xl object-contain shadow-sm"
+            className="h-5 w-5 shrink-0 object-contain"
           />
           <div className="min-w-0 leading-tight">
-            <div className="truncate font-semibold text-sm sm:text-base">
-              TrustNetAI
+            <div className="flex items-center gap-2">
+              <span className="truncate text-[15px] font-medium">TrustNetAI</span>
+              {role ? (
+                <span className="hidden capitalize text-sm text-[var(--tn-muted)] sm:inline">
+                  {role}
+                </span>
+              ) : null}
             </div>
-            <div className="truncate text-xs text-slate-500 dark:text-slate-400">
+            <div className="truncate font-mono text-xs text-[var(--tn-muted)]">
               {role ? (
                 <>
-                  <span className="capitalize">{role}</span>
-                  {' · '}
                   {waitingForOpponent
                     ? waitingCopy
                     : room.phase === 'playing'
-                      ? `Match live · tick ${room.simulationTick ?? 0} · ${room.cityContext ?? 'normal_day'}`
-                      : 'Lobby'}
+                      ? `tick ${room.simulationTick ?? 0} · ${room.cityContext ?? 'normal_day'}`
+                      : 'lobby'}
                   {' · '}
-                  {room.detectionMode === 'tgnn' ? 'TGNN only' : 'Telemetry + TGNN'}
-                  {' · '}
-                  <span className={connected ? 'text-emerald-600' : 'text-amber-600'}>
-                    {connected ? 'Online' : 'Offline'}
+                  <span className="inline-flex items-center gap-1.5">
+                    <span
+                      className="tn-pip"
+                      style={{ background: connected ? 'var(--tn-ok)' : 'var(--tn-warn)' }}
+                    />
+                    {connected ? 'LIVE' : 'OFF'}
                   </span>
                 </>
               ) : (
-                'Joining…'
+                'joining…'
               )}
             </div>
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
           {role === 'defender' ? (
-            <div className="flex rounded-lg border border-slate-200/80 p-0.5 dark:border-slate-700/80">
+            <div className="flex items-stretch gap-0">
               <button
                 type="button"
                 className={[
-                  'inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium sm:px-2.5',
+                  'inline-flex h-14 items-center gap-1 border-b-2 px-2 text-sm font-medium sm:px-2.5',
                   !isDashboardView
-                    ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
-                    : 'text-slate-600 dark:text-slate-300',
+                    ? 'border-[var(--tn-text)] text-[var(--tn-text)]'
+                    : 'border-transparent text-[var(--tn-muted)]',
                 ].join(' ')}
                 onClick={() => setMatchView('map')}
               >
@@ -272,10 +274,10 @@ export default function GamePage() {
               <button
                 type="button"
                 className={[
-                  'inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium sm:px-2.5',
+                  'inline-flex h-14 items-center gap-1 border-b-2 px-2 text-sm font-medium sm:px-2.5',
                   isDashboardView
-                    ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
-                    : 'text-slate-600 dark:text-slate-300',
+                    ? 'border-[var(--tn-text)] text-[var(--tn-text)]'
+                    : 'border-transparent text-[var(--tn-muted)]',
                 ].join(' ')}
                 onClick={() => setMatchView('dashboard')}
               >
@@ -316,39 +318,14 @@ export default function GamePage() {
       </header>
 
       {connectError && !connected ? (
-        <div className="shrink-0 border-b border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-950 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
+        <div className="shrink-0 border-b border-[var(--tn-line)] bg-[var(--tn-surface)] px-4 py-1.5 font-mono text-xs text-[var(--tn-warn)]">
           {connectError}
         </div>
       ) : null}
 
       {error ? (
-        <div className="shrink-0 border-b border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200">
+        <div className="shrink-0 border-b border-[var(--tn-line)] bg-[var(--tn-surface)] px-4 py-1.5 font-mono text-xs text-[var(--tn-crit)]">
           {error}
-        </div>
-      ) : null}
-
-      {role === 'defender' && room.phase === 'lobby' ? (
-        <div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-slate-200/60 bg-slate-50/80 px-3 py-2 text-xs dark:border-slate-800/60 dark:bg-slate-900/40 sm:px-4">
-          <span className="font-medium text-slate-600 dark:text-slate-300">Detection model</span>
-          <label className="flex cursor-pointer items-center gap-1.5">
-            <input
-              type="radio"
-              name="liveDetectionMode"
-              checked={(room.detectionMode ?? 'fusion') === 'fusion'}
-              onChange={() => void setDetectionMode('fusion')}
-            />
-            Telemetry + TGNN
-          </label>
-          <label className="flex cursor-pointer items-center gap-1.5">
-            <input
-              type="radio"
-              name="liveDetectionMode"
-              checked={room.detectionMode === 'tgnn'}
-              onChange={() => void setDetectionMode('tgnn')}
-            />
-            TGNN only
-          </label>
-          <span className="text-slate-400">Locks when the match starts</span>
         </div>
       ) : null}
 
@@ -362,7 +339,6 @@ export default function GamePage() {
           cityContext={room.cityContext}
           cityContextLocked={room.cityContextLocked === true}
           simHour={room.simHour}
-          detectionMode={room.detectionMode}
           connected={connected}
           ingestionStatus={room.ingestionStatus}
         />
@@ -373,7 +349,7 @@ export default function GamePage() {
           <button
             type="button"
             aria-label="Close panel"
-            className="fixed inset-0 top-14 z-30 bg-slate-950/40 lg:hidden"
+            className="fixed inset-0 top-14 z-30 bg-black/40 lg:hidden"
             onClick={() => {
               setAssetsOpen(false)
               setInspectorOpen(false)
@@ -397,7 +373,7 @@ export default function GamePage() {
           />
         </aside>
 
-        <section className="relative min-h-0 min-w-0 flex-1 bg-slate-200 dark:bg-slate-900">
+        <section className="relative min-h-0 min-w-0 flex-1 bg-[var(--tn-canvas)]">
           <GraphCanvas
             ref={graphRef}
             multiplayer={multiplayer}

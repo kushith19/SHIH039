@@ -10,7 +10,6 @@ import { maxMetricDeviation } from '@shared/trustModel.js'
 import { runtimeStateOf, telemetryOf } from '../graph/infrastructureNode'
 import { inspectorMetricKeys, isGameMetricKey } from '@shared/telemetryKeys.js'
 
-const FUSED_THRESHOLD = TRUST_CONFIG.fusion.threshold
 const TGNN_FLAG_THRESHOLD = TRUST_CONFIG.tgnn.anomalyScoreThreshold
 
 function formatMetric(n) {
@@ -65,7 +64,7 @@ function InspectorNumberField({
           e.currentTarget.blur()
         }
       }}
-      className={compact ? compactInputClass : 'mt-1 w-full rounded-lg border border-slate-200/70 dark:border-slate-800/70 bg-white/80 dark:bg-slate-950/40 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/40 disabled:opacity-60'}
+      className={compact ? compactInputClass : 'tn-input mt-1 px-3 py-2 text-sm disabled:opacity-60'}
     />
   )
 }
@@ -98,7 +97,7 @@ const METRIC_FIELDS = [
 ]
 
 const compactInputClass =
-  'mt-0.5 w-full rounded-md border border-slate-200/70 dark:border-slate-800/70 bg-white/80 dark:bg-slate-950/40 px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-indigo-500/40 disabled:opacity-60'
+  'tn-input mt-0.5 px-2 py-1.5 text-sm disabled:opacity-60'
 
 export default function InspectorPanel({
   hackModeActive = false,
@@ -180,33 +179,23 @@ export default function InspectorPanel({
     return null
   }, [hackModeActive, nodeTrust, nodeScenarioUi])
 
-  const fusionUi = useMemo(() => {
+  const tgnnUi = useMemo(() => {
     if (!hackModeActive || !selectedNode?.id) return null
     const id = selectedNode.id
-    const mode = sim.detectionMode === 'tgnn' ? 'tgnn' : 'fusion'
-    const fused = sim.fusedScoresByNodeId?.[id]
     const isolation = sim.isolationScoresByNodeId?.[id]
-    const reasons = sim.reasonsByNodeId?.[id] ?? []
-    return { mode, fused, isolation, reasons }
-  }, [
-    hackModeActive,
-    selectedNode,
-    sim.detectionMode,
-    sim.fusedScoresByNodeId,
-    sim.isolationScoresByNodeId,
-    sim.reasonsByNodeId,
-  ])
+    return { isolation }
+  }, [hackModeActive, selectedNode, sim.isolationScoresByNodeId])
   const compactLayout = gameRole === 'attacker' || gameRole === 'defender'
   const isDefender = gameRole === 'defender'
 
   return (
     <div className="h-full min-h-0 flex flex-col">
-      <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide shrink-0">
+      <div className="tn-label shrink-0">
         {isAttackerPlaying ? 'Target' : isDefender ? 'Node' : 'Inspector'}
       </div>
 
       {!selectedNode && !selectedEdge ? (
-        <div className="mt-3 rounded-xl border border-slate-200/70 dark:border-slate-800/70 bg-white/60 dark:bg-slate-900/20 p-3 text-[11px] leading-snug text-slate-600 dark:text-slate-300 shrink-0">
+        <div className="tn-surface mt-3 shrink-0 p-3 text-sm leading-snug text-[var(--tn-muted)]">
           {isAttackerPlaying
             ? 'Select a node to edit attack telemetry. Use the left panel for rogue devices and presets.'
             : isDefender && gamePhase === 'lobby'
@@ -221,18 +210,18 @@ export default function InspectorPanel({
         <div className="mt-3 min-h-0 flex-1 overflow-y-auto">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <div className="text-sm font-semibold text-slate-900 dark:text-slate-50 truncate">
+              <div className="truncate text-sm font-medium">
                 {selectedNode.data?.label ?? 'Node'}
               </div>
               {selectedNode.data?.sector || selectedNode.data?.type || selectedNode.data?.criticality ? (
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                <p className="mt-0.5 truncate text-xs text-[var(--tn-muted)]">
                   {[selectedNode.data?.sector, selectedNode.data?.type, selectedNode.data?.criticality]
                     .filter(Boolean)
                     .join(' · ')}
                 </p>
               ) : null}
               {compactLayout ? (
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                <p className="mt-0.5 text-xs text-[var(--tn-muted)]">
                   {isAttackerPlaying
                     ? 'vs defender baseline · Enter to apply'
                     : gamePhase === 'lobby'
@@ -245,17 +234,17 @@ export default function InspectorPanel({
             </div>
             {compactLayout && nodeTrust && (hackModeActive || gamePhase === 'lobby') ? (
               <div className="flex flex-wrap justify-end gap-1 shrink-0 max-w-[55%]">
-                <span className="rounded-md bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 text-[10px] tabular-nums font-medium text-slate-700 dark:text-slate-200">
+                <span className="tn-badge">
                   Trust {Math.round(nodeTrust.trustScore)}%
                 </span>
                 <span
                   className={[
-                    'rounded-md px-1.5 py-0.5 text-[10px] tabular-nums font-medium',
+                    'tn-badge',
                     nodeScenarioUi?.anomalyDetected
-                      ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-200'
+                      ? 'text-[var(--tn-crit)]'
                       : nodeScenarioUi?.drift
-                        ? 'bg-amber-100 text-amber-900 dark:bg-amber-950/50 dark:text-amber-200'
-                        : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+                        ? 'text-[var(--tn-warn)]'
+                        : '',
                   ].join(' ')}
                 >
                   {threatLabel ??
@@ -271,7 +260,7 @@ export default function InspectorPanel({
 
           <div
             className={[
-              'mt-2 rounded-xl border border-slate-200/70 dark:border-slate-800/70 bg-white/60 dark:bg-slate-900/20 space-y-3',
+              'tn-surface mt-2 space-y-3',
               compactLayout ? 'p-3' : 'p-4',
             ].join(' ')}
           >
@@ -296,11 +285,11 @@ export default function InspectorPanel({
                 return (
                   <div key={field.key}>
                     <div className="flex items-center justify-between gap-1">
-                      <span className="text-[10px] font-medium text-slate-600 dark:text-slate-400">
+                      <span className="text-xs font-medium text-[var(--tn-muted)]">
                         {compactLayout ? field.attackLabel : field.label}
                       </span>
                       {hackModeActive && baseline !== value ? (
-                        <span className="text-[9px] tabular-nums text-slate-400 dark:text-slate-500">
+                        <span className="text-xs tabular-nums text-[var(--tn-muted)]">
                           {formatMetric(baseline)}
                           {hackModeActive &&
                           !isDefender &&
@@ -351,16 +340,16 @@ export default function InspectorPanel({
                   return (
                     <div key={key}>
                       <div className="flex items-center justify-between gap-1">
-                        <span className="text-[10px] font-medium text-slate-600 dark:text-slate-400">
+                        <span className="text-xs font-medium text-[var(--tn-muted)]">
                           {key.replace(/_/g, ' ')}
                         </span>
                         {hackModeActive && expected != null && value != null && expected !== value ? (
-                          <span className="text-[9px] tabular-nums text-slate-400 dark:text-slate-500">
+                          <span className="text-xs tabular-nums text-[var(--tn-muted)]">
                             {formatMetric(expected)}
                             {fieldDriftPct != null ? ` +${fieldDriftPct.toFixed(0)}%` : ''}
                           </span>
                         ) : expected != null && value != null ? (
-                          <span className="text-[9px] tabular-nums text-slate-400 dark:text-slate-500">
+                          <span className="text-xs tabular-nums text-[var(--tn-muted)]">
                             exp {formatMetric(expected)}
                           </span>
                         ) : null}
@@ -379,23 +368,23 @@ export default function InspectorPanel({
 
             {nodeTrust ? (
               <div className="space-y-1.5">
-                <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-slate-600 dark:text-slate-300">
+                <div className="flex flex-wrap items-center gap-1.5 text-xs text-[var(--tn-muted)]">
                   <span>
                     Expected activity:{' '}
                     <span className="font-medium capitalize">
                       {nodeTrust.expectedActivity ?? 'normal'}
                     </span>
                   </span>
-                  <span className="text-slate-300 dark:text-slate-600">·</span>
+                  <span className="text-[var(--tn-line)]">·</span>
                   <span>
                     Observed:{' '}
                     <span
                       className={[
                         'font-medium capitalize',
                         nodeTrust.observedActivity === 'extreme'
-                          ? 'text-rose-700 dark:text-rose-300'
+                          ? 'text-[var(--tn-crit)]'
                           : nodeTrust.observedActivity === 'elevated'
-                            ? 'text-amber-800 dark:text-amber-200'
+                            ? 'text-[var(--tn-warn)]'
                             : '',
                       ].join(' ')}
                     >
@@ -403,7 +392,7 @@ export default function InspectorPanel({
                     </span>
                   </span>
                 </div>
-                <div className="grid grid-cols-2 gap-1 text-[10px] tabular-nums text-slate-600 dark:text-slate-300">
+                <div className="grid grid-cols-2 gap-1 text-xs tabular-nums text-[var(--tn-muted)]">
                   <span>Intrinsic {Math.round(nodeTrust.intrinsicTrust)}%</span>
                   <span>Peer {Math.round(nodeTrust.peerTrust)}%</span>
                   <span>Behavioural {Math.round(nodeTrust.behavioralComponent)}%</span>
@@ -412,49 +401,22 @@ export default function InspectorPanel({
               </div>
             ) : null}
 
-            {fusionUi ? (
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-center gap-1.5 rounded-md border border-indigo-200/60 dark:border-indigo-900/40 bg-indigo-50/40 dark:bg-indigo-950/25 px-2 py-1.5 text-[10px] text-indigo-950 dark:text-indigo-100/90">
-                  <span className="font-medium">
-                    {fusionUi.mode === 'tgnn' ? 'TGNN' : 'Fused'}
-                  </span>
-                  <span className="tabular-nums">
-                    {fusionUi.mode === 'tgnn'
-                      ? fusionUi.isolation == null
-                        ? '—'
-                        : `${Math.round(fusionUi.isolation * 100)}%`
-                      : fusionUi.fused == null
-                        ? '—'
-                        : `${Math.round(fusionUi.fused * 100)}%`}
-                  </span>
-                  <span className="text-indigo-700/70 dark:text-indigo-300/70">
-                    {fusionUi.mode === 'tgnn'
-                      ? `/ ${Math.round(TGNN_FLAG_THRESHOLD * 100)}% to flag`
-                      : `/ ${(FUSED_THRESHOLD * 100).toFixed(0)}% to flag`}
-                  </span>
-                  {fusionUi.mode === 'fusion' && fusionUi.isolation != null ? (
-                    <span className="text-indigo-700/70 dark:text-indigo-300/70 tabular-nums">
-                      TGNN {Math.round(fusionUi.isolation * 100)}%
-                    </span>
-                  ) : null}
-                </div>
-                {fusionUi.mode === 'fusion' && fusionUi.reasons.length ? (
-                  <div className="flex flex-wrap gap-1">
-                    {fusionUi.reasons.slice(0, 5).map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded bg-slate-100 px-1 py-px text-[9px] font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-200"
-                      >
-                        {tag.replace('telemetry_', '').replace(':', ' ')}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
+            {tgnnUi ? (
+              <div className="flex flex-wrap items-center gap-1.5 border border-[var(--tn-line)] px-2 py-1.5 text-xs">
+                <span className="font-medium">TGNN</span>
+                <span className="tabular-nums">
+                  {tgnnUi.isolation == null
+                    ? '—'
+                    : `${Math.round(tgnnUi.isolation * 100)}%`}
+                </span>
+                <span className="text-[var(--tn-muted)]">
+                  / {Math.round(TGNN_FLAG_THRESHOLD * 100)}% to flag
+                </span>
               </div>
             ) : null}
 
             {runtimeStateOf(selectedNode.data).provenance === 'injected' ? (
-              <div className="text-xs text-rose-700 dark:text-rose-400 font-medium">
+              <div className="text-xs font-medium text-[var(--tn-crit)]">
                 Unknown / injected node
               </div>
             ) : null}
@@ -466,13 +428,13 @@ export default function InspectorPanel({
               <button
                 type="button"
                 onClick={() => onQuarantine(selectedNode.id)}
-                className="w-full rounded-md bg-indigo-600 text-white text-xs font-semibold py-2 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
+                className="tn-btn-primary w-full py-2 text-xs"
               >
                 Quarantine node
               </button>
             ) : null}
             {runtimeStateOf(selectedNode.data).quarantined ? (
-              <div className="text-xs font-medium text-slate-600 dark:text-slate-400">
+              <div className="text-xs font-medium text-[var(--tn-muted)]">
                 This node is quarantined.
               </div>
             ) : null}
@@ -483,9 +445,9 @@ export default function InspectorPanel({
                 className={
                   compactLayout
                     ? isDefender
-                      ? 'w-full rounded-md border border-slate-300/80 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-xs py-1.5 hover:bg-slate-50 dark:hover:bg-slate-900/40'
-                      : 'w-full rounded-md border border-rose-200/80 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 text-xs py-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/30'
-                    : 'w-full rounded-lg bg-rose-600 text-white text-sm py-2 hover:bg-rose-700'
+                    ? 'tn-btn w-full py-1.5 text-xs'
+                      : 'tn-btn w-full py-1.5 text-xs text-[var(--tn-crit)]'
+                    : 'tn-btn w-full py-2 text-sm text-[var(--tn-crit)]'
                 }
               >
                 Delete node
@@ -497,21 +459,21 @@ export default function InspectorPanel({
 
       {selectedEdge ? (
         <div className="mt-3 min-h-0 flex-1 overflow-y-auto">
-          <div className="text-sm font-semibold text-slate-900 dark:text-slate-50 truncate">
+          <div className="truncate text-sm font-medium">
             {selectedEdge.data?.label ?? 'Edge'}
           </div>
-          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+          <p className="mt-0.5 text-xs text-[var(--tn-muted)]">
             Link telemetry
           </p>
 
           <div
             className={[
-              'mt-2 rounded-xl border border-slate-200/70 dark:border-slate-800/70 bg-white/60 dark:bg-slate-900/20 space-y-2',
+              'tn-surface mt-2 space-y-2',
               compactLayout ? 'p-3' : 'p-4 space-y-3',
             ].join(' ')}
           >
             <div>
-              <span className="text-[10px] font-medium text-slate-600 dark:text-slate-400">
+              <span className="text-xs font-medium text-[var(--tn-muted)]">
                 PPS
               </span>
               {readOnly && !canEditScenarioMetrics ? (
@@ -545,15 +507,15 @@ export default function InspectorPanel({
             </div>
 
             {hackModeActive ? (
-              <div className="flex flex-wrap items-center gap-1.5 text-[10px]">
-                <span className="text-slate-500 dark:text-slate-400">Role</span>
+              <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                <span className="text-[var(--tn-muted)]">Role</span>
                 <span
                   className={
                     hackSimulator?.primarySpreadEdgeId === selectedEdge.id
-                      ? 'font-semibold text-rose-700 dark:text-rose-400'
+                      ? 'font-medium text-[var(--tn-crit)]'
                       : (hackSimulator?.atRiskEdgeIds ?? []).includes(selectedEdge.id)
-                        ? 'font-semibold text-violet-700 dark:text-violet-400'
-                        : 'text-slate-800 dark:text-slate-200'
+                        ? 'font-medium text-[var(--tn-warn)]'
+                        : ''
                   }
                 >
                   {hackSimulator?.primarySpreadEdgeId === selectedEdge.id
@@ -571,8 +533,8 @@ export default function InspectorPanel({
                 onClick={() => onDeleteEdgeById(selectedEdge.id)}
                 className={
                   compactLayout
-                    ? 'w-full rounded-md border border-slate-300/80 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-xs py-1.5 hover:bg-slate-50 dark:hover:bg-slate-900/40'
-                    : 'w-full rounded-lg bg-rose-600 text-white text-sm py-2 hover:bg-rose-700'
+                    ? 'tn-btn w-full py-1.5 text-xs'
+                    : 'tn-btn w-full py-2 text-sm text-[var(--tn-crit)]'
                 }
               >
                 Delete edge

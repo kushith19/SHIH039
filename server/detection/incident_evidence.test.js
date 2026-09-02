@@ -114,9 +114,7 @@ test('promoteIncidents attaches numeric Level-1 evidence', () => {
   const result = {
     anomalyNodeIds: ['node-a'],
     reasonsByNodeId: { 'node-a': ['telemetry_spike:packetsPerSecond'] },
-    fusedScoresByNodeId: { 'node-a': 0.8 },
     isolationScoresByNodeId: { 'node-a': 0.6 },
-    temporalScoresByNodeId: { 'node-a': 0.7 },
     spreadEdgeIds: [],
     atRiskEdgeIds: [],
     compromisedNodeIds: [],
@@ -128,6 +126,7 @@ test('promoteIncidents attaches numeric Level-1 evidence', () => {
   const incidents = promoteIncidents(result, input)
   assert.equal(incidents.length, 1)
   assert.equal(incidents[0].id, 'inc-node-a')
+  assert.equal(incidents[0].anomalyScore, 0.6)
   const ev = incidents[0].evidence
   assert.ok(ev.length > 0)
 

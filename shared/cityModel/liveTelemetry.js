@@ -316,6 +316,8 @@ export function sampleEndpointTelemetry({
     })
     for (const row of yamlRows) {
       out[row.name] = row.value
+      const gameKey = GAME_INGEST_TO_KEY[row.name]
+      if (gameKey) out[gameKey] = row.value
     }
   }
   return out

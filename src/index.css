@@ -1,54 +1,57 @@
 @import 'tailwindcss';
 
+@theme {
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 6px;
+  --radius-xl: 6px;
+  --radius-2xl: 6px;
+}
+
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --tn-canvas: #f4f5f7;
+  --tn-surface: #ffffff;
+  --tn-elevated: #fafafa;
+  --tn-line: #e2e3e8;
+  --tn-text: #111214;
+  --tn-muted: #6b6e78;
+  --tn-select: #2563eb;
+  --tn-select-bg: rgba(37, 99, 235, 0.08);
+  --tn-ok: #16a34a;
+  --tn-warn: #d97706;
+  --tn-crit: #dc2626;
+  --tn-ink: #111214;
+  --tn-ink-fg: #ffffff;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
   color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--tn-text);
+  background: var(--tn-canvas);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
+    --tn-canvas: #0b0c0e;
+    --tn-surface: #121317;
+    --tn-elevated: #1a1b21;
+    --tn-line: #2a2c33;
+    --tn-text: #ecedef;
+    --tn-muted: #8b8d97;
+    --tn-select: #3b82f6;
+    --tn-select-bg: rgba(37, 99, 235, 0.16);
+    --tn-ok: #22c55e;
+    --tn-warn: #f59e0b;
+    --tn-crit: #ef4444;
+    --tn-ink: #ecedef;
+    --tn-ink-fg: #0b0c0e;
   }
 }
 
@@ -58,10 +61,6 @@ body {
 
 #root {
   width: 100%;
-  max-width: none;
-  margin: 0;
-  text-align: left;
-  border: none;
   min-height: 100svh;
   display: block;
   box-sizing: border-box;
@@ -69,72 +68,121 @@ body {
 
 h1,
 h2 {
-  font-family: var(--heading);
   font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
+  color: var(--tn-text);
   margin: 0;
 }
 
 code,
 .counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+  font-family: var(--font-mono);
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+.tn-app {
+  background: var(--tn-canvas);
+  color: var(--tn-text);
+}
+
+.tn-surface {
+  background: var(--tn-surface);
+  border: 1px solid var(--tn-line);
+  border-radius: 6px;
+}
+
+.tn-label {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tn-muted);
+}
+
+.tn-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--tn-line);
+  border-radius: 6px;
+  background: var(--tn-surface);
+  color: var(--tn-text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.tn-btn:hover:not(:disabled) {
+  background: var(--tn-elevated);
+}
+
+.tn-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.tn-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--tn-ink);
+  border-radius: 6px;
+  background: var(--tn-ink);
+  color: var(--tn-ink-fg);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.tn-btn-primary:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+.tn-input {
+  width: 100%;
+  border: 1px solid var(--tn-line);
+  border-radius: 6px;
+  background: var(--tn-surface);
+  color: var(--tn-text);
+  outline: none;
+}
+
+.tn-input:focus {
+  border-color: var(--tn-select);
+  box-shadow: 0 0 0 2px var(--tn-select-bg);
+}
+
+.tn-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border: 1px solid var(--tn-line);
+  color: var(--tn-muted);
+}
+
+.tn-pip {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .soc-dashboard {
-  background-color: #eef2f6;
-  background-image:
-    radial-gradient(ellipse 90% 55% at 12% -8%, rgba(6, 182, 212, 0.16), transparent 55%),
-    radial-gradient(ellipse 70% 45% at 92% 0%, rgba(244, 63, 94, 0.07), transparent 50%),
-    linear-gradient(rgba(15, 23, 42, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 23, 42, 0.045) 1px, transparent 1px);
-  background-size: auto, auto, 28px 28px, 28px 28px;
-}
-
-@media (prefers-color-scheme: dark) {
-  .soc-dashboard {
-    background-color: #06080c;
-    background-image:
-      radial-gradient(ellipse 80% 50% at 78% -6%, rgba(244, 63, 94, 0.1), transparent 52%),
-      radial-gradient(ellipse 60% 40% at 8% 0%, rgba(34, 211, 238, 0.1), transparent 50%),
-      linear-gradient(rgba(148, 163, 184, 0.055) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(148, 163, 184, 0.055) 1px, transparent 1px);
-    background-size: auto, auto, 28px 28px, 28px 28px;
-  }
+  background: var(--tn-canvas);
 }
 
 .city-map-flow.react-flow {
-  background: transparent !important;
+  background: var(--tn-canvas) !important;
 }
 
 .city-map-flow .react-flow__pane {

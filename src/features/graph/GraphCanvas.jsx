@@ -227,10 +227,8 @@ function GraphCanvasInner({
         primarySpreadNodeId: null,
         primarySpreadEdgeId: null,
         isolationScoresByNodeId: {},
-        temporalScoresByNodeId: {},
-        fusedScoresByNodeId: {},
         reasonsByNodeId: {},
-        detectionMode: 'fusion',
+        detectionMode: 'tgnn',
       }
     }
     if (serverDetection != null) {
@@ -245,10 +243,8 @@ function GraphCanvasInner({
         primarySpreadNodeId: serverDetection.primarySpreadNodeId ?? null,
         primarySpreadEdgeId: serverDetection.primarySpreadEdgeId ?? null,
         isolationScoresByNodeId: serverDetection.isolationScoresByNodeId ?? {},
-        temporalScoresByNodeId: serverDetection.temporalScoresByNodeId ?? {},
-        fusedScoresByNodeId: serverDetection.fusedScoresByNodeId ?? {},
         reasonsByNodeId: serverDetection.reasonsByNodeId ?? {},
-        detectionMode: serverDetection.detectionMode === 'tgnn' ? 'tgnn' : 'fusion',
+        detectionMode: 'tgnn',
       }
     }
     return collectActiveAnomalies(nodes, edges, hackSimulator)
@@ -312,8 +308,6 @@ function GraphCanvasInner({
       nodeScenarioBaselines: hackSimulator.nodeScenarioBaselines,
       edgeScenarioBaselines: hackSimulator.edgeScenarioBaselines,
       isolationScoresByNodeId: securityScan.isolationScoresByNodeId ?? {},
-      temporalScoresByNodeId: securityScan.temporalScoresByNodeId ?? {},
-      fusedScoresByNodeId: securityScan.fusedScoresByNodeId ?? {},
       reasonsByNodeId: securityScan.reasonsByNodeId ?? {},
       anomalyNodeIds: securityScan.anomalyNodeIds ?? [],
       spreadEdgeIds: securityScan.spreadEdgeIds ?? [],
@@ -338,8 +332,6 @@ function GraphCanvasInner({
       hackSimulator.liveTelemetryByNodeId,
       trustByNodeId,
       securityScan.isolationScoresByNodeId,
-      securityScan.temporalScoresByNodeId,
-      securityScan.fusedScoresByNodeId,
       securityScan.reasonsByNodeId,
       securityScan.anomalyNodeIds,
       securityScan.spreadEdgeIds,
@@ -796,19 +788,18 @@ function GraphCanvasInner({
       {anomalyToast ? (
         <div
           role="alert"
-          className="fixed top-4 right-4 z-[120] max-w-sm rounded-xl border border-rose-200/90 bg-rose-50 px-4 py-3 shadow-lg dark:border-rose-900/60 dark:bg-rose-950/90 pointer-events-auto"
+          className="pointer-events-auto fixed top-4 right-4 z-[120] flex max-w-sm overflow-hidden border border-[var(--tn-line)] bg-[var(--tn-surface)]"
         >
-          <div className="flex items-start justify-between gap-2">
+          <div className="w-0.5 shrink-0 bg-[var(--tn-crit)]" />
+          <div className="flex min-w-0 flex-1 items-start justify-between gap-2 px-3 py-2.5">
             <div className="min-w-0">
-              <div className="text-sm font-semibold text-rose-900 dark:text-rose-100">
-                Anomaly detected
-              </div>
+              <div className="text-sm font-medium">Anomaly detected</div>
               {anomalyToast.detail ? (
-                <div className="mt-1 text-xs text-rose-800/90 dark:text-rose-200/90 break-words">
+                <div className="mt-1 break-words text-xs text-[var(--tn-muted)]">
                   {anomalyToast.detail}
                 </div>
               ) : (
-                <div className="mt-1 text-xs text-rose-800/90 dark:text-rose-200/90">
+                <div className="mt-1 text-xs text-[var(--tn-muted)]">
                   TGNN flagged unusual behavior on the map.
                 </div>
               )}
@@ -816,7 +807,7 @@ function GraphCanvasInner({
             <button
               type="button"
               aria-label="Dismiss"
-              className="shrink-0 rounded-md px-2 py-0.5 text-lg leading-none text-rose-700 hover:bg-rose-200/60 dark:text-rose-300 dark:hover:bg-rose-900/50"
+              className="shrink-0 px-1 text-lg leading-none text-[var(--tn-muted)]"
               onClick={() => setAnomalyToast(null)}
             >
               ×
@@ -826,19 +817,19 @@ function GraphCanvasInner({
       ) : null}
       <Panel
         position="top-left"
-        className="!m-2 sm:!m-3 !max-w-[calc(100vw-1rem)] sm:!max-w-[calc(100vw-1.5rem)] p-2 rounded-xl border border-slate-200/70 dark:border-slate-800/70 bg-white/70 dark:bg-slate-950/60 shadow-sm flex flex-wrap items-center gap-1.5 sm:gap-2 pointer-events-none"
+        className="pointer-events-none !m-2 flex flex-wrap items-center gap-1.5 border border-[var(--tn-line)] bg-[var(--tn-surface)] p-1.5 sm:!m-3 sm:!max-w-[calc(100vw-1.5rem)] sm:gap-2 !max-w-[calc(100vw-1rem)]"
       >
         <button
           type="button"
           onClick={() => zoomOut()}
-          className="pointer-events-auto h-8 px-2 rounded-lg border border-slate-200/70 dark:border-slate-800/70 text-xs hover:bg-slate-100/70 dark:hover:bg-slate-800/40"
+          className="tn-btn pointer-events-auto h-8 w-8 p-0"
         >
           -
         </button>
         <button
           type="button"
           onClick={() => zoomIn()}
-          className="pointer-events-auto h-8 px-2 rounded-lg border border-slate-200/70 dark:border-slate-800/70 text-xs hover:bg-slate-100/70 dark:hover:bg-slate-800/40"
+          className="tn-btn pointer-events-auto h-8 w-8 p-0"
         >
           +
         </button>
@@ -846,7 +837,7 @@ function GraphCanvasInner({
         <button
           type="button"
           onClick={() => fitView({ duration: 700, padding: 0.2 })}
-          className="pointer-events-auto h-8 px-3 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-xs hover:opacity-90"
+          className="tn-btn-primary pointer-events-auto h-8"
         >
           Fit
         </button>
@@ -856,7 +847,7 @@ function GraphCanvasInner({
             type="button"
             onClick={loadDefaultArchitecture}
             title="Reset the map to the City Model dependency graph"
-            className="pointer-events-auto h-8 px-2 sm:px-3 rounded-lg bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
+            className="tn-btn-primary pointer-events-auto h-8 px-2 sm:px-3"
           >
             <span className="sm:hidden">Default</span>
             <span className="hidden sm:inline">Default architecture</span>
@@ -871,7 +862,7 @@ function GraphCanvasInner({
               Object.keys(hackSimulator.nodeOverrides).length === 0 &&
               Object.keys(hackSimulator.edgeOverrides).length === 0
             }
-            className="pointer-events-auto h-8 px-2 rounded-lg border border-slate-200/70 dark:border-slate-800/70 text-xs hover:bg-slate-100/70 dark:hover:bg-slate-800/40 disabled:opacity-40 disabled:pointer-events-none"
+            className="tn-btn pointer-events-auto h-8"
             title="Clear attack overrides (match-start baseline unchanged)"
           >
             <span className="sm:hidden">Clear</span>
@@ -881,39 +872,37 @@ function GraphCanvasInner({
       </Panel>
 
       {exportOpen ? (
-        <div className="absolute inset-0 z-50 bg-slate-950/40 flex items-start justify-center p-4">
-          <div className="w-full max-w-3xl rounded-xl border border-slate-200/70 dark:border-slate-800/70 bg-white dark:bg-slate-950 shadow-xl mt-16">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200/70 dark:border-slate-800/70">
-              <div className="font-semibold text-slate-900 dark:text-slate-50">
-                Export graph JSON
-              </div>
+        <div className="absolute inset-0 z-50 flex items-start justify-center bg-black/40 p-4">
+          <div className="tn-surface mt-16 w-full max-w-3xl">
+            <div className="flex items-center justify-between border-b border-[var(--tn-line)] px-4 py-3">
+              <div className="font-medium">Export graph JSON</div>
               <button
                 type="button"
                 onClick={() => setExportOpen(false)}
-                className="h-8 px-3 rounded-lg border border-slate-200/70 dark:border-slate-800/70 text-xs hover:bg-slate-100/70 dark:hover:bg-slate-800/40"
+                className="tn-btn h-8"
               >
                 Close
               </button>
             </div>
 
             <textarea
-              className="w-full h-64 px-4 py-3 font-mono text-[11px] bg-slate-50 dark:bg-slate-900/60 text-slate-900 dark:text-slate-100 outline-none"
+              className="h-64 w-full bg-[var(--tn-elevated)] px-4 py-3 font-mono text-xs outline-none"
               value={exportText}
               readOnly
             />
 
-            <div className="px-4 py-3 flex items-center justify-end gap-2 border-t border-slate-200/70 dark:border-slate-800/70">
+            <div className="flex items-center justify-end gap-2 border-t border-[var(--tn-line)] px-4 py-3">
               <button
                 type="button"
                 onClick={downloadExportGraph}
-                className="h-9 px-4 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-sm hover:opacity-90"
+                className="tn-btn-primary h-9 px-4 text-sm"
               >
                 Download JSON
               </button>
               <button
                 type="button"
                 onClick={() => setExportOpen(false)}
-                className="h-9 px-4 rounded-lg border border-slate-200/70 dark:border-slate-800/70 text-sm hover:bg-slate-100/70 dark:hover:bg-slate-800/40"
+                className="tn-btn h-9 px-4 text-sm"
               >
                 Done
               </button>
@@ -923,38 +912,36 @@ function GraphCanvasInner({
       ) : null}
 
       {importOpen ? (
-        <div className="absolute inset-0 z-50 bg-slate-950/40 flex items-start justify-center p-4">
-          <div className="w-full max-w-2xl rounded-xl border border-slate-200/70 dark:border-slate-800/70 bg-white dark:bg-slate-950 shadow-xl mt-16">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200/70 dark:border-slate-800/70">
-              <div className="font-semibold text-slate-900 dark:text-slate-50">
-                Import graph JSON
-              </div>
+        <div className="absolute inset-0 z-50 flex items-start justify-center bg-black/40 p-4">
+          <div className="tn-surface mt-16 w-full max-w-2xl">
+            <div className="flex items-center justify-between border-b border-[var(--tn-line)] px-4 py-3">
+              <div className="font-medium">Import graph JSON</div>
               <button
                 type="button"
                 onClick={() => {
                   setImportOpen(false)
                   setImportError('')
                 }}
-                className="h-8 px-3 rounded-lg border border-slate-200/70 dark:border-slate-800/70 text-xs hover:bg-slate-100/70 dark:hover:bg-slate-800/40"
+                className="tn-btn h-8"
               >
                 Close
               </button>
             </div>
 
-            <div className="px-4 py-4 space-y-3">
-              <div className="text-sm text-slate-600 dark:text-slate-300">
+            <div className="space-y-3 px-4 py-4">
+              <div className="text-sm text-[var(--tn-muted)]">
                 Choose a JSON file exported from this app.
               </div>
 
               <input
                 type="file"
                 accept="application/json"
-                className="block w-full text-sm text-slate-600 dark:text-slate-300"
+                className="block w-full text-sm"
                 onChange={onImportFileChange}
               />
 
               {importError ? (
-                <div className="text-sm text-rose-600 dark:text-rose-400">
+                <div className="text-sm text-[var(--tn-crit)]">
                   {importError}
                 </div>
               ) : null}
@@ -966,7 +953,7 @@ function GraphCanvasInner({
                     setImportOpen(false)
                     setImportError('')
                   }}
-                  className="h-9 px-4 rounded-lg border border-slate-200/70 dark:border-slate-800/70 text-sm hover:bg-slate-100/70 dark:hover:bg-slate-800/40"
+                  className="tn-btn h-9 px-4 text-sm"
                 >
                   Cancel
                 </button>
@@ -1014,7 +1001,7 @@ function GraphCanvasInner({
             <CityMapBackground />
             <Panel
               position="bottom-left"
-              className="!m-2 pointer-events-none text-[10px] text-slate-700/90 dark:text-slate-200/80"
+              className="pointer-events-none !m-2 text-xs text-[var(--tn-muted)]"
             >
               Bengaluru · Map © OpenStreetMap · © CARTO
             </Panel>

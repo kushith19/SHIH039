@@ -28,7 +28,6 @@ export default function DashboardPage({
   cityContext = null,
   cityContextLocked = false,
   simHour = null,
-  detectionMode = 'fusion',
   connected = false,
   ingestionStatus = null,
 }) {
@@ -150,26 +149,21 @@ export default function DashboardPage({
 
   if (!roomId) {
     return (
-      <div className="soc-dashboard flex min-h-[100svh] flex-col text-slate-900 dark:text-slate-50">
-        <header className="flex h-14 items-center justify-between border-b border-slate-200/60 px-4 dark:border-white/10">
+      <div className="soc-dashboard flex min-h-[100svh] flex-col">
+        <header className="flex h-14 items-center justify-between border-b border-[var(--tn-line)] bg-[var(--tn-surface)] px-4">
           <div className="flex items-center gap-2">
-            <img src={trustNetLogo} alt="" className="h-8 w-8 rounded-xl object-contain" />
-            <div className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500">
-              City telemetry
-            </div>
+            <img src={trustNetLogo} alt="" className="h-5 w-5 object-contain" />
+            <div className="tn-label">City telemetry</div>
           </div>
-          <Link
-            to="/"
-            className="rounded-lg border border-slate-200/80 px-3 py-1.5 text-sm dark:border-white/15"
-          >
+          <Link to="/" className="tn-btn">
             Back to session
           </Link>
         </header>
         <main className="mx-auto flex max-w-md flex-1 flex-col items-center justify-center p-8 text-center">
-          <Radio className="h-10 w-10 text-cyan-500" strokeWidth={1.4} />
-          <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">
+          <Radio className="h-8 w-8 text-[var(--tn-muted)]" strokeWidth={1.4} />
+          <p className="mt-4 text-sm text-[var(--tn-muted)]">
             Telemetry is per match. Open as defender, then switch to{' '}
-            <span className="font-medium text-slate-800 dark:text-slate-200">Dashboard</span> in
+            <span className="font-medium text-[var(--tn-text)]">Dashboard</span> in
             the header for the live city feed.
           </p>
         </main>
@@ -178,47 +172,36 @@ export default function DashboardPage({
   }
 
   return (
-    <div className="soc-dashboard min-h-0 flex-1 overflow-auto p-3 text-slate-900 md:p-5 dark:text-slate-50">
-      <div className="mx-auto max-w-[88rem] space-y-4">
+    <div className="soc-dashboard min-h-0 flex-1 overflow-auto p-3 md:p-5">
+      <div className="mx-auto max-w-[88rem] space-y-3">
         <header className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <div className="text-[11px] font-medium uppercase tracking-[0.28em] text-cyan-700 dark:text-cyan-400">
-              TrustNetAI · SOC
-            </div>
-            <div className="mt-1 text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">
-              City mesh telemetry
-            </div>
-            <p className="mt-1 font-mono text-[11px] text-slate-500 dark:text-slate-400">
+            <div className="tn-label">TrustNetAI · SOC</div>
+            <div className="mt-0.5 text-xl font-medium tracking-tight">City mesh telemetry</div>
+            <p className="mt-0.5 font-mono text-xs text-[var(--tn-muted)]">
               {phase === 'playing' ? `tick ${tick}` : 'waiting'}
               {cityLabel ? ` · ${cityLabel}` : ''}
               {hourLabel ? ` · ${hourLabel}` : ''}
-              {' · '}
-              {detectionMode === 'tgnn' ? 'TGNN only' : 'Telemetry + TGNN'}
+              {' · TGNN'}
             </p>
           </div>
           {filterId ? (
-            <button
-              type="button"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-1.5 font-mono text-xs text-cyan-800 dark:text-cyan-200"
-              onClick={() => setFilterId(null)}
-            >
+            <button type="button" className="tn-btn font-mono text-xs" onClick={() => setFilterId(null)}>
               <Crosshair className="h-3.5 w-3.5" />
               Scoped · {filterLabel}
-              <span className="text-cyan-600/70">clear</span>
+              <span className="text-[var(--tn-muted)]">clear</span>
             </button>
           ) : (
-            <p className="text-xs text-slate-400">Select a fleet row or incident to isolate a node</p>
+            <p className="text-sm text-[var(--tn-muted)]">Select a fleet row or incident to isolate a node</p>
           )}
         </header>
 
         {fetchError ? (
-          <div className="rounded-xl border border-rose-400/40 bg-rose-500/10 px-3 py-2 font-mono text-sm text-rose-800 dark:text-rose-200">
-            {fetchError}
-          </div>
+          <div className="tn-surface px-3 py-2 font-mono text-sm text-[var(--tn-crit)]">{fetchError}</div>
         ) : null}
 
         {phase === 'playing' && (feedStatus === 'down' || feedStatus === 'empty') ? (
-          <div className="rounded-xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-950 dark:text-amber-100">
+          <div className="tn-surface px-4 py-2.5 text-sm">
             {feedStatus === 'down'
               ? 'Waiting for tele-ingestion. Start the Timescale service on port 3000 (see README).'
               : 'tele-ingestion is up but has no recent snapshots. Run the telemetry generator against POST /ingest/snapshot.'}
@@ -226,7 +209,7 @@ export default function DashboardPage({
         ) : null}
 
         {phase !== 'playing' ? (
-          <div className="rounded-xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-950 dark:text-amber-100">
+          <div className="tn-surface px-4 py-2.5 text-sm">
             Time-series samples start when both players are in and the match is live.
           </div>
         ) : null}

@@ -50,24 +50,6 @@ export const TRUST_CONFIG = Object.freeze({
     contractPenaltyRatio: 0.35,
   }),
 
-  fusion: Object.freeze({
-    temporalWeight: 0.55,
-    tgnnWeight: 0.45,
-    threshold: 0.55,
-    tgnnReasonThreshold: 0.5,
-    criticalityWeight: Object.freeze({
-      low: 0.9,
-      medium: 1,
-      high: 1.1,
-      critical: 1.2,
-    }),
-    bonuses: Object.freeze({
-      lowTrust: Object.freeze({ below: 40, amount: 0.05, reason: 'low_trust' }),
-      injected: Object.freeze({ amount: 0.08, reason: 'injected' }),
-      override: Object.freeze({ amount: 0.04, reason: 'override' }),
-    }),
-  }),
-
   tgnn: Object.freeze({
     anomalyScoreThreshold: 0.58,
     relativeMinScore: 0.5,

@@ -38,7 +38,7 @@ export default function CityContextMenu({
       <button
         type="button"
         disabled={disabled}
-        className="max-w-[10rem] truncate rounded-lg border border-slate-200/80 bg-white/80 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700/80 dark:bg-slate-900/40 dark:text-slate-200 dark:hover:bg-slate-800/60 sm:text-sm"
+        className="tn-btn max-w-[10rem] truncate disabled:opacity-50"
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="City context"
@@ -50,13 +50,13 @@ export default function CityContextMenu({
       {open ? (
         <div
           role="menu"
-          className="absolute right-0 z-50 mt-1 min-w-[11rem] rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-900"
+          className="absolute right-0 z-50 mt-1 min-w-[11rem] border border-[var(--tn-line)] bg-[var(--tn-surface)] py-1"
         >
           <button
             type="button"
             role="menuitem"
-            className={`block w-full px-3 py-1.5 text-left text-xs hover:bg-slate-50 dark:hover:bg-slate-800 ${
-              !locked ? 'font-semibold text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-200'
+            className={`block w-full px-3 py-1.5 text-left text-sm hover:bg-[var(--tn-elevated)] ${
+              !locked ? 'font-medium' : 'text-[var(--tn-muted)]'
             }`}
             onClick={() => pick(null)}
           >
@@ -67,10 +67,8 @@ export default function CityContextMenu({
               key={id}
               type="button"
               role="menuitem"
-              className={`block w-full px-3 py-1.5 text-left text-xs hover:bg-slate-50 dark:hover:bg-slate-800 ${
-                locked && cityContext === id
-                  ? 'font-semibold text-indigo-600 dark:text-indigo-400'
-                  : 'text-slate-700 dark:text-slate-200'
+              className={`block w-full px-3 py-1.5 text-left text-sm hover:bg-[var(--tn-elevated)] ${
+                locked && cityContext === id ? 'font-medium' : 'text-[var(--tn-muted)]'
               }`}
               onClick={() => pick(id)}
             >
