@@ -1,0 +1,203 @@
+id: fraud-detection-system
+name: Fraud Detection System
+category: finance
+type: fraud-detection
+description: >
+  Financial security system that analyzes transactions and customer activity
+  to identify potentially fraudulent behavior, generate fraud alerts, and
+  support automated or analyst-driven fraud prevention decisions.
+
+criticality: critical
+
+operating_schedule:
+  defaultPhase: normal
+  phases:
+    - id: normal
+      start: "06:00"
+      end: "22:00"
+      priority: 1
+
+    - id: night
+      start: "22:00"
+      end: "06:00"
+      priority: 1
+
+behaviour:
+  normal:
+    activityLevel: high
+    communicationPattern: continuous
+    workload: high
+    administrativeActivity: medium
+    networkActivity: high
+    expectedOperations:
+      - transaction-analysis
+      - fraud-rule-evaluation
+      - risk-scoring
+      - fraud-alert-generation
+      - suspicious-activity-analysis
+    expectedUsers:
+      - fraud-analysts
+      - bank-employees
+      - bank-administrators
+    healthStatus: healthy
+
+  peak:
+    activityLevel: very-high
+    communicationPattern: continuous
+    workload: very-high
+    administrativeActivity: medium
+    networkActivity: very-high
+    expectedOperations:
+      - transaction-analysis
+      - fraud-rule-evaluation
+      - risk-scoring
+      - fraud-alert-generation
+      - suspicious-activity-analysis
+    expectedUsers:
+      - fraud-analysts
+      - bank-employees
+      - bank-administrators
+    healthStatus: healthy
+
+  night:
+    activityLevel: medium
+    communicationPattern: continuous
+    workload: medium
+    administrativeActivity: low
+    networkActivity: medium
+    expectedOperations:
+      - transaction-analysis
+      - fraud-rule-evaluation
+      - risk-scoring
+      - fraud-alert-generation
+      - suspicious-activity-analysis
+    expectedUsers:
+      - fraud-analysts
+      - bank-administrators
+    healthStatus: healthy
+
+states:
+  healthy:
+    activityLevel: normal
+    networkActivity: normal
+    transactionAnalysis: normal
+    alertGeneration: normal
+    healthStatus: healthy
+
+  busy:
+    activityLevel: high
+    networkActivity: high
+    transactionAnalysis: high
+    alertGeneration: high
+    healthStatus: healthy
+
+  degraded:
+    activityLevel: reduced
+    networkActivity: elevated
+    transactionAnalysis: reduced
+    alertGeneration: delayed
+    healthStatus: degraded
+
+  recovering:
+    activityLevel: medium
+    networkActivity: medium
+    transactionAnalysis: recovering
+    alertGeneration: recovering
+    healthStatus: recovering
+
+  suspicious:
+    activityLevel: elevated
+    networkActivity: elevated
+    transactionAnalysis: abnormal
+    alertGeneration: abnormal
+    healthStatus: suspicious
+
+  under_attack:
+    activityLevel: very-high
+    networkActivity: very-high
+    transactionAnalysis: abnormal
+    alertGeneration: abnormal
+    healthStatus: under_attack
+
+  compromised:
+    activityLevel: abnormal
+    networkActivity: abnormal
+    transactionAnalysis: abnormal
+    alertGeneration: abnormal
+    healthStatus: compromised
+
+telemetry:
+  - name: transactions_analyzed_rate
+    type: gauge
+    unit: transactions_per_second
+    description: Rate of financial transactions analyzed for fraud
+
+  - name: fraud_alert_rate
+    type: gauge
+    unit: alerts_per_minute
+    description: Rate of fraud alerts generated
+
+  - name: suspicious_transaction_rate
+    type: gauge
+    unit: transactions_per_minute
+    description: Rate of transactions identified as suspicious
+
+  - name: high_risk_transaction_rate
+    type: gauge
+    unit: transactions_per_minute
+    description: Rate of transactions receiving high fraud-risk scores
+
+  - name: risk_score_average
+    type: gauge
+    unit: score
+    description: Average risk score assigned to analyzed transactions
+
+  - name: fraud_detection_latency
+    type: gauge
+    unit: milliseconds
+    description: Average time required to evaluate a transaction for fraud
+
+  - name: rule_evaluation_rate
+    type: gauge
+    unit: evaluations_per_second
+    description: Rate of fraud detection rule evaluations
+
+  - name: false_positive_rate
+    type: gauge
+    unit: percent
+    description: Percentage of legitimate transactions incorrectly flagged
+
+  - name: alert_processing_latency
+    type: gauge
+    unit: milliseconds
+    description: Average time required to generate and process fraud alerts
+
+  - name: api_request_rate
+    type: gauge
+    unit: requests_per_second
+    description: Rate of incoming requests to the fraud detection system
+
+  - name: error_rate
+    type: gauge
+    unit: percent
+    description: Percentage of requests resulting in errors
+
+  - name: network_connections
+    type: gauge
+    unit: connections
+    description: Number of active network connections
+
+actors:
+  - fraud-analysts
+  - bank-employees
+  - bank-administrators
+  - attackers
+
+dependencies: []
+
+metadata:
+  sector: finance
+  exposure: internal
+  financial_role: fraud-and-risk-detection
+  data_sensitivity: very-high
+  attack_surface: high

@@ -1,0 +1,204 @@
+id: interbank-payment-gateway
+name: Interbank Payment Gateway
+category: finance
+type: interbank-payment
+description: >
+  City-level financial gateway responsible for securely routing and processing
+  payment transactions between participating banks and external financial
+  payment networks.
+
+criticality: critical
+
+operating_schedule:
+  defaultPhase: normal
+  phases:
+    - id: normal
+      start: "06:00"
+      end: "22:00"
+      priority: 1
+
+    - id: night
+      start: "22:00"
+      end: "06:00"
+      priority: 1
+
+behaviour:
+  normal:
+    activityLevel: high
+    communicationPattern: continuous
+    workload: high
+    administrativeActivity: medium
+    networkActivity: very-high
+    expectedOperations:
+      - interbank-payment-routing
+      - payment-validation
+      - transaction-routing
+      - payment-status-processing
+      - transaction-reconciliation
+    expectedUsers:
+      - bank-employees
+      - bank-administrators
+      - financial-institutions
+    healthStatus: healthy
+
+  peak:
+    activityLevel: very-high
+    communicationPattern: continuous
+    workload: very-high
+    administrativeActivity: medium
+    networkActivity: very-high
+    expectedOperations:
+      - interbank-payment-routing
+      - payment-validation
+      - transaction-routing
+      - payment-status-processing
+      - transaction-reconciliation
+    expectedUsers:
+      - bank-employees
+      - bank-administrators
+      - financial-institutions
+    healthStatus: healthy
+
+  night:
+    activityLevel: medium
+    communicationPattern: continuous
+    workload: medium
+    administrativeActivity: low
+    networkActivity: high
+    expectedOperations:
+      - interbank-payment-routing
+      - payment-validation
+      - transaction-routing
+      - payment-status-processing
+      - transaction-reconciliation
+    expectedUsers:
+      - bank-employees
+      - bank-administrators
+      - financial-institutions
+    healthStatus: healthy
+
+states:
+  healthy:
+    activityLevel: normal
+    networkActivity: normal
+    transactionActivity: normal
+    routingActivity: normal
+    healthStatus: healthy
+
+  busy:
+    activityLevel: high
+    networkActivity: very-high
+    transactionActivity: high
+    routingActivity: high
+    healthStatus: healthy
+
+  degraded:
+    activityLevel: reduced
+    networkActivity: elevated
+    transactionActivity: reduced
+    routingActivity: delayed
+    healthStatus: degraded
+
+  recovering:
+    activityLevel: medium
+    networkActivity: medium
+    transactionActivity: recovering
+    routingActivity: recovering
+    healthStatus: recovering
+
+  suspicious:
+    activityLevel: elevated
+    networkActivity: elevated
+    transactionActivity: abnormal
+    routingActivity: abnormal
+    healthStatus: suspicious
+
+  under_attack:
+    activityLevel: very-high
+    networkActivity: very-high
+    transactionActivity: abnormal
+    routingActivity: abnormal
+    healthStatus: under_attack
+
+  compromised:
+    activityLevel: abnormal
+    networkActivity: abnormal
+    transactionActivity: abnormal
+    routingActivity: abnormal
+    healthStatus: compromised
+
+telemetry:
+  - name: interbank_transaction_rate
+    type: gauge
+    unit: transactions_per_second
+    description: Rate of interbank payment transactions processed
+
+  - name: transaction_value
+    type: gauge
+    unit: currency_per_second
+    description: Monetary value of interbank transactions processed per second
+
+  - name: payment_routing_rate
+    type: gauge
+    unit: transactions_per_second
+    description: Rate of payment transactions routed between financial institutions
+
+  - name: payment_failure_rate
+    type: gauge
+    unit: percent
+    description: Percentage of interbank payment requests that fail
+
+  - name: transaction_rejection_rate
+    type: gauge
+    unit: percent
+    description: Percentage of interbank transactions rejected
+
+  - name: transaction_latency
+    type: gauge
+    unit: milliseconds
+    description: Average time required to process and route an interbank transaction
+
+  - name: reconciliation_rate
+    type: gauge
+    unit: transactions_per_minute
+    description: Rate of interbank transactions undergoing reconciliation
+
+  - name: connection_failure_rate
+    type: gauge
+    unit: percent
+    description: Percentage of connections to participating financial institutions that fail
+
+  - name: api_request_rate
+    type: gauge
+    unit: requests_per_second
+    description: Rate of incoming requests to the interbank payment gateway
+
+  - name: error_rate
+    type: gauge
+    unit: percent
+    description: Percentage of requests resulting in errors
+
+  - name: network_connections
+    type: gauge
+    unit: connections
+    description: Number of active connections with participating financial institutions
+
+  - name: suspicious_transaction_rate
+    type: gauge
+    unit: transactions_per_minute
+    description: Rate of interbank transactions flagged as suspicious
+
+actors:
+  - bank-employees
+  - bank-administrators
+  - financial-institutions
+  - attackers
+
+dependencies: []
+
+metadata:
+  sector: finance
+  exposure: external
+  financial_role: interbank-payment-routing
+  data_sensitivity: very-high
+  attack_surface: high

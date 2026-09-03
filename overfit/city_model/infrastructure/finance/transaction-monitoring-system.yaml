@@ -1,0 +1,202 @@
+id: transaction-monitoring-system
+name: Transaction Monitoring System
+category: finance
+type: transaction-monitoring
+description: >
+  Financial monitoring system that continuously analyzes transaction activity,
+  account behavior, and transaction patterns to identify suspicious or
+  anomalous financial activity and support regulatory and security monitoring.
+
+criticality: critical
+
+operating_schedule:
+  defaultPhase: normal
+  phases:
+    - id: normal
+      start: "06:00"
+      end: "22:00"
+      priority: 1
+
+    - id: night
+      start: "22:00"
+      end: "06:00"
+      priority: 1
+
+behaviour:
+  normal:
+    activityLevel: high
+    communicationPattern: continuous
+    workload: high
+    administrativeActivity: medium
+    networkActivity: high
+    expectedOperations:
+      - transaction-monitoring
+      - transaction-pattern-analysis
+      - anomaly-detection
+      - suspicious-activity-detection
+      - monitoring-alert-generation
+    expectedUsers:
+      - fraud-analysts
+      - compliance-officers
+      - bank-employees
+      - bank-administrators
+    healthStatus: healthy
+
+  peak:
+    activityLevel: very-high
+    communicationPattern: continuous
+    workload: very-high
+    administrativeActivity: medium
+    networkActivity: very-high
+    expectedOperations:
+      - transaction-monitoring
+      - transaction-pattern-analysis
+      - anomaly-detection
+      - suspicious-activity-detection
+      - monitoring-alert-generation
+    expectedUsers:
+      - fraud-analysts
+      - compliance-officers
+      - bank-employees
+      - bank-administrators
+    healthStatus: healthy
+
+  night:
+    activityLevel: medium
+    communicationPattern: continuous
+    workload: medium
+    administrativeActivity: low
+    networkActivity: medium
+    expectedOperations:
+      - transaction-monitoring
+      - transaction-pattern-analysis
+      - anomaly-detection
+      - suspicious-activity-detection
+      - monitoring-alert-generation
+    expectedUsers:
+      - fraud-analysts
+      - compliance-officers
+      - bank-administrators
+    healthStatus: healthy
+
+states:
+  healthy:
+    activityLevel: normal
+    networkActivity: normal
+    monitoringActivity: normal
+    anomalyDetectionActivity: normal
+    healthStatus: healthy
+
+  busy:
+    activityLevel: high
+    networkActivity: high
+    monitoringActivity: high
+    anomalyDetectionActivity: high
+    healthStatus: healthy
+
+  degraded:
+    activityLevel: reduced
+    networkActivity: elevated
+    monitoringActivity: reduced
+    anomalyDetectionActivity: delayed
+    healthStatus: degraded
+
+  recovering:
+    activityLevel: medium
+    networkActivity: medium
+    monitoringActivity: recovering
+    anomalyDetectionActivity: recovering
+    healthStatus: recovering
+
+  suspicious:
+    activityLevel: elevated
+    networkActivity: elevated
+    monitoringActivity: abnormal
+    anomalyDetectionActivity: abnormal
+    healthStatus: suspicious
+
+  under_attack:
+    activityLevel: very-high
+    networkActivity: very-high
+    monitoringActivity: abnormal
+    anomalyDetectionActivity: abnormal
+    healthStatus: under_attack
+
+  compromised:
+    activityLevel: abnormal
+    networkActivity: abnormal
+    monitoringActivity: abnormal
+    anomalyDetectionActivity: abnormal
+    healthStatus: compromised
+
+telemetry:
+  - name: transactions_monitored_rate
+    type: gauge
+    unit: transactions_per_second
+    description: Rate of financial transactions being monitored
+
+  - name: transaction_value_monitored
+    type: gauge
+    unit: currency_per_second
+    description: Monetary value of transactions being monitored per second
+
+  - name: suspicious_transaction_rate
+    type: gauge
+    unit: transactions_per_minute
+    description: Rate of transactions identified as suspicious
+
+  - name: anomaly_detection_rate
+    type: gauge
+    unit: anomalies_per_minute
+    description: Rate of anomalous transaction patterns detected
+
+  - name: monitoring_alert_rate
+    type: gauge
+    unit: alerts_per_minute
+    description: Rate of transaction monitoring alerts generated
+
+  - name: high_risk_transaction_rate
+    type: gauge
+    unit: transactions_per_minute
+    description: Rate of transactions classified as high risk
+
+  - name: monitoring_latency
+    type: gauge
+    unit: milliseconds
+    description: Average time required to analyze a transaction
+
+  - name: transaction_pattern_deviation
+    type: gauge
+    unit: percent
+    description: Degree of deviation from established transaction behavior patterns
+
+  - name: api_request_rate
+    type: gauge
+    unit: requests_per_second
+    description: Rate of incoming requests to the monitoring system
+
+  - name: error_rate
+    type: gauge
+    unit: percent
+    description: Percentage of monitoring requests resulting in errors
+
+  - name: network_connections
+    type: gauge
+    unit: connections
+    description: Number of active network connections
+
+actors:
+  - fraud-analysts
+  - compliance-officers
+  - bank-employees
+  - bank-administrators
+  - attackers
+
+dependencies: []
+
+metadata:
+  sector: finance
+  exposure: internal
+  financial_role: transaction-monitoring
+  data_sensitivity: very-high
+  attack_surface: medium

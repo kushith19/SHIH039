@@ -1,0 +1,203 @@
+id: atm-switching-system
+name: ATM Switching System
+category: finance
+type: atm-switching
+description: >
+  Financial switching system responsible for routing ATM transaction requests
+  between ATMs and banking infrastructure, including cash withdrawals, balance
+  inquiries, deposits, and transaction authorization requests.
+
+criticality: critical
+
+operating_schedule:
+  defaultPhase: normal
+  phases:
+    - id: normal
+      start: "06:00"
+      end: "22:00"
+      priority: 1
+
+    - id: night
+      start: "22:00"
+      end: "06:00"
+      priority: 1
+
+behaviour:
+  normal:
+    activityLevel: high
+    communicationPattern: continuous
+    workload: high
+    administrativeActivity: medium
+    networkActivity: high
+    expectedOperations:
+      - atm-transaction-routing
+      - cash-withdrawal-processing
+      - balance-inquiry-processing
+      - transaction-authorization
+      - transaction-reversal
+    expectedUsers:
+      - bank-customers
+      - atm-operators
+      - bank-employees
+    healthStatus: healthy
+
+  peak:
+    activityLevel: very-high
+    communicationPattern: continuous
+    workload: very-high
+    administrativeActivity: medium
+    networkActivity: very-high
+    expectedOperations:
+      - atm-transaction-routing
+      - cash-withdrawal-processing
+      - balance-inquiry-processing
+      - transaction-authorization
+      - transaction-reversal
+    expectedUsers:
+      - bank-customers
+      - atm-operators
+      - bank-employees
+    healthStatus: healthy
+
+  night:
+    activityLevel: medium
+    communicationPattern: continuous
+    workload: medium
+    administrativeActivity: low
+    networkActivity: medium
+    expectedOperations:
+      - atm-transaction-routing
+      - cash-withdrawal-processing
+      - balance-inquiry-processing
+      - transaction-authorization
+      - transaction-reversal
+    expectedUsers:
+      - bank-customers
+      - atm-operators
+    healthStatus: healthy
+
+states:
+  healthy:
+    activityLevel: normal
+    networkActivity: normal
+    transactionActivity: normal
+    routingActivity: normal
+    healthStatus: healthy
+
+  busy:
+    activityLevel: high
+    networkActivity: high
+    transactionActivity: high
+    routingActivity: high
+    healthStatus: healthy
+
+  degraded:
+    activityLevel: reduced
+    networkActivity: elevated
+    transactionActivity: reduced
+    routingActivity: delayed
+    healthStatus: degraded
+
+  recovering:
+    activityLevel: medium
+    networkActivity: medium
+    transactionActivity: recovering
+    routingActivity: recovering
+    healthStatus: recovering
+
+  suspicious:
+    activityLevel: elevated
+    networkActivity: elevated
+    transactionActivity: abnormal
+    routingActivity: abnormal
+    healthStatus: suspicious
+
+  under_attack:
+    activityLevel: very-high
+    networkActivity: very-high
+    transactionActivity: abnormal
+    routingActivity: abnormal
+    healthStatus: under_attack
+
+  compromised:
+    activityLevel: abnormal
+    networkActivity: abnormal
+    transactionActivity: abnormal
+    routingActivity: abnormal
+    healthStatus: compromised
+
+telemetry:
+  - name: atm_transaction_rate
+    type: gauge
+    unit: transactions_per_second
+    description: Rate of ATM transactions routed through the switching system
+
+  - name: cash_withdrawal_rate
+    type: gauge
+    unit: transactions_per_minute
+    description: Rate of cash withdrawal transactions
+
+  - name: transaction_value
+    type: gauge
+    unit: currency_per_second
+    description: Monetary value of ATM transactions processed per second
+
+  - name: transaction_authorization_rate
+    type: gauge
+    unit: requests_per_second
+    description: Rate of ATM transaction authorization requests
+
+  - name: transaction_failure_rate
+    type: gauge
+    unit: percent
+    description: Percentage of ATM transactions that fail
+
+  - name: transaction_reversal_rate
+    type: gauge
+    unit: reversals_per_minute
+    description: Rate of ATM transaction reversals
+
+  - name: transaction_latency
+    type: gauge
+    unit: milliseconds
+    description: Average ATM transaction processing latency
+
+  - name: atm_connection_failure_rate
+    type: gauge
+    unit: percent
+    description: Percentage of ATM connections that fail
+
+  - name: api_request_rate
+    type: gauge
+    unit: requests_per_second
+    description: Rate of incoming requests to the switching system
+
+  - name: error_rate
+    type: gauge
+    unit: percent
+    description: Percentage of requests resulting in errors
+
+  - name: active_atm_connections
+    type: gauge
+    unit: connections
+    description: Number of active ATM connections
+
+  - name: suspicious_transaction_rate
+    type: gauge
+    unit: transactions_per_minute
+    description: Rate of ATM transactions flagged as suspicious
+
+actors:
+  - bank-customers
+  - atm-operators
+  - bank-employees
+  - attackers
+
+dependencies: []
+
+metadata:
+  sector: finance
+  exposure: external
+  financial_role: atm-transaction-routing
+  data_sensitivity: very-high
+  attack_surface: high

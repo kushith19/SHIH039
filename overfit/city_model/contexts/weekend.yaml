@@ -1,0 +1,115 @@
+id: weekend
+priority: 3
+description: >
+  Weekend daytime operations. Education and government drop sharply
+  (most facilities closed); healthcare, emergency services, and
+  public safety stay near baseline since demand doesn't disappear.
+
+modifiers:
+
+  education:
+    activityLevel: low
+    communicationPattern: periodic
+    workload: light
+    expectedUsers: low
+
+  government:
+    activityLevel: low
+    administrativeActivity: low
+    networkActivity: low
+
+  finance:
+  digital-banking-platform:
+    activityLevel: very-high
+    workload: high
+    networkActivity: very-high
+    transactionActivity: very-high
+    authenticationActivity: high
+
+  customer-identity-service:
+    activityLevel: high
+    workload: high
+    authenticationActivity: high
+    identityVerificationActivity: medium
+
+  bank-gateway:
+    activityLevel: high
+    workload: high
+    networkActivity: high
+    transactionActivity: high
+
+  core-banking-system:
+    activityLevel: high
+    workload: high
+    transactionActivity: high
+    databaseActivity: high
+
+  payment-processing-system:
+    activityLevel: very-high
+    workload: high
+    transactionActivity: very-high
+    networkActivity: high
+
+  card-processing-system:
+    activityLevel: very-high
+    workload: high
+    transactionActivity: very-high
+    authorizationActivity: high
+
+  fraud-detection-system:
+    activityLevel: high
+    workload: high
+    transactionAnalysis: very-high
+    alertGeneration: high
+
+  transaction-monitoring-system:
+    activityLevel: high
+    workload: high
+    monitoringActivity: very-high
+    anomalyDetectionActivity: high
+
+  interbank-payment-gateway:
+    activityLevel: high
+    workload: high
+    networkActivity: high
+    transactionActivity: high
+
+  atm-network-gateway:
+    activityLevel: high
+    workload: high
+    networkActivity: high
+    transactionActivity: high
+
+  atm-switching-system:
+    activityLevel: high
+    workload: high
+    networkActivity: high
+    transactionActivity: high
+
+  financial-data-platform:
+    activityLevel: high
+    workload: high
+    dataProcessingActivity: high
+    dataAccessActivity: high
+
+  transportation:
+    activityLevel: moderate
+    workload: moderate
+    networkActivity: moderate
+
+  telecommunications:
+    activityLevel: moderate
+    networkActivity: moderate
+
+  healthcare:
+    activityLevel: normal
+    workload: moderate
+    expectedOperations: normal
+
+  public-safety:
+    activityLevel: moderate
+    workload: moderate
+
+  emergency-services:
+    activityLevel: normal
+    workload: light

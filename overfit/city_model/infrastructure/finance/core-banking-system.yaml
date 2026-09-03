@@ -1,0 +1,213 @@
+id: core-banking-system
+name: Core Banking System
+
+category: finance
+type: core_banking_system
+
+description: >
+  Central banking platform responsible for maintaining customer accounts,
+  balances, transaction records, account services, and core financial
+  operations used by connected banking channels.
+
+criticality: critical
+
+operating_schedule:
+  defaultPhase: 24x7
+
+  phases:
+    - id: morning
+      start: "06:00"
+      end: "10:00"
+      priority: 8
+
+    - id: daytime
+      start: "10:00"
+      end: "18:00"
+      priority: 6
+
+    - id: evening
+      start: "18:00"
+      end: "22:00"
+      priority: 10
+
+    - id: night
+      start: "22:00"
+      end: "06:00"
+      priority: 5
+
+behaviour:
+
+  normal:
+    activityLevel: high
+    communicationPattern: continuous
+    workload: moderate
+    administrativeActivity: moderate
+    networkActivity: very_high
+    expectedOperations: account_and_transaction_processing
+    expectedUsers: high
+    healthStatus: healthy
+
+  peak:
+    activityLevel: very_high
+    communicationPattern: continuous
+    workload: heavy
+    administrativeActivity: high
+    networkActivity: very_high
+    expectedOperations: transaction_processing
+    expectedUsers: very_high
+    healthStatus: healthy
+
+  night:
+    activityLevel: moderate
+    communicationPattern: continuous
+    workload: light
+    administrativeActivity: moderate
+    networkActivity: high
+    expectedOperations: account_processing
+    expectedUsers: moderate
+    healthStatus: healthy
+
+states:
+
+  healthy:
+    workload: moderate
+    networkActivity: very_high
+    administrativeActivity: moderate
+    healthStatus: healthy
+
+  busy:
+    workload: heavy
+    networkActivity: very_high
+    administrativeActivity: high
+    healthStatus: healthy
+
+  degraded:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: high
+    healthStatus: degraded
+
+  recovering:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: very_high
+    healthStatus: recovering
+
+  suspicious:
+    workload: elevated
+    networkActivity: very_high
+    administrativeActivity: high
+    healthStatus: suspicious
+
+  under_attack:
+    workload: heavy
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: critical
+
+  compromised:
+    workload: abnormal
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: compromised
+
+telemetry:
+
+  metrics:
+
+    - name: active_accounts
+      unit: accounts
+      min: 0
+      max: 10000000
+
+    - name: active_sessions
+      unit: sessions
+      min: 0
+      max: 1000000
+
+    - name: transaction_requests
+      unit: transactions/s
+      min: 0
+      max: 100000
+
+    - name: successful_transactions
+      unit: transactions/s
+      min: 0
+      max: 100000
+
+    - name: failed_transactions
+      unit: transactions/s
+      min: 0
+      max: 10000
+
+    - name: account_queries
+      unit: queries/s
+      min: 0
+      max: 100000
+
+    - name: database_queries
+      unit: queries/s
+      min: 0
+      max: 100000
+
+    - name: transaction_processing_latency
+      unit: milliseconds
+      min: 1
+      max: 5000
+
+    - name: authentication_failures
+      unit: failures/min
+      min: 0
+      max: 10000
+
+    - name: cpu_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: memory_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: network_bytes
+      unit: bytes/s
+      min: 0
+      max: 1000000000
+
+actors:
+
+  - bank-customers
+  - bank-employees
+  - bank-administrators
+  - payment-services
+  - atm-network
+
+dependencies: []
+
+metadata:
+
+  environment: production
+
+  protocols:
+    - HTTPS
+    - TLS
+    - REST
+    - SQL
+
+  capabilities:
+    - account_management
+    - transaction_processing
+    - balance_management
+    - customer_account_services
+    - financial_record_management
+
+  security:
+    encryption: true
+    authentication: true
+    access_control: true
+    transaction_auditing: true
+
+  location:
+    facility: banking_data_center
+    zone: finance_core_network

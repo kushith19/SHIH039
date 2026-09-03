@@ -1,0 +1,217 @@
+id: payment-processing-system
+name: Payment Processing System
+
+category: finance
+type: payment_processing_system
+
+description: >
+  Central payment processing platform responsible for receiving,
+  validating, routing, and processing electronic payment transactions
+  across supported banking and payment channels.
+
+criticality: critical
+
+operating_schedule:
+  defaultPhase: 24x7
+
+  phases:
+    - id: morning
+      start: "06:00"
+      end: "10:00"
+      priority: 8
+
+    - id: daytime
+      start: "10:00"
+      end: "18:00"
+      priority: 6
+
+    - id: evening
+      start: "18:00"
+      end: "22:00"
+      priority: 10
+
+    - id: night
+      start: "22:00"
+      end: "06:00"
+      priority: 5
+
+behaviour:
+
+  normal:
+    activityLevel: high
+    communicationPattern: continuous
+    workload: moderate
+    administrativeActivity: moderate
+    networkActivity: very_high
+    expectedOperations: payment_processing
+    expectedUsers: very_high
+    healthStatus: healthy
+
+  peak:
+    activityLevel: very_high
+    communicationPattern: continuous
+    workload: heavy
+    administrativeActivity: high
+    networkActivity: very_high
+    expectedOperations: payment_processing
+    expectedUsers: very_high
+    healthStatus: healthy
+
+  night:
+    activityLevel: moderate
+    communicationPattern: continuous
+    workload: light
+    administrativeActivity: low
+    networkActivity: high
+    expectedOperations: payment_processing
+    expectedUsers: high
+    healthStatus: healthy
+
+states:
+
+  healthy:
+    workload: moderate
+    networkActivity: very_high
+    administrativeActivity: moderate
+    healthStatus: healthy
+
+  busy:
+    workload: heavy
+    networkActivity: very_high
+    administrativeActivity: high
+    healthStatus: healthy
+
+  degraded:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: high
+    healthStatus: degraded
+
+  recovering:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: very_high
+    healthStatus: recovering
+
+  suspicious:
+    workload: elevated
+    networkActivity: very_high
+    administrativeActivity: high
+    healthStatus: suspicious
+
+  under_attack:
+    workload: heavy
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: critical
+
+  compromised:
+    workload: abnormal
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: compromised
+
+telemetry:
+
+  metrics:
+
+    - name: payment_requests
+      unit: transactions/s
+      min: 0
+      max: 100000
+
+    - name: successful_payments
+      unit: transactions/s
+      min: 0
+      max: 100000
+
+    - name: failed_payments
+      unit: transactions/s
+      min: 0
+      max: 10000
+
+    - name: authorization_requests
+      unit: requests/s
+      min: 0
+      max: 100000
+
+    - name: transaction_latency
+      unit: milliseconds
+      min: 1
+      max: 5000
+
+    - name: authorization_failures
+      unit: failures/min
+      min: 0
+      max: 10000
+
+    - name: duplicate_transactions
+      unit: transactions/min
+      min: 0
+      max: 5000
+
+    - name: settlement_messages
+      unit: messages/min
+      min: 0
+      max: 50000
+
+    - name: active_sessions
+      unit: sessions
+      min: 0
+      max: 1000000
+
+    - name: cpu_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: memory_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: network_bytes
+      unit: bytes/s
+      min: 0
+      max: 1000000000
+
+actors:
+
+  - bank-customers
+  - merchants
+  - bank-employees
+  - payment-operators
+  - payment-services
+
+dependencies:
+
+  - endpoint: core-banking-system
+    type: supporting
+    weight: 0.8
+
+metadata:
+
+  environment: production
+
+  protocols:
+    - HTTPS
+    - TLS
+    - ISO_8583
+    - REST
+
+  capabilities:
+    - payment_authorization
+    - transaction_processing
+    - payment_routing
+    - settlement_processing
+    - transaction_monitoring
+
+  security:
+    encryption: true
+    authentication: true
+    transaction_auditing: true
+    fraud_monitoring: true
+
+  location:
+    facility: payment_operations_center
+    zone: finance_network

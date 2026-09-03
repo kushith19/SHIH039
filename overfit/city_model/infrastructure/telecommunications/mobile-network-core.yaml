@@ -1,0 +1,197 @@
+id: mobile-network-core
+name: Mobile Network Core
+
+category: telecommunications
+type: mobile_network_core
+
+description: >
+  Core telecommunications platform responsible for managing mobile
+  subscriber sessions, authentication, mobility, and data connectivity
+  between mobile users, connected devices, and external networks.
+
+criticality: critical
+
+operating_schedule:
+  defaultPhase: 24x7
+
+  phases:
+    - id: daytime
+      start: "06:00"
+      end: "22:00"
+      priority: 8
+
+    - id: night
+      start: "22:00"
+      end: "06:00"
+      priority: 5
+
+behaviour:
+
+  normal:
+    activityLevel: high
+    communicationPattern: continuous
+    workload: moderate
+    administrativeActivity: moderate
+    networkActivity: very_high
+    expectedOperations: mobile_connectivity
+    expectedUsers: very_high
+    healthStatus: healthy
+
+  peak:
+    activityLevel: very_high
+    communicationPattern: continuous
+    workload: heavy
+    administrativeActivity: high
+    networkActivity: very_high
+    expectedOperations: mobile_connectivity
+    expectedUsers: very_high
+    healthStatus: healthy
+
+  night:
+    activityLevel: moderate
+    communicationPattern: continuous
+    workload: moderate
+    administrativeActivity: low
+    networkActivity: high
+    expectedOperations: mobile_connectivity
+    expectedUsers: high
+    healthStatus: healthy
+
+states:
+
+  healthy:
+    workload: moderate
+    networkActivity: very_high
+    administrativeActivity: moderate
+    healthStatus: healthy
+
+  busy:
+    workload: heavy
+    networkActivity: very_high
+    administrativeActivity: high
+    healthStatus: healthy
+
+  degraded:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: high
+    healthStatus: degraded
+
+  recovering:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: high
+    healthStatus: recovering
+
+  suspicious:
+    workload: elevated
+    networkActivity: very_high
+    administrativeActivity: high
+    healthStatus: suspicious
+
+  under_attack:
+    workload: heavy
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: critical
+
+  compromised:
+    workload: abnormal
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: compromised
+
+telemetry:
+
+  metrics:
+
+    - name: active_subscribers
+      unit: subscribers
+      min: 0
+      max: 10000000
+
+    - name: active_sessions
+      unit: sessions
+      min: 0
+      max: 10000000
+
+    - name: authentication_requests
+      unit: requests/s
+      min: 0
+      max: 100000
+
+    - name: session_establishment_rate
+      unit: sessions/s
+      min: 0
+      max: 50000
+
+    - name: data_throughput
+      unit: bytes/s
+      min: 0
+      max: 10000000000
+
+    - name: signaling_messages
+      unit: messages/s
+      min: 0
+      max: 100000
+
+    - name: session_failures
+      unit: failures/s
+      min: 0
+      max: 10000
+
+    - name: network_latency
+      unit: milliseconds
+      min: 1
+      max: 5000
+
+    - name: cpu_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: memory_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: network_bytes
+      unit: bytes/s
+      min: 0
+      max: 10000000000
+
+    - name: active_connections
+      unit: connections
+      min: 0
+      max: 10000000
+
+actors:
+
+  - citizens
+  - mobile-subscribers
+  - network-operators
+  - telecom-administrators
+  - iot-devices
+
+dependencies: []
+
+metadata:
+
+  environment: production
+
+  protocols:
+    - 4G
+    - 5G
+    - IP
+    - TLS
+
+  capabilities:
+    - subscriber_management
+    - mobile_authentication
+    - session_management
+    - mobility_management
+    - mobile_data_connectivity
+
+  location:
+    facility: telecommunications_core
+    zone: core_network

@@ -1,0 +1,116 @@
+id: major_event
+priority: 15
+description: >
+  Large public gathering (festival, concert, major sporting event).
+  Localized surge concentrated in transportation, telecom, public
+  safety, and finance around the event zone.
+
+modifiers:
+
+  transportation:
+    activityLevel: peak
+    communicationPattern: continuous
+    workload: heavy
+    networkActivity: high
+    expectedOperations: high
+
+  telecommunications:
+    activityLevel: peak
+    communicationPattern: continuous
+    workload: heavy
+    networkActivity: high
+
+  public-safety:
+    activityLevel: peak
+    communicationPattern: continuous
+    workload: heavy
+    expectedOperations: high
+
+  emergency-services:
+    activityLevel: high
+    workload: heavy
+    expectedOperations: high
+
+  finance:
+  digital-banking-platform:
+    activityLevel: very-high
+    workload: very-high
+    networkActivity: very-high
+    transactionActivity: very-high
+    authenticationActivity: high
+
+  customer-identity-service:
+    activityLevel: high
+    workload: high
+    authenticationActivity: high
+    identityVerificationActivity: medium
+
+  bank-gateway:
+    activityLevel: very-high
+    workload: very-high
+    networkActivity: very-high
+    transactionActivity: very-high
+
+  core-banking-system:
+    activityLevel: high
+    workload: high
+    transactionActivity: high
+    databaseActivity: high
+
+  payment-processing-system:
+    activityLevel: very-high
+    workload: very-high
+    transactionActivity: very-high
+    networkActivity: very-high
+
+  card-processing-system:
+    activityLevel: very-high
+    workload: very-high
+    transactionActivity: very-high
+    authorizationActivity: very-high
+
+  fraud-detection-system:
+    activityLevel: very-high
+    workload: very-high
+    transactionAnalysis: very-high
+    alertGeneration: very-high
+
+  transaction-monitoring-system:
+    activityLevel: very-high
+    workload: very-high
+    monitoringActivity: very-high
+    anomalyDetectionActivity: high
+
+  interbank-payment-gateway:
+    activityLevel: high
+    workload: high
+    networkActivity: very-high
+    transactionActivity: high
+
+  atm-network-gateway:
+    activityLevel: high
+    workload: high
+    networkActivity: high
+    transactionActivity: high
+
+  atm-switching-system:
+    activityLevel: high
+    workload: high
+    networkActivity: high
+    transactionActivity: high
+
+  financial-data-platform:
+    activityLevel: high
+    workload: high
+    dataProcessingActivity: very-high
+    dataAccessActivity: high
+
+  healthcare:
+    activityLevel: high
+    workload: moderate
+    expectedOperations: high
+
+  energy:
+    activityLevel: high
+    workload: heavy
+    networkActivity: high

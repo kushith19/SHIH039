@@ -1,0 +1,216 @@
+id: bank-gateway
+name: Bank Gateway
+
+category: finance
+type: banking_gateway
+
+description: >
+  Secure application gateway responsible for handling external and
+  internal requests to banking services, including authentication,
+  account access, transaction requests, and communication with core
+  banking infrastructure.
+
+criticality: critical
+
+operating_schedule:
+  defaultPhase: 24x7
+
+  phases:
+    - id: morning
+      start: "06:00"
+      end: "10:00"
+      priority: 8
+
+    - id: daytime
+      start: "10:00"
+      end: "18:00"
+      priority: 6
+
+    - id: evening
+      start: "18:00"
+      end: "22:00"
+      priority: 10
+
+    - id: night
+      start: "22:00"
+      end: "06:00"
+      priority: 5
+
+behaviour:
+
+  normal:
+    activityLevel: high
+    communicationPattern: continuous
+    workload: moderate
+    administrativeActivity: moderate
+    networkActivity: very_high
+    expectedOperations: banking_service_requests
+    expectedUsers: high
+    healthStatus: healthy
+
+  peak:
+    activityLevel: very_high
+    communicationPattern: continuous
+    workload: heavy
+    administrativeActivity: high
+    networkActivity: very_high
+    expectedOperations: banking_transactions
+    expectedUsers: very_high
+    healthStatus: healthy
+
+  night:
+    activityLevel: moderate
+    communicationPattern: continuous
+    workload: light
+    administrativeActivity: low
+    networkActivity: high
+    expectedOperations: account_access
+    expectedUsers: moderate
+    healthStatus: healthy
+
+states:
+
+  healthy:
+    workload: moderate
+    networkActivity: very_high
+    administrativeActivity: moderate
+    healthStatus: healthy
+
+  busy:
+    workload: heavy
+    networkActivity: very_high
+    administrativeActivity: high
+    healthStatus: healthy
+
+  degraded:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: high
+    healthStatus: degraded
+
+  recovering:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: very_high
+    healthStatus: recovering
+
+  suspicious:
+    workload: elevated
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: suspicious
+
+  under_attack:
+    workload: heavy
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: critical
+
+  compromised:
+    workload: abnormal
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: compromised
+
+telemetry:
+
+  metrics:
+
+    - name: active_sessions
+      unit: sessions
+      min: 0
+      max: 1000000
+
+    - name: authentication_requests
+      unit: requests/s
+      min: 0
+      max: 100000
+
+    - name: api_requests
+      unit: requests/s
+      min: 0
+      max: 100000
+
+    - name: transaction_requests
+      unit: transactions/s
+      min: 0
+      max: 50000
+
+    - name: response_latency
+      unit: milliseconds
+      min: 1
+      max: 5000
+
+    - name: failed_requests
+      unit: requests/s
+      min: 0
+      max: 10000
+
+    - name: authentication_failures
+      unit: failures/min
+      min: 0
+      max: 10000
+
+    - name: blocked_requests
+      unit: requests/min
+      min: 0
+      max: 50000
+
+    - name: cpu_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: memory_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: network_bytes
+      unit: bytes/s
+      min: 0
+      max: 1000000000
+
+    - name: active_connections
+      unit: connections
+      min: 0
+      max: 1000000
+
+actors:
+
+  - bank-customers
+  - bank-employees
+  - bank-administrators
+  - payment-services
+
+dependencies:
+
+  - endpoint: core-banking-system
+    type: required
+    weight: 1.0
+
+metadata:
+
+  environment: production
+
+  protocols:
+    - HTTPS
+    - TLS
+    - REST
+    - OAuth2
+
+  capabilities:
+    - authentication
+    - account_access
+    - transaction_requests
+    - api_gateway
+    - access_control
+
+  security:
+    encryption: true
+    authentication: true
+    access_control: true
+
+  location:
+    facility: banking_infrastructure
+    zone: finance_network

@@ -1,0 +1,201 @@
+id: customer-identity-service
+name: Customer Identity Service
+category: finance
+type: identity-and-access-management
+description: >
+  Financial identity and authentication service responsible for customer
+  identity verification, authentication, session validation, account access,
+  and identity-related controls across digital banking services.
+
+criticality: critical
+
+operating_schedule:
+  defaultPhase: normal
+  phases:
+    - id: normal
+      start: "06:00"
+      end: "22:00"
+      priority: 1
+
+    - id: night
+      start: "22:00"
+      end: "06:00"
+      priority: 1
+
+behaviour:
+  normal:
+    activityLevel: high
+    communicationPattern: continuous
+    workload: high
+    administrativeActivity: medium
+    networkActivity: high
+    expectedOperations:
+      - customer-authentication
+      - identity-verification
+      - session-validation
+      - password-management
+      - account-access-validation
+    expectedUsers:
+      - bank-customers
+      - bank-employees
+      - bank-administrators
+    healthStatus: healthy
+
+  peak:
+    activityLevel: very-high
+    communicationPattern: continuous
+    workload: very-high
+    administrativeActivity: medium
+    networkActivity: very-high
+    expectedOperations:
+      - customer-authentication
+      - identity-verification
+      - session-validation
+      - password-management
+      - account-access-validation
+    expectedUsers:
+      - bank-customers
+      - bank-employees
+    healthStatus: healthy
+
+  night:
+    activityLevel: medium
+    communicationPattern: continuous
+    workload: medium
+    administrativeActivity: low
+    networkActivity: medium
+    expectedOperations:
+      - customer-authentication
+      - identity-verification
+      - session-validation
+      - account-access-validation
+    expectedUsers:
+      - bank-customers
+      - bank-administrators
+    healthStatus: healthy
+
+states:
+  healthy:
+    activityLevel: normal
+    networkActivity: normal
+    authenticationActivity: normal
+    identityVerificationActivity: normal
+    healthStatus: healthy
+
+  busy:
+    activityLevel: high
+    networkActivity: high
+    authenticationActivity: high
+    identityVerificationActivity: high
+    healthStatus: healthy
+
+  degraded:
+    activityLevel: reduced
+    networkActivity: elevated
+    authenticationActivity: elevated
+    identityVerificationActivity: reduced
+    healthStatus: degraded
+
+  recovering:
+    activityLevel: medium
+    networkActivity: medium
+    authenticationActivity: elevated
+    identityVerificationActivity: recovering
+    healthStatus: recovering
+
+  suspicious:
+    activityLevel: elevated
+    networkActivity: elevated
+    authenticationActivity: abnormal
+    identityVerificationActivity: abnormal
+    healthStatus: suspicious
+
+  under_attack:
+    activityLevel: very-high
+    networkActivity: very-high
+    authenticationActivity: very-high
+    identityVerificationActivity: abnormal
+    healthStatus: under_attack
+
+  compromised:
+    activityLevel: abnormal
+    networkActivity: abnormal
+    authenticationActivity: abnormal
+    identityVerificationActivity: abnormal
+    healthStatus: compromised
+
+telemetry:
+  - name: authentication_attempts
+    type: counter
+    unit: attempts
+    description: Number of customer authentication attempts
+
+  - name: failed_authentication_rate
+    type: gauge
+    unit: percent
+    description: Percentage of failed authentication attempts
+
+  - name: authentication_latency
+    type: gauge
+    unit: milliseconds
+    description: Average authentication response latency
+
+  - name: active_sessions
+    type: gauge
+    unit: sessions
+    description: Number of active authenticated sessions
+
+  - name: account_lockout_rate
+    type: gauge
+    unit: lockouts_per_minute
+    description: Rate of customer account lockouts
+
+  - name: identity_verification_rate
+    type: gauge
+    unit: verifications_per_minute
+    description: Rate of identity verification requests
+
+  - name: identity_verification_failure_rate
+    type: gauge
+    unit: percent
+    description: Percentage of failed identity verification requests
+
+  - name: password_reset_rate
+    type: gauge
+    unit: resets_per_minute
+    description: Rate of customer password reset requests
+
+  - name: session_validation_rate
+    type: gauge
+    unit: validations_per_second
+    description: Rate of session validation requests
+
+  - name: api_request_rate
+    type: gauge
+    unit: requests_per_second
+    description: Rate of incoming identity service requests
+
+  - name: error_rate
+    type: gauge
+    unit: percent
+    description: Percentage of requests resulting in errors
+
+  - name: network_connections
+    type: gauge
+    unit: connections
+    description: Number of active network connections
+
+actors:
+  - bank-customers
+  - bank-employees
+  - bank-administrators
+  - attackers
+
+dependencies: []
+
+metadata:
+  sector: finance
+  exposure: external
+  financial_role: identity-and-access
+  data_sensitivity: very-high
+  attack_surface: high

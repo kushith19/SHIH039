@@ -1,0 +1,220 @@
+id: distribution-management-system
+name: Energy Distribution Management System
+
+category: energy
+type: distribution_management_system
+
+description: >
+  Central distribution management platform responsible for monitoring
+  electricity distribution across the city, analyzing load conditions,
+  coordinating distribution switching, managing outages, and supporting
+  restoration of electrical service.
+
+criticality: critical
+
+operating_schedule:
+  defaultPhase: 24x7
+
+  phases:
+    - id: morning_demand
+      start: "06:00"
+      end: "10:00"
+      priority: 10
+
+    - id: daytime
+      start: "10:00"
+      end: "18:00"
+      priority: 6
+
+    - id: evening_demand
+      start: "18:00"
+      end: "22:00"
+      priority: 10
+
+    - id: night
+      start: "22:00"
+      end: "06:00"
+      priority: 5
+
+behaviour:
+
+  normal:
+    activityLevel: moderate
+    communicationPattern: continuous
+    workload: moderate
+    administrativeActivity: moderate
+    networkActivity: very_high
+    expectedOperations: distribution_monitoring
+    expectedUsers: moderate
+    healthStatus: healthy
+
+  peak:
+    activityLevel: high
+    communicationPattern: continuous
+    workload: heavy
+    administrativeActivity: high
+    networkActivity: very_high
+    expectedOperations: load_management
+    expectedUsers: high
+    healthStatus: healthy
+
+  night:
+    activityLevel: low
+    communicationPattern: continuous
+    workload: light
+    administrativeActivity: moderate
+    networkActivity: high
+    expectedOperations: distribution_monitoring
+    expectedUsers: low
+    healthStatus: healthy
+
+states:
+
+  healthy:
+    workload: moderate
+    networkActivity: very_high
+    administrativeActivity: moderate
+    healthStatus: healthy
+
+  busy:
+    workload: heavy
+    networkActivity: very_high
+    administrativeActivity: high
+    healthStatus: healthy
+
+  degraded:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: high
+    healthStatus: degraded
+
+  recovering:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: high
+    healthStatus: recovering
+
+  suspicious:
+    workload: elevated
+    networkActivity: very_high
+    administrativeActivity: high
+    healthStatus: suspicious
+
+  under_attack:
+    workload: heavy
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: critical
+
+  compromised:
+    workload: abnormal
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: compromised
+
+telemetry:
+
+  metrics:
+
+    - name: total_load
+      unit: MW
+      min: 0
+      max: 5000
+
+    - name: active_feeders
+      unit: feeders
+      min: 0
+      max: 1000
+
+    - name: feeder_load
+      unit: percent
+      min: 0
+      max: 120
+
+    - name: distribution_voltage
+      unit: kV
+      min: 0
+      max: 500
+
+    - name: active_outages
+      unit: outages
+      min: 0
+      max: 1000
+
+    - name: outage_events
+      unit: events/min
+      min: 0
+      max: 500
+
+    - name: switching_operations
+      unit: operations/min
+      min: 0
+      max: 500
+
+    - name: restoration_operations
+      unit: operations/min
+      min: 0
+      max: 500
+
+    - name: load_imbalance
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: control_command_latency
+      unit: milliseconds
+      min: 1
+      max: 5000
+
+    - name: cpu_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: memory_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: network_bytes
+      unit: bytes/s
+      min: 0
+      max: 500000000
+
+actors:
+
+  - power-operators
+  - grid-engineers
+  - maintenance-technicians
+  - energy-administrators
+
+dependencies:
+
+  - endpoint: scada-control-server
+    type: required
+    weight: 1.0
+
+  - endpoint: telecom-network-gateway
+    type: required
+    weight: 0.9
+
+metadata:
+
+  environment: operational
+
+  protocols:
+    - IEC_61850
+    - DNP3
+    - HTTPS
+    - TLS
+
+  functions:
+    - load_management
+    - outage_management
+    - distribution_monitoring
+    - switching_coordination
+    - service_restoration
+
+  location:
+    facility: distribution_control_center
+    zone: energy_operations_network

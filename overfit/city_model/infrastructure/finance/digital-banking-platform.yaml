@@ -1,0 +1,200 @@
+id: digital-banking-platform
+name: Digital Banking Platform
+category: finance
+type: digital-banking
+description: >
+  City-wide digital banking platform providing customers with online and mobile
+  access to account information, transfers, payments, and other banking services.
+  Acts as a major external-facing entry point into financial infrastructure.
+
+criticality: critical
+
+operating_schedule:
+  defaultPhase: normal
+  phases:
+    - id: normal
+      start: "06:00"
+      end: "22:00"
+      priority: 1
+
+    - id: night
+      start: "22:00"
+      end: "06:00"
+      priority: 1
+
+behaviour:
+  normal:
+    activityLevel: high
+    communicationPattern: continuous
+    workload: high
+    administrativeActivity: medium
+    networkActivity: high
+    expectedOperations:
+      - customer-login
+      - account-balance-requests
+      - fund-transfers
+      - bill-payments
+      - transaction-history-requests
+    expectedUsers:
+      - bank-customers
+      - bank-employees
+    healthStatus: healthy
+
+  peak:
+    activityLevel: very-high
+    communicationPattern: continuous
+    workload: very-high
+    administrativeActivity: medium
+    networkActivity: very-high
+    expectedOperations:
+      - customer-login
+      - account-balance-requests
+      - fund-transfers
+      - bill-payments
+      - transaction-history-requests
+    expectedUsers:
+      - bank-customers
+      - bank-employees
+    healthStatus: healthy
+
+  night:
+    activityLevel: medium
+    communicationPattern: continuous
+    workload: medium
+    administrativeActivity: low
+    networkActivity: medium
+    expectedOperations:
+      - customer-login
+      - account-balance-requests
+      - fund-transfers
+      - bill-payments
+      - transaction-history-requests
+    expectedUsers:
+      - bank-customers
+    healthStatus: healthy
+
+states:
+  healthy:
+    activityLevel: normal
+    networkActivity: normal
+    transactionActivity: normal
+    authenticationActivity: normal
+    healthStatus: healthy
+
+  busy:
+    activityLevel: high
+    networkActivity: high
+    transactionActivity: high
+    authenticationActivity: high
+    healthStatus: healthy
+
+  degraded:
+    activityLevel: reduced
+    networkActivity: high
+    transactionActivity: reduced
+    authenticationActivity: elevated
+    healthStatus: degraded
+
+  recovering:
+    activityLevel: medium
+    networkActivity: medium
+    transactionActivity: recovering
+    authenticationActivity: elevated
+    healthStatus: recovering
+
+  suspicious:
+    activityLevel: elevated
+    networkActivity: elevated
+    transactionActivity: abnormal
+    authenticationActivity: abnormal
+    healthStatus: suspicious
+
+  under_attack:
+    activityLevel: very-high
+    networkActivity: very-high
+    transactionActivity: abnormal
+    authenticationActivity: very-high
+    healthStatus: under_attack
+
+  compromised:
+    activityLevel: abnormal
+    networkActivity: abnormal
+    transactionActivity: abnormal
+    authenticationActivity: abnormal
+    healthStatus: compromised
+
+telemetry:
+  - name: api_request_rate
+    type: gauge
+    unit: requests_per_second
+    description: Rate of incoming API requests
+
+  - name: authentication_attempts
+    type: counter
+    unit: attempts
+    description: Number of customer authentication attempts
+
+  - name: failed_authentication_rate
+    type: gauge
+    unit: percent
+    description: Percentage of failed authentication attempts
+
+  - name: active_sessions
+    type: gauge
+    unit: sessions
+    description: Number of currently active customer sessions
+
+  - name: transaction_rate
+    type: gauge
+    unit: transactions_per_second
+    description: Rate of financial transactions initiated through the platform
+
+  - name: transaction_value
+    type: gauge
+    unit: currency_per_second
+    description: Monetary value of transactions processed per second
+
+  - name: payment_failure_rate
+    type: gauge
+    unit: percent
+    description: Percentage of payment requests that fail
+
+  - name: account_lockout_rate
+    type: gauge
+    unit: lockouts_per_minute
+    description: Rate of customer account lockouts
+
+  - name: api_latency
+    type: gauge
+    unit: milliseconds
+    description: Average API response latency
+
+  - name: error_rate
+    type: gauge
+    unit: percent
+    description: Percentage of API requests resulting in errors
+
+  - name: network_connections
+    type: gauge
+    unit: connections
+    description: Number of active network connections
+
+  - name: suspicious_transaction_rate
+    type: gauge
+    unit: transactions_per_minute
+    description: Rate of transactions flagged as suspicious
+
+actors:
+  - bank-customers
+  - bank-employees
+  - bank-administrators
+  - attackers
+
+dependencies: []
+
+metadata:
+  sector: finance
+  exposure: external
+  financial_role: customer-facing
+  data_sensitivity: high
+  attack_surface: high

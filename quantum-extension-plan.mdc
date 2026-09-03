@@ -1,0 +1,994 @@
+---
+description: Post-Quantum Cryptography extension context for the Smart City Cybersecurity platform. Use explicitly when designing or implementing the PQC/quantum-resilience extension. This document is contextual guidance, not a permanent architectural rule.
+---
+
+# POST-QUANTUM CRYPTOGRAPHY EXTENSION — HACKATHON CONTEXT
+
+## 1. PURPOSE
+
+This document defines the initial context for adding a Post-Quantum Cryptography (PQC) / quantum-resilience extension to the existing Smart City Cybersecurity Decision-Support Platform.
+
+The PQC layer is an EXTENSION to the existing cybersecurity system.
+
+The existing V1 detection architecture is already implemented and should remain intact.
+
+The objective is NOT to replace the existing:
+
+- TGNN anomaly detection
+- Peer Trust Model
+- telemetry pipeline
+- graph representation
+- incident detection
+- AI Commander
+- TimescaleDB
+- city topology
+- Socket.IO state synchronization
+
+Instead, the PQC extension should demonstrate how the existing smart-city cybersecurity platform can additionally assess the city's exposure to future quantum-enabled attacks.
+
+The final hackathon story should connect:
+
+Smart City Infrastructure
+        ↓
+Cyber/Physical Dependency Graph
+        ↓
+Real-Time Telemetry
+        ↓
+TGNN + Peer Trust
+        ↓
+Cyber Risk Detection
+        ↓
+Quantum Exposure Assessment
+        ↓
+PQC Readiness / Crypto Agility
+        ↓
+Prioritized Security Decisions
+
+---
+
+# 2. EXISTING PROJECT — DO NOT REPLACE
+
+The existing platform models the smart city as a directed graph:
+
+G = (V, E)
+
+where:
+
+- V = infrastructure endpoints
+- E = physical, logical, communication, and dependency relationships
+
+The current system contains approximately 246 infrastructure endpoints across sectors including:
+
+- energy
+- water
+- traffic
+- healthcare
+- municipal IT
+- emergency services
+- telecom
+- finance
+
+The existing detection system uses:
+
+- telemetry
+- temporal deviations
+- TGNN graph-contextual anomaly detection
+- peer trust
+- behavioral trust
+- interaction trust
+- attack propagation
+- incident promotion
+
+The existing trust model and TGNN architecture are considered part of the V1 baseline.
+
+DO NOT redesign them as part of the PQC extension.
+
+---
+
+# 3. CORE HACKATHON PROBLEM
+
+The official problem statement is:
+
+"AI-Driven Cyber Risk Detection for Smart City Digital Infrastructure"
+
+The MVP must:
+
+1. Ingest structured or semi-structured data such as logs, alerts, asset metadata, and user behavior.
+2. Use AI/ML techniques to identify anomalies, potential threats, or risk patterns.
+3. Provide actionable insights such as risk scores, alerts, or dashboards.
+4. Align with SDG 9 and SDG 11.
+5. Focus on practical applicability, explainability, and scalability.
+
+The PQC extension must therefore remain directly relevant to:
+
+CYBER RISK DETECTION.
+
+It must NOT become a standalone quantum-computing project.
+
+---
+
+# 4. WHY PQC IS RELEVANT
+
+Smart cities contain long-lived infrastructure.
+
+Examples include:
+
+- utility control systems
+- financial systems
+- healthcare systems
+- traffic infrastructure
+- telecom infrastructure
+- government systems
+- identity systems
+- payment systems
+- municipal databases
+- emergency infrastructure
+
+These systems may need to remain operational and secure for many years.
+
+Cryptographic systems currently protecting communications, authentication, certificates, identities, APIs, and stored sensitive information may eventually become vulnerable to sufficiently capable quantum computers.
+
+A particularly important risk is:
+
+HARVEST NOW, DECRYPT LATER
+
+An attacker may capture encrypted traffic today and attempt to decrypt it in the future once sufficiently capable quantum systems exist.
+
+Therefore:
+
+Current cyber risk
++
+Long-term cryptographic exposure
+=
+Quantum-aware cyber risk
+
+The platform should demonstrate that cyber risk is not only about whether an endpoint is anomalous today, but also whether its security architecture is resilient against future cryptographic threats.
+
+---
+
+# 5. IMPORTANT TERMINOLOGY
+
+The implementation should use technically correct terminology.
+
+## Post-Quantum Cryptography (PQC)
+
+Cryptographic algorithms designed to remain secure against attacks from both classical computers and sufficiently capable quantum computers.
+
+PQC does NOT require a quantum computer to operate.
+
+PQC algorithms run on conventional computers.
+
+---
+
+## Quantum-Resistant Cryptography
+
+Another common term for cryptographic algorithms intended to resist quantum attacks.
+
+Prefer "Post-Quantum Cryptography (PQC)" in the product UI where appropriate.
+
+---
+
+## Cryptographic Agility
+
+The ability of a system to change cryptographic algorithms, keys, certificates, or protocols without completely redesigning the application.
+
+Cryptographic agility should become an important architectural concept in the extension.
+
+---
+
+## Harvest Now, Decrypt Later
+
+An attacker collects encrypted information today and attempts to decrypt it in the future when stronger cryptanalytic capabilities become available.
+
+This is particularly relevant to long-lived smart-city data.
+
+---
+
+## Hybrid Cryptography
+
+Using a classical cryptographic mechanism together with a post-quantum mechanism during migration.
+
+The system may represent this conceptually as:
+
+Classical
++
+PQC
+=
+Hybrid protection
+
+Do not claim that a hybrid implementation is production-grade unless it is actually implemented and verified.
+
+---
+
+## Quantum Risk / Quantum Exposure
+
+A risk score representing how exposed an infrastructure asset is to future cryptographic disruption.
+
+This is a MODELLED SECURITY RISK SCORE.
+
+It is NOT a prediction that a quantum attack is currently occurring.
+
+---
+
+# 6. INITIAL PQC PHASE OBJECTIVE
+
+The FIRST implementation priority should be a:
+
+## Quantum Cryptographic Exposure Assessment Layer
+
+The layer should answer:
+
+"For every critical smart-city asset, how vulnerable would its current cryptographic dependencies be during a transition to a post-quantum world?"
+
+This should be represented as metadata associated with graph nodes.
+
+Example conceptual node:
+
+{
+  "id": "payment-gateway-01",
+  "crypto": {
+    "currentAlgorithm": "RSA-2048",
+    "usage": ["TLS", "authentication"],
+    "dataSensitivity": "high",
+    "dataLifetimeYears": 10,
+    "pqcReadiness": "low"
+  },
+  "quantumRiskScore": 82
+}
+
+The exact schema must be determined after inspecting the existing codebase.
+
+Do NOT assume this exact schema already exists.
+
+---
+
+# 7. DO NOT MODIFY CORE DETECTION
+
+The PQC extension must initially operate as an additional risk dimension.
+
+Conceptually:
+
+Existing:
+
+Telemetry
+   ↓
+TGNN
+   ↓
+Anomaly Score
+   ↓
+Trust Score
+   ↓
+Incident
+
+Extension:
+
+Asset Crypto Metadata
+   ↓
+Quantum Exposure Assessment
+   ↓
+Quantum Risk Score
+
+Combined decision-support view:
+
+Cyber Risk
++
+Quantum Exposure
+=
+Quantum-Aware Cyber Risk
+
+The first implementation should preferably be additive.
+
+Avoid changing the mathematical implementation of:
+
+- TGNN
+- trust model
+- anomaly scoring
+- telemetry generation
+- incident promotion
+
+unless a later explicit design decision requires integration.
+
+---
+
+# 8. GRAPH-BASED PQC STORY
+
+The central differentiator of the project is:
+
+"We don't treat the city as 246 independent machines."
+
+The city is represented as a connected cyber-physical graph.
+
+This same graph should allow us to reason about cryptographic exposure.
+
+Example:
+
+Payment Gateway
+      ↓
+Municipal Identity Service
+      ↓
+Citizen Portal
+      ↓
+Financial Database
+      ↓
+Government Services
+
+If one critical node has weak or non-PQC-ready cryptographic dependencies, its downstream relationships may increase the significance of the exposure.
+
+Therefore the future system should be able to distinguish:
+
+Asset-level quantum exposure
+
+from
+
+Graph-level quantum exposure.
+
+This is an important part of the product story.
+
+---
+
+# 9. INITIAL QUANTUM RISK MODEL
+
+The first version should be simple, explainable, deterministic, and auditable.
+
+Do NOT immediately create another complicated ML model.
+
+Potential dimensions include:
+
+1. Cryptographic algorithm risk
+2. Key size / security level
+3. Data sensitivity
+4. Data retention / lifetime
+5. Asset criticality
+6. Dependency centrality
+7. Number of downstream assets
+8. Sector criticality
+9. PQC migration readiness
+10. Exposure of the cryptographic dependency
+
+The exact formula should be designed after inspecting the existing data model.
+
+The score should be explainable.
+
+Example:
+
+Quantum Risk Score: 84
+
+Reasons:
+
+- RSA-based authentication
+- High-sensitivity financial data
+- Estimated data lifetime > 10 years
+- Critical infrastructure
+- High downstream dependency
+- No PQC migration capability detected
+
+---
+
+# 10. CRYPTOGRAPHIC INVENTORY
+
+A major feature candidate is a:
+
+## Cryptographic Asset Inventory
+
+Each relevant asset can have metadata such as:
+
+- cryptographic algorithm
+- key size
+- protocol
+- certificate dependency
+- authentication mechanism
+- encryption usage
+- data sensitivity
+- expected data lifetime
+- PQC support
+- migration status
+
+Example conceptual states:
+
+PQC READY
+PQC PARTIAL
+MIGRATION REQUIRED
+HIGH QUANTUM EXPOSURE
+UNKNOWN
+
+The implementation should use existing project conventions wherever possible.
+
+---
+
+# 11. GRAPH-AWARE QUANTUM RISK
+
+The system should eventually calculate:
+
+### Local Quantum Risk
+
+Risk associated directly with an asset's cryptographic posture.
+
+### Propagated Quantum Risk
+
+Additional risk resulting from the asset's position within the dependency graph.
+
+### Systemic Quantum Risk
+
+Risk resulting from concentration of quantum exposure across critical paths.
+
+For example:
+
+A moderately exposed authentication server may become highly important if dozens of critical municipal services depend on it.
+
+This is where the project's graph architecture becomes a differentiator.
+
+---
+
+# 12. QUANTUM RISK PATHS
+
+A future visualization should allow an operator to select:
+
+"Show me the highest-risk quantum dependency paths."
+
+The system could highlight paths such as:
+
+Citizen Portal
+   ↓
+Identity Gateway
+   ↓
+Payment Service
+   ↓
+Financial Database
+
+and display:
+
+- quantum exposure
+- asset criticality
+- trust score
+- anomaly score
+- dependency importance
+
+This should visually demonstrate that PQC is being incorporated into the city's broader cyber-risk graph rather than implemented as an isolated cryptography demo.
+
+---
+
+# 13. PQC MIGRATION PRIORITIZATION
+
+The system should eventually answer:
+
+"What should the city migrate first?"
+
+A migration priority score can combine:
+
+Quantum Exposure
++
+Asset Criticality
++
+Data Lifetime
++
+Graph Centrality
++
+Current Cyber Risk
+
+The result could produce:
+
+P0 — Immediate migration planning
+P1 — High priority
+P2 — Planned migration
+P3 — Low priority
+
+The system should explain WHY an asset received its priority.
+
+Example:
+
+"Payment Identity Gateway — P0"
+
+Reasons:
+
+- critical financial dependency
+- RSA authentication
+- sensitive long-lived data
+- high graph centrality
+- multiple downstream dependencies
+
+---
+
+# 14. PQC ALGORITHM REPRESENTATION
+
+The project may eventually represent standardized PQC families such as:
+
+- ML-KEM
+- ML-DSA
+- SLH-DSA
+
+These should be treated as cryptographic technologies, not as quantum computers.
+
+The system should distinguish:
+
+Key establishment / encryption
+
+from
+
+Digital signatures.
+
+Do not invent algorithm properties.
+
+When implementing concrete cryptographic operations, use well-established libraries and verify current algorithm/library support before selecting a dependency.
+
+---
+
+# 15. IMPORTANT IMPLEMENTATION BOUNDARY
+
+The first PQC phase does NOT necessarily need to implement real production TLS replacement.
+
+A strong hackathon MVP can first demonstrate:
+
+1. Cryptographic inventory
+2. Quantum exposure scoring
+3. Graph-aware risk propagation
+4. Migration prioritization
+5. Visualization
+6. Explainable recommendations
+
+Actual cryptographic handshake integration can be considered later.
+
+This keeps the extension practical and achievable during the hackathon.
+
+---
+
+# 16. FUTURE HYBRID PQC DEMONSTRATION
+
+If implementation time permits, a controlled demonstration may show:
+
+CURRENT:
+
+Classical cryptographic protection
+
+versus
+
+TARGET:
+
+Classical + PQC hybrid protection
+
+This should be isolated from the core smart-city simulation.
+
+The demo must clearly communicate that it is a controlled proof-of-concept rather than a production cryptographic deployment.
+
+---
+
+# 17. AI COMMANDER INTEGRATION
+
+The existing AI Commander can eventually consume quantum-risk metadata.
+
+The Commander should be able to answer questions such as:
+
+- Why is this asset quantum vulnerable?
+- Which critical systems depend on this asset?
+- What should be migrated first?
+- Which assets have the highest long-term exposure?
+- How does quantum exposure interact with current cyber risk?
+- What evidence supports this assessment?
+
+The existing evidence hierarchy must remain intact.
+
+PQC metadata should be treated as structured system evidence.
+
+The LLM must not invent:
+
+- cryptographic algorithms
+- vulnerability claims
+- attack execution
+- compliance status
+- migration status
+
+---
+
+# 18. EXPLAINABILITY REQUIREMENT
+
+Every quantum risk score should be explainable.
+
+Avoid:
+
+"Quantum Risk = 87"
+
+without explanation.
+
+Prefer:
+
+"Quantum Risk = 87 because:
+
+1. RSA-2048 is used for authentication.
+2. The asset is classified as critical.
+3. Sensitive financial data has a long retention period.
+4. The asset has 12 downstream dependencies.
+5. No PQC migration capability is currently registered."
+
+The exact wording should be generated from actual structured evidence.
+
+---
+
+# 19. FRONTEND DIRECTION
+
+Potential UI additions include:
+
+## Quantum Exposure Badge
+
+Example:
+
+QUANTUM EXPOSURE
+HIGH
+
+## Quantum Risk Score
+
+0–100
+
+## PQC Readiness
+
+- Ready
+- Partial
+- Migration Required
+- Unknown
+
+## Crypto Details Panel
+
+Show:
+
+Algorithm
+Key size
+Protocol
+Data lifetime
+Criticality
+PQC status
+
+## Quantum Risk Overlay
+
+Allow the operator to toggle:
+
+NORMAL CYBER RISK
+
+vs.
+
+QUANTUM EXPOSURE
+
+vs.
+
+COMBINED RISK
+
+## Quantum Risk Paths
+
+Highlight high-risk graph dependencies.
+
+---
+
+# 20. COMBINED RISK STORY
+
+One of the strongest potential product stories is:
+
+Traditional cybersecurity asks:
+
+"Is this asset compromised?"
+
+Our platform additionally asks:
+
+"How dangerous is this asset to the city if its cryptographic protection becomes obsolete?"
+
+And because the city is modeled as a graph:
+
+"How far can that exposure matter across interconnected infrastructure?"
+
+This produces:
+
+CURRENT CYBER RISK
++
+FUTURE QUANTUM EXPOSURE
++
+GRAPH DEPENDENCY
+=
+QUANTUM-AWARE CITY CYBER RISK
+
+---
+
+# 21. FINTECH STREAM RELEVANCE
+
+The hackathon is being evaluated under a FinTech stream.
+
+The PQC extension can strengthen this positioning.
+
+Financial infrastructure in a smart city may include:
+
+- payment gateways
+- municipal payment systems
+- tax systems
+- banking integrations
+- digital identity
+- citizen wallets
+- financial databases
+- transaction APIs
+- government disbursement systems
+
+These systems contain high-value and potentially long-lived sensitive information.
+
+A quantum-resilient cybersecurity platform can therefore help protect:
+
+- financial transactions
+- digital identities
+- payment infrastructure
+- financial records
+- government financial systems
+- citizen financial data
+
+The project should not claim that every smart-city endpoint is a FinTech system.
+
+Instead:
+
+"Financial systems are one of the most sensitive and economically consequential dependency domains within a connected smart city."
+
+---
+
+# 22. WHAT NOT TO DO
+
+Do NOT:
+
+- replace TGNN with a quantum model
+- claim to run a quantum computer
+- claim that PQC requires quantum hardware
+- create a fake quantum neural network merely for presentation
+- modify the trust model without explicit approval
+- replace the graph architecture
+- introduce an unnecessary second ML detection system
+- invent cryptographic vulnerabilities
+- claim that an asset is currently quantum attacked
+- claim production-grade PQC deployment without implementation evidence
+- bypass existing OT/ICS safety controls
+- remove existing evidence grounding
+- tightly couple PQC logic to the AI Commander
+
+---
+
+# 23. DEVELOPMENT PRINCIPLE
+
+The PQC extension should follow:
+
+ADD, DON'T REPLACE.
+
+Existing:
+
+Telemetry → TGNN → Trust → Incident → Commander
+
+New:
+
+Crypto Inventory → Quantum Exposure → Quantum Risk
+
+Eventually:
+
+Telemetry
+   ↓
+TGNN + Trust
+   ↓
+Current Cyber Risk
+        \
+         \
+Crypto Inventory → Quantum Risk
+                    \
+                     ↓
+              Graph Risk Fusion
+                     ↓
+             AI Commander
+                     ↓
+          Operator Decision Support
+
+The exact integration architecture should be determined only after inspecting the current repository.
+
+---
+
+# 24. FIRST TASK FOR THE CODING AGENT
+
+Before writing code:
+
+1. Inspect the complete existing repository.
+2. Identify the authoritative city-node schema.
+3. Identify how node metadata is currently represented.
+4. Identify how sectors and criticality are represented.
+5. Identify how graph edges and dependencies are represented.
+6. Identify how runtime node state is stored.
+7. Identify how the frontend renders node metadata.
+8. Identify the existing detection input and incident contracts.
+9. Identify the existing AI Commander input contracts.
+10. Determine the smallest additive extension point for quantum metadata.
+
+DO NOT modify files during this inspection phase unless explicitly requested.
+
+Produce a short technical proposal containing:
+
+- proposed files
+- proposed data model
+- proposed API changes
+- proposed frontend changes
+- proposed quantum risk formula
+- integration points
+- risks
+- estimated implementation complexity
+
+Wait for explicit approval before implementing major changes.
+
+---
+
+# 25. IMPLEMENTATION PRIORITY
+
+When implementation begins, prioritize in this order:
+
+### PHASE Q1 — CRYPTOGRAPHIC INVENTORY
+
+Create a structured representation of cryptographic posture for selected infrastructure assets.
+
+Goal:
+
+The system knows WHAT cryptography an asset depends on.
+
+---
+
+### PHASE Q2 — QUANTUM EXPOSURE SCORE
+
+Create an explainable deterministic scoring model.
+
+Goal:
+
+The system knows WHICH assets have the highest future quantum exposure and WHY.
+
+---
+
+### PHASE Q3 — GRAPH INTEGRATION
+
+Map quantum exposure onto the existing city graph.
+
+Goal:
+
+The system understands that cryptographic exposure exists within dependencies rather than isolated assets.
+
+---
+
+### PHASE Q4 — VISUALIZATION
+
+Add quantum-risk visualization to the existing graph.
+
+Goal:
+
+Judges can immediately SEE the difference between:
+
+normal infrastructure
+
+and
+
+quantum-exposed infrastructure.
+
+---
+
+### PHASE Q5 — MIGRATION PRIORITIZATION
+
+Generate prioritized migration recommendations.
+
+Goal:
+
+The platform becomes a decision-support system rather than merely a dashboard.
+
+---
+
+### PHASE Q6 — AI COMMANDER
+
+Integrate quantum evidence into Commander assessments.
+
+Goal:
+
+The AI can explain:
+
+"What is exposed?"
+
+"Why?"
+
+"What depends on it?"
+
+"What should we prioritize?"
+
+---
+
+### PHASE Q7 — OPTIONAL PQC PROOF OF CONCEPT
+
+Only if sufficient time remains:
+
+Demonstrate a controlled PQC or hybrid cryptographic operation using an established implementation/library.
+
+This is OPTIONAL.
+
+Do not compromise the core project to achieve this.
+
+---
+
+# 26. HACKATHON DEMONSTRATION STORY
+
+The preferred eventual demonstration sequence is:
+
+1. Show the smart-city graph.
+2. Show normal real-time telemetry.
+3. Inject an anomaly.
+4. TGNN detects graph-contextual anomaly.
+5. Peer trust changes.
+6. Attack propagation becomes visible.
+7. Incident is generated.
+8. AI Commander explains the incident.
+9. Operator switches to QUANTUM EXPOSURE view.
+10. Certain critical assets show high quantum exposure.
+11. The graph reveals downstream dependencies.
+12. The system ranks which assets should be migrated first.
+13. AI Commander explains the combined current cyber + future quantum risk.
+
+The narrative should demonstrate:
+
+DETECT
+→ UNDERSTAND
+→ PRIORITIZE
+→ FUTURE-PROOF
+
+---
+
+# 27. ARCHITECTURAL PHILOSOPHY
+
+The platform is not:
+
+"an AI chatbot with a cybersecurity dashboard."
+
+It is:
+
+"A graph-native cyber risk decision-support platform for interconnected smart-city infrastructure."
+
+The PQC extension should reinforce this identity.
+
+The differentiator is:
+
+GRAPH-NATIVE CYBER RISK
+
+rather than:
+
+GENERIC ANOMALY DETECTION
+
+and:
+
+QUANTUM-AWARE RISK
+
+rather than:
+
+GENERIC PQC DEMONSTRATION.
+
+---
+
+# 28. SOURCE OF TRUTH
+
+This document describes intended PQC-extension direction.
+
+It does NOT override:
+
+- existing source code
+- existing data contracts
+- existing V1 architecture
+- existing safety rules
+- existing trust model
+- existing TGNN implementation
+
+When this document conflicts with the actual repository implementation, inspect the repository and report the conflict before modifying core architecture.
+
+---
+
+# 29. CHANGE CONTROL
+
+This file is contextual guidance for the PQC extension.
+
+Features may evolve during the hackathon.
+
+Do not interpret every proposed feature in this document as mandatory.
+
+Prefer the smallest implementation that produces the strongest demonstrable result.
+
+Prioritize:
+
+1. correctness
+2. explainability
+3. graph integration
+4. visual impact
+5. demo reliability
+6. technical credibility
+
+over unnecessary implementation complexity.

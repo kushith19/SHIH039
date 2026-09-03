@@ -1,0 +1,211 @@
+id: financial-data-platform
+name: Financial Data Platform
+category: finance
+type: financial-data-platform
+description: >
+  Central financial data platform responsible for storing, processing, and
+  providing access to financial transaction, customer, account, and analytical
+  data used by financial services and monitoring systems.
+
+criticality: critical
+
+operating_schedule:
+  defaultPhase: normal
+  phases:
+    - id: normal
+      start: "06:00"
+      end: "22:00"
+      priority: 1
+
+    - id: night
+      start: "22:00"
+      end: "06:00"
+      priority: 1
+
+behaviour:
+  normal:
+    activityLevel: high
+    communicationPattern: continuous
+    workload: high
+    administrativeActivity: medium
+    networkActivity: high
+    expectedOperations:
+      - financial-data-ingestion
+      - transaction-data-processing
+      - customer-data-access
+      - financial-data-analysis
+      - reporting
+    expectedUsers:
+      - bank-employees
+      - bank-administrators
+      - fraud-analysts
+      - compliance-officers
+    healthStatus: healthy
+
+  peak:
+    activityLevel: very-high
+    communicationPattern: continuous
+    workload: very-high
+    administrativeActivity: medium
+    networkActivity: very-high
+    expectedOperations:
+      - financial-data-ingestion
+      - transaction-data-processing
+      - customer-data-access
+      - financial-data-analysis
+      - reporting
+    expectedUsers:
+      - bank-employees
+      - bank-administrators
+      - fraud-analysts
+      - compliance-officers
+    healthStatus: healthy
+
+  night:
+    activityLevel: medium
+    communicationPattern: continuous
+    workload: high
+    administrativeActivity: low
+    networkActivity: medium
+    expectedOperations:
+      - financial-data-ingestion
+      - transaction-data-processing
+      - financial-data-analysis
+      - reporting
+    expectedUsers:
+      - bank-administrators
+      - fraud-analysts
+      - compliance-officers
+    healthStatus: healthy
+
+states:
+  healthy:
+    activityLevel: normal
+    networkActivity: normal
+    dataProcessingActivity: normal
+    dataAccessActivity: normal
+    healthStatus: healthy
+
+  busy:
+    activityLevel: high
+    networkActivity: high
+    dataProcessingActivity: high
+    dataAccessActivity: high
+    healthStatus: healthy
+
+  degraded:
+    activityLevel: reduced
+    networkActivity: elevated
+    dataProcessingActivity: reduced
+    dataAccessActivity: delayed
+    healthStatus: degraded
+
+  recovering:
+    activityLevel: medium
+    networkActivity: medium
+    dataProcessingActivity: recovering
+    dataAccessActivity: recovering
+    healthStatus: recovering
+
+  suspicious:
+    activityLevel: elevated
+    networkActivity: elevated
+    dataProcessingActivity: abnormal
+    dataAccessActivity: abnormal
+    healthStatus: suspicious
+
+  under_attack:
+    activityLevel: very-high
+    networkActivity: very-high
+    dataProcessingActivity: abnormal
+    dataAccessActivity: very-high
+    healthStatus: under_attack
+
+  compromised:
+    activityLevel: abnormal
+    networkActivity: abnormal
+    dataProcessingActivity: abnormal
+    dataAccessActivity: abnormal
+    healthStatus: compromised
+
+telemetry:
+  - name: data_ingestion_rate
+    type: gauge
+    unit: records_per_second
+    description: Rate at which financial data is ingested into the platform
+
+  - name: data_processing_rate
+    type: gauge
+    unit: records_per_second
+    description: Rate at which financial records are processed
+
+  - name: database_query_rate
+    type: gauge
+    unit: queries_per_second
+    description: Rate of database queries executed against financial data
+
+  - name: data_access_rate
+    type: gauge
+    unit: requests_per_second
+    description: Rate of requests accessing financial data
+
+  - name: data_transfer_rate
+    type: gauge
+    unit: megabytes_per_second
+    description: Rate of financial data transferred across the platform
+
+  - name: storage_utilization
+    type: gauge
+    unit: percent
+    description: Percentage of available storage capacity currently utilized
+
+  - name: database_connection_count
+    type: gauge
+    unit: connections
+    description: Number of active database connections
+
+  - name: query_latency
+    type: gauge
+    unit: milliseconds
+    description: Average latency of financial data queries
+
+  - name: failed_query_rate
+    type: gauge
+    unit: queries_per_minute
+    description: Rate of failed financial data queries
+
+  - name: unauthorized_access_attempt_rate
+    type: gauge
+    unit: attempts_per_minute
+    description: Rate of unauthorized attempts to access financial data
+
+  - name: api_request_rate
+    type: gauge
+    unit: requests_per_second
+    description: Rate of incoming requests to the financial data platform
+
+  - name: error_rate
+    type: gauge
+    unit: percent
+    description: Percentage of requests resulting in errors
+
+  - name: network_connections
+    type: gauge
+    unit: connections
+    description: Number of active network connections
+
+actors:
+  - bank-employees
+  - bank-administrators
+  - fraud-analysts
+  - compliance-officers
+  - attackers
+
+dependencies: []
+
+metadata:
+  sector: finance
+  exposure: internal
+  financial_role: financial-data-management
+  data_sensitivity: very-high
+  attack_surface: high

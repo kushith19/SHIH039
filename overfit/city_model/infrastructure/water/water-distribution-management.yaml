@@ -1,0 +1,216 @@
+id: water-distribution-management
+name: Water Distribution Management System
+
+category: water
+type: water_distribution_management
+
+description: >
+  Central water distribution management system responsible for monitoring
+  treated-water distribution across the city network, tracking flow and
+  pressure, managing reservoir and valve status, and identifying abnormal
+  distribution conditions.
+
+criticality: critical
+
+operating_schedule:
+  defaultPhase: 24x7
+
+  phases:
+    - id: morning_demand
+      start: "06:00"
+      end: "10:00"
+      priority: 10
+
+    - id: daytime
+      start: "10:00"
+      end: "18:00"
+      priority: 6
+
+    - id: evening_demand
+      start: "18:00"
+      end: "22:00"
+      priority: 10
+
+    - id: night
+      start: "22:00"
+      end: "06:00"
+      priority: 5
+
+behaviour:
+
+  normal:
+    activityLevel: moderate
+    communicationPattern: continuous
+    workload: moderate
+    administrativeActivity: moderate
+    networkActivity: high
+    expectedOperations: water_distribution
+    expectedUsers: moderate
+    healthStatus: healthy
+
+  peak:
+    activityLevel: high
+    communicationPattern: continuous
+    workload: heavy
+    administrativeActivity: high
+    networkActivity: very_high
+    expectedOperations: water_distribution
+    expectedUsers: high
+    healthStatus: healthy
+
+  night:
+    activityLevel: low
+    communicationPattern: continuous
+    workload: light
+    administrativeActivity: low
+    networkActivity: moderate
+    expectedOperations: water_distribution
+    expectedUsers: low
+    healthStatus: healthy
+
+states:
+
+  healthy:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: moderate
+    healthStatus: healthy
+
+  busy:
+    workload: heavy
+    networkActivity: very_high
+    administrativeActivity: high
+    healthStatus: healthy
+
+  degraded:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: high
+    healthStatus: degraded
+
+  recovering:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: high
+    healthStatus: recovering
+
+  suspicious:
+    workload: elevated
+    networkActivity: very_high
+    administrativeActivity: high
+    healthStatus: suspicious
+
+  under_attack:
+    workload: heavy
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: critical
+
+  compromised:
+    workload: abnormal
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: compromised
+
+telemetry:
+
+  metrics:
+
+    - name: distribution_flow_rate
+      unit: liters/s
+      min: 0
+      max: 15000
+
+    - name: network_pressure
+      unit: bar
+      min: 0
+      max: 20
+
+    - name: reservoir_level
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: valve_operations
+      unit: operations/min
+      min: 0
+      max: 500
+
+    - name: water_demand
+      unit: liters/s
+      min: 0
+      max: 15000
+
+    - name: pressure_anomalies
+      unit: events/min
+      min: 0
+      max: 500
+
+    - name: suspected_leakage
+      unit: liters/s
+      min: 0
+      max: 5000
+
+    - name: pump_operations
+      unit: operations/min
+      min: 0
+      max: 500
+
+    - name: controller_response_latency
+      unit: milliseconds
+      min: 1
+      max: 5000
+
+    - name: communication_errors
+      unit: errors/min
+      min: 0
+      max: 500
+
+    - name: cpu_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: memory_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: network_bytes
+      unit: bytes/s
+      min: 0
+      max: 300000000
+
+actors:
+
+  - water-plant-operators
+  - water-network-operators
+  - water-engineers
+  - maintenance-technicians
+  - municipal-administrators
+
+dependencies:
+
+  - endpoint: water-treatment-control
+    type: required
+    weight: 1.0
+
+metadata:
+
+  environment: production
+
+  protocols:
+    - HTTPS
+    - MQTT
+    - TLS
+
+  functions:
+    - distribution_monitoring
+    - pressure_management
+    - flow_management
+    - reservoir_monitoring
+    - leak_detection
+
+  location:
+    facility: water_distribution_network
+    zone: city_water_network

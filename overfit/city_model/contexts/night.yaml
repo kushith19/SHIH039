@@ -1,0 +1,109 @@
+id: rush_hour
+priority: 10
+description: >
+  Morning (07:00-10:00) and evening (17:00-20:00) commute surge.
+  Transportation and telecom carry most of the load; finance sees a
+  secondary bump from commuters using ATMs and payments on the move.
+
+modifiers:
+
+  transportation:
+    activityLevel: peak
+    communicationPattern: continuous
+    workload: heavy
+    networkActivity: high
+    expectedOperations: high
+
+  telecommunications:
+    activityLevel: high
+    communicationPattern: continuous
+    workload: heavy
+    networkActivity: high
+
+  energy:
+    activityLevel: high
+    workload: heavy
+    networkActivity: high
+
+  finance:
+  digital-banking-platform:
+    activityLevel: medium
+    workload: medium
+    networkActivity: medium
+    transactionActivity: medium
+    authenticationActivity: medium
+
+  customer-identity-service:
+    activityLevel: medium
+    workload: medium
+    authenticationActivity: medium
+    identityVerificationActivity: low
+
+  bank-gateway:
+    activityLevel: medium
+    workload: medium
+    networkActivity: medium
+    transactionActivity: medium
+
+  core-banking-system:
+    activityLevel: medium
+    workload: medium
+    transactionActivity: medium
+    databaseActivity: high
+
+  payment-processing-system:
+    activityLevel: medium
+    workload: medium
+    transactionActivity: medium
+    networkActivity: medium
+
+  card-processing-system:
+    activityLevel: medium
+    workload: medium
+    transactionActivity: medium
+    authorizationActivity: medium
+
+  fraud-detection-system:
+    activityLevel: medium
+    workload: medium
+    transactionAnalysis: medium
+    alertGeneration: medium
+
+  transaction-monitoring-system:
+    activityLevel: medium
+    workload: medium
+    monitoringActivity: medium
+    anomalyDetectionActivity: medium
+
+  interbank-payment-gateway:
+    activityLevel: medium
+    workload: medium
+    networkActivity: high
+    transactionActivity: medium
+
+  atm-network-gateway:
+    activityLevel: medium
+    workload: medium
+    networkActivity: medium
+    transactionActivity: medium
+
+  atm-switching-system:
+    activityLevel: medium
+    workload: medium
+    networkActivity: medium
+    transactionActivity: medium
+
+  financial-data-platform:
+    activityLevel: medium
+    workload: high
+    dataProcessingActivity: high
+    dataAccessActivity: medium
+    
+  public-safety:
+    activityLevel: high
+    workload: moderate
+    networkActivity: high
+
+  emergency-services:
+    activityLevel: high
+    expectedOperations: moderate

@@ -1,0 +1,211 @@
+id: scada-control-server
+name: Energy SCADA Control Server
+
+category: energy
+type: scada_control_server
+
+description: >
+  Central supervisory control and data acquisition server responsible
+  for collecting operational telemetry from electrical substations,
+  maintaining alarms and events, providing system-wide monitoring,
+  and supporting authorized operator control of the city's electrical
+  infrastructure.
+
+criticality: critical
+
+operating_schedule:
+  defaultPhase: 24x7
+
+  phases:
+    - id: daytime
+      start: "06:00"
+      end: "22:00"
+      priority: 8
+
+    - id: night
+      start: "22:00"
+      end: "06:00"
+      priority: 5
+
+behaviour:
+
+  normal:
+    activityLevel: moderate
+    communicationPattern: continuous
+    workload: moderate
+    administrativeActivity: moderate
+    networkActivity: very_high
+    expectedOperations: grid_monitoring
+    expectedUsers: moderate
+    healthStatus: healthy
+
+  peak:
+    activityLevel: high
+    communicationPattern: continuous
+    workload: heavy
+    administrativeActivity: high
+    networkActivity: very_high
+    expectedOperations: grid_monitoring
+    expectedUsers: high
+    healthStatus: healthy
+
+  night:
+    activityLevel: low
+    communicationPattern: continuous
+    workload: light
+    administrativeActivity: low
+    networkActivity: high
+    expectedOperations: grid_monitoring
+    expectedUsers: low
+    healthStatus: healthy
+
+states:
+
+  healthy:
+    workload: moderate
+    networkActivity: very_high
+    administrativeActivity: moderate
+    healthStatus: healthy
+
+  busy:
+    workload: heavy
+    networkActivity: very_high
+    administrativeActivity: high
+    healthStatus: healthy
+
+  degraded:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: high
+    healthStatus: degraded
+
+  recovering:
+    workload: moderate
+    networkActivity: high
+    administrativeActivity: high
+    healthStatus: recovering
+
+  suspicious:
+    workload: elevated
+    networkActivity: very_high
+    administrativeActivity: high
+    healthStatus: suspicious
+
+  under_attack:
+    workload: heavy
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: critical
+
+  compromised:
+    workload: abnormal
+    networkActivity: very_high
+    administrativeActivity: very_high
+    healthStatus: compromised
+
+telemetry:
+
+  metrics:
+
+    - name: connected_substations
+      unit: substations
+      min: 0
+      max: 1000
+
+    - name: telemetry_messages
+      unit: messages/s
+      min: 0
+      max: 50000
+
+    - name: control_commands
+      unit: commands/min
+      min: 0
+      max: 5000
+
+    - name: active_alarms
+      unit: alarms
+      min: 0
+      max: 10000
+
+    - name: critical_alarms
+      unit: alarms
+      min: 0
+      max: 5000
+
+    - name: communication_latency
+      unit: milliseconds
+      min: 1
+      max: 5000
+
+    - name: telemetry_errors
+      unit: errors/s
+      min: 0
+      max: 5000
+
+    - name: active_operator_sessions
+      unit: sessions
+      min: 0
+      max: 500
+
+    - name: cpu_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: memory_usage
+      unit: percent
+      min: 0
+      max: 100
+
+    - name: network_bytes
+      unit: bytes/s
+      min: 0
+      max: 1000000000
+
+    - name: database_queries
+      unit: queries/s
+      min: 0
+      max: 5000
+
+actors:
+
+  - power-operators
+  - grid-engineers
+  - energy-administrators
+  - maintenance-technicians
+
+dependencies:
+
+  - endpoint: power-substation-controller
+    type: required
+    weight: 1.0
+
+  - endpoint: telecom-network-gateway
+    type: required
+    weight: 1.0
+
+metadata:
+
+  environment: operational
+
+  protocols:
+    - IEC_61850
+    - DNP3
+    - Modbus
+    - HTTPS
+    - TLS
+
+  functions:
+    - telemetry_collection
+    - alarm_management
+    - event_management
+    - grid_monitoring
+    - operator_control
+
+  security:
+    operator_authentication: true
+    encrypted_communication: true
+
+  location:
+    facility: energy_control_center
+    zone: energy_operations_network

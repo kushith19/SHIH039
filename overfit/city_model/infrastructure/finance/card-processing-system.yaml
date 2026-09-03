@@ -1,0 +1,198 @@
+id: card-processing-system
+name: Card Processing System
+category: finance
+type: card-processing
+description: >
+  Financial transaction processing system responsible for authorizing,
+  routing, and processing debit and credit card transactions across
+  merchants, ATMs, and digital payment channels.
+
+criticality: critical
+
+operating_schedule:
+  defaultPhase: normal
+  phases:
+    - id: normal
+      start: "06:00"
+      end: "22:00"
+      priority: 1
+
+    - id: night
+      start: "22:00"
+      end: "06:00"
+      priority: 1
+
+behaviour:
+  normal:
+    activityLevel: high
+    communicationPattern: continuous
+    workload: high
+    administrativeActivity: medium
+    networkActivity: high
+    expectedOperations:
+      - card-authorization
+      - card-transaction-processing
+      - transaction-routing
+      - payment-validation
+      - transaction-reversal
+    expectedUsers:
+      - bank-customers
+      - bank-employees
+      - merchants
+    healthStatus: healthy
+
+  peak:
+    activityLevel: very-high
+    communicationPattern: continuous
+    workload: very-high
+    administrativeActivity: medium
+    networkActivity: very-high
+    expectedOperations:
+      - card-authorization
+      - card-transaction-processing
+      - transaction-routing
+      - payment-validation
+      - transaction-reversal
+    expectedUsers:
+      - bank-customers
+      - bank-employees
+      - merchants
+    healthStatus: healthy
+
+  night:
+    activityLevel: medium
+    communicationPattern: continuous
+    workload: medium
+    administrativeActivity: low
+    networkActivity: medium
+    expectedOperations:
+      - card-authorization
+      - card-transaction-processing
+      - transaction-routing
+      - payment-validation
+      - transaction-reversal
+    expectedUsers:
+      - bank-customers
+      - merchants
+    healthStatus: healthy
+
+states:
+  healthy:
+    activityLevel: normal
+    networkActivity: normal
+    transactionActivity: normal
+    authorizationActivity: normal
+    healthStatus: healthy
+
+  busy:
+    activityLevel: high
+    networkActivity: high
+    transactionActivity: high
+    authorizationActivity: high
+    healthStatus: healthy
+
+  degraded:
+    activityLevel: reduced
+    networkActivity: elevated
+    transactionActivity: reduced
+    authorizationActivity: elevated
+    healthStatus: degraded
+
+  recovering:
+    activityLevel: medium
+    networkActivity: medium
+    transactionActivity: recovering
+    authorizationActivity: elevated
+    healthStatus: recovering
+
+  suspicious:
+    activityLevel: elevated
+    networkActivity: elevated
+    transactionActivity: abnormal
+    authorizationActivity: abnormal
+    healthStatus: suspicious
+
+  under_attack:
+    activityLevel: very-high
+    networkActivity: very-high
+    transactionActivity: abnormal
+    authorizationActivity: very-high
+    healthStatus: under_attack
+
+  compromised:
+    activityLevel: abnormal
+    networkActivity: abnormal
+    transactionActivity: abnormal
+    authorizationActivity: abnormal
+    healthStatus: compromised
+
+telemetry:
+  - name: card_transaction_rate
+    type: gauge
+    unit: transactions_per_second
+    description: Rate of card transactions processed
+
+  - name: transaction_value
+    type: gauge
+    unit: currency_per_second
+    description: Monetary value of card transactions processed per second
+
+  - name: authorization_request_rate
+    type: gauge
+    unit: requests_per_second
+    description: Rate of card authorization requests
+
+  - name: authorization_failure_rate
+    type: gauge
+    unit: percent
+    description: Percentage of card authorization requests that fail
+
+  - name: transaction_reversal_rate
+    type: gauge
+    unit: reversals_per_minute
+    description: Rate of card transaction reversals
+
+  - name: payment_failure_rate
+    type: gauge
+    unit: percent
+    description: Percentage of card payments that fail
+
+  - name: transaction_latency
+    type: gauge
+    unit: milliseconds
+    description: Average card transaction processing latency
+
+  - name: api_request_rate
+    type: gauge
+    unit: requests_per_second
+    description: Rate of incoming requests to the card processing system
+
+  - name: error_rate
+    type: gauge
+    unit: percent
+    description: Percentage of requests resulting in errors
+
+  - name: network_connections
+    type: gauge
+    unit: connections
+    description: Number of active network connections
+
+  - name: suspicious_transaction_rate
+    type: gauge
+    unit: transactions_per_minute
+    description: Rate of card transactions flagged as suspicious
+
+actors:
+  - bank-customers
+  - bank-employees
+  - merchants
+  - attackers
+
+dependencies: []
+
+metadata:
+  sector: finance
+  exposure: external
+  financial_role: card-transaction-processing
+  data_sensitivity: very-high
+  attack_surface: high
