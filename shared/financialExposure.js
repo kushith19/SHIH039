@@ -115,6 +115,8 @@ export function flaggedNodeIds(detection) {
     detection?.anomalyNodeIds,
     detection?.compromisedNodeIds,
     detection?.atRiskNodeIds,
+    detection?.peerExposedNodeIds,
+    detection?.propagatedNodeIds,
   ]) {
     for (const id of list ?? []) {
       if (id) ids.add(String(id))

@@ -4,6 +4,7 @@ import { promoteIncidents } from './incident.js'
 import { DETECTION_MODE_TGNN } from './modes.js'
 import { TRUST_CONFIG } from '../../shared/trustConfig.js'
 import { peerExposureFromFlags } from '../../shared/trustModel.js'
+import { propagateGraphRisk } from '../../shared/graphPropagation.js'
 
 export { DETECTION_MODE_TGNN }
 
@@ -42,13 +43,27 @@ export function runDetection(input) {
     tgnnResult.anomalyNodeIds,
     knownIds
   )
+  
+  const propagation = propagateGraphRisk({
+    edges: input.dependencies,
+    seedNodeIds: tgnnResult.anomalyNodeIds,
+    validNodeIds: knownIds,
+    maxHops: 3,
+    decayFactor: 0.5,
+  })
+
   const result = {
     nodes: nodeHits,
     edges: [],
     anomalyNodeIds: tgnnResult.anomalyNodeIds,
+    peerExposedNodeIds: exposure.atRiskNodeIds, // Semantic alias for clarity
+    propagatedNodeIds: propagation.propagatedNodeIds,
+    propagationPaths: propagation.propagationPaths,
+    propagationRiskByNode: propagation.propagationRiskByNode,
     spreadEdgeIds: [],
     compromisedNodeIds: [...tgnnResult.anomalyNodeIds],
-    atRiskNodeIds: exposure.atRiskNodeIds,
+    // Maintain atRiskNodeIds as a backwards-compatible union for frontend visual state
+    atRiskNodeIds: [...new Set([...exposure.atRiskNodeIds, ...propagation.propagatedNodeIds])].sort(),
     atRiskEdgeIds: exposure.atRiskEdgeIds,
     primarySpreadNodeId: null,
     primarySpreadEdgeId: null,

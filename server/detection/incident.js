@@ -238,8 +238,17 @@ function dependencyEvidence(ep, peerMetrics, config) {
   }
 }
 
-function affectedDependenciesFor(_epId, _input, _result) {
-  return []
+function affectedDependenciesFor(epId, _input, result) {
+  // If the incident seed is the source, return the downstream path from propagation
+  const paths = []
+  if (result?.propagationPaths) {
+    for (const [nodeId, path] of Object.entries(result.propagationPaths)) {
+      if (path[0] === epId) {
+        paths.push({ nodeId, path })
+      }
+    }
+  }
+  return paths
 }
 
 function illustrativeImpactOf(ep, metricFacts) {
@@ -325,6 +334,9 @@ function buildIncident({
     detectionTypes,
     evidence,
     affectedDependencies: affectedDependenciesFor(ep.id, input, result),
+    peerExposedNodeIds: result.peerExposedNodeIds || [],
+    propagatedNodeIds: result.propagatedNodeIds || [],
+    propagationPaths: result.propagationPaths || {},
     cityContext: input.cityContext ?? ep.activeContexts?.cityContext,
     criticality: ep.criticality,
     sector: ep.sector,
