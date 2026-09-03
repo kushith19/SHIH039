@@ -6,6 +6,10 @@ import {
   pushNeighborSnapshot,
 } from '../detection/adapter.js'
 import { runDetection } from '../detection/engine.js'
+import { tickCampaigns } from '../campaign/engine.js'
+import { correlateCampaigns } from '../campaign/correlate.js'
+import { updateAttackStory } from '../campaign/story.js'
+import { emptyAttackStory } from '../../shared/attackStory.js'
 import {
   LOOKBACK_TICKS,
   appendDetectionInput,
@@ -17,6 +21,8 @@ import { emptyDetectionResult } from '../detection/types.js'
 import {
   attachExplanations,
   enqueueIncidentExplanations,
+  attachStoryExplanation,
+  enqueueStoryExplanation,
   clearExplanationCache,
 } from '../commander/client.js'
 import {
@@ -30,6 +36,8 @@ import {
 const TICK_MS = 1000
 /** @type {Map<string, ReturnType<typeof setInterval>>} */
 const intervals = new Map()
+/** Prevent overlapping ticks while Timescale ingest is still running. */
+const inFlight = new Set()
 
 async function forwardSnapshot(room, produced) {
   await ensureRoomInfrastructure(room, produced)
@@ -49,6 +57,11 @@ async function forwardSnapshot(room, produced) {
  * @returns {object} detection result
  */
 export async function ingestCitySnapshot(room, onAfter) {
+  try {
+    tickCampaigns(room)
+  } catch (err) {
+    console.error('[campaign] tick failed', err)
+  }
   const produced = buildCitySnapshot(room)
   const posted = await forwardSnapshot(room, produced)
   const refreshed = await refreshRoomIngestion(room)
@@ -66,12 +79,20 @@ export async function ingestCitySnapshot(room, onAfter) {
   appendDetectionInput(input)
   const withMetrics = attachLookback(input, getLookback(room.id, LOOKBACK_TICKS))
   const withWindow = attachNeighborLookback(withMetrics, room.neighborHistory)
-  const detection = runDetection(withWindow)
+  let detection = runDetection(withWindow)
+  try {
+    detection = correlateCampaigns(room, detection)
+  } catch (err) {
+    console.error('[campaign] correlate failed', err)
+  }
   room.neighborHistory = pushNeighborSnapshot(room.neighborHistory, withWindow, LOOKBACK_TICKS)
+  updateAttackStory(room, detection)
   attachExplanations(room, detection.incidents)
+  attachStoryExplanation(room)
   saveDetectionRun(room.id, input.simulationTick, input.tsMs, detection)
   room.detection = detection
   enqueueIncidentExplanations(room, onAfter)
+  enqueueStoryExplanation(room, onAfter)
   return detection
 }
 
@@ -85,9 +106,23 @@ function bumpTick(room) {
  */
 export async function emitTelemetryNow(room, onAfter) {
   if (!room || room.phase !== 'playing') return
-  bumpTick(room)
-  await ingestCitySnapshot(room, onAfter)
-  onAfter?.(room)
+  const roomId = String(room.id ?? '')
+  if (inFlight.has(roomId)) return
+  inFlight.add(roomId)
+  try {
+    bumpTick(room)
+    await ingestCitySnapshot(room, onAfter)
+    onAfter?.(room)
+  } catch (err) {
+    console.error('[telemetry] tick failed', err)
+    try {
+      onAfter?.(room)
+    } catch {
+      // ignore broadcast failures after a dropped ingest
+    }
+  } finally {
+    inFlight.delete(roomId)
+  }
 }
 
 export function startTelemetryLoop(room, onTick) {
@@ -95,6 +130,8 @@ export function startTelemetryLoop(room, onTick) {
   stopTelemetryLoop(room.id)
   room.simulationTick = 0
   room.detection = emptyDetectionResult()
+  room.campaigns = []
+  room.attackStory = emptyAttackStory()
   room.neighborHistory = []
   room.ingestionStatus = room.ingestionStatus ?? 'empty'
   room.ingestedByEndpoint = room.ingestedByEndpoint ?? {}

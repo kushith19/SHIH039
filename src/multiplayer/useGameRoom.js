@@ -18,6 +18,8 @@ const emptyRoom = {
   simHour: 10,
   detectionMode: 'tgnn',
   detection: null,
+  campaigns: [],
+  attackStory: null,
   ingestionStatus: 'empty',
   liveTelemetryByNodeId: {},
 }
@@ -39,6 +41,8 @@ function roomFromState(state) {
     simHour: state.simHour ?? 10,
     detectionMode: 'tgnn',
     detection: state.detection ?? null,
+    campaigns: Array.isArray(state.campaigns) ? state.campaigns : [],
+    attackStory: state.attackStory ?? null,
     ingestionStatus: state.ingestionStatus ?? 'empty',
     liveTelemetryByNodeId: state.liveTelemetryByNodeId ?? {},
   }
@@ -180,6 +184,11 @@ export function useGameRoom() {
       setViewport: (viewport) => emitAck('graph:setViewport', { viewport }),
       patchSim: (hackSimulator) => emitAck('sim:patch', { hackSimulator }),
       quarantine: (nodeId) => emitAck('defender:quarantine', { nodeId }),
+      startCampaign: (playbookId, seedNodeId) =>
+        emitAck('campaign:start', { playbookId, seedNodeId }),
+      applyCampaignPreset: (nodeId, presetId) =>
+        emitAck('campaign:manual', { nodeId, presetId }),
+      abortCampaigns: () => emitAck('campaign:abort'),
     }),
     [emitAck]
   )

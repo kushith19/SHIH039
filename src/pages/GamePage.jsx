@@ -126,6 +126,7 @@ export default function GamePage() {
       hackSimulator: room.hackSimulator,
       viewport: room.viewport,
       detection: room.detection ?? null,
+      campaigns: room.campaigns ?? [],
       simulationTick: room.simulationTick ?? 0,
       cityContext: room.cityContext,
       liveTelemetryByNodeId: room.liveTelemetryByNodeId ?? {},
@@ -139,6 +140,7 @@ export default function GamePage() {
       room.hackSimulator,
       room.viewport,
       room.detection,
+      room.campaigns,
       room.simulationTick,
       room.cityContext,
       room.liveTelemetryByNodeId,
@@ -185,12 +187,24 @@ export default function GamePage() {
   )
 
   const onApplyAttackPreset = useCallback(
-    (presetId, patch) => {
-      if (!selectedNode?.id || !patch) return
-      graphRef.current?.updateNodeData?.(selectedNode.id, patch)
+    (presetId) => {
+      if (!selectedNode?.id || !presetId) return
+      void actions.applyCampaignPreset?.(selectedNode.id, presetId)
     },
-    [selectedNode]
+    [selectedNode, actions]
   )
+
+  const onStartCampaign = useCallback(
+    (playbookId) => {
+      if (!selectedNode?.id || !playbookId) return
+      void actions.startCampaign?.(playbookId, selectedNode.id)
+    },
+    [selectedNode, actions]
+  )
+
+  const onAbortCampaigns = useCallback(() => {
+    void actions.abortCampaigns?.()
+  }, [actions])
 
   const waitingForOpponent =
     room.phase === 'lobby' &&
@@ -362,6 +376,8 @@ export default function GamePage() {
           connected={connected}
           ingestionStatus={room.ingestionStatus}
           hackSimulator={room.hackSimulator}
+          campaigns={room.campaigns ?? []}
+          attackStory={room.attackStory ?? null}
         />
       ) : null}
 
@@ -385,10 +401,21 @@ export default function GamePage() {
             showDevices={canDefenderManageNodes}
             showAttackTools={canUseAttackTools}
             selectedNodeId={selectedNode?.id ?? null}
-            selectedNodeBaselineMetrics={selectedNode?.inspectorBaselineMetrics ?? null}
+            campaigns={room.campaigns ?? []}
+            simulationTick={room.simulationTick ?? 0}
             onApplyAttackPreset={
               role === 'attacker' && room.phase === 'playing'
                 ? onApplyAttackPreset
+                : undefined
+            }
+            onStartCampaign={
+              role === 'attacker' && room.phase === 'playing'
+                ? onStartCampaign
+                : undefined
+            }
+            onAbortCampaigns={
+              role === 'attacker' && room.phase === 'playing'
+                ? onAbortCampaigns
                 : undefined
             }
           />

@@ -5,6 +5,8 @@ import trustNetLogo from '../../logo/logo.png'
 import { cityContextAt, cityContextLabel, expectedTelemetry } from '@shared/cityContext.js'
 import EndpointTable from '../features/dashboard/EndpointTable'
 import IncidentsPanel from '../features/dashboard/IncidentsPanel'
+import PatternsPanel from '../features/dashboard/PatternsPanel'
+import AttackStoryPanel from '../features/story/AttackStoryPanel'
 import KpiStrip from '../features/dashboard/KpiStrip'
 import {
   derivePosture,
@@ -34,11 +36,14 @@ export default function DashboardPage({
   connected = false,
   ingestionStatus = null,
   hackSimulator = null,
+  campaigns = [],
+  attackStory = null,
 }) {
   const [samples, setSamples] = useState([])
   const [fetchError, setFetchError] = useState(null)
   const [feedStatus, setFeedStatus] = useState(ingestionStatus)
   const [filterId, setFilterId] = useState(null)
+  const [patterns, setPatterns] = useState([])
   const heldPctRef = useRef(new Map())
   const tickRef = useRef(tick)
   tickRef.current = tick
@@ -63,6 +68,15 @@ export default function DashboardPage({
         setFeedStatus(json.ingestionStatus ?? ingestionStatus)
         const raw = Array.isArray(json.samples) ? json.samples : []
         setSamples(samplesForMatch(raw, tickRef.current))
+        try {
+          const pRes = await fetch(`/rooms/${encodeURIComponent(roomId)}/patterns`)
+          const pJson = await pRes.json()
+          if (!cancelled && pRes.ok && pJson.ok !== false) {
+            setPatterns(Array.isArray(pJson.patterns) ? pJson.patterns : [])
+          }
+        } catch {
+          // patterns are optional for the live feed
+        }
       } catch (err) {
         if (!cancelled) setFetchError(err?.message ?? 'Fetch failed')
       }
@@ -226,8 +240,8 @@ export default function DashboardPage({
   }
 
   return (
-    <div className="soc-dashboard min-h-0 flex-1 overflow-auto p-3 md:p-5">
-      <div className="mx-auto max-w-[88rem] space-y-3">
+    <div className="soc-dashboard min-h-0 flex-1 overflow-auto p-4 md:p-6">
+      <div className="mx-auto max-w-[96rem] space-y-6">
         <header className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <div className="tn-label">TrustNetAI · SOC</div>
@@ -284,17 +298,23 @@ export default function DashboardPage({
           tgnnWarmupTicks={detection?.tgnnWarmupTicks ?? 15}
         />
 
-        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20.5rem]">
-          <div className="space-y-4">
-            <EndpointTable
-              rows={rows}
-              sparkDomain={sparkDomain}
-              filterId={filterId}
-              onSelect={(id) => setFilterId((cur) => (cur === id ? null : id))}
-            />
-          </div>
-          <IncidentsPanel incidents={incidents} onSelectEndpoint={setFilterId} />
-        </div>
+        <AttackStoryPanel story={attackStory} onSelectEndpoint={setFilterId} />
+
+        <EndpointTable
+          rows={rows}
+          sparkDomain={sparkDomain}
+          filterId={filterId}
+          onSelect={(id) => setFilterId((cur) => (cur === id ? null : id))}
+        />
+
+        <IncidentsPanel
+          incidents={incidents}
+          campaigns={campaigns}
+          onSelectEndpoint={setFilterId}
+          demoted={Array.isArray(attackStory?.chapters) && attackStory.chapters.length > 0}
+        />
+
+        <PatternsPanel patterns={patterns} />
       </div>
     </div>
   )

@@ -3,6 +3,7 @@ import test from 'node:test'
 import {
   fingerprintIncident,
   fallbackExplanation,
+  fallbackStoryExplanation,
   mapDetectionType,
   ollamaFallbackEnabled,
   toDetectionInput,
@@ -87,6 +88,17 @@ test('toDetectionInput maps a JS incident to Commander DetectionInput', () => {
   const fallback = fallbackExplanation(incident)
   assert.match(fallback, /Water PLC/)
   assert.match(fallback, /packetsPerSecond/)
+})
+
+test('fallbackStoryExplanation narrates a three-node path', () => {
+  const text = fallbackStoryExplanation({
+    origin: 'Citizen Payment Gateway',
+    next: 'Identity Service',
+    tail: 'Municipal Finance API',
+  })
+  assert.match(text, /Citizen Payment Gateway/)
+  assert.match(text, /Identity Service/)
+  assert.match(text, /Municipal Finance API/)
 })
 
 test('fingerprint stays stable for the same incident id when only live metrics drift', () => {

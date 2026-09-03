@@ -5,6 +5,7 @@ import {
   detectionTypeLabel,
   formatEvidenceItem,
 } from '@shared/incidents.js'
+import { playbookTitle, stageProgressLabel } from '@shared/campaigns.js'
 
 function pct(n) {
   if (n == null || !Number.isFinite(Number(n))) return '—'
@@ -42,7 +43,12 @@ function streamKey(inc) {
   return String(inc.endpointId || inc.id || '')
 }
 
-export default function IncidentsPanel({ incidents = [], onSelectEndpoint }) {
+export default function IncidentsPanel({
+  incidents = [],
+  campaigns = [],
+  onSelectEndpoint,
+  demoted = false,
+}) {
   const [typeFilter, setTypeFilter] = useState(null)
   const [openId, setOpenId] = useState(null)
   const orderRef = useRef({ seq: 0, byKey: new Map() })
@@ -93,13 +99,43 @@ export default function IncidentsPanel({ incidents = [], onSelectEndpoint }) {
 
   const chipTypes = presentTypes.length > 0 ? presentTypes : DETECTION_TYPES
 
+  const groups = useMemo(() => {
+    const byId = new Map((campaigns ?? []).map((c) => [c.id, c]))
+    const grouped = new Map()
+    const ungrouped = []
+    for (const inc of rows) {
+      const cid = inc.campaignId
+      if (!cid) {
+        ungrouped.push(inc)
+        continue
+      }
+      if (!grouped.has(cid)) grouped.set(cid, [])
+      grouped.get(cid).push(inc)
+    }
+    const campaignGroups = [...grouped.entries()].map(([id, list]) => {
+      const meta = byId.get(id)
+      return {
+        id,
+        title: meta?.title || playbookTitle(meta?.playbookId) || 'Campaign',
+        status: meta?.status,
+        progress: meta ? stageProgressLabel(meta) : `${list.length} endpoints`,
+        incidents: list,
+      }
+    })
+    return { campaignGroups, ungrouped }
+  }, [rows, campaigns])
+
   return (
-    <section className="tn-surface flex min-h-0 flex-col overflow-hidden lg:sticky lg:top-3 lg:max-h-[calc(100svh-4.75rem)]">
-      <div className="border-b border-[var(--tn-line)] px-4 py-2.5">
+    <section className="tn-surface overflow-hidden">
+      <div className="border-b border-[var(--tn-line)] px-4 py-3">
         <div className="flex items-center justify-between gap-2">
           <div>
-            <div className="tn-label">Incident stream</div>
-            <p className="mt-0.5 text-xs text-[var(--tn-muted)]">Live — drops when the signal clears</p>
+            <div className="tn-label">{demoted ? 'Endpoint flags' : 'Incident stream'}</div>
+            <p className="mt-0.5 text-sm text-[var(--tn-muted)]">
+              {demoted
+                ? 'Raw detections behind the attack story'
+                : 'Grouped by campaign when correlated'}
+            </p>
           </div>
           <span className="font-mono text-lg tabular-nums">{incidents.length}</span>
         </div>
@@ -118,144 +154,57 @@ export default function IncidentsPanel({ incidents = [], onSelectEndpoint }) {
           ))}
         </div>
       </div>
-      <div className="min-h-[12rem] flex-1 overflow-auto">
+      <div className="min-h-[10rem]">
         {rows.length === 0 ? (
           <div className="flex h-full min-h-[10rem] flex-col items-center justify-center gap-1 px-4 text-center">
             <p className="text-sm">Channel clear</p>
             <p className="text-sm text-[var(--tn-muted)]">No detections have passed criteria.</p>
           </div>
         ) : (
-          <ul>
-            {rows.map((inc) => {
-              const cardKey = streamKey(inc)
-              const expanded = openId === cardKey
-              const evidence = Array.isArray(inc.evidence) ? inc.evidence : []
-              const deps = Array.isArray(inc.affectedDependencies)
-                ? inc.affectedDependencies
-                : []
-              return (
-                <li key={cardKey} className="border-b border-[var(--tn-line)]">
-                  <article className="flex">
-                    <div
-                      className="w-0.5 shrink-0"
-                      style={{ background: railColor(inc.severity) }}
+          <div>
+            {groups.campaignGroups.map((group) => (
+              <div key={group.id} className="border-b border-[var(--tn-line)]">
+                <div className="bg-[var(--tn-elevated)] px-3 py-1.5">
+                  <div className="text-xs font-medium">{group.title}</div>
+                  <p className="font-mono text-[11px] text-[var(--tn-muted)]">
+                    {group.status ? `${group.status} · ` : ''}
+                    {group.progress}
+                  </p>
+                </div>
+                <ul>
+                  {group.incidents.map((inc) => (
+                    <IncidentCard
+                      key={streamKey(inc)}
+                      inc={inc}
+                      expanded={openId === streamKey(inc)}
+                      onToggle={() => setOpenId((id) => (id === streamKey(inc) ? null : streamKey(inc)))}
+                      onSelectEndpoint={onSelectEndpoint}
                     />
-                    <div className="min-w-0 flex-1 px-3 py-2">
-                      <div className="flex items-start justify-between gap-2">
-                        <button
-                          type="button"
-                          className="truncate text-sm font-medium hover:underline"
-                          onClick={() => onSelectEndpoint?.(inc.endpointId)}
-                        >
-                          {inc.endpointLabel || inc.endpointId}
-                        </button>
-                        <button
-                          type="button"
-                          className="shrink-0 p-0.5 text-[var(--tn-muted)]"
-                          aria-expanded={expanded}
-                          aria-label={expanded ? 'Collapse incident' : 'Expand incident'}
-                          onClick={() => setOpenId((id) => (id === cardKey ? null : cardKey))}
-                        >
-                          <ChevronDown
-                            className={`h-3.5 w-3.5 ${expanded ? 'rotate-180' : ''}`}
-                          />
-                        </button>
-                      </div>
-                      <button
-                        type="button"
-                        className="mt-1 w-full text-left"
-                        onClick={() => setOpenId((id) => (id === cardKey ? null : cardKey))}
-                      >
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <span className="tn-badge">{inc.severity || 'low'}</span>
-                          <span className="text-xs text-[var(--tn-muted)]">
-                            {detectionTypeLabel(inc.detectionType)}
-                          </span>
-                          <span className="font-mono text-xs tabular-nums text-[var(--tn-muted)]">
-                            conf {pct(inc.confidence)}
-                          </span>
-                        </div>
-                        <p className="mt-1 line-clamp-2 text-xs text-[var(--tn-muted)]">
-                          {explanationPreview(inc)}
-                        </p>
-                      </button>
-                      {expanded ? (
-                        <div className="mt-2 border-t border-[var(--tn-line)] pt-2 text-xs">
-                          <div className="mb-2 grid grid-cols-3 gap-2 font-mono tabular-nums">
-                            <div>
-                              <div className="tn-label">Anomaly</div>
-                              {pct(inc.anomalyScore)}
-                            </div>
-                            <div>
-                              <div className="tn-label">Trust</div>
-                              {trustFmt(inc.trustScore)}
-                            </div>
-                            <div>
-                              <div className="tn-label">Deps</div>
-                              {deps.length}
-                            </div>
-                          </div>
-                          <div className="mb-2">
-                            <div className="mb-1 font-medium">Explanation</div>
-                            {inc.explanationStatus === 'pending' ? (
-                              <p className="text-[var(--tn-muted)]">Generating explanation…</p>
-                            ) : inc.explanationStatus === 'fallback' ? (
-                              <>
-                                <p className="text-[var(--tn-muted)]">
-                                  AI Commander unavailable. Showing a short template; numeric facts are below.
-                                </p>
-                                {inc.explanation ? <p className="mt-1">{inc.explanation}</p> : null}
-                              </>
-                            ) : inc.explanationStatus === 'error' ? (
-                              <p className="text-[var(--tn-muted)]">
-                                Commander could not explain this detection. Numeric facts are below.
-                              </p>
-                            ) : inc.explanation ? (
-                              <p>{inc.explanation}</p>
-                            ) : (
-                              <p className="text-[var(--tn-muted)]">No explanation yet.</p>
-                            )}
-                          </div>
-                          <div className="mb-1 font-medium">Facts</div>
-                          {evidence.length === 0 ? (
-                            <p className="text-[var(--tn-muted)]">None</p>
-                          ) : (
-                            <ul className="space-y-1 text-[var(--tn-muted)]">
-                              {evidence.map((ev, i) => (
-                                <li key={`${ev.code}-${ev.detail ?? i}`}>{formatEvidenceItem(ev)}</li>
-                              ))}
-                            </ul>
-                          )}
-                          <div className="mt-2 mb-1 font-medium">Affected dependencies</div>
-                          {deps.length === 0 ? (
-                            <p className="text-[var(--tn-muted)]">None on the spread path</p>
-                          ) : (
-                            <ul className="space-y-1 text-[var(--tn-muted)]">
-                              {deps.map((d) => (
-                                <li key={d.id}>
-                                  {d.source} → {d.target}
-                                  {d.role ? ` · ${d.role}` : ''}
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                          {Array.isArray(inc.detectionTypes) && inc.detectionTypes.length > 1 ? (
-                            <p className="mt-2 text-xs text-[var(--tn-muted)]">
-                              Also:{' '}
-                              {inc.detectionTypes
-                                .filter((t) => t !== inc.detectionType)
-                                .map(detectionTypeLabel)
-                                .join(', ')}
-                            </p>
-                          ) : null}
-                        </div>
-                      ) : null}
-                    </div>
-                  </article>
-                </li>
-              )
-            })}
-          </ul>
+                  ))}
+                </ul>
+              </div>
+            ))}
+            {groups.ungrouped.length > 0 ? (
+              <div>
+                {groups.campaignGroups.length > 0 ? (
+                  <div className="bg-[var(--tn-elevated)] px-3 py-1.5 text-xs text-[var(--tn-muted)]">
+                    Ungrouped
+                  </div>
+                ) : null}
+                <ul>
+                  {groups.ungrouped.map((inc) => (
+                    <IncidentCard
+                      key={streamKey(inc)}
+                      inc={inc}
+                      expanded={openId === streamKey(inc)}
+                      onToggle={() => setOpenId((id) => (id === streamKey(inc) ? null : streamKey(inc)))}
+                      onSelectEndpoint={onSelectEndpoint}
+                    />
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
         )}
       </div>
       {rows.length > 0 ? (
@@ -264,6 +213,123 @@ export default function IncidentsPanel({ incidents = [], onSelectEndpoint }) {
         </div>
       ) : null}
     </section>
+  )
+}
+
+function IncidentCard({ inc, expanded, onToggle, onSelectEndpoint }) {
+  const evidence = Array.isArray(inc.evidence) ? inc.evidence : []
+  const deps = Array.isArray(inc.affectedDependencies) ? inc.affectedDependencies : []
+  return (
+    <li className="border-b border-[var(--tn-line)]">
+      <article className="flex">
+        <div className="w-0.5 shrink-0" style={{ background: railColor(inc.severity) }} />
+        <div className="min-w-0 flex-1 px-3 py-2">
+          <div className="flex items-start justify-between gap-2">
+            <button
+              type="button"
+              className="truncate text-sm font-medium hover:underline"
+              onClick={() => onSelectEndpoint?.(inc.endpointId)}
+            >
+              {inc.endpointLabel || inc.endpointId}
+            </button>
+            <button
+              type="button"
+              className="shrink-0 p-0.5 text-[var(--tn-muted)]"
+              aria-expanded={expanded}
+              aria-label={expanded ? 'Collapse incident' : 'Expand incident'}
+              onClick={onToggle}
+            >
+              <ChevronDown className={`h-3.5 w-3.5 ${expanded ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
+          <button type="button" className="mt-1 w-full text-left" onClick={onToggle}>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="tn-badge">{inc.severity || 'low'}</span>
+              <span className="text-xs text-[var(--tn-muted)]">
+                {detectionTypeLabel(inc.detectionType)}
+              </span>
+              <span className="font-mono text-xs tabular-nums text-[var(--tn-muted)]">
+                conf {pct(inc.confidence)}
+              </span>
+            </div>
+            <p className="mt-1 line-clamp-2 text-xs text-[var(--tn-muted)]">
+              {explanationPreview(inc)}
+            </p>
+          </button>
+          {expanded ? (
+            <div className="mt-2 border-t border-[var(--tn-line)] pt-2 text-xs">
+              <div className="mb-2 grid grid-cols-3 gap-2 font-mono tabular-nums">
+                <div>
+                  <div className="tn-label">Anomaly</div>
+                  {pct(inc.anomalyScore)}
+                </div>
+                <div>
+                  <div className="tn-label">Trust</div>
+                  {trustFmt(inc.trustScore)}
+                </div>
+                <div>
+                  <div className="tn-label">Deps</div>
+                  {deps.length}
+                </div>
+              </div>
+              <div className="mb-2">
+                <div className="mb-1 font-medium">Explanation</div>
+                {inc.explanationStatus === 'pending' ? (
+                  <p className="text-[var(--tn-muted)]">Generating explanation…</p>
+                ) : inc.explanationStatus === 'fallback' ? (
+                  <>
+                    <p className="text-[var(--tn-muted)]">
+                      AI Commander unavailable. Showing a short template; numeric facts are below.
+                    </p>
+                    {inc.explanation ? <p className="mt-1">{inc.explanation}</p> : null}
+                  </>
+                ) : inc.explanationStatus === 'error' ? (
+                  <p className="text-[var(--tn-muted)]">
+                    Commander could not explain this detection. Numeric facts are below.
+                  </p>
+                ) : inc.explanation ? (
+                  <p>{inc.explanation}</p>
+                ) : (
+                  <p className="text-[var(--tn-muted)]">No explanation yet.</p>
+                )}
+              </div>
+              <div className="mb-1 font-medium">Facts</div>
+              {evidence.length === 0 ? (
+                <p className="text-[var(--tn-muted)]">None</p>
+              ) : (
+                <ul className="space-y-1 text-[var(--tn-muted)]">
+                  {evidence.map((ev, i) => (
+                    <li key={`${ev.code}-${ev.detail ?? i}`}>{formatEvidenceItem(ev)}</li>
+                  ))}
+                </ul>
+              )}
+              <div className="mt-2 mb-1 font-medium">Affected dependencies</div>
+              {deps.length === 0 ? (
+                <p className="text-[var(--tn-muted)]">None on the spread path</p>
+              ) : (
+                <ul className="space-y-1 text-[var(--tn-muted)]">
+                  {deps.map((d) => (
+                    <li key={d.id}>
+                      {d.source} → {d.target}
+                      {d.role ? ` · ${d.role}` : ''}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {Array.isArray(inc.detectionTypes) && inc.detectionTypes.length > 1 ? (
+                <p className="mt-2 text-xs text-[var(--tn-muted)]">
+                  Also:{' '}
+                  {inc.detectionTypes
+                    .filter((t) => t !== inc.detectionType)
+                    .map(detectionTypeLabel)
+                    .join(', ')}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      </article>
+    </li>
   )
 }
 

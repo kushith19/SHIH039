@@ -708,15 +708,21 @@ function GraphCanvasInner({
   }, [mpActions])
 
   const canClearAttacks = mpRole === 'attacker' && mpPhase === 'playing'
+  const mpCampaigns = multiplayer?.campaigns ?? []
+  const hasActiveCampaign = mpCampaigns.some((c) => c.status === 'active')
 
   const clearAttacks = useCallback(() => {
     if (!canClearAttacks) return
+    if (mpActions?.abortCampaigns) {
+      void mpActions.abortCampaigns()
+      return
+    }
     setHackSimulator((s) => ({
       ...s,
       nodeOverrides: {},
       edgeOverrides: {},
     }))
-  }, [canClearAttacks, setHackSimulator])
+  }, [canClearAttacks, mpActions, setHackSimulator])
 
   useEffect(() => {
     if (mpPhase !== 'playing') return
@@ -882,7 +888,8 @@ function GraphCanvasInner({
             onClick={clearAttacks}
             disabled={
               Object.keys(hackSimulator.nodeOverrides).length === 0 &&
-              Object.keys(hackSimulator.edgeOverrides).length === 0
+              Object.keys(hackSimulator.edgeOverrides).length === 0 &&
+              !hasActiveCampaign
             }
             className="tn-btn pointer-events-auto h-8"
             title="Clear attack overrides (match-start baseline unchanged)"

@@ -42,8 +42,15 @@ import {
   startTelemetryLoop,
   teardownRoomTelemetry,
 } from './telemetry/generator.js'
-import { getLatestDetection } from './metrics/store.js'
+import { getLatestDetection, listAttackPatterns, listCampaigns } from './metrics/store.js'
 import { resetTgnnCalibrator } from './detection/calibrator.js'
+import {
+  abortAndClearAttacks,
+  applyManualPreset,
+  attachOverrideNodes,
+  startPlaybookCampaign,
+} from './campaign/engine.js'
+import { getPlaybook } from '../shared/campaigns.js'
 import {
   getRecentTelemetry,
   nodeIdsByCityEndpoint,
@@ -101,6 +108,33 @@ app.get('/rooms/:id/detection', (req, res) => {
     tick: latest?.tick ?? room.simulationTick ?? 0,
     tsMs: latest?.tsMs ?? null,
     detection: latest?.detection ?? room.detection ?? null,
+  })
+})
+
+app.get('/rooms/:id/campaigns', (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  const room = getRoom(id)
+  if (!room) {
+    return res.status(404).json({ ok: false, message: 'Room not found' })
+  }
+  const stored = listCampaigns(id)
+  res.json({
+    ok: true,
+    roomId: id,
+    campaigns: (room.campaigns?.length ? room.campaigns : stored) ?? [],
+  })
+})
+
+app.get('/rooms/:id/patterns', (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  const room = getRoom(id)
+  if (!room) {
+    return res.status(404).json({ ok: false, message: 'Room not found' })
+  }
+  res.json({
+    ok: true,
+    roomId: id,
+    patterns: listAttackPatterns(),
   })
 })
 
@@ -525,9 +559,65 @@ io.on('connection', (socket) => {
           sanitized.edgeScenarioBaselines ?? room.hackSimulator.edgeScenarioBaselines,
       }
     } else {
+      const nextIds = Object.keys(sanitized.nodeOverrides ?? {})
+      const nextEdges = Object.keys(sanitized.edgeOverrides ?? {})
       room.hackSimulator = sanitized
+      if (nextIds.length === 0 && nextEdges.length === 0) {
+        abortAndClearAttacks(room)
+      } else {
+        attachOverrideNodes(room, nextIds)
+      }
     }
     if (typeof ack === 'function') ack({ ok: true })
+    syncWithTelemetry(room)
+  })
+
+  socket.on('campaign:start', (...args) => {
+    const ack = resolveAck(args)
+    const payload =
+      typeof args[0] === 'object' && args[0] !== null && typeof args[0] !== 'function'
+        ? args[0]
+        : {}
+    const room = getSocketRoom(socket)
+    if (!room) return emitError(socket, 'Not in a room')
+    if (!isAttacker(socket.id, room) || room.phase !== 'playing') {
+      return emitError(socket, 'Only the attacker can start a campaign during play')
+    }
+    if (!getPlaybook(payload.playbookId)) {
+      return emitError(socket, 'Unknown playbook')
+    }
+    const result = startPlaybookCampaign(room, payload.playbookId, String(payload.seedNodeId ?? ''))
+    if (!result.ok) return emitError(socket, result.message)
+    ack({ ok: true, campaignId: result.campaign.id })
+    syncWithTelemetry(room)
+  })
+
+  socket.on('campaign:manual', (...args) => {
+    const ack = resolveAck(args)
+    const payload =
+      typeof args[0] === 'object' && args[0] !== null && typeof args[0] !== 'function'
+        ? args[0]
+        : {}
+    const room = getSocketRoom(socket)
+    if (!room) return emitError(socket, 'Not in a room')
+    if (!isAttacker(socket.id, room) || room.phase !== 'playing') {
+      return emitError(socket, 'Only the attacker can apply a campaign stage during play')
+    }
+    const result = applyManualPreset(room, String(payload.nodeId ?? ''), payload.presetId)
+    if (!result.ok) return emitError(socket, result.message)
+    ack({ ok: true, campaignId: result.campaign.id })
+    syncWithTelemetry(room)
+  })
+
+  socket.on('campaign:abort', (...args) => {
+    const ack = resolveAck(args)
+    const room = getSocketRoom(socket)
+    if (!room) return emitError(socket, 'Not in a room')
+    if (!isAttacker(socket.id, room) || room.phase !== 'playing') {
+      return emitError(socket, 'Only the attacker can abort a campaign during play')
+    }
+    abortAndClearAttacks(room)
+    ack({ ok: true })
     syncWithTelemetry(room)
   })
 

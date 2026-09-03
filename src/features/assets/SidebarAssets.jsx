@@ -4,7 +4,14 @@ import {
   attackCatalog,
   getAssetsGroupedByDomain,
 } from '../graph/assetCatalog'
-import { ATTACK_PRESETS, presetToNodeDataPatch } from '../graph/attackPresets'
+import { ATTACK_PRESETS } from '../graph/attackPresets'
+import { attackPresetTitle } from '@shared/attackPresets.js'
+import {
+  CAMPAIGN_PLAYBOOKS,
+  activeCampaign,
+  playbookTitle,
+  stageProgressLabel,
+} from '@shared/campaigns.js'
 
 const DOMAIN_SHORT = {
   'Energy & Utilities': 'Energy',
@@ -146,8 +153,11 @@ export default function SidebarAssets({
   showDevices = true,
   showAttackTools = false,
   selectedNodeId = null,
-  selectedNodeBaselineMetrics = null,
+  campaigns = [],
+  simulationTick = 0,
   onApplyAttackPreset,
+  onStartCampaign,
+  onAbortCampaigns,
 }) {
   function handleDragStart(event, assetType, provenance = 'legitimate') {
     event.dataTransfer.setData(
@@ -158,26 +168,42 @@ export default function SidebarAssets({
   }
 
   const inLobby = phase === 'lobby'
+  const liveCampaign = activeCampaign(campaigns)
   const hint =
     role === 'defender' && inLobby
       ? 'Drag a sector onto Bengaluru.'
       : role === 'defender' && !inLobby
         ? 'Add sectors or quarantine a node.'
         : role === 'attacker' && !inLobby
-          ? 'Drop a rogue device, then attack.'
+          ? 'Start a playbook or add a preset stage to the active campaign.'
           : null
 
   const canUsePresets =
-    showAttackTools && selectedNodeId && selectedNodeBaselineMetrics && onApplyAttackPreset
+    showAttackTools && selectedNodeId && onApplyAttackPreset
+  const canStartPlaybook = showAttackTools && selectedNodeId && onStartCampaign
 
-  const [sideTab, setSideTab] = useState(showAttackTools ? 'inject' : 'devices')
+  const [sideTab, setSideTab] = useState(showAttackTools ? 'campaigns' : 'devices')
 
   const tabs = showAttackTools
     ? [
         { id: 'inject', label: 'Rogue' },
-        { id: 'presets', label: 'Presets' },
+        { id: 'campaigns', label: 'Campaigns' },
       ]
     : [{ id: 'devices', label: 'Sectors' }]
+
+  const nextStage = liveCampaign?.stages?.find((s) => s.status === 'pending')
+  const lastApplied = [...(liveCampaign?.stages ?? [])]
+    .reverse()
+    .find((s) => s.status === 'applied' || s.status === 'skipped')
+  const ticksUntilNext =
+    liveCampaign && nextStage
+      ? Math.max(
+          0,
+          (Number(lastApplied?.appliedTick ?? liveCampaign.startedTick) || 0) +
+            (Number(nextStage.delayTicks) || 0) -
+            (Number(simulationTick) || 0)
+        )
+      : null
 
   if (showDevices || showAttackTools) {
     return (
@@ -188,7 +214,7 @@ export default function SidebarAssets({
           ) : null}
           {hint ??
             (showAttackTools
-              ? 'Select a node, then run a preset.'
+              ? 'Select a node, then run a playbook or preset.'
               : 'Drag a sector onto the map.')}
         </p>
 
@@ -212,32 +238,93 @@ export default function SidebarAssets({
           </div>
         ) : null}
 
-        {showAttackTools && sideTab === 'presets' ? (
-          <div className="min-h-0 flex-1 space-y-1.5 overflow-y-auto">
-            {!selectedNodeId ? (
-              <p className="text-xs text-[var(--tn-muted)]">Select a target on the map.</p>
+        {showAttackTools && sideTab === 'campaigns' ? (
+          <div className="min-h-0 flex-1 space-y-2 overflow-y-auto">
+            {liveCampaign ? (
+              <div className="border border-[var(--tn-line)] px-2 py-1.5">
+                <div className="text-xs font-medium">
+                  {liveCampaign.title || playbookTitle(liveCampaign.playbookId)}
+                </div>
+                <p className="mt-0.5 font-mono text-[11px] text-[var(--tn-muted)]">
+                  {liveCampaign.status} · {stageProgressLabel(liveCampaign)}
+                  {ticksUntilNext != null && nextStage
+                    ? ` · next in ${ticksUntilNext}t`
+                    : ''}
+                </p>
+                <ol className="mt-1 space-y-0.5 text-[11px] text-[var(--tn-muted)]">
+                  {(liveCampaign.stages ?? []).map((stage) => (
+                    <li key={stage.id}>
+                      {stage.status === 'applied' ? '●' : stage.status === 'skipped' ? '○' : '·'}{' '}
+                      {attackPresetTitle(stage.presetId)}
+                      {stage.targetNodeId ? ` @ ${stage.targetNodeId}` : ''}
+                    </li>
+                  ))}
+                </ol>
+                {onAbortCampaigns ? (
+                  <button
+                    type="button"
+                    className="tn-btn mt-1.5 w-full justify-start text-xs"
+                    onClick={() => onAbortCampaigns()}
+                  >
+                    Abort campaign
+                  </button>
+                ) : null}
+              </div>
             ) : (
-              <p className="text-xs">Target selected.</p>
+              <p className="text-xs text-[var(--tn-muted)]">
+                {selectedNodeId
+                  ? 'No active campaign. Start a playbook or a preset.'
+                  : 'Select a target on the map.'}
+              </p>
             )}
-            <div className="grid grid-cols-1 gap-1">
-              {ATTACK_PRESETS.map((preset) => (
-                <button
-                  key={preset.id}
-                  type="button"
-                  disabled={!canUsePresets}
-                  title={preset.description}
-                  onClick={() => {
-                    if (!canUsePresets) return
-                    onApplyAttackPreset(
-                      preset.id,
-                      presetToNodeDataPatch(preset.id, selectedNodeBaselineMetrics)
-                    )
-                  }}
-                  className="tn-btn w-full justify-start text-xs disabled:opacity-35"
-                >
-                  {preset.title}
-                </button>
-              ))}
+
+            <div>
+              <div className="tn-label mb-1">Playbooks</div>
+              <div className="grid grid-cols-1 gap-1">
+                {CAMPAIGN_PLAYBOOKS.map((book) => (
+                  <button
+                    key={book.id}
+                    type="button"
+                    disabled={!canStartPlaybook}
+                    title={book.description}
+                    onClick={() => {
+                      if (!canStartPlaybook) return
+                      onStartCampaign(book.id)
+                    }}
+                    className="tn-btn w-full justify-start text-xs disabled:opacity-35"
+                  >
+                    {book.title}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div className="tn-label mb-1">Add stage</div>
+              {!selectedNodeId ? (
+                <p className="text-xs text-[var(--tn-muted)]">Select a node to attach a preset.</p>
+              ) : (
+                <p className="mb-1 text-xs text-[var(--tn-muted)]">
+                  Presets attach to the active campaign, or start a manual one.
+                </p>
+              )}
+              <div className="grid grid-cols-1 gap-1">
+                {ATTACK_PRESETS.map((preset) => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    disabled={!canUsePresets}
+                    title={preset.description}
+                    onClick={() => {
+                      if (!canUsePresets) return
+                      onApplyAttackPreset(preset.id)
+                    }}
+                    className="tn-btn w-full justify-start text-xs disabled:opacity-35"
+                  >
+                    {preset.title}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         ) : showAttackTools && sideTab === 'inject' ? (

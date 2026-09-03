@@ -2,6 +2,8 @@ import { buildAttackLayerFromGraph } from './nodeMetrics.js'
 import { emptyDetectionResult } from './detection/types.js'
 import { DETECTION_MODE_TGNN } from './detection/modes.js'
 import { parseCityContextOverride, resolveRoomCityContext, simHourAt } from '../shared/cityContext.js'
+import { emptyAttackStory } from '../shared/attackStory.js'
+import { publicCampaigns } from './campaign/engine.js'
 
 export { buildAttackLayerFromGraph }
 
@@ -30,6 +32,8 @@ export function createEmptyRoom(id = DEMO_ROOM_ID) {
     cityContextOverride: null,
     detectionMode: DETECTION_MODE_TGNN,
     detection: emptyDetectionResult(),
+    campaigns: [],
+    attackStory: emptyAttackStory(),
     neighborHistory: [],
     ingestionStatus: 'empty',
     ingestedByEndpoint: {},
@@ -83,6 +87,8 @@ export function publicRoomState(room) {
     simHour: simHourAt(room.simulationTick ?? 0),
     detectionMode: DETECTION_MODE_TGNN,
     detection: room.detection ?? emptyDetectionResult(),
+    campaigns: publicCampaigns(room),
+    attackStory: room.attackStory ?? emptyAttackStory(),
     ingestionStatus: room.ingestionStatus ?? 'empty',
     liveTelemetryByNodeId: room.liveTelemetryByNodeId ?? {},
   }

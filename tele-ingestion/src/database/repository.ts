@@ -32,8 +32,6 @@ export class TelemetryRepository {
       const values = rows.map(r => r.value);
       const units = rows.map(r => r.unit);
 
-      console.info(`[repository] Before database insert: ${times.length} rows being inserted.`);
-
       const insertResult = await client.query(`
         INSERT INTO telemetry (time, endpoint_id, simulation_tick, metric_name, value, unit)
         SELECT * FROM UNNEST ($1::timestamptz[], $2::text[], $3::bigint[], $4::text[], $5::double precision[], $6::text[])
@@ -41,7 +39,6 @@ export class TelemetryRepository {
       `, [times, endpointIdsParam, simulationTicks, metricNames, values, units]);
 
       await client.query('COMMIT');
-      console.info(`[repository] After database insert: ${insertResult.rowCount ?? 0} rows inserted.`);
       return insertResult.rowCount ?? 0;
     } catch (error) {
       await client.query('ROLLBACK');

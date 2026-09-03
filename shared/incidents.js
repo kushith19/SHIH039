@@ -63,6 +63,7 @@ export function emptyIncident() {
     explanation: '',
     explanationStatus: null,
     affectedDependencies: [],
+    campaignId: null,
   }
 }
 

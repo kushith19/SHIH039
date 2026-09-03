@@ -111,6 +111,22 @@ export function simHourAt(simulationTick, config = TRUST_CONFIG) {
   return cityClockAt(simulationTick, config).hourOfDay
 }
 
+function pad2(n) {
+  return String(Math.max(0, Math.floor(Number(n) || 0))).padStart(2, '0')
+}
+
+/**
+ * Demo timeline clock: city hour + each simulation tick as one story second.
+ * City-context hours still advance on ticksPerHour; this display is cinematic only.
+ */
+export function formatStoryClock(simulationTick, config = TRUST_CONFIG) {
+  const t = Math.max(0, Math.floor(Number(simulationTick) || 0))
+  const hour = simHourAt(t, config)
+  const minutes = Math.floor(t / 60) % 60
+  const seconds = t % 60
+  return `${pad2(hour)}:${pad2(minutes)}:${pad2(seconds)}`
+}
+
 function pickContextByPriority(ids, config) {
   const pri = cityCfg(config).priorities ?? DEFAULT_PRIORITIES
   let best = ids[ids.length - 1] ?? CITY_CONTEXT_NORMAL

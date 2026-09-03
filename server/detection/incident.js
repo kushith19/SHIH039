@@ -332,6 +332,7 @@ function buildIncident({
     criticality: ep.criticality,
     sector: ep.sector,
     cityEndpointId: ep.cityEndpointId,
+    campaignId: null,
   }
 }
 

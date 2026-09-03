@@ -46,6 +46,45 @@ function ensureDb() {
       ON metric_samples (room_id, endpoint_id, metric_key, tick);
     CREATE INDEX IF NOT EXISTS idx_samples_room_tick
       ON metric_samples (room_id, tick);
+    CREATE TABLE IF NOT EXISTS campaigns (
+      id TEXT PRIMARY KEY,
+      room_id TEXT NOT NULL,
+      playbook_id TEXT NOT NULL,
+      status TEXT NOT NULL,
+      seed_node_id TEXT NOT NULL,
+      started_tick INTEGER NOT NULL,
+      completed_tick INTEGER,
+      fingerprint TEXT,
+      payload_json TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_campaigns_room
+      ON campaigns (room_id, started_tick);
+    CREATE TABLE IF NOT EXISTS campaign_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      campaign_id TEXT NOT NULL,
+      tick INTEGER NOT NULL,
+      kind TEXT NOT NULL,
+      payload_json TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_campaign_events
+      ON campaign_events (campaign_id, tick);
+    CREATE TABLE IF NOT EXISTS campaign_incidents (
+      campaign_id TEXT NOT NULL,
+      incident_id TEXT NOT NULL,
+      endpoint_id TEXT NOT NULL,
+      tick INTEGER NOT NULL,
+      PRIMARY KEY (campaign_id, incident_id)
+    );
+    CREATE TABLE IF NOT EXISTS attack_patterns (
+      fingerprint TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      hit_count INTEGER NOT NULL,
+      first_seen_ms INTEGER NOT NULL,
+      last_seen_ms INTEGER NOT NULL,
+      last_room_id TEXT,
+      last_campaign_id TEXT,
+      signature_json TEXT NOT NULL
+    );
   `)
   return db
 }
@@ -193,4 +232,130 @@ export function deleteRoomMetrics(roomId) {
     conn.prepare(`DELETE FROM detection_runs WHERE room_id = ?`).run(roomId)
   })
   tx()
+}
+
+export function upsertCampaign(campaign) {
+  if (!campaign?.id) return
+  ensureDb()
+    .prepare(
+      `INSERT INTO campaigns (
+        id, room_id, playbook_id, status, seed_node_id, started_tick, completed_tick, fingerprint, payload_json
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        status = excluded.status,
+        completed_tick = excluded.completed_tick,
+        fingerprint = excluded.fingerprint,
+        payload_json = excluded.payload_json`
+    )
+    .run(
+      campaign.id,
+      campaign.roomId,
+      campaign.playbookId,
+      campaign.status,
+      campaign.seedNodeId,
+      Number(campaign.startedTick) || 0,
+      campaign.completedTick ?? null,
+      campaign.fingerprint ?? '',
+      JSON.stringify(campaign)
+    )
+}
+
+export function appendCampaignEvent(campaignId, tick, kind, payload = {}) {
+  if (!campaignId) return
+  ensureDb()
+    .prepare(
+      `INSERT INTO campaign_events (campaign_id, tick, kind, payload_json)
+       VALUES (?, ?, ?, ?)`
+    )
+    .run(campaignId, Number(tick) || 0, String(kind), JSON.stringify(payload ?? {}))
+}
+
+export function linkCampaignIncident(campaignId, incidentId, endpointId, tick) {
+  if (!campaignId || !incidentId) return false
+  const info = ensureDb()
+    .prepare(
+      `INSERT OR IGNORE INTO campaign_incidents (campaign_id, incident_id, endpoint_id, tick)
+       VALUES (?, ?, ?, ?)`
+    )
+    .run(campaignId, incidentId, String(endpointId ?? ''), Number(tick) || 0)
+  return info.changes > 0
+}
+
+export function upsertAttackPattern({ fingerprint, title, roomId, campaignId, signature }) {
+  if (!fingerprint) return null
+  const now = Date.now()
+  const conn = ensureDb()
+  const existing = conn
+    .prepare(`SELECT hit_count, first_seen_ms, last_campaign_id FROM attack_patterns WHERE fingerprint = ?`)
+    .get(fingerprint)
+  if (!existing) {
+    conn
+      .prepare(
+        `INSERT INTO attack_patterns (
+          fingerprint, title, hit_count, first_seen_ms, last_seen_ms, last_room_id, last_campaign_id, signature_json
+        ) VALUES (?, ?, 1, ?, ?, ?, ?, ?)`
+      )
+      .run(fingerprint, title, now, now, roomId ?? null, campaignId ?? null, JSON.stringify(signature ?? {}))
+    return { fingerprint, hitCount: 1, firstSeen: true }
+  }
+  const sameCampaign = existing.last_campaign_id === campaignId
+  const nextCount = sameCampaign ? existing.hit_count : existing.hit_count + 1
+  conn
+    .prepare(
+      `UPDATE attack_patterns
+       SET title = ?,
+           hit_count = ?,
+           last_seen_ms = ?,
+           last_room_id = ?,
+           last_campaign_id = ?,
+           signature_json = ?
+       WHERE fingerprint = ?`
+    )
+    .run(title, nextCount, now, roomId ?? null, campaignId ?? null, JSON.stringify(signature ?? {}), fingerprint)
+  return { fingerprint, hitCount: nextCount, firstSeen: false }
+}
+
+export function listCampaigns(roomId) {
+  const rows = ensureDb()
+    .prepare(
+      `SELECT payload_json AS payloadJson FROM campaigns WHERE room_id = ? ORDER BY started_tick DESC`
+    )
+    .all(roomId)
+  return rows.map((row) => {
+    try {
+      return JSON.parse(row.payloadJson)
+    } catch {
+      return null
+    }
+  }).filter(Boolean)
+}
+
+export function listAttackPatterns() {
+  return ensureDb()
+    .prepare(
+      `SELECT fingerprint, title, hit_count AS hitCount, first_seen_ms AS firstSeenMs,
+              last_seen_ms AS lastSeenMs, last_room_id AS lastRoomId, last_campaign_id AS lastCampaignId,
+              signature_json AS signatureJson
+       FROM attack_patterns
+       ORDER BY last_seen_ms DESC`
+    )
+    .all()
+    .map((row) => {
+      let signature = {}
+      try {
+        signature = JSON.parse(row.signatureJson)
+      } catch {
+        signature = {}
+      }
+      return {
+        fingerprint: row.fingerprint,
+        title: row.title,
+        hitCount: row.hitCount,
+        firstSeenMs: row.firstSeenMs,
+        lastSeenMs: row.lastSeenMs,
+        lastRoomId: row.lastRoomId,
+        lastCampaignId: row.lastCampaignId,
+        signature,
+      }
+    })
 }
