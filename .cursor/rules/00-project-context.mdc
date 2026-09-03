@@ -1,0 +1,250 @@
+---
+description: Core project identity, problem statement, product thesis, and hackathon context. Use for all project work.
+alwaysApply: true
+---
+
+# Smart City Cybersecurity — Core Project Context
+
+## 1. Project Identity
+
+We are building an AI-driven cybersecurity decision-support platform for smart-city digital infrastructure.
+
+The platform models a city as a connected cyber-physical graph rather than treating infrastructure assets as isolated systems.
+
+The central thesis is:
+
+> A cyber attack on a smart city is not merely an anomaly on one machine. It can become a graph-level risk that propagates through relationships, dependencies, communication paths, and trusted peers.
+
+The system therefore combines:
+
+Telemetry + Graph Representation + TGNN Anomaly Detection + Peer Trust + Attack Propagation + AI Decision Support.
+
+The goal is to provide security teams with a real-time visual understanding of:
+- what is behaving abnormally,
+- where the anomaly originated,
+- how risk may propagate,
+- which infrastructure is becoming exposed,
+- why the system considers it risky,
+- and what safe response should be considered.
+
+---
+
+## 2. Exact Hackathon Problem
+
+The hackathon problem asks participants to build an AI-driven solution that can:
+
+- ingest structured or semi-structured security telemetry, system logs, asset metadata, and behavioral data;
+- use AI/ML techniques to identify anomalies, potential threats, or risk patterns;
+- provide actionable insights such as risk scores, alerts, and dashboards;
+- focus on practical applicability, explainability, and scalability;
+- align with SDG 9 (Industry, Innovation & Infrastructure) and SDG 11 (Sustainable Cities & Communities).
+
+The project must remain clearly connected to these requirements.
+
+---
+
+## 3. Target Environment
+
+The modeled environment represents interconnected smart-city infrastructure including:
+
+- Energy
+- Water
+- Traffic
+- Healthcare
+- Municipal IT
+- Emergency Services
+- Telecom
+- Finance
+
+Infrastructure may include:
+- sensors,
+- actuators,
+- PLCs,
+- gateways,
+- servers,
+- control systems,
+- communication endpoints,
+- and other logical or physical infrastructure nodes.
+
+The current city model contains 246 infrastructure endpoints represented as a directed graph.
+
+---
+
+## 4. Primary Technical Differentiator
+
+The most important differentiator is the graph-centric detection architecture.
+
+Do NOT frame the project as:
+
+"An Isolation Forest that detects anomalous devices."
+
+Frame it as:
+
+"A dynamic cyber-risk model of the city where infrastructure assets are represented as nodes and their dependencies and communications are represented as edges."
+
+The system evaluates both:
+
+### Node-level behavior
+Examples:
+- packet-rate deviation,
+- failed login deviation,
+- HTTP request deviation,
+- file-transfer deviation,
+- physical telemetry deviation,
+- behavioral changes.
+
+### Graph-level context
+Examples:
+- neighboring trust,
+- node degree,
+- structural relationships,
+- communication paths,
+- dependency relationships,
+- downstream propagation.
+
+The TGNN is therefore important because an endpoint's risk is evaluated in the context of the graph rather than only from its own telemetry.
+
+---
+
+## 5. Peer Trust Concept
+
+The project uses a multi-component trust model incorporating:
+
+- Intrinsic Trust
+- Peer Trust
+- Behavioral Trust
+- Interaction Trust
+
+The current weighting is:
+
+- Intrinsic: 25%
+- Peer: 30%
+- Behavioral: 25%
+- Interaction: 20%
+
+Peer relationships are important because a compromised or suspicious node can affect the perceived risk of connected infrastructure.
+
+The system should demonstrate the idea of:
+
+> "Trust is contextual and relational, not merely a static property of an asset."
+
+---
+
+## 6. Core Detection Story
+
+The intended conceptual flow is:
+
+Telemetry
+→ Feature Extraction
+→ Graph Representation
+→ TGNN Anomaly Scoring
+→ Trust Evaluation
+→ Risk Propagation
+→ Incident Generation
+→ AI Explanation / Decision Support
+
+This flow should remain understandable to a technical judge and a non-technical judge.
+
+---
+
+## 7. Product Philosophy
+
+The product should prioritize:
+
+1. Explainability
+2. Graph-aware cybersecurity
+3. Real-time visualization
+4. Risk prioritization
+5. Safe decision support
+6. Practical smart-city applicability
+7. Financial and operational impact awareness
+
+The system should not merely say:
+
+"Node X is anomalous."
+
+It should help answer:
+
+"Why is Node X anomalous, what is connected to it, how could the risk propagate, how severe could the impact become, and what should the security operator investigate or contain?"
+
+---
+
+## 8. FinTech Stream Relevance
+
+Although the infrastructure is city-wide, the project must remain credible within a FinTech-oriented hackathon.
+
+The financial connection should be explained through:
+
+- protection of high-value digital infrastructure;
+- financial services and municipal payment infrastructure;
+- financial consequences of infrastructure disruption;
+- protection of public and private investments;
+- economic impact of cascading cyber incidents;
+- prioritization of cybersecurity response based on criticality and potential financial impact.
+
+The platform should therefore be capable of connecting cyber risk with operational and economic consequences without claiming that every infrastructure event is inherently a financial attack.
+
+---
+
+## 9. SDG Alignment
+
+The project aligns primarily with:
+
+### SDG 9
+Industry, Innovation and Infrastructure
+
+The platform improves resilience and cybersecurity visibility across critical digital infrastructure.
+
+### SDG 11
+Sustainable Cities and Communities
+
+The platform helps cities maintain safer and more resilient interconnected services.
+
+SDG alignment should support the product story but should not replace the cybersecurity value proposition.
+
+---
+
+## 10. Current Technology Foundation
+
+The existing system includes:
+
+- React 19
+- Vite
+- Tailwind CSS
+- React Flow
+- Node.js
+- Express
+- Socket.IO
+- PostgreSQL / TimescaleDB
+- Python
+- FastAPI
+- LangGraph
+- Qdrant
+- TGNN-based graph anomaly scoring
+- Peer trust model
+- Groq / Ollama LLM providers
+
+The existing V1 implementation is functional and should be extended rather than unnecessarily rewritten.
+
+---
+
+## 11. Development Philosophy During Hackathon
+
+The roadmap is intentionally flexible.
+
+Features may be:
+- added,
+- removed,
+- simplified,
+- replaced,
+- or reprioritized
+
+during the hackathon.
+
+Do not assume that a previously discussed future feature must be implemented.
+
+Prioritize improvements that strengthen the central story:
+
+> Dynamic graph-aware cyber-risk detection and explainable decision support for interconnected smart-city infrastructure.
+
+When making implementation decisions, favor a small number of deeply integrated features over many disconnected demo features.

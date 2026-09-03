@@ -1,0 +1,422 @@
+---
+description: Stable architectural contracts and invariants of the existing Smart City cybersecurity platform. Preserve unless explicitly instructed otherwise.
+alwaysApply: true
+---
+
+# Smart City Cybersecurity — Architecture Contracts
+
+## 1. General Rule
+
+The existing V1 architecture is functional.
+
+When implementing new functionality:
+
+- extend existing components where practical;
+- reuse existing data contracts;
+- reuse existing services;
+- avoid unnecessary rewrites;
+- avoid introducing duplicate systems that perform the same responsibility;
+- preserve working runtime pipelines.
+
+Do not redesign the architecture merely for stylistic reasons.
+
+If an architectural change is genuinely necessary, explain the reason and affected components before making the change.
+
+---
+
+# 2. Core Runtime Architecture
+
+The primary architecture is:
+
+Telemetry Generation
+→ Telemetry Ingestion
+→ TimescaleDB
+→ Detection Engine
+→ TGNN / Detection Fusion
+→ Peer Trust
+→ Attack Spread
+→ Incident Promotion
+→ AI Commander
+→ WebSocket State Synchronization
+→ React Frontend
+
+New functionality should integrate into this architecture rather than creating an unrelated parallel pipeline.
+
+---
+
+# 3. City Graph Contract
+
+The smart city is represented as a directed graph:
+
+G = (V, E)
+
+Where:
+
+- V represents infrastructure endpoints.
+- E represents relationships, dependencies, communication paths, or physical/logical flows.
+
+The graph is central to the product.
+
+Do not reduce the architecture to independent per-node anomaly detection.
+
+When implementing detection or risk features, consider whether graph relationships and neighboring context are relevant.
+
+The existing city model contains 246 endpoints.
+
+---
+
+# 4. Static Topology vs Runtime State
+
+The system distinguishes between:
+
+### Static / authoritative topology
+
+Contains:
+- node identity,
+- node type,
+- sector,
+- criticality,
+- intrinsic trust,
+- baseline definitions,
+- topology relationships.
+
+### Runtime state
+
+Contains:
+- current telemetry,
+- effective PPS,
+- operational state,
+- quarantine state,
+- provenance,
+- trust score,
+- anomaly score,
+- incidents,
+- attack spread state.
+
+Do not silently convert authoritative static topology into uncontrolled runtime state.
+
+Do not modify the base topology during normal simulation unless the feature explicitly requires it and the change is approved.
+
+---
+
+# 5. Telemetry Contract
+
+Telemetry is generated at approximately one-second simulation intervals.
+
+Telemetry flows through:
+
+Telemetry Generator
+→ POST /ingest/snapshot
+→ Tele-Ingestion API
+→ TimescaleDB
+
+Telemetry records contain:
+
+- timestamp,
+- simulation tick,
+- endpoint ID,
+- metric name,
+- value,
+- unit.
+
+Existing telemetry ingestion and validation should be reused.
+
+Do not create a second telemetry storage mechanism unless there is a clear architectural requirement.
+
+---
+
+# 6. TGNN Contract
+
+The TGNN is a core project differentiator.
+
+The existing architecture uses:
+
+- normalized node features;
+- baseline and effective states;
+- graph adjacency;
+- directed message passing;
+- multiple graph-convolution rounds;
+- embedding comparison;
+- anomaly scoring.
+
+The current feature architecture uses 11 normalized features per node and a 22-dimensional baseline/effective representation.
+
+Do not replace the TGNN with a simpler detector merely because it is easier to implement.
+
+Do not silently change TGNN weights, mathematical operations, architecture, or thresholds.
+
+If a change to the TGNN is explicitly requested, preserve compatibility with the existing detection and trust pipeline.
+
+---
+
+# 7. Trust Model Contract
+
+The existing four-component trust model is a core architectural invariant.
+
+Weights:
+
+- Intrinsic Trust: 25%
+- Peer Trust: 30%
+- Behavioral Trust: 25%
+- Interaction Trust: 20%
+
+The trust model is implemented in the shared trust-model layer.
+
+Do not rewrite, rebalance, remove, or replace these weights without explicit instruction.
+
+Do not create another competing trust score with different semantics unless explicitly requested.
+
+New risk visualizations may derive from the existing trust score.
+
+---
+
+# 8. Detection Contract
+
+Detection may combine:
+
+- TGNN anomaly scoring;
+- temporal deviations;
+- metric deviations;
+- trust information;
+- graph context;
+- propagation analysis.
+
+The existing detection thresholds and qualification logic are part of the V1 behavior.
+
+Do not weaken detection criteria simply to create more alerts for a demo.
+
+Do not fabricate anomalies.
+
+Demo scenarios must originate from real telemetry modifications, simulation behavior, or explicitly marked test fixtures.
+
+---
+
+# 9. Level-1 Evidence Contract
+
+Promoted incidents must retain machine-readable evidence.
+
+Evidence should preserve exact observed facts such as:
+
+- observed value;
+- expected value;
+- deviation percentage;
+- metric;
+- endpoint;
+- timestamp or simulation context where applicable.
+
+AI-generated text must never replace the underlying numeric evidence.
+
+The AI Commander depends on this evidence for factual grounding.
+
+Any feature that modifies incidents must preserve the original evidence.
+
+---
+
+# 10. Incident Contract
+
+Incidents are structured detection outputs.
+
+The general lifecycle is:
+
+Detection
+→ Incident Promotion
+→ Incident State
+→ Explanation / Analysis
+→ Frontend Presentation
+
+Do not bypass the detection layer by allowing the frontend or LLM to directly create authoritative security incidents.
+
+LLM-generated hypotheses, explanations, or recommendations must remain distinguishable from observed detection facts.
+
+---
+
+# 11. AI Commander Contract
+
+The AI Commander is a downstream decision-support layer.
+
+It must not become the primary anomaly detector.
+
+The Commander receives structured evidence from upstream detection and can:
+
+- explain observations;
+- retrieve relevant cybersecurity knowledge;
+- assess impact;
+- identify candidate techniques;
+- provide recommendations;
+- generate structured decision support.
+
+The Commander must not invent telemetry or override upstream observed facts.
+
+---
+
+# 12. RAG Contract
+
+The AI Commander uses authoritative knowledge through Qdrant retrieval.
+
+Current knowledge sources include:
+
+- NIST SP 800-82r3;
+- MITRE ATT&CK Enterprise / ICS;
+- NCIIPC guidance;
+- CERT-In guidance.
+
+Retrieved knowledge provides contextual guidance.
+
+It must not be presented as evidence that an attack actually occurred.
+
+Observed telemetry and retrieved guidance must remain conceptually separate.
+
+---
+
+# 13. Provider Abstraction Contract
+
+The AI Commander uses a provider abstraction supporting:
+
+Primary:
+- Groq
+
+Fallback:
+- Ollama
+
+Provider-specific branching should remain inside the provider abstraction.
+
+Do not add scattered:
+
+"if Groq..."
+"if Ollama..."
+
+logic throughout the LangGraph workflow.
+
+The graph should interact with the common LLM interface.
+
+---
+
+# 14. WebSocket Contract
+
+The main server synchronizes runtime state with the frontend using Socket.IO.
+
+The primary state synchronization event is:
+
+state:sync
+
+Frontend features should preferably consume existing synchronized state rather than creating unnecessary independent polling mechanisms.
+
+If new runtime fields are required:
+
+- extend the existing state contract;
+- preserve backwards compatibility where practical;
+- avoid breaking existing frontend consumers.
+
+---
+
+# 15. Persistence Contract
+
+TimescaleDB is the authoritative persistence layer for:
+
+- infrastructure metadata;
+- telemetry time-series data.
+
+Current incident state, active room state, spread state, and similar runtime information may remain in memory unless a persistence feature is explicitly added.
+
+Do not introduce a second database for convenience.
+
+---
+
+# 16. Service Boundaries
+
+Existing service responsibilities:
+
+### Main Server
+Simulation, rooms, detection, state, Socket.IO.
+
+### Tele-Ingestion
+Telemetry validation, persistence, historical telemetry queries.
+
+### AI Commander
+RAG, reasoning, structured assessment, safety validation.
+
+### Frontend
+Operator visualization and interaction.
+
+New functionality should be placed in the service whose responsibility most closely matches it.
+
+Avoid putting business logic into UI components when it belongs in the server.
+
+---
+
+# 17. Frontend Contract
+
+The frontend uses React and React Flow for graph visualization.
+
+The city graph is a primary product surface.
+
+Do not replace the graph visualization with a conventional dashboard-only design.
+
+The UI should preserve the ability to visually communicate:
+
+- topology;
+- trust;
+- anomalies;
+- incidents;
+- attack propagation;
+- critical infrastructure;
+- risk state.
+
+---
+
+# 18. Backwards Compatibility
+
+Before modifying an existing contract:
+
+1. Identify all consumers.
+2. Search the repository for usages.
+3. Determine whether the change affects:
+   - server,
+   - frontend,
+   - ingestion,
+   - AI Commander,
+   - shared code,
+   - tests.
+4. Make the smallest compatible change possible.
+
+Do not assume an apparently unused field or endpoint is safe to remove.
+
+---
+
+# 19. Hackathon Extension Principle
+
+New features should preferably follow this pattern:
+
+Existing telemetry
+→ Existing graph
+→ Existing detection
+→ New analytical layer
+→ Existing incident/state infrastructure
+→ New visualization
+
+Rather than:
+
+New telemetry system
+→ New ML model
+→ New database
+→ New API
+→ New dashboard
+
+Avoid creating parallel architecture unless the existing architecture genuinely cannot support the requirement.
+
+---
+
+# 20. Frozen V1 Components
+
+Unless explicitly instructed otherwise, treat these as frozen foundations:
+
+- shared trust model mathematics;
+- TGNN core architecture and weights;
+- telemetry generation pipeline;
+- telemetry ingestion pipeline;
+- TimescaleDB schema;
+- LangGraph Commander workflow;
+- OT/ICS safety guardrails;
+- Level-1 detection evidence contract.
+
+The objective during the hackathon is to build upward from these foundations.
