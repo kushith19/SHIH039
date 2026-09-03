@@ -10,7 +10,7 @@ const MAX_IN_FLIGHT = 1
 const MAX_QUEUE = 5
 const COMMANDER_TIMEOUT_MS = 45_000
 const COMMANDER_HEALTH_TIMEOUT_MS = 3_000
-const KNOWLEDGE_TIMEOUT_MS = 25_000
+const KNOWLEDGE_TIMEOUT_MS = 12_000
 const HEALTH_TTL_MS = 5_000
 const OLLAMA_TIMEOUT_MS = 60_000
 const OLLAMA_NUM_PREDICT = 120
@@ -814,7 +814,12 @@ export async function fetchKnowledgeContext({
 } = {}) {
   const cacheKey = knowledgeCacheKey(incidentId, fingerprint || query)
   const cached = knowledgeCache.get(cacheKey)
-  if (cached && Date.now() - cached.at < KNOWLEDGE_CACHE_TTL_MS) {
+  // Only reuse successful retrievals — never permanently cache unavailable soft-fails.
+  if (
+    cached &&
+    Date.now() - cached.at < KNOWLEDGE_CACHE_TTL_MS &&
+    cached.knowledge?.retrieved === true
+  ) {
     return cached.knowledge
   }
 
@@ -834,10 +839,25 @@ export async function fetchKnowledgeContext({
     })
     markCommanderHealthy()
     const knowledge = normalizeKnowledgePayload(data)
-    knowledgeCache.set(cacheKey, { fingerprint: fingerprint || query || '', knowledge, at: Date.now() })
+    if (knowledge.retrieved === true) {
+      knowledgeCache.set(cacheKey, {
+        fingerprint: fingerprint || query || '',
+        knowledge,
+        at: Date.now(),
+      })
+    } else {
+      knowledgeCache.delete(cacheKey)
+    }
     return knowledge
   } catch (err) {
-    openCircuit(err)
+    // Soft-fail only: do not open the global commander circuit.
+    // Knowledge timeouts are often optional LLM lag, not Commander death;
+    // opening the circuit would force unavailable for 15s and stick the UI.
+    knowledgeCache.delete(cacheKey)
+    console.warn(
+      '[commander] knowledge soft-fail:',
+      err?.message ?? err
+    )
     return unavailableKnowledgeContext('Knowledge retrieval unavailable')
   }
 }

@@ -54,6 +54,10 @@ import {
   normalizeHistoryOrder,
   updateIncidentStatus,
 } from './metrics/incidents.js'
+import {
+  computeFinancialExposure,
+  currentExposureForIncident,
+} from '../shared/financialExposure.js'
 import { deleteTgnnCalibrator, resetTgnnCalibrator } from './detection/calibrator.js'
 import { emptyDetectionResult } from './detection/types.js'
 import {
@@ -98,12 +102,37 @@ function liveCommanderContext(room, incidentId) {
   )
   if (!live) return null
   const nodes = Array.isArray(room?.nodes) ? room.nodes : []
+  const edges = Array.isArray(room?.edges) ? room.edges : []
+  const status = live.status ?? 'open'
+  const financialExposure =
+    String(status).toLowerCase() === 'cleared'
+      ? currentExposureForIncident(
+          {
+            status: 'cleared',
+            financialContext: live.financialContext,
+            affectedNodeId: live.endpointId,
+            incidentId: live.persistentId || live.id,
+            liveIncidentId: live.id,
+          },
+          room
+        )
+      : computeFinancialExposure({
+          detection: {
+            anomalyNodeIds: live.endpointId ? [live.endpointId] : [],
+            peerExposedNodeIds: live.peerExposedNodeIds ?? [],
+            propagatedNodeIds: live.propagatedNodeIds ?? [],
+            incidents: [live],
+            riskMomentum: room?.detection?.riskMomentum ?? null,
+          },
+          nodes,
+          edges,
+        })
   const base = {
     incidentId: live.persistentId || live.id,
     liveIncidentId: live.id,
     incidentType: live.detectionType,
     severity: live.severity,
-    status: live.status ?? 'open',
+    status,
     affectedAsset: { id: live.endpointId, summary: live.endpointLabel || live.endpointId },
     riskScore: live.anomalyScore,
     trustScore: live.trustScore,
@@ -115,10 +144,10 @@ function liveCommanderContext(room, incidentId) {
     primaryPathLabels: live.graphContext?.primaryPathLabels ?? [],
     blastRadius: live.graphContext?.blastRadius ?? null,
     hopDistance: live.graphContext?.hopDistance ?? null,
-    financialExposure: live.financialContext ?? null,
+    financialExposure,
     relatedIncidents: live.relatedIncidents ?? [],
     campaignId: live.campaignId ?? null,
-    currentStatus: live.status ?? 'open',
+    currentStatus: status,
     actionsAlreadyTaken: live.actionsTaken ?? [],
     isExposureIncident: live.isExposureIncident === true,
   }
@@ -127,9 +156,15 @@ function liveCommanderContext(room, incidentId) {
 
 function resolveCommanderContext(room, roomId, incidentId) {
   const nodes = Array.isArray(room?.nodes) ? room.nodes : []
+  const edges = Array.isArray(room?.edges) ? room.edges : []
   let context = null
   try {
-    context = commanderContextFor(roomId, incidentId, { nodes })
+    context = commanderContextFor(roomId, incidentId, {
+      nodes,
+      edges,
+      detection: room?.detection ?? null,
+      room,
+    })
   } catch (err) {
     console.error('[incidents] commander-context failed', err)
   }

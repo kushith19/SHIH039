@@ -308,6 +308,8 @@ export default function DashboardPage({
         posture={cityPosture}
         incidents={incidents}
         focusIncidentId={searchParams.get('incident')}
+        simulationTick={tick}
+        detection={detection}
       />
     )
   } else if (panel === 'response') {

@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import os
 import re
 import time
 from fastapi import HTTPException
@@ -37,6 +38,38 @@ from src.config.settings import settings
 from langchain_core.messages import HumanMessage, SystemMessage
 
 logger = logging.getLogger(__name__)
+
+# Live SOC knowledge path: optional LLM structuring must not block RAG delivery.
+# Deterministic chunk fallback is the live default (fast, reliable).
+# Set KNOWLEDGE_LLM_STRUCTURE=1 to attempt a short timed LLM polish.
+def _knowledge_llm_structure_enabled() -> bool:
+    raw = os.environ.get("KNOWLEDGE_LLM_STRUCTURE", "").strip().lower()
+    return raw in ("1", "true", "yes")
+
+
+def _knowledge_structure_timeout_s() -> float:
+    raw = os.environ.get("KNOWLEDGE_STRUCTURE_TIMEOUT_S", "3").strip()
+    try:
+        return max(0.5, float(raw))
+    except ValueError:
+        return 3.0
+
+
+_knowledge_enrich_sem = asyncio.Semaphore(2)
+
+
+def _structured_has_content(structured: dict | None) -> bool:
+    if not structured or not isinstance(structured, dict):
+        return False
+    return bool(
+        structured.get("attackUnderstanding")
+        or structured.get("attack_understanding")
+        or structured.get("relevantKnowledge")
+        or structured.get("relevant_knowledge")
+        or structured.get("preventionGuidance")
+        or structured.get("prevention_guidance")
+    )
+
 
 def _parse_summary(text: str) -> str:
     raw = (text or "").strip()
@@ -399,50 +432,59 @@ class CommanderService:
         """
         Knowledge-only RAG enrichment. Never returns a response plan or actionIds.
         Soft-fails with retrieved=false on any retrieval/LLM error.
-        """
-        try:
-            retriever = self._ensure_retriever()
-        except Exception as e:
-            logger.warning("Knowledge retriever init failed: %s", e)
-            return _unavailable_knowledge("Knowledge retrieval unavailable")
 
-        try:
-            plan = build_deterministic_retrieval_plan(
-                detection=detection,
-                query_override=query,
-                hints=incident_hints,
-            )
-            chunks, status = await asyncio.to_thread(
-                retrieve_knowledge_chunks, retriever, plan, top_k=3, max_chunks=5
-            )
-            queries = [q.query for q in plan.queries]
-            if not chunks:
+        After successful Qdrant retrieval, always returns deterministic chunk
+        structure. Optional LLM structuring is best-effort with a short timeout
+        so live Commander is never blocked 25s+ waiting on Ollama.
+        """
+        async with _knowledge_enrich_sem:
+            try:
+                retriever = self._ensure_retriever()
+            except Exception as e:
+                logger.warning("Knowledge retriever init failed: %s", e)
                 return _unavailable_knowledge("Knowledge retrieval unavailable")
 
             try:
-                hints = incident_hints or (
-                    detection.model_dump(by_alias=True) if detection else {}
+                plan = build_deterministic_retrieval_plan(
+                    detection=detection,
+                    query_override=query,
+                    hints=incident_hints,
                 )
-                structured = await self._structure_knowledge_llm(chunks, hints=hints)
-                if not (
-                    structured.get("attackUnderstanding")
-                    or structured.get("attack_understanding")
-                    or structured.get("relevantKnowledge")
-                    or structured.get("relevant_knowledge")
-                    or structured.get("preventionGuidance")
-                    or structured.get("prevention_guidance")
-                ):
-                    structured = fallback_structure_from_chunks(chunks)
-            except Exception as e:
-                logger.warning("Knowledge LLM structuring failed: %s", e)
-                structured = fallback_structure_from_chunks(chunks)
+                chunks, status = await asyncio.to_thread(
+                    retrieve_knowledge_chunks, retriever, plan, top_k=3, max_chunks=5
+                )
+                queries = [q.query for q in plan.queries]
+                if not chunks:
+                    return _unavailable_knowledge("Knowledge retrieval unavailable")
 
-            return _structure_to_body(
-                structured, chunks=chunks, retrieval_status=status, queries=queries
-            )
-        except Exception as e:
-            logger.warning("Knowledge enrichment failed: %s", e)
-            return _unavailable_knowledge("Knowledge retrieval unavailable")
+                # Deterministic structure is the live default so Commander is not
+                # blocked on Ollama. Optional short LLM polish when explicitly enabled.
+                structured = fallback_structure_from_chunks(chunks)
+                if _knowledge_llm_structure_enabled():
+                    try:
+                        hints = incident_hints or (
+                            detection.model_dump(by_alias=True) if detection else {}
+                        )
+                        llm_structured = await asyncio.wait_for(
+                            self._structure_knowledge_llm(chunks, hints=hints),
+                            timeout=_knowledge_structure_timeout_s(),
+                        )
+                        if _structured_has_content(llm_structured):
+                            structured = llm_structured
+                    except asyncio.TimeoutError:
+                        logger.warning(
+                            "Knowledge LLM structuring timed out after %.1fs — using deterministic fallback",
+                            _knowledge_structure_timeout_s(),
+                        )
+                    except Exception as e:
+                        logger.warning("Knowledge LLM structuring failed: %s", e)
+
+                return _structure_to_body(
+                    structured, chunks=chunks, retrieval_status=status, queries=queries
+                )
+            except Exception as e:
+                logger.warning("Knowledge enrichment failed: %s", e)
+                return _unavailable_knowledge("Knowledge retrieval unavailable")
 
     async def answer_with_knowledge(
         self,

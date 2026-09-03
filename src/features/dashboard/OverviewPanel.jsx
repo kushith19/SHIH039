@@ -543,17 +543,17 @@ export default function OverviewPanel({
               {finance.exposureLabel}
             </div>
             <StatusBadge tone={finance.lakhs > 0 ? bandTone(finance.residualBand) : 'muted'}>
-              {finance.lakhs > 0 ? 'Simulated exposure' : 'No current financial exposure'}
+              {finance.lakhs > 0 ? 'Simulated exposure' : 'No current economic exposure'}
             </StatusBadge>
           </div>
           <p className="tn-meta mt-3 leading-relaxed">
             {finance.lakhs > 0
-              ? 'Simulated exposure associated with currently flagged financial services. This is not a predicted financial loss.'
-              : 'No currently flagged node maps to a financial service.'}
+              ? 'Simulated potential economic impact across affected Smart City infrastructure. This is not a predicted financial loss.'
+              : 'No currently flagged node maps to economically consequential infrastructure.'}
           </p>
           <dl className="mt-5 space-y-3 border-t border-[var(--tn-line)] pt-4">
             <div className="flex justify-between gap-3">
-              <dt className="tn-label">Financial services</dt>
+              <dt className="tn-label">Economic services</dt>
               <dd className="font-mono text-sm tabular-nums">{finance.affectedServices}</dd>
             </div>
             <div className="flex justify-between gap-3">

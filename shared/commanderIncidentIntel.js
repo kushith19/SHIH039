@@ -94,37 +94,50 @@ function simulatedFinance(context) {
       available: false,
       exposureLabel: null,
       services: [],
+      breakdown: [],
       narrative:
-        'No simulated financial exposure is attached to this incident context.',
+        'No simulated economic exposure is attached to this incident context.',
     }
   }
-  const services = Array.isArray(fin.affectedServiceIds)
-    ? fin.affectedServiceIds.map(String)
-    : Array.isArray(fin.services)
-      ? fin.services.map((s) => (typeof s === 'string' ? s : s.label || s.id || s.serviceId)).filter(Boolean)
-      : []
+  const breakdown = Array.isArray(fin.breakdown)
+    ? fin.breakdown.map((row) => ({
+        id: String(row.id ?? row.serviceId ?? ''),
+        label: String(row.label || row.id || row.serviceId || 'Service'),
+        lakhs: Number(row.lakhs) || 0,
+        exposureLabel: row.exposureLabel || null,
+      }))
+    : []
+  const services = breakdown.length
+    ? breakdown.map((b) => b.label || b.id).filter(Boolean)
+    : Array.isArray(fin.affectedServiceIds)
+      ? fin.affectedServiceIds.map(String)
+      : Array.isArray(fin.services)
+        ? fin.services
+            .map((s) => (typeof s === 'string' ? s : s.label || s.id || s.serviceId))
+            .filter(Boolean)
+        : []
   const label = fin.exposureLabel || null
   const asset = assetLabel(context)
   let narrative =
-    'SIMULATED EXPOSURE only — not actual financial loss. Values are scenario-based demo estimates.'
+    'Simulated potential economic impact across affected Smart City infrastructure. Not actual financial loss.'
   if (label && label !== '₹0') {
-    narrative = `SIMULATED EXPOSURE ${label} on ${asset}. This is a scenario-based estimate, not actual loss.`
+    narrative = `SIMULATED EXPOSURE ${label} (demo estimate). Potential economic impact across affected Smart City infrastructure linked to ${asset} — not actual financial loss.`
     if (services.length) {
-      narrative += ` Finance-tagged services in scope: ${services.slice(0, 6).join(', ')}.`
+      narrative += ` Affected infrastructure: ${services.slice(0, 8).join(', ')}.`
     } else if (fin.explanation) {
       narrative += ` ${fin.explanation}`
     }
-    const path = pathLabels(context)
-    if (path.length > 1) {
-      narrative +=
-        ' Propagation toward financially critical dependencies increases potential business impact along the observed path.'
-    }
+  } else if (label === '₹0') {
+    narrative =
+      'Current simulated economic exposure is ₹0. No mapped Smart City infrastructure remains in the live affected set. Not actual financial loss.'
   }
   return {
     simulated: true,
     available: Boolean(label && label !== '₹0'),
     exposureLabel: label,
     services,
+    breakdown,
+    affectedServices: Number(fin.affectedServices) || breakdown.length || services.length,
     narrative,
   }
 }

@@ -52,10 +52,10 @@ export default function FinancialExposureCard({ detection = null, nodes = [], ed
     <section className="tn-surface px-5 py-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="tn-section-title tracking-wide">Cyber-physical financial exposure</h2>
+          <h2 className="tn-section-title tracking-wide">Simulated economic exposure</h2>
           <p className="tn-meta mt-1 max-w-xl">
-            Business impact derived from cyber risk, infrastructure criticality, propagation and
-            financial exposure.
+            Potential economic impact across affected Smart City infrastructure —
+            demo estimate for cyber-risk prioritization, not actual financial loss.
           </p>
         </div>
         <StatusBadge tone="muted">Simulated exposure</StatusBadge>
@@ -81,7 +81,7 @@ export default function FinancialExposureCard({ detection = null, nodes = [], ed
           </div>
         </div>
         <div>
-          <div className="tn-label">Financial exposure</div>
+          <div className="tn-label">Economic exposure</div>
           <div className="mt-1 font-mono text-[1.375rem] font-medium leading-7 tabular-nums">
             {view.exposureLabel}
           </div>

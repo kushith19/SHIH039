@@ -10,6 +10,11 @@ import { copyFileSync, existsSync, readFileSync } from 'node:fs'
 import net from 'node:net'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import {
+  commanderHealthRequired,
+  commanderUvicornArgs,
+  resolveCommanderLaunch,
+} from './commanderStartup.mjs'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const aiCom = join(root, 'ai-com-v1')
@@ -17,6 +22,7 @@ const teleIng = join(root, 'tele-ingestion')
 const withIngest = !process.argv.includes('--no-ingest')
 const withRag = process.argv.includes('--with-rag')
 const DEFAULT_MODEL = 'qwen2.5:7b-instruct'
+const COMMANDER_HEALTH_TIMEOUT_MS = 120_000
 const children = []
 let shuttingDown = false
 const npmShell = process.platform === 'win32'
@@ -299,6 +305,90 @@ async function ensureIngest() {
   })
 }
 
+/** Kill listeners on a TCP port (wedged uvicorn that accepts TCP but never answers /health). */
+function killPortListeners(port) {
+  const r = spawnSync('lsof', ['-nP', `-iTCP:${port}`, '-sTCP:LISTEN', '-t'], {
+    encoding: 'utf8',
+  })
+  const pids = [
+    ...new Set(
+      (r.stdout || '')
+        .trim()
+        .split(/\n/)
+        .flatMap((line) => line.trim().split(/\s+/))
+        .filter(Boolean)
+    ),
+  ]
+  for (const pid of pids) {
+    const n = Number(pid)
+    if (!Number.isFinite(n)) continue
+    try {
+      process.kill(n, 'SIGTERM')
+      log(`sent SIGTERM to wedged process on :${port} (pid ${n})`)
+    } catch (err) {
+      log(`could not signal pid ${n}: ${err?.message || err}`)
+    }
+  }
+  return pids.length
+}
+
+async function ensureCommander() {
+  const commanderHealth = 'http://127.0.0.1:8000/health'
+  const healthOk = await httpReady(commanderHealth)
+  const busy = await portBusy(8000)
+  const action = resolveCommanderLaunch({ healthOk, portBusy: busy })
+
+  if (action === 'reuse') {
+    log('AI Commander already healthy on :8000')
+    return
+  }
+
+  if (action === 'replace') {
+    log(
+      'port 8000 is occupied but GET /health failed — treating as wedged Commander and replacing it'
+    )
+    killPortListeners(8000)
+    await sleep(800)
+    if (await portBusy(8000)) {
+      killPortListeners(8000)
+      await sleep(1200)
+    }
+    if (await portBusy(8000) && !(await httpReady(commanderHealth))) {
+      fail(
+        'wedged AI Commander on :8000 could not be cleared. Kill it manually (`lsof -nP -iTCP:8000 -sTCP:LISTEN`) then rerun.'
+      )
+    }
+    if (await httpReady(commanderHealth)) {
+      log('AI Commander became healthy after cleanup')
+      return
+    }
+  }
+
+  log('starting AI Commander on :8000 (no --reload)')
+  const child = spawnInherit(venvPython(), commanderUvicornArgs(), { cwd: aiCom })
+  const ready = await waitForHttp(commanderHealth, {
+    timeoutMs: COMMANDER_HEALTH_TIMEOUT_MS,
+    label: 'AI Commander',
+    okOnly: true,
+    required: false,
+  })
+  if (!ready) {
+    if (!child.killed) {
+      try {
+        child.kill('SIGTERM')
+      } catch {
+        /* ignore */
+      }
+    }
+    killPortListeners(8000)
+    if (commanderHealthRequired()) {
+      fail(
+        'AI Commander did not become ready (GET /health must succeed). Not leaving a wedged process on :8000.'
+      )
+    }
+  }
+}
+
 async function main() {
   ensureEnv('server/.env.example', 'server/.env')
   ensureEnv('ai-com-v1/.env.example', 'ai-com-v1/.env')
@@ -324,27 +414,7 @@ async function main() {
   if (withIngest) await ensureIngest()
 
   ensurePython()
-  const commanderHealth = 'http://127.0.0.1:8000/health'
-  if (await httpReady(commanderHealth)) {
-    log('AI Commander already running on :8000')
-  } else if (await portBusy(8000)) {
-    log(
-      'port 8000 is occupied but /health does not respond (wedged Commander). Skipping it so the UI can start.'
-    )
-    log('Fix: kill the old process (`lsof -nP -iTCP:8000 -sTCP:LISTEN`) then rerun, or use npm run dev:all')
-  } else {
-    log('starting AI Commander on :8000')
-    spawnInherit(
-      venvPython(),
-      ['-m', 'uvicorn', 'src.main:app', '--reload', '--host', '0.0.0.0', '--port', '8000'],
-      { cwd: aiCom }
-    )
-    await waitForHttp(commanderHealth, {
-      timeoutMs: 45_000,
-      label: 'AI Commander',
-      required: false,
-    })
-  }
+  await ensureCommander()
 
   log('starting web UI (:5173) and game API (:3001)')
   log('')

@@ -102,7 +102,7 @@ export function whyItMatters(incident) {
   const fin = incident?.financialContext || incident?.financial_context
   const money =
     fin?.simulated === true && fin?.exposureLabel && fin.exposureLabel !== '₹0'
-      ? ` Simulated financial exposure on mapped services is ${fin.exposureLabel} (demo mapping, not a loss forecast).`
+      ? ` Simulated economic exposure on mapped Smart City infrastructure is ${fin.exposureLabel} (demo mapping, not a loss forecast).`
       : ''
   const spread =
     hops > 0

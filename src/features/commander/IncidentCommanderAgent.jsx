@@ -151,14 +151,48 @@ function InvestigateView({ intel }) {
       <GraphImpactBlock graph={s.graphImpact} path={path} />
 
       <section className="tn-surface px-5 py-5">
-        <h2 className="tn-section-title">Financial impact</h2>
-        <StatusBadge tone="muted">Simulated exposure</StatusBadge>
-        <p className="mt-3 text-sm leading-relaxed">
-          {s.financialImpact?.narrative}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="tn-section-title">Financial / Economic Impact</h2>
+          <StatusBadge tone="muted">Simulated exposure</StatusBadge>
+        </div>
+        <p className="tn-meta mt-2 leading-relaxed">
+          Simulated potential economic impact across affected Smart City
+          infrastructure. Not actual financial loss.
         </p>
         {s.financialImpact?.exposureLabel ? (
-          <p className="mt-2 font-mono text-base tabular-nums">
+          <p className="mt-3 font-mono text-2xl font-medium tabular-nums">
             {s.financialImpact.exposureLabel}
+          </p>
+        ) : null}
+        {s.financialImpact?.breakdown?.length ? (
+          <div className="mt-4 border-t border-[var(--tn-line)] pt-4">
+            <div className="tn-label">Affected infrastructure</div>
+            <ul className="mt-2 space-y-1.5 text-sm">
+              {s.financialImpact.breakdown.map((row) => (
+                <li
+                  key={row.id || row.label}
+                  className="flex items-baseline justify-between gap-3"
+                >
+                  <span>{row.label}</span>
+                  <span className="shrink-0 font-mono tabular-nums">
+                    {row.exposureLabel || '—'}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="tn-meta mt-3">
+              {s.financialImpact.affectedServices ??
+                s.financialImpact.breakdown.length}{' '}
+              affected economic service
+              {(s.financialImpact.affectedServices ??
+                s.financialImpact.breakdown.length) === 1
+                ? ''
+                : 's'}
+            </p>
+          </div>
+        ) : s.financialImpact?.narrative ? (
+          <p className="mt-3 text-sm leading-relaxed">
+            {s.financialImpact.narrative}
           </p>
         ) : null}
       </section>

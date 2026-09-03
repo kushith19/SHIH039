@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import ThreatSummary from './ThreatSummary'
 import RiskBreakdown from './RiskBreakdown'
 import EvidenceCards from './EvidenceCards'
@@ -15,6 +15,12 @@ import {
   COMMANDER_MODES,
   buildIncidentIntel,
 } from '@shared/commanderIncidentIntel.js'
+import { commanderIntelSyncKey } from './commanderIntelSyncKey.js'
+import {
+  intelRequestIdentity,
+  mergeIntelKnowledge,
+  shouldApplyIntelUpdate,
+} from './commanderIntelApply.js'
 
 const SECTIONS = [
   { id: 'evidence', label: 'Evidence' },
@@ -29,6 +35,9 @@ export default function CommanderPanel({
   posture,
   incidents = [],
   focusIncidentId = null,
+  // Accepted for API compat; ticks must not drive RAG (see commanderIntelSyncKey).
+  simulationTick: _simulationTick = null,
+  detection = null,
 }) {
   const briefing = normalizeBriefing(briefingProp)
   const mitre = briefing?.mitreCandidates || []
@@ -38,6 +47,11 @@ export default function CommanderPanel({
   const [incidentContext, setIncidentContext] = useState(null)
   const [mode, setMode] = useState(COMMANDER_MODES.INVESTIGATE)
   const [intel, setIntel] = useState(null)
+  const requestSeqRef = useRef(0)
+  const identityRef = useRef('')
+
+  // Refresh when flagged sets / incidents change (exposure recovery), not every telemetry tick.
+  const intelSyncKey = commanderIntelSyncKey(detection)
 
   useEffect(() => {
     if (focusIncidentId) setMode(COMMANDER_MODES.INVESTIGATE)
@@ -47,10 +61,51 @@ export default function CommanderPanel({
     if (!roomId || !focusIncidentId) {
       setIncidentContext(null)
       setIntel(null)
+      identityRef.current = ''
       return undefined
     }
+
+    const identity = intelRequestIdentity({
+      roomId,
+      incidentId: focusIncidentId,
+      mode,
+    })
+    identityRef.current = identity
+    const requestSeq = ++requestSeqRef.current
     let cancelled = false
+
+    const apply = (context, nextIntel) => {
+      if (cancelled) return
+      if (
+        !shouldApplyIntelUpdate({
+          requestSeq,
+          latestSeq: requestSeqRef.current,
+          identity,
+          latestIdentity: identityRef.current,
+        })
+      ) {
+        return
+      }
+      if (context) setIncidentContext(context)
+      setIntel((prev) => mergeIntelKnowledge(prev, nextIntel))
+    }
+
     const load = async () => {
+      // Phase 1: fast commander-context so the UI is not blank while RAG runs.
+      try {
+        const ctxRes = await fetch(
+          `/rooms/${encodeURIComponent(roomId)}/incidents/${encodeURIComponent(focusIncidentId)}/commander-context`
+        )
+        const ctxJson = await ctxRes.json()
+        if (cancelled) return
+        if (ctxRes.ok && ctxJson.context) {
+          apply(ctxJson.context, buildIncidentIntel(ctxJson.context, mode))
+        }
+      } catch {
+        /* phase-2 may still succeed */
+      }
+
+      // Phase 2: enriched intel including knowledgeContext (RAG).
       try {
         const res = await fetch(
           `/rooms/${encodeURIComponent(roomId)}/commander/incident-intel`,
@@ -63,39 +118,21 @@ export default function CommanderPanel({
         const json = await res.json()
         if (cancelled) return
         if (!res.ok || json.ok === false) {
-          // Fall back to GET commander-context + local intel builder
-          try {
-            const ctxRes = await fetch(
-              `/rooms/${encodeURIComponent(roomId)}/incidents/${encodeURIComponent(focusIncidentId)}/commander-context`
-            )
-            const ctxJson = await ctxRes.json()
-            if (cancelled) return
-            if (ctxRes.ok && ctxJson.context) {
-              setIncidentContext(ctxJson.context)
-              setIntel(buildIncidentIntel(ctxJson.context, mode))
-              return
-            }
-          } catch {
-            /* ignore */
-          }
-          setIncidentContext(null)
-          setIntel(null)
           return
         }
-        setIncidentContext(json.context ?? null)
-        setIntel(json.intel ?? (json.context ? buildIncidentIntel(json.context, mode) : null))
+        const nextIntel =
+          json.intel ?? (json.context ? buildIncidentIntel(json.context, mode) : null)
+        apply(json.context ?? null, nextIntel)
       } catch {
-        if (!cancelled) {
-          setIncidentContext(null)
-          setIntel(null)
-        }
+        /* keep phase-1 intel if present */
       }
     }
+
     void load()
     return () => {
       cancelled = true
     }
-  }, [roomId, focusIncidentId, mode])
+  }, [roomId, focusIncidentId, mode, intelSyncKey])
 
   if (focusIncidentId) {
     return (

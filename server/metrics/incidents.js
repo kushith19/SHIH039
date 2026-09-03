@@ -1,4 +1,7 @@
-import { computeFinancialExposure } from '../../shared/financialExposure.js'
+import {
+  computeFinancialExposure,
+  currentExposureForIncident,
+} from '../../shared/financialExposure.js'
 import { detectionTypeLabel } from '../../shared/incidents.js'
 import {
   INCIDENT_STATUS,
@@ -572,15 +575,33 @@ export function createIncidentRelationship(sourceId, targetId, type, reason = ''
 
 /**
  * Build Commander context for an incident.
+ * Current economic exposure is recomputed from live room detection when open,
+ * and forced to ₹0 when cleared (historical snapshot kept on financialContext).
  * @param {string} roomId
  * @param {string} incidentId
- * @param {{ nodes?: object[] }} [options] - optional room nodes for asset type/sector enrichment
+ * @param {{ nodes?: object[], edges?: object[], detection?: object, room?: object }} [options]
  */
 export function commanderContextFor(roomId, incidentId, options = {}) {
   const incident = getIncident(roomId, incidentId)
   if (!incident) return null
   const related = relatedFor(incident.incidentId)
-  const nodes = Array.isArray(options?.nodes) ? options.nodes : []
+  const room = options?.room ?? null
+  const nodes = Array.isArray(options?.nodes)
+    ? options.nodes
+    : Array.isArray(room?.nodes)
+      ? room.nodes
+      : []
+  const edges = Array.isArray(options?.edges)
+    ? options.edges
+    : Array.isArray(room?.edges)
+      ? room.edges
+      : []
+  const detection =
+    options?.detection !== undefined
+      ? options.detection
+      : room?.detection ?? null
+  const liveRoom = room || { nodes, edges, detection }
+  const financialExposure = currentExposureForIncident(incident, liveRoom)
   const base = {
     incidentId: incident.incidentId,
     liveIncidentId: incident.liveIncidentId,
@@ -601,7 +622,7 @@ export function commanderContextFor(roomId, incidentId, options = {}) {
     primaryPathLabels: incident.graphContext?.primaryPathLabels ?? [],
     blastRadius: incident.graphContext?.blastRadius ?? null,
     hopDistance: incident.graphContext?.hopDistance ?? null,
-    financialExposure: incident.financialContext,
+    financialExposure,
     relatedIncidents: related,
     campaignId: incident.campaignId,
     currentStatus: incident.status,

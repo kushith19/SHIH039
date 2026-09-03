@@ -470,9 +470,156 @@ test('fetchKnowledgeContext normalizes payload and strips plan/action fields', a
   }
 })
 
-test('unavailableKnowledgeContext shape', () => {
-  const kc = unavailableKnowledgeContext()
-  assert.equal(kc.retrieved, false)
-  assert.deepEqual(kc.attackUnderstanding, [])
-  assert.deepEqual(kc.sources, [])
+test('fetchKnowledgeContext soft-fails without opening global circuit', async () => {
+  _clearKnowledgeCacheForTests()
+  _resetCommanderCircuitForTests()
+  const orig = globalThis.fetch
+  globalThis.fetch = async (url) => {
+    const u = String(url)
+    if (u.includes('/health')) {
+      return { ok: true, text: async () => JSON.stringify({ status: 'ok' }) }
+    }
+    if (u.includes('/commander/knowledge')) {
+      const err = new Error('aborted')
+      err.name = 'AbortError'
+      throw err
+    }
+    return { ok: false, text: async () => 'no' }
+  }
+  try {
+    const kc = await fetchKnowledgeContext({
+      query: 'payment flood',
+      incidentId: 'inc-soft',
+      fingerprint: 'fp-soft',
+    })
+    assert.equal(kc.retrieved, false)
+
+    // Health/knowledge path must remain usable after soft-fail (circuit not latched).
+    let healthHits = 0
+    globalThis.fetch = async (url) => {
+      const u = String(url)
+      if (u.includes('/health')) {
+        healthHits += 1
+        return { ok: true, text: async () => JSON.stringify({ status: 'ok' }) }
+      }
+      if (u.includes('/commander/knowledge')) {
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              retrieved: true,
+              knowledgeStatus: 'success',
+              attackUnderstanding: ['ok'],
+              relevantKnowledge: [],
+              preventionGuidance: [],
+              sources: [{ document: 'NIST', source: 'NIST' }],
+            }),
+        }
+      }
+      return { ok: false, text: async () => 'no' }
+    }
+    const recovered = await fetchKnowledgeContext({
+      query: 'payment flood',
+      incidentId: 'inc-soft-2',
+      fingerprint: 'fp-soft-2',
+    })
+    assert.equal(recovered.retrieved, true)
+    assert.ok(healthHits >= 1)
+  } finally {
+    globalThis.fetch = orig
+    _resetCommanderCircuitForTests()
+    _clearKnowledgeCacheForTests()
+  }
+})
+
+test('fetchKnowledgeContext does not cache unavailable; recovers after circuit cooldown', async () => {
+  _clearKnowledgeCacheForTests()
+  _resetCommanderCircuitForTests()
+  const orig = globalThis.fetch
+  let knowledgeHits = 0
+  globalThis.fetch = async (url) => {
+    const u = String(url)
+    if (u.includes('/health')) {
+      return { ok: true, text: async () => JSON.stringify({ status: 'ok' }) }
+    }
+    if (u.includes('/commander/knowledge')) {
+      knowledgeHits += 1
+      return {
+        ok: true,
+        text: async () =>
+          JSON.stringify({
+            retrieved: false,
+            knowledgeStatus: 'unavailable',
+            reason: 'Knowledge retrieval unavailable',
+            sources: [],
+          }),
+      }
+    }
+    return { ok: false, text: async () => 'no' }
+  }
+  try {
+    const miss = await fetchKnowledgeContext({
+      query: 'payment flood',
+      incidentId: 'inc-recover',
+      fingerprint: 'fp-recover',
+    })
+    assert.equal(miss.retrieved, false)
+    assert.equal(knowledgeHits, 1)
+
+    // Soft-fail must not be cached — a later call with open circuit still soft-fails without sticky cache.
+    _openCommanderCircuitForTests(60_000)
+    const whileDown = await fetchKnowledgeContext({
+      query: 'payment flood',
+      incidentId: 'inc-recover',
+      fingerprint: 'fp-recover',
+    })
+    assert.equal(whileDown.retrieved, false)
+    assert.equal(knowledgeHits, 1)
+
+    _resetCommanderCircuitForTests()
+    globalThis.fetch = async (url) => {
+      const u = String(url)
+      if (u.includes('/health')) {
+        return { ok: true, text: async () => JSON.stringify({ status: 'ok' }) }
+      }
+      if (u.includes('/commander/knowledge')) {
+        knowledgeHits += 1
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              retrieved: true,
+              knowledgeStatus: 'success',
+              attackUnderstanding: ['recovered'],
+              relevantKnowledge: [],
+              preventionGuidance: [],
+              sources: [{ document: 'NIST', source: 'NIST' }],
+            }),
+        }
+      }
+      return { ok: false, text: async () => 'no' }
+    }
+
+    const recovered = await fetchKnowledgeContext({
+      query: 'payment flood',
+      incidentId: 'inc-recover',
+      fingerprint: 'fp-recover',
+    })
+    assert.equal(recovered.retrieved, true)
+    assert.equal(recovered.knowledgeStatus, 'success')
+    assert.equal(knowledgeHits, 2)
+
+    // Successful result may be cached; second call should not hit knowledge again.
+    const cached = await fetchKnowledgeContext({
+      query: 'payment flood',
+      incidentId: 'inc-recover',
+      fingerprint: 'fp-recover',
+    })
+    assert.equal(cached.retrieved, true)
+    assert.equal(knowledgeHits, 2)
+  } finally {
+    globalThis.fetch = orig
+    _resetCommanderCircuitForTests()
+    _clearKnowledgeCacheForTests()
+  }
 })

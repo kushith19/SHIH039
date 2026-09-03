@@ -137,12 +137,43 @@ test('retrieval, status update, commander context preserve graph and finance', (
   assert.deepEqual(ctx.primaryPath, ['pay', 'gw', 'core'])
   assert.equal(ctx.campaignId, 'cmp-1')
   assert.ok(ctx.financialExposure.simulated)
+  assert.ok(ctx.financialExposure.lakhs > 0)
   assert.equal(ctx.hopDistance, 2)
   assert.ok(Array.isArray(ctx.availableActions))
   assert.equal(ctx.availableActions.length, 1)
   assert.equal(ctx.availableActions[0].actionId, 'isolate-node')
   assert.equal(ctx.availableActions[0].actionType, 'ISOLATE_NODE')
   assert.equal(ctx.affectedAsset?.id, 'pay')
+
+  // Live room with empty detection → current exposure ₹0 even while SQLite snapshot is non-zero
+  const liveZero = commanderContextFor('DEMO', 'inc-pay', {
+    room: { ...room, detection: { anomalyNodeIds: [], incidents: [] } },
+    nodes: room.nodes,
+    edges: room.edges,
+    detection: { anomalyNodeIds: [], incidents: [] },
+  })
+  assert.equal(liveZero.financialExposure.exposureLabel, '₹0')
+  assert.equal(liveZero.financialExposure.lakhs, 0)
+})
+
+test('cleared incident commander context reports current exposure ₹0', () => {
+  resetMetricsDbForTests()
+  const room = payRoom()
+  persistDetectionIncidents(room, payDetection())
+  persistDetectionIncidents(room, { ...payDetection(), incidents: [], anomalyNodeIds: [] })
+  const cleared = listIncidents('DEMO').find((i) => i.status === 'cleared')
+  assert.ok(cleared)
+  assert.ok(cleared.financialContext.lakhs > 0)
+  const ctx = commanderContextFor('DEMO', cleared.incidentId, {
+    room: { ...room, detection: { anomalyNodeIds: [], incidents: [] } },
+    detection: { anomalyNodeIds: [], incidents: [] },
+    nodes: room.nodes,
+    edges: room.edges,
+  })
+  assert.equal(ctx.status, 'cleared')
+  assert.equal(ctx.financialExposure.lakhs, 0)
+  assert.equal(ctx.financialExposure.exposureLabel, '₹0')
+  assert.ok(ctx.financialExposure.historicalExposure?.lakhs > 0)
 })
 
 test('single confirmed seed still persists full financial blast radius', () => {

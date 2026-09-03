@@ -51,8 +51,23 @@ function payContext(overrides = {}) {
       simulated: true,
       exposureLabel: '₹2.4 Cr',
       affectedServiceIds: ['payment-processing-system', 'core-banking-system'],
+      breakdown: [
+        {
+          id: 'core-banking-system',
+          label: 'Core Banking',
+          lakhs: 120,
+          exposureLabel: '₹1.2 Cr',
+        },
+        {
+          id: 'payment-processing-system',
+          label: 'Payment Processing',
+          lakhs: 80,
+          exposureLabel: '₹80 L',
+        },
+      ],
+      affectedServices: 2,
       explanation:
-        'High cyber residual is flagging mapped financial services (₹2.4 Cr simulated).',
+        'High cyber residual is flagging economically consequential services (₹2.4 Cr simulated).',
     },
     relatedIncidents: [
       {
@@ -287,7 +302,7 @@ describe('commander incident intel', () => {
       payContext({ financialExposure: null })
     )
     assert.equal(inv.sections.financialImpact.available, false)
-    assert.match(inv.sections.financialImpact.narrative, /No simulated/)
+    assert.match(inv.sections.financialImpact.narrative, /No simulated economic/)
   })
 
   it('buildIncidentIntel switches modes', () => {

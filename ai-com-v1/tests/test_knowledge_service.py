@@ -83,6 +83,51 @@ def test_enrich_knowledge_fallback_structure_without_llm(monkeypatch):
     assert "actionId" not in dumped
 
 
+def test_enrich_knowledge_live_path_skips_llm_by_default(monkeypatch):
+    """Live Commander must not block on Ollama structuring."""
+    chunks = [
+        _chunk(0, name="NIST.SP.800-82r3", source="NIST"),
+    ]
+    svc = CommanderService(retriever=FakeRetriever(chunks=chunks))
+    called = {"n": 0}
+
+    async def track(*_a, **_k):
+        called["n"] += 1
+        await asyncio.sleep(30)
+        return {"attackUnderstanding": ["should not wait"]}
+
+    monkeypatch.setattr(svc, "_structure_knowledge_llm", track)
+    monkeypatch.delenv("KNOWLEDGE_LLM_STRUCTURE", raising=False)
+
+    kc = asyncio.run(svc.enrich_knowledge(query="ics anomaly"))
+    assert called["n"] == 0
+    assert kc.retrieved is True
+    assert kc.knowledge_status in ("success", "degraded")
+    assert kc.relevant_knowledge or kc.sources
+
+
+def test_enrich_knowledge_optional_llm_times_out_to_fallback(monkeypatch):
+    chunks = [
+        _chunk(0, name="NIST.SP.800-82r3", source="NIST"),
+    ]
+    svc = CommanderService(retriever=FakeRetriever(chunks=chunks))
+
+    async def slow(*_a, **_k):
+        await asyncio.sleep(30)
+        return {"attackUnderstanding": ["too late"]}
+
+    monkeypatch.setattr(svc, "_structure_knowledge_llm", slow)
+    monkeypatch.setenv("KNOWLEDGE_LLM_STRUCTURE", "1")
+    monkeypatch.setenv("KNOWLEDGE_STRUCTURE_TIMEOUT_S", "0.5")
+
+    t0 = __import__("time").time()
+    kc = asyncio.run(svc.enrich_knowledge(query="ics anomaly"))
+    elapsed = __import__("time").time() - t0
+    assert kc.retrieved is True
+    assert elapsed < 5.0
+    assert kc.relevant_knowledge or kc.sources
+
+
 def test_strip_forbidden_in_enrich_path():
     cleaned = strip_forbidden_keys(
         {
