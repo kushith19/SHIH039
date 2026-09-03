@@ -14,10 +14,17 @@ export const CITY_CONTEXT_LABELS = {
   major_event: 'Major event',
 }
 
-export function derivePosture(incidents = [], anomalyCount = 0) {
+export function derivePosture(incidents = [], anomalyCount = 0, tgnnCalibrating = false) {
   const high = incidents.filter(
     (i) => i.severity === 'critical' || i.severity === 'high'
   ).length
+  if (tgnnCalibrating) {
+    return {
+      key: 'calm',
+      label: 'Calibrating',
+      blurb: 'TGNN is learning this match’s live baseline. Wait before attacking.',
+    }
+  }
   if (high > 0) {
     return {
       key: 'critical',
@@ -67,6 +74,29 @@ export function latestByEndpoint(samples, metricKey) {
     if (!prev || s.tick >= prev.tick) latest.set(s.endpointId, s)
   }
   return latest
+}
+
+/** Drop leftover ingest ticks from a previous match after the sim clock resets. */
+export function samplesForMatch(samples, simulationTick) {
+  const cap = Number(simulationTick)
+  if (!Number.isFinite(cap)) return samples ?? []
+  return (samples ?? []).filter((s) => {
+    const t = Number(s?.tick)
+    return Number.isFinite(t) && t >= 0 && t <= cap
+  })
+}
+
+export function sampleTickAligned(sampleTick, simulationTick, { maxDelta = 1 } = {}) {
+  const a = Number(sampleTick)
+  const b = Number(simulationTick)
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return false
+  return Math.abs(a - b) <= maxDelta
+}
+
+/** Keep the last stable % when Timescale lags the websocket context tick. */
+export function holdAlignedPct({ aligned, nextPct, heldPct }) {
+  if (aligned) return nextPct ?? null
+  return heldPct ?? null
 }
 
 export function fmt(n) {

@@ -62,6 +62,9 @@ export const TRUST_CONFIG = Object.freeze({
     scoreAlpha: 4.5,
     temporalWindow: 3,
     embedDim: 8,
+    warmupTicks: 15,
+    calibratorMinSigma: 0.05,
+    scoreZOffset: 1.25,
   }),
 
   spread: Object.freeze({

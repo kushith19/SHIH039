@@ -9,7 +9,7 @@ import {
   peerFromNeighborLocal,
   undirectedNeighbors,
 } from './trustModel.js'
-import { getTelemetryKeys, getYamlMetricNames, onYamlMetricNamesChange } from './telemetryKeys.js'
+import { getTelemetryKeys } from './telemetryKeys.js'
 
 export const BASE_CITY_FEATURE_KEYS = Object.freeze([
   'telemetryDeviation',
@@ -28,16 +28,13 @@ export const BASE_CITY_FEATURE_KEYS = Object.freeze([
   'contextLoad',
 ])
 
-/** Ordered city-graph channels. YAML metric names are appended after overlay. */
-export let CITY_FEATURE_KEYS = BASE_CITY_FEATURE_KEYS
+/** Frozen encoder input. YAML metric names must not resize the checkpoint. */
+export const CITY_FEATURE_KEYS = BASE_CITY_FEATURE_KEYS
 
-export function setCityYamlFeatureKeys(names) {
-  const extra = (Array.isArray(names) ? names : []).map((n) => `yaml:${n}`)
-  CITY_FEATURE_KEYS = Object.freeze([...BASE_CITY_FEATURE_KEYS, ...extra])
+/** @deprecated Kept so overlays do not explode W_IN. Encoder stays at 14 channels. */
+export function setCityYamlFeatureKeys(_names) {
+  return CITY_FEATURE_KEYS
 }
-
-setCityYamlFeatureKeys(getYamlMetricNames())
-onYamlMetricNamesChange(setCityYamlFeatureKeys)
 
 const CRITICALITY_NORM = Object.freeze({
   low: 0,
@@ -104,31 +101,9 @@ function incidentsFor(endpointId, state, ppsById) {
   return incidents
 }
 
-function runtimeRiskOf(ep) {
-  const runtime = ep.runtimeState && typeof ep.runtimeState === 'object' ? ep.runtimeState : {}
-  let r = 0
-  if (runtime.quarantined === true) r = Math.max(r, 1)
-  if (runtime.provenance === 'injected') r = Math.max(r, 0.75)
-  if (ep.attackOverrideActive === true) r = Math.max(r, 0.45)
-  return r
-}
-
-function yamlDeviationFeatures(expected, telemetry) {
-  const out = {}
-  for (const key of CITY_FEATURE_KEYS) {
-    if (!String(key).startsWith('yaml:')) continue
-    const name = key.slice('yaml:'.length)
-    const b = expected?.[name]
-    const e = telemetry?.[name]
-    if (b == null || e == null) {
-      out[key] = 0
-      continue
-    }
-    out[key] = logNorm(
-      computeDeviationMetrics({ baselinePps: b, effectivePps: e }).deviationRatio
-    )
-  }
-  return out
+/** Metric/graph only. Game flags (quarantine, injected, override) must not enter the encoder. */
+function runtimeRiskOf() {
+  return 0
 }
 
 function contextLoadOf(expected, baseline) {
@@ -239,11 +214,10 @@ export function extractCityFeatureFrame(graphState) {
     )
     const incidents = incidentsFor(ep.id, { endpoints, dependencies }, ppsById)
     const interaction = interactionFromIncidents(incidents)
-    const runtime = ep.runtimeState && typeof ep.runtimeState === 'object' ? ep.runtimeState : {}
     const intrinsic = intrinsicFromTypeAndCriticality({
       typeTrust: ep.typeTrust,
       criticality: ep.criticality,
-      runtime,
+      runtime: {},
     })
     const local = localPosture({
       intrinsic,
@@ -267,7 +241,7 @@ export function extractCityFeatureFrame(graphState) {
     locals.set(ep.id, {
       telemetryDeviation,
       behavioralDeviation: clamp01(1 - behavioral.score / 100),
-      runtimeRisk: runtimeRiskOf(ep),
+      runtimeRisk: runtimeRiskOf(),
       intrinsicTrust: clamp01(intrinsic / 100),
       interactionTrust: clamp01(interaction / 100),
       criticality: CRITICALITY_NORM[String(ep.criticality ?? '').toLowerCase()] ?? CRITICALITY_NORM.medium,
@@ -277,7 +251,6 @@ export function extractCityFeatureFrame(graphState) {
       downstreamStress: stressOf(incidents, 'downstream'),
       activityDeviation: logNorm(Math.max(nodePpsDev, mean(edgeDevs))),
       contextLoad: contextLoadOf(expected, baseline),
-      ...yamlDeviationFeatures(expected, telemetry),
     })
     localPostureById.set(ep.id, local)
   }

@@ -6,6 +6,7 @@
  */
 import { spawn, spawnSync } from 'node:child_process'
 import { copyFileSync, existsSync, readFileSync } from 'node:fs'
+import net from 'node:net'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -66,25 +67,68 @@ function modelPresent(names, model) {
   )
 }
 
-async function httpReady(url) {
-  const res = await fetch(url)
-  return res.ok
+function portBusy(port, host = '127.0.0.1') {
+  return new Promise((resolve) => {
+    let settled = false
+    const done = (busy) => {
+      if (settled) return
+      settled = true
+      socket.removeAllListeners()
+      socket.destroy()
+      resolve(busy)
+    }
+    const socket = net.connect({ port, host })
+    socket.setTimeout(800, () => done(true))
+    socket.once('connect', () => done(true))
+    socket.once('error', () => done(false))
+  })
 }
 
-async function waitForHttp(url, { timeoutMs, label, okOnly = false }) {
+async function fetchTimed(url, ms = 2500) {
+  const ctrl = new AbortController()
+  const timer = setTimeout(() => ctrl.abort(), ms)
+  try {
+    return await fetch(url, { signal: ctrl.signal })
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+async function httpReady(url) {
+  try {
+    const res = await fetchTimed(url)
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
+async function waitForHttp(url, { timeoutMs, label, okOnly = false, required = true }) {
   const start = Date.now()
   let last = ''
+  let lastLog = 0
+  log(`waiting for ${label} at ${url}`)
   while (Date.now() - start < timeoutMs) {
     try {
-      const res = await fetch(url)
-      if (res.ok || (!okOnly && res.status >= 200 && res.status < 500)) return
+      const res = await fetchTimed(url)
+      if (res.ok || (!okOnly && res.status >= 200 && res.status < 500)) {
+        log(`${label} ready`)
+        return true
+      }
       last = `${res.status}`
     } catch (err) {
-      last = err?.cause?.code || err?.message || 'offline'
+      last = err?.name === 'AbortError' ? 'timed out' : err?.cause?.code || err?.message || 'offline'
+    }
+    const elapsed = Date.now() - start
+    if (elapsed - lastLog > 8000) {
+      log(`still waiting for ${label} (${Math.round(elapsed / 1000)}s, last: ${last || 'no response'})`)
+      lastLog = elapsed
     }
     await sleep(800)
   }
-  fail(`${label} did not become ready at ${url} (${last})`)
+  if (required) fail(`${label} did not become ready at ${url} (${last})`)
+  log(`${label} not ready after ${Math.round(timeoutMs / 1000)}s (${last}) — continuing without it`)
+  return false
 }
 
 function spawnInherit(cmd, args, opts = {}) {
@@ -272,14 +316,14 @@ async function main() {
   if (withIngest) await ensureIngest()
 
   ensurePython()
-  let commanderUp = false
-  try {
-    commanderUp = await httpReady('http://127.0.0.1:8000/health')
-  } catch {
-    commanderUp = false
-  }
-  if (commanderUp) {
+  const commanderHealth = 'http://127.0.0.1:8000/health'
+  if (await httpReady(commanderHealth)) {
     log('AI Commander already running on :8000')
+  } else if (await portBusy(8000)) {
+    log(
+      'port 8000 is occupied but /health does not respond (wedged Commander). Skipping it so the UI can start.'
+    )
+    log('Fix: kill the old process (`lsof -nP -iTCP:8000 -sTCP:LISTEN`) then rerun, or use npm run dev:all')
   } else {
     log('starting AI Commander on :8000')
     spawnInherit(
@@ -287,9 +331,10 @@ async function main() {
       ['-m', 'uvicorn', 'src.main:app', '--reload', '--host', '0.0.0.0', '--port', '8000'],
       { cwd: aiCom }
     )
-    await waitForHttp('http://127.0.0.1:8000/health', {
-      timeoutMs: 180_000,
+    await waitForHttp(commanderHealth, {
+      timeoutMs: 45_000,
       label: 'AI Commander',
+      required: false,
     })
   }
 

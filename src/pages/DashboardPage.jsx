@@ -1,20 +1,23 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Crosshair, Radio } from 'lucide-react'
 import trustNetLogo from '../../logo/logo.png'
 import { cityContextAt, cityContextLabel, expectedTelemetry } from '@shared/cityContext.js'
-import { telemetryOf } from '../features/graph/infrastructureNode'
 import EndpointTable from '../features/dashboard/EndpointTable'
 import IncidentsPanel from '../features/dashboard/IncidentsPanel'
 import KpiStrip from '../features/dashboard/KpiStrip'
 import {
   derivePosture,
+  holdAlignedPct,
   lastValue,
   latestByEndpoint,
+  sampleTickAligned,
+  samplesForMatch,
   seriesByTick,
   sharedSparkPctDomain,
   vsExpectedPct,
 } from '../features/dashboard/metrics'
+import { getNodeBaselineMetrics } from '../features/graph/peerTrust'
 
 /**
  * Live room telemetry dashboard. When used as `/dashboard` with no room, shows an empty state.
@@ -30,18 +33,26 @@ export default function DashboardPage({
   simHour = null,
   connected = false,
   ingestionStatus = null,
+  hackSimulator = null,
 }) {
   const [samples, setSamples] = useState([])
   const [fetchError, setFetchError] = useState(null)
   const [feedStatus, setFeedStatus] = useState(ingestionStatus)
   const [filterId, setFilterId] = useState(null)
+  const heldPctRef = useRef(new Map())
+  const tickRef = useRef(tick)
+  tickRef.current = tick
 
   useEffect(() => {
     if (!roomId) return undefined
     let cancelled = false
     const load = async () => {
       try {
-        const res = await fetch(`/rooms/${encodeURIComponent(roomId)}/metrics`)
+        const cap = Number(tickRef.current)
+        const qs = Number.isFinite(cap)
+          ? `?fromTick=0&toTick=${encodeURIComponent(String(cap))}`
+          : ''
+        const res = await fetch(`/rooms/${encodeURIComponent(roomId)}/metrics${qs}`)
         const json = await res.json()
         if (cancelled) return
         if (!res.ok || json.ok === false) {
@@ -50,7 +61,8 @@ export default function DashboardPage({
         }
         setFetchError(null)
         setFeedStatus(json.ingestionStatus ?? ingestionStatus)
-        setSamples(Array.isArray(json.samples) ? json.samples : [])
+        const raw = Array.isArray(json.samples) ? json.samples : []
+        setSamples(samplesForMatch(raw, tickRef.current))
       } catch (err) {
         if (!cancelled) setFetchError(err?.message ?? 'Fetch failed')
       }
@@ -72,24 +84,35 @@ export default function DashboardPage({
     [detection]
   )
 
+  const matchSamples = useMemo(() => samplesForMatch(samples, tick), [samples, tick])
+
   const ppsSeries = useMemo(
-    () => seriesByTick(samples, 'packetsPerSecond', filterId, { sum: !filterId }).slice(-120),
-    [samples, filterId]
+    () => seriesByTick(matchSamples, 'packetsPerSecond', filterId, { sum: !filterId }).slice(-120),
+    [matchSamples, filterId]
   )
 
-  const sampleTicks = useMemo(() => new Set(samples.map((s) => s.tick)).size, [samples])
-  const lastPpsMap = useMemo(() => latestByEndpoint(samples, 'packetsPerSecond'), [samples])
-  const lastHttpMap = useMemo(() => latestByEndpoint(samples, 'httpRequestsPerMin'), [samples])
-  const lastFilesMap = useMemo(() => latestByEndpoint(samples, 'filesDownloaded'), [samples])
-  const lastLoginsMap = useMemo(() => latestByEndpoint(samples, 'failedLoginsPerMin'), [samples])
+  const sampleTicks = useMemo(() => new Set(matchSamples.map((s) => s.tick)).size, [matchSamples])
+  const lastPpsMap = useMemo(() => latestByEndpoint(matchSamples, 'packetsPerSecond'), [matchSamples])
+  const lastHttpMap = useMemo(() => latestByEndpoint(matchSamples, 'httpRequestsPerMin'), [matchSamples])
+  const lastFilesMap = useMemo(() => latestByEndpoint(matchSamples, 'filesDownloaded'), [matchSamples])
+  const lastLoginsMap = useMemo(() => latestByEndpoint(matchSamples, 'failedLoginsPerMin'), [matchSamples])
 
   const rows = useMemo(() => {
-    return (nodes ?? []).map((n) => {
-      const live = telemetryOf(n.data)
-      const pps = lastPpsMap.get(n.id)?.value ?? live.packetsPerSecond
-      const http = lastHttpMap.get(n.id)?.value ?? live.httpRequestsPerMin
-      const files = lastFilesMap.get(n.id)?.value ?? live.filesDownloaded
-      const logins = lastLoginsMap.get(n.id)?.value ?? live.failedLoginsPerMin
+    const hourNow = Number(simHour)
+    const sim = {
+      ...(hackSimulator ?? {}),
+      active: hackSimulator?.active === true || phase === 'playing',
+      simulationTick: tick,
+      cityContext,
+    }
+    const held = heldPctRef.current
+    const seen = new Set()
+    const nextRows = (nodes ?? []).map((n) => {
+      const baseline = getNodeBaselineMetrics(n, sim)
+      const pps = lastPpsMap.get(n.id)?.value ?? baseline.packetsPerSecond
+      const http = lastHttpMap.get(n.id)?.value ?? baseline.httpRequestsPerMin
+      const files = lastFilesMap.get(n.id)?.value ?? baseline.filesDownloaded
+      const logins = lastLoginsMap.get(n.id)?.value ?? baseline.failedLoginsPerMin
       const quarantined = n.data?.runtimeState?.quarantined === true || n.data?.quarantined === true
       const meta = {
         id: n.id,
@@ -98,17 +121,36 @@ export default function DashboardPage({
         cityEndpointId: n.data?.cityEndpointId,
       }
       const nowTick = lastPpsMap.get(n.id)?.tick ?? 0
-      const expectedNow = expectedTelemetry(live, cityContext, { ...meta, tick: nowTick })
-      const ppsSeries = seriesByTick(samples, 'packetsPerSecond', n.id).slice(-24)
+      const ctxForNow =
+        cityContextLocked && cityContext ? cityContext : cityContextAt(nowTick)
+      const expectedNow = expectedTelemetry(baseline, ctxForNow || cityContext, {
+        ...meta,
+        tick: nowTick,
+        ...(Number.isFinite(hourNow) && nowTick === tick ? { simHour: hourNow } : {}),
+      })
+      const ppsSeries = seriesByTick(matchSamples, 'packetsPerSecond', n.id).slice(-24)
       const spark = ppsSeries.map((p) => {
         const ctx =
           cityContextLocked && cityContext ? cityContext : cityContextAt(p.tick)
-        const expectedPps = expectedTelemetry(live, ctx, { ...meta, tick: p.tick }).packetsPerSecond
+        const expectedPps = expectedTelemetry(baseline, ctx, {
+          ...meta,
+          tick: p.tick,
+          ...(Number.isFinite(hourNow) && p.tick === tick ? { simHour: hourNow } : {}),
+        }).packetsPerSecond
         return { tick: p.tick, value: vsExpectedPct(p.value, expectedPps) ?? 0 }
       })
-      const ppsVsExpected = lastPpsMap.has(n.id)
-        ? vsExpectedPct(pps, expectedNow.packetsPerSecond)
-        : null
+      const aligned =
+        Boolean(cityContext) &&
+        lastPpsMap.has(n.id) &&
+        sampleTickAligned(nowTick, tick)
+      const nextPct = aligned ? vsExpectedPct(pps, expectedNow.packetsPerSecond) : null
+      const ppsVsExpected = holdAlignedPct({
+        aligned,
+        nextPct,
+        heldPct: held.get(n.id) ?? null,
+      })
+      seen.add(n.id)
+      if (aligned) held.set(n.id, ppsVsExpected)
       return {
         id: n.id,
         label: n.data?.label ?? n.id,
@@ -123,16 +165,24 @@ export default function DashboardPage({
         quarantined,
       }
     })
+    for (const id of [...held.keys()]) {
+      if (!seen.has(id)) held.delete(id)
+    }
+    return nextRows
   }, [
     nodes,
     lastPpsMap,
     lastHttpMap,
     lastFilesMap,
     lastLoginsMap,
-    samples,
+    matchSamples,
     anomalyIds,
     cityContext,
     cityContextLocked,
+    simHour,
+    tick,
+    phase,
+    hackSimulator,
   ])
 
   const sparkDomain = useMemo(
@@ -145,7 +195,11 @@ export default function DashboardPage({
     simHour != null ? `${String(Math.floor(Number(simHour))).padStart(2, '0')}:00` : null
   const cityLabel = cityContextLabel(cityContext)
   const quarantinedCount = rows.filter((r) => r.quarantined).length
-  const posture = derivePosture(incidents, anomalyIds.size)
+  const posture = derivePosture(
+    incidents,
+    anomalyIds.size,
+    detection?.tgnnCalibrating === true
+  )
 
   if (!roomId) {
     return (
@@ -183,6 +237,7 @@ export default function DashboardPage({
               {cityLabel ? ` · ${cityLabel}` : ''}
               {hourLabel ? ` · ${hourLabel}` : ''}
               {' · TGNN'}
+              {detection?.tgnnCalibrating ? ' · calibrating live baseline' : ''}
             </p>
           </div>
           {filterId ? (
@@ -224,6 +279,9 @@ export default function DashboardPage({
           anomalyCount={anomalyIds.size}
           quarantinedCount={quarantinedCount}
           connected={connected}
+          tgnnCalibrating={detection?.tgnnCalibrating === true}
+          tgnnWarmupCollected={detection?.tgnnWarmupCollected ?? 0}
+          tgnnWarmupTicks={detection?.tgnnWarmupTicks ?? 15}
         />
 
         <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20.5rem]">

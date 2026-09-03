@@ -43,6 +43,7 @@ import {
   teardownRoomTelemetry,
 } from './telemetry/generator.js'
 import { getLatestDetection } from './metrics/store.js'
+import { resetTgnnCalibrator } from './detection/calibrator.js'
 import {
   getRecentTelemetry,
   nodeIdsByCityEndpoint,
@@ -153,6 +154,7 @@ function startMatch(room) {
   room.matchNodeIds = room.nodes.map((n) => n.id)
   room.matchEdgeIds = room.edges.map((e) => e.id)
   room.hackSimulator = buildAttackLayerFromGraph(room.nodes, room.edges)
+  resetTgnnCalibrator(room.id)
   startTelemetryLoop(room, broadcastState)
   return true
 }

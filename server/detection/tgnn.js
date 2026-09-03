@@ -1,5 +1,5 @@
 import { TRUST_CONFIG } from '../../shared/trustConfig.js'
-import { distToScore, l2Distance, tgnnForwardWindow } from '../../shared/tgnnCore.js'
+import { l2Distance, residualToScore, tgnnForwardWindow } from '../../shared/tgnnCore.js'
 import { directedAdjacency, extractCityFeatureFrame } from '../../shared/tgnnFeatures.js'
 import { getTelemetryKeys, metricPresent } from '../../shared/telemetryKeys.js'
 import {
@@ -9,6 +9,12 @@ import {
   maxMetricDeviation,
 } from './features.js'
 import { buildTgnnWindows } from './tgnnWindow.js'
+import {
+  calibratedResidual,
+  createCalibrator,
+  getTgnnCalibrator,
+  ingestCalibrationTick,
+} from './calibrator.js'
 
 export const TGNN_ANOMALY_SCORE_THRESHOLD = TRUST_CONFIG.tgnn.anomalyScoreThreshold
 export const TGNN_RELATIVE_MIN_SCORE = TRUST_CONFIG.tgnn.relativeMinScore
@@ -85,12 +91,25 @@ function collectDriftSignals(input) {
   return { hasScenarioDrift, deviationRatios, hasMetricSpike }
 }
 
+function emptyTgnnResult(extra = {}) {
+  const warmupTicks = TRUST_CONFIG.tgnn.warmupTicks ?? 15
+  return {
+    isolationScoresByNodeId: {},
+    anomalyNodeIds: [],
+    nodeResults: [],
+    tgnnCalibrating: extra.tgnnCalibrating ?? false,
+    tgnnWarmupCollected: extra.tgnnWarmupCollected ?? 0,
+    tgnnWarmupTicks: extra.tgnnWarmupTicks ?? warmupTicks,
+  }
+}
+
 /**
  * @param {import('./types.js').DetectionInput} input
+ * @param {{ calibrator?: ReturnType<typeof createCalibrator> }} [opts]
  */
-export function runTgnnAnomaly(input) {
+export function runTgnnAnomaly(input, opts = {}) {
   if (!input?.matchActive || input.endpoints.length === 0) {
-    return { isolationScoresByNodeId: {}, anomalyNodeIds: [], nodeResults: [] }
+    return emptyTgnnResult()
   }
 
   const { observed, baseline } = buildTgnnWindows(input)
@@ -99,13 +118,26 @@ export function runTgnnAnomaly(input) {
 
   const currentEmb = tgnnForwardWindow(framesFromStates(observed), adjIn, adjOut)
   const baselineEmb = tgnnForwardWindow(framesFromStates(baseline), adjIn, adjOut)
-  const scoreList = input.endpoints.map((_, i) =>
-    distToScore(l2Distance(currentEmb[i], baselineEmb[i]))
-  )
+
+  const calibrator = opts.calibrator ?? (input.roomId ? getTgnnCalibrator(input.roomId) : createCalibrator())
+  const attackActive = input.endpoints.some((ep) => ep.behaviour?.attackOverrideActive === true)
+  const calStatus = ingestCalibrationTick(calibrator, nodeIds, currentEmb, { attackActive })
+
+  const minSigma = TRUST_CONFIG.tgnn.calibratorMinSigma ?? 0.05
+  const scoreList = input.endpoints.map((ep, i) => {
+    if (calStatus.calibrating) return 0
+    if (calibrator.ready) {
+      const live = calibratedResidual(calibrator, ep.id, currentEmb[i])
+      return residualToScore(live.dist, live.sigma)
+    }
+    const twinDist = l2Distance(currentEmb[i], baselineEmb[i])
+    return residualToScore(twinDist, minSigma)
+  })
 
   const { hasScenarioDrift, deviationRatios, hasMetricSpike } = collectDriftSignals(input)
-  const anomalyFlags =
-    input.endpoints.length < MIN_NODES_FOR_FULL_CLASSIFY
+  const anomalyFlags = calStatus.calibrating
+    ? scoreList.map(() => false)
+    : input.endpoints.length < MIN_NODES_FOR_FULL_CLASSIFY
       ? classifySmallGraphFallback(scoreList, hasScenarioDrift, deviationRatios, hasMetricSpike)
       : classifyTgnnScores(scoreList, hasScenarioDrift, deviationRatios, hasMetricSpike)
 
@@ -125,5 +157,12 @@ export function runTgnnAnomaly(input) {
       isAnomaly,
     })
   }
-  return { isolationScoresByNodeId, anomalyNodeIds, nodeResults }
+  return {
+    isolationScoresByNodeId,
+    anomalyNodeIds,
+    nodeResults,
+    tgnnCalibrating: calStatus.calibrating,
+    tgnnWarmupCollected: calStatus.collected,
+    tgnnWarmupTicks: calStatus.warmupTicks,
+  }
 }

@@ -10,6 +10,7 @@
     "dev:all": "concurrently -n web,api -c blue,green \"npm run dev\" \"npm run dev:server\"",
     "dev:ingest": "npm run dev --prefix tele-ingestion",
     "dev:stack": "node scripts/start-stack.mjs",
+    "train:tgnn": "node scripts/train-tgnn.mjs",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

@@ -10,6 +10,9 @@ import { createContext, useContext } from 'react'
  *   nodeScenarioBaselines?: Record<string, Partial<Record<'packetsPerSecond' | 'httpRequestsPerMin' | 'filesDownloaded' | 'failedLoginsPerMin', number>> | number>
  *   edgeScenarioBaselines?: Record<string, number>
  *   isolationScoresByNodeId?: Record<string, number>
+ *   tgnnCalibrating?: boolean
+ *   tgnnWarmupCollected?: number
+ *   tgnnWarmupTicks?: number
  *   anomalyNodeIds?: string[] — TGNN anomaly seeds (red nodes)
  *   spreadEdgeIds?: string[] — primary propagation link; kept for compatibility
  *   compromisedNodeIds?: string[] — anomaly seeds + primary spread target

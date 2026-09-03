@@ -1,10 +1,8 @@
 import { TRUST_CONFIG } from './trustConfig.js'
-import { CITY_FEATURE_KEYS } from './tgnnFeatures.js'
-import { onYamlMetricNamesChange } from './telemetryKeys.js'
+import { BASE_CITY_FEATURE_KEYS } from './tgnnFeatures.js'
+import { TGNN_CHECKPOINT } from './tgnn_checkpoint.js'
 
 function weight(row, col, seed) {
-  // Stronger input/temporal maps so city-feature and t-2..t diffs survive tanh.
-  // Message weights stay smaller so neighbor pooling does not collapse nodes.
   const scale = seed === 1 || seed === 4 ? 0.55 : 0.22
   return Math.sin(row * 12.9898 + col * 78.233 + seed) * scale
 }
@@ -15,15 +13,19 @@ function matrix(rows, cols, seed) {
   )
 }
 
-function matVecMul(vec, m) {
+function cloneMatrix(m) {
+  return (m ?? []).map((row) => [...row])
+}
+
+export function matVecMul(vec, m) {
   return m.map((row) => row.reduce((acc, w, j) => acc + w * (vec[j] ?? 0), 0))
 }
 
-function tanhVec(vec) {
+export function tanhVec(vec) {
   return vec.map((v) => Math.tanh(v))
 }
 
-function neighborMean(embeddings, adj) {
+export function neighborMean(embeddings, adj) {
   return embeddings.map((emb, i) => {
     const neighbors = adj[i]
     if (!neighbors?.length) return [...emb]
@@ -37,27 +39,56 @@ function neighborMean(embeddings, adj) {
   })
 }
 
-function directedPool(embeddings, adjIn, adjOut) {
+export function directedPool(embeddings, adjIn, adjOut) {
   const up = neighborMean(embeddings, adjIn)
   const down = neighborMean(embeddings, adjOut)
   return embeddings.map((_, i) => [...up[i], ...down[i]])
 }
 
+function checkpointMatches(checkpoint, featureDim, embedDim, temporalWindow) {
+  if (!checkpoint?.W_IN?.length) return false
+  return (
+    Number(checkpoint.featureDim) === featureDim &&
+    Number(checkpoint.embedDim) === embedDim &&
+    Number(checkpoint.temporalWindow) === temporalWindow &&
+    checkpoint.W_IN.length === embedDim &&
+    checkpoint.W_IN[0]?.length === featureDim
+  )
+}
+
 /**
- * Deterministic fixed weights sized from the feature schema and temporal window.
- * Changing CITY_FEATURE_KEYS or temporalWindow resizes the layers.
+ * Encoder weights. Product path loads the trained checkpoint; sin-seed is tests / fallback.
  */
 export function createTgnnParams({
-  featureDim = CITY_FEATURE_KEYS.length,
+  featureDim = BASE_CITY_FEATURE_KEYS.length,
   embedDim = TRUST_CONFIG.tgnn.embedDim ?? 8,
   temporalWindow = TRUST_CONFIG.tgnn.temporalWindow ?? 3,
+  useSinFallback = false,
+  checkpoint = TGNN_CHECKPOINT,
 } = {}) {
   const msgIn = embedDim * 2
   const tempIn = embedDim * temporalWindow
+  if (!useSinFallback && checkpointMatches(checkpoint, featureDim, embedDim, temporalWindow)) {
+    return {
+      featureDim,
+      embedDim,
+      temporalWindow,
+      fromCheckpoint: true,
+      trainedAt: checkpoint.trainedAt ?? null,
+      finalLoss: checkpoint.finalLoss ?? null,
+      W_IN: cloneMatrix(checkpoint.W_IN),
+      W_MSG: cloneMatrix(checkpoint.W_MSG),
+      W_OUT: cloneMatrix(checkpoint.W_OUT),
+      W_TEMP: cloneMatrix(checkpoint.W_TEMP),
+    }
+  }
   return {
     featureDim,
     embedDim,
     temporalWindow,
+    fromCheckpoint: false,
+    trainedAt: null,
+    finalLoss: null,
     W_IN: matrix(embedDim, featureDim, 1),
     W_MSG: matrix(embedDim, msgIn, 2),
     W_OUT: matrix(embedDim, msgIn, 3),
@@ -65,15 +96,12 @@ export function createTgnnParams({
   }
 }
 
-export function rebuildTgnnParams() {
-  TGNN_PARAMS = createTgnnParams()
+export function rebuildTgnnParams(opts) {
+  TGNN_PARAMS = createTgnnParams(opts)
+  return TGNN_PARAMS
 }
 
 export let TGNN_PARAMS = createTgnnParams()
-
-onYamlMetricNamesChange(() => {
-  rebuildTgnnParams()
-})
 
 function spatialForward(featureRows, adjIn, adjOut, params) {
   const h0 = featureRows.map((x) => tanhVec(matVecMul(x, params.W_IN)))
@@ -87,6 +115,16 @@ function spatialForward(featureRows, adjIn, adjOut, params) {
   )
 }
 
+function padFrames(frames, K) {
+  const padded = []
+  if (!Array.isArray(frames) || frames.length === 0) return padded
+  const first = frames[0]
+  for (let k = 0; k < K; k++) {
+    padded.push(frames[k] ?? frames[frames.length - 1] ?? first)
+  }
+  return padded
+}
+
 /**
  * Spatial GNN on each city-graph frame, then temporal concat of embeddings.
  *
@@ -98,12 +136,8 @@ function spatialForward(featureRows, adjIn, adjOut, params) {
  */
 export function tgnnForwardWindow(frames, adjIn, adjOut, params = TGNN_PARAMS) {
   const K = params.temporalWindow
-  const padded = []
-  if (!Array.isArray(frames) || frames.length === 0) return []
-  const first = frames[0]
-  for (let k = 0; k < K; k++) {
-    padded.push(frames[k] ?? frames[frames.length - 1] ?? first)
-  }
+  const padded = padFrames(frames, K)
+  if (!padded.length) return []
   const spatial = padded.map((X) => spatialForward(X, adjIn, adjOut, params))
   const n = spatial[0]?.length ?? 0
   const embeddings = []
@@ -130,4 +164,19 @@ export function l2Distance(a, b) {
 
 export function distToScore(dist, alpha = TRUST_CONFIG.tgnn.scoreAlpha) {
   return 1 / (1 + Math.exp(-alpha * dist))
+}
+
+/** Z-scored residual → [0,1]. Idle (z≈0) sits near 0, not 0.5. */
+export function residualToScore(
+  dist,
+  sigma,
+  {
+    alpha = TRUST_CONFIG.tgnn.scoreAlpha,
+    zOffset = TRUST_CONFIG.tgnn.scoreZOffset ?? 1.25,
+    minSigma = TRUST_CONFIG.tgnn.calibratorMinSigma ?? 0.05,
+  } = {}
+) {
+  const s = Math.max(Number(sigma) || 0, minSigma)
+  const z = (Number(dist) || 0) / s
+  return 1 / (1 + Math.exp(-alpha * (z - zOffset)))
 }

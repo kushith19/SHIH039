@@ -143,7 +143,7 @@ export default function InspectorPanel({
       peerTrust: row.peerTrust ?? row.peerTrustStructural,
       deviationRatio: maxDeviation,
       deviationPercent: maxDeviation * 100,
-      isolationScore: sim.isolationScoresByNodeId?.[selectedNode.id] ?? 0.5,
+      isolationScore: sim.isolationScoresByNodeId?.[selectedNode.id] ?? 0,
       isAnomaly: flagged,
       trustAnomaly: flagged,
       attackOrigin: flagged,
@@ -183,8 +183,20 @@ export default function InspectorPanel({
     if (!hackModeActive || !selectedNode?.id) return null
     const id = selectedNode.id
     const isolation = sim.isolationScoresByNodeId?.[id]
-    return { isolation }
-  }, [hackModeActive, selectedNode, sim.isolationScoresByNodeId])
+    return {
+      isolation,
+      calibrating: sim.tgnnCalibrating === true,
+      collected: sim.tgnnWarmupCollected ?? 0,
+      warmupTicks: sim.tgnnWarmupTicks ?? 15,
+    }
+  }, [
+    hackModeActive,
+    selectedNode,
+    sim.isolationScoresByNodeId,
+    sim.tgnnCalibrating,
+    sim.tgnnWarmupCollected,
+    sim.tgnnWarmupTicks,
+  ])
   const compactLayout = gameRole === 'attacker' || gameRole === 'defender'
   const isDefender = gameRole === 'defender'
 
@@ -404,14 +416,25 @@ export default function InspectorPanel({
             {tgnnUi ? (
               <div className="flex flex-wrap items-center gap-1.5 border border-[var(--tn-line)] px-2 py-1.5 text-xs">
                 <span className="font-medium">TGNN</span>
-                <span className="tabular-nums">
-                  {tgnnUi.isolation == null
-                    ? '—'
-                    : `${Math.round(tgnnUi.isolation * 100)}%`}
-                </span>
+                {tgnnUi.calibrating ? (
+                  <span className="text-[var(--tn-muted)]">
+                    calibrating live baseline {tgnnUi.collected}/{tgnnUi.warmupTicks}
+                  </span>
+                ) : (
+                  <>
+                    <span className="tabular-nums">
+                      {tgnnUi.isolation == null
+                        ? '—'
+                        : `${Math.round(tgnnUi.isolation * 100)}%`}
+                    </span>
                 <span className="text-[var(--tn-muted)]">
-                  / {Math.round(TGNN_FLAG_THRESHOLD * 100)}% to flag
+                  vs live baseline · {Math.round(TGNN_FLAG_THRESHOLD * 100)}% to flag
                 </span>
+                <span className="basis-full text-[10px] text-[var(--tn-muted)]">
+                  encoder checkpoint + live baseline
+                </span>
+                  </>
+                )}
               </div>
             ) : null}
 

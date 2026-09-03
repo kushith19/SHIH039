@@ -3,6 +3,7 @@ import { runTgnnAnomaly } from './tgnn.js'
 import { computeAttackSpread } from './spread.js'
 import { promoteIncidents } from './incident.js'
 import { DETECTION_MODE_TGNN } from './modes.js'
+import { TRUST_CONFIG } from '../../shared/trustConfig.js'
 
 export { DETECTION_MODE_TGNN }
 
@@ -63,6 +64,9 @@ export function runDetection(input) {
     isolationScoresByNodeId: tgnnResult.isolationScoresByNodeId,
     reasonsByNodeId,
     detectionMode: DETECTION_MODE_TGNN,
+    tgnnCalibrating: tgnnResult.tgnnCalibrating === true,
+    tgnnWarmupCollected: tgnnResult.tgnnWarmupCollected ?? 0,
+    tgnnWarmupTicks: tgnnResult.tgnnWarmupTicks ?? TRUST_CONFIG.tgnn.warmupTicks ?? 15,
     simulationTick: input.simulationTick,
     cityContext: input.cityContext ?? 'normal_day',
     simHour: input.simHour,

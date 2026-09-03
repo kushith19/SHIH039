@@ -229,6 +229,7 @@ function GraphCanvasInner({
         isolationScoresByNodeId: {},
         reasonsByNodeId: {},
         detectionMode: 'tgnn',
+        tgnnCalibrating: false,
       }
     }
     if (serverDetection != null) {
@@ -245,6 +246,9 @@ function GraphCanvasInner({
         isolationScoresByNodeId: serverDetection.isolationScoresByNodeId ?? {},
         reasonsByNodeId: serverDetection.reasonsByNodeId ?? {},
         detectionMode: 'tgnn',
+        tgnnCalibrating: serverDetection.tgnnCalibrating === true,
+        tgnnWarmupCollected: serverDetection.tgnnWarmupCollected ?? 0,
+        tgnnWarmupTicks: serverDetection.tgnnWarmupTicks ?? 15,
       }
     }
     return collectActiveAnomalies(nodes, edges, hackSimulator)
@@ -259,7 +263,7 @@ function GraphCanvasInner({
   const anomalySigRef = useRef('')
 
   useEffect(() => {
-    if (!hackSimulator.active) {
+    if (!hackSimulator.active || securityScan.tgnnCalibrating) {
       anomalySigRef.current = ''
       setAnomalyToast(null)
       return
@@ -309,6 +313,9 @@ function GraphCanvasInner({
       edgeScenarioBaselines: hackSimulator.edgeScenarioBaselines,
       isolationScoresByNodeId: securityScan.isolationScoresByNodeId ?? {},
       reasonsByNodeId: securityScan.reasonsByNodeId ?? {},
+      tgnnCalibrating: securityScan.tgnnCalibrating === true,
+      tgnnWarmupCollected: securityScan.tgnnWarmupCollected ?? 0,
+      tgnnWarmupTicks: securityScan.tgnnWarmupTicks ?? 15,
       anomalyNodeIds: securityScan.anomalyNodeIds ?? [],
       spreadEdgeIds: securityScan.spreadEdgeIds ?? [],
       compromisedNodeIds: securityScan.compromisedNodeIds ?? [],
@@ -333,6 +340,9 @@ function GraphCanvasInner({
       trustByNodeId,
       securityScan.isolationScoresByNodeId,
       securityScan.reasonsByNodeId,
+      securityScan.tgnnCalibrating,
+      securityScan.tgnnWarmupCollected,
+      securityScan.tgnnWarmupTicks,
       securityScan.anomalyNodeIds,
       securityScan.spreadEdgeIds,
       securityScan.compromisedNodeIds,
@@ -785,6 +795,18 @@ function GraphCanvasInner({
 
   return (
     <div className="h-full w-full relative">
+      {securityScan.tgnnCalibrating ? (
+        <div
+          role="status"
+          className="pointer-events-none fixed top-16 left-1/2 z-[110] w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 border border-[var(--tn-line)] bg-[var(--tn-surface)] px-3 py-2 text-center text-sm shadow-sm"
+        >
+          <div className="font-medium">TGNN calibrating live baseline</div>
+          <div className="mt-0.5 font-mono text-xs text-[var(--tn-muted)]">
+            {securityScan.tgnnWarmupCollected ?? 0}/{securityScan.tgnnWarmupTicks ?? 15}
+            {mpRole === 'attacker' ? ' · wait before attacking' : ' · then flags appear on the map'}
+          </div>
+        </div>
+      ) : null}
       {anomalyToast ? (
         <div
           role="alert"
@@ -800,7 +822,7 @@ function GraphCanvasInner({
                 </div>
               ) : (
                 <div className="mt-1 text-xs text-[var(--tn-muted)]">
-                  TGNN flagged unusual behavior on the map.
+                  TGNN flagged unusual behavior vs the live match baseline.
                 </div>
               )}
             </div>

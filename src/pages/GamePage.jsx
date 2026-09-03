@@ -203,6 +203,9 @@ export default function GamePage() {
       : 'Waiting for the explainer to reconnect'
 
   const isDashboardView = role === 'defender' && searchParams.get('view') === 'dashboard'
+  const tgnnCalibrating = room.phase === 'playing' && room.detection?.tgnnCalibrating === true
+  const tgnnWarmupCollected = room.detection?.tgnnWarmupCollected ?? 0
+  const tgnnWarmupTicks = room.detection?.tgnnWarmupTicks ?? 15
 
   const setMatchView = useCallback(
     (next) => {
@@ -238,7 +241,9 @@ export default function GamePage() {
                   {waitingForOpponent
                     ? waitingCopy
                     : room.phase === 'playing'
-                      ? `tick ${room.simulationTick ?? 0} · ${room.cityContext ?? 'normal_day'}`
+                      ? tgnnCalibrating
+                        ? `TGNN calibrating ${tgnnWarmupCollected}/${tgnnWarmupTicks} · tick ${room.simulationTick ?? 0}`
+                        : `tick ${room.simulationTick ?? 0} · ${room.cityContext ?? 'normal_day'}`
                       : 'lobby'}
                   {' · '}
                   <span className="inline-flex items-center gap-1.5">
@@ -329,6 +334,21 @@ export default function GamePage() {
         </div>
       ) : null}
 
+      {tgnnCalibrating && !isDashboardView ? (
+        <div className="shrink-0 border-b border-[var(--tn-line)] bg-[var(--tn-surface)] px-4 py-1.5 text-xs">
+          <span className="font-medium">TGNN calibrating</span>
+          <span className="font-mono text-[var(--tn-muted)]">
+            {' '}
+            {tgnnWarmupCollected}/{tgnnWarmupTicks}
+          </span>
+          <span className="text-[var(--tn-muted)]">
+            {role === 'attacker'
+              ? ' — wait to attack. Encoder is learning this city’s idle baseline.'
+              : ' — live baseline from this match. Detection starts when this finishes.'}
+          </span>
+        </div>
+      ) : null}
+
       {isDashboardView ? (
         <DashboardPage
           roomId={room.id || DEMO_ROOM_ID}
@@ -341,6 +361,7 @@ export default function GamePage() {
           simHour={room.simHour}
           connected={connected}
           ingestionStatus={room.ingestionStatus}
+          hackSimulator={room.hackSimulator}
         />
       ) : null}
 

@@ -41,6 +41,9 @@ export default function KpiStrip({
   anomalyCount = 0,
   quarantinedCount = 0,
   connected = false,
+  tgnnCalibrating = false,
+  tgnnWarmupCollected = 0,
+  tgnnWarmupTicks = 15,
 }) {
   const pip = POSTURE_PIP[posture?.key] ?? POSTURE_PIP.calm
 
@@ -55,7 +58,15 @@ export default function KpiStrip({
         <p className="mt-0.5 truncate text-xs text-[var(--tn-muted)]">{posture?.blurb}</p>
       </div>
       <Stat label="Incidents" value={incidentCount} hot={incidentCount > 0} />
-      <Stat label="TGNN flags" value={anomalyCount} hot={anomalyCount > 0} />
+      <Stat
+        label={tgnnCalibrating ? 'TGNN calibrating' : 'TGNN flags'}
+        value={
+          tgnnCalibrating
+            ? `${tgnnWarmupCollected}/${tgnnWarmupTicks}`
+            : anomalyCount
+        }
+        hot={!tgnnCalibrating && anomalyCount > 0}
+      />
       <Stat label="Quarantine" value={quarantinedCount} muted />
       <div className="px-4 py-3">
         <div className="flex items-center justify-between gap-2">

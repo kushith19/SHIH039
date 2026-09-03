@@ -9,15 +9,16 @@ import { TGNN_PARAMS } from './tgnnCore.js'
 import { buildCitySnapshot } from '../server/telemetry/citySnapshot.js'
 import { adaptCitySnapshot } from '../server/detection/adapter.js'
 import { runTgnnAnomaly } from '../server/detection/tgnn.js'
+import { createCalibrator } from '../server/detection/calibrator.js'
 
-test('CITY_FEATURE_KEYS length is relational channels plus unique YAML names', () => {
+test('CITY_FEATURE_KEYS stays frozen at relational encoder channels', () => {
   const model = loadCityModelFromDisk()
   assert.ok(applyCityModelOverlay(model))
   const yamlNames = getYamlMetricNames()
   assert.ok(yamlNames.length > 0)
-  assert.equal(CITY_FEATURE_KEYS.length, BASE_CITY_FEATURE_KEYS.length + yamlNames.length)
-  assert.equal(TGNN_PARAMS.featureDim, CITY_FEATURE_KEYS.length)
-  assert.equal(TGNN_PARAMS.W_IN[0].length, CITY_FEATURE_KEYS.length)
+  assert.equal(CITY_FEATURE_KEYS.length, BASE_CITY_FEATURE_KEYS.length)
+  assert.equal(TGNN_PARAMS.featureDim, BASE_CITY_FEATURE_KEYS.length)
+  assert.equal(TGNN_PARAMS.W_IN[0].length, BASE_CITY_FEATURE_KEYS.length)
 })
 
 test('runTgnnAnomaly on a healthy snapshot returns no graph anomalies', () => {
@@ -46,6 +47,6 @@ test('runTgnnAnomaly on a healthy snapshot returns no graph anomalies', () => {
     hackSimulator: { active: true },
   })
   const input = adaptCitySnapshot(snapshot)
-  const result = runTgnnAnomaly(input)
+  const result = runTgnnAnomaly(input, { calibrator: createCalibrator() })
   assert.deepEqual(result.anomalyNodeIds, [])
 })
