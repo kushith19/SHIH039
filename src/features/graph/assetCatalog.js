@@ -12,6 +12,7 @@ import {
   CloudRain,
   CloudSun,
   CloudUpload,
+  CreditCard,
   Cpu,
   Database,
   Droplets,
@@ -55,6 +56,9 @@ import {
   Wind,
   Zap,
 } from 'lucide-react'
+import { LIVE_CITY_GRAPH_TYPES } from '@shared/cityModel/liveGraphTypes.js'
+
+export { LIVE_CITY_GRAPH_TYPES }
 
 /** Upper bound for normalizing load → green/red gradient in nodes and minimap */
 export const MAX_PACKETS_PER_SECOND_FOR_VIS = 100_000
@@ -429,6 +433,15 @@ export const assetCatalog = [
     trust: 80,
   }),
   sector({
+    type: 'campus_network',
+    title: 'Campus Network Gateway',
+    domain: 'Education',
+    Icon: Router,
+    pps: 11_000,
+    http: 70,
+    trust: 84,
+  }),
+  sector({
     type: 'libraries_cultural',
     title: 'Libraries & Cultural Services',
     domain: 'Education',
@@ -527,6 +540,15 @@ export const assetCatalog = [
     trust: 89,
   }),
   sector({
+    type: 'public_safety_gateway',
+    title: 'Public Safety Network Gateway',
+    domain: 'Public Safety',
+    Icon: Router,
+    pps: 10_000,
+    http: 50,
+    trust: 88,
+  }),
+  sector({
     type: 'disaster_management',
     title: 'Disaster Management',
     domain: 'Emergency Services',
@@ -590,6 +612,126 @@ export const assetCatalog = [
     files: 6,
     logins: 5,
     trust: 94,
+  }),
+  sector({
+    type: 'bank_gateway',
+    title: 'Bank Gateway',
+    domain: 'Finance',
+    Icon: Router,
+    pps: 18_000,
+    http: 280,
+    files: 4,
+    logins: 4,
+    trust: 92,
+  }),
+  sector({
+    type: 'atm_network_gateway',
+    title: 'ATM Network Gateway',
+    domain: 'Finance',
+    Icon: Landmark,
+    pps: 14_000,
+    http: 120,
+    files: 2,
+    logins: 3,
+    trust: 88,
+  }),
+  sector({
+    type: 'payment_processing_system',
+    title: 'Payment Processing',
+    domain: 'Finance',
+    Icon: CreditCard,
+    pps: 21_000,
+    http: 360,
+    files: 5,
+    logins: 4,
+    trust: 93,
+  }),
+  sector({
+    type: 'digital_banking_platform',
+    title: 'Digital Banking Platform',
+    domain: 'Finance',
+    Icon: Globe,
+    pps: 19_000,
+    http: 400,
+    files: 4,
+    logins: 6,
+    trust: 91,
+  }),
+  sector({
+    type: 'customer_identity_service',
+    title: 'Customer Identity Service',
+    domain: 'Finance',
+    Icon: Fingerprint,
+    pps: 12_000,
+    http: 260,
+    logins: 8,
+    trust: 94,
+  }),
+  sector({
+    type: 'card_processing_system',
+    title: 'Card Processing',
+    domain: 'Finance',
+    Icon: CreditCard,
+    pps: 17_000,
+    http: 300,
+    files: 3,
+    logins: 3,
+    trust: 92,
+  }),
+  sector({
+    type: 'fraud_detection_system',
+    title: 'Fraud Detection',
+    domain: 'Finance',
+    Icon: ShieldAlert,
+    pps: 11_000,
+    http: 90,
+    files: 8,
+    logins: 2,
+    trust: 93,
+  }),
+  sector({
+    type: 'transaction_monitoring_system',
+    title: 'Transaction Monitoring',
+    domain: 'Finance',
+    Icon: Activity,
+    pps: 10_500,
+    http: 80,
+    files: 7,
+    logins: 2,
+    trust: 92,
+  }),
+  sector({
+    type: 'interbank_payment_gateway',
+    title: 'Interbank Payment Gateway',
+    domain: 'Finance',
+    Icon: Building2,
+    pps: 16_000,
+    http: 180,
+    files: 4,
+    logins: 3,
+    trust: 95,
+  }),
+  sector({
+    type: 'atm_switching_system',
+    title: 'ATM Switching',
+    domain: 'Finance',
+    Icon: Scale,
+    pps: 13_000,
+    http: 110,
+    files: 2,
+    logins: 2,
+    trust: 90,
+  }),
+  sector({
+    type: 'financial_data_platform',
+    title: 'Financial Data Platform',
+    domain: 'Finance',
+    Icon: Database,
+    pps: 15_000,
+    http: 140,
+    files: 12,
+    logins: 3,
+    trust: 93,
   }),
   sector({
     type: 'retail_infrastructure',
@@ -823,10 +965,15 @@ export function getAssetByType(type) {
   return assetsByType.get(type)
 }
 
+export function getLiveCityAssets() {
+  return LIVE_CITY_GRAPH_TYPES.map((type) => assetsByType.get(type)).filter(Boolean)
+}
+
 export function getAssetsGroupedByDomain() {
+  const live = new Set(LIVE_CITY_GRAPH_TYPES)
   const groups = ASSET_DOMAINS.map((domain) => ({
     domain,
-    assets: assetCatalog.filter((a) => a.domain === domain),
+    assets: getLiveCityAssets().filter((a) => a.domain === domain && live.has(a.type)),
   }))
   return groups.filter((g) => g.assets.length > 0)
 }

@@ -19,78 +19,10 @@ modifiers:
     networkActivity: low
 
   finance:
-  digital-banking-platform:
-    activityLevel: very-high
-    workload: high
-    networkActivity: very-high
-    transactionActivity: very-high
-    authenticationActivity: high
-
-  customer-identity-service:
-    activityLevel: high
-    workload: high
-    authenticationActivity: high
-    identityVerificationActivity: medium
-
-  bank-gateway:
     activityLevel: high
     workload: high
     networkActivity: high
-    transactionActivity: high
-
-  core-banking-system:
-    activityLevel: high
-    workload: high
-    transactionActivity: high
-    databaseActivity: high
-
-  payment-processing-system:
-    activityLevel: very-high
-    workload: high
-    transactionActivity: very-high
-    networkActivity: high
-
-  card-processing-system:
-    activityLevel: very-high
-    workload: high
-    transactionActivity: very-high
-    authorizationActivity: high
-
-  fraud-detection-system:
-    activityLevel: high
-    workload: high
-    transactionAnalysis: very-high
-    alertGeneration: high
-
-  transaction-monitoring-system:
-    activityLevel: high
-    workload: high
-    monitoringActivity: very-high
-    anomalyDetectionActivity: high
-
-  interbank-payment-gateway:
-    activityLevel: high
-    workload: high
-    networkActivity: high
-    transactionActivity: high
-
-  atm-network-gateway:
-    activityLevel: high
-    workload: high
-    networkActivity: high
-    transactionActivity: high
-
-  atm-switching-system:
-    activityLevel: high
-    workload: high
-    networkActivity: high
-    transactionActivity: high
-
-  financial-data-platform:
-    activityLevel: high
-    workload: high
-    dataProcessingActivity: high
-    dataAccessActivity: high
+    expectedUsers: high
 
   transportation:
     activityLevel: moderate

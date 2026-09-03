@@ -7,7 +7,8 @@ import {
   expectedTelemetry,
 } from '../cityContext.js'
 import { loadCityModelFromDisk } from '../../server/loadCityModel.js'
-import { resolveCityEndpoint } from './endpointMap.js'
+import { catalogTypeForYaml, resolveCityEndpoint, yamlIdForCatalogType } from './endpointMap.js'
+import { LIVE_CITY_GRAPH_TYPES } from './liveGraphTypes.js'
 import { sampleEndpointTelemetry, jitterFactor, telemetryFromIngestedReadings, sampleEndpointYamlTelemetry, actorLoadForEndpoint, operationalStateName } from './liveTelemetry.js'
 import { inspectorMetricKeys } from '../telemetryKeys.js'
 import { buildCitySnapshot, overlaySnapshotFromIngested } from '../../server/telemetry/citySnapshot.js'
@@ -37,6 +38,27 @@ test('catalog types resolve to city-model endpoints', () => {
   assert.equal(hospital?.id, 'hospital-api-gateway')
   const unknown = resolveCityEndpoint({ type: 'street_lighting', id: 'ep-street_lighting' }, model.endpoints)
   assert.equal(unknown, null)
+  const digitalBanking = resolveCityEndpoint({ type: 'digital_banking_platform' }, model.endpoints)
+  assert.equal(digitalBanking?.id, 'digital-banking-platform')
+  const bankGw = resolveCityEndpoint({ type: 'bank_gateway' }, model.endpoints)
+  assert.equal(bankGw?.id, 'bank-gateway')
+  assert.equal(catalogTypeForYaml('digital-banking-platform'), 'digital_banking_platform')
+  assert.equal(catalogTypeForYaml('bank-gateway'), 'bank_gateway')
+  assert.equal(catalogTypeForYaml('payment-processing-system'), 'payment_processing_system')
+  assert.equal(catalogTypeForYaml('atm-network-gateway'), 'atm_network_gateway')
+})
+
+test('live city graph is ~40 YAML-backed endpoints', () => {
+  const model = loadCityModelFromDisk()
+  assert.equal(LIVE_CITY_GRAPH_TYPES.length, 40)
+  const yamlIds = new Set()
+  for (const type of LIVE_CITY_GRAPH_TYPES) {
+    const id = yamlIdForCatalogType(type)
+    assert.ok(id, `missing yaml map for ${type}`)
+    assert.ok(model.endpoints[id], `missing city-model endpoint ${id} for ${type}`)
+    yamlIds.add(id)
+  }
+  assert.equal(yamlIds.size, LIVE_CITY_GRAPH_TYPES.length)
 })
 
 test('live sampler: jitter changes observed, expected is stable, values stay in range', () => {

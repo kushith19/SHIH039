@@ -17,8 +17,8 @@ import { createContext, useContext } from 'react'
  *   anomalyNodeIds?: string[] — TGNN anomaly seeds (red nodes)
  *   spreadEdgeIds?: string[] — primary propagation link; kept for compatibility
  *   compromisedNodeIds?: string[] — anomaly seeds + primary spread target
- *   atRiskNodeIds?: string[] — downstream nodes that may be attacked (purple)
- *   atRiskEdgeIds?: string[] — links on the simulated spread path (purple)
+ *   atRiskNodeIds?: string[] — 1-hop neighbors of residual flags (peer exposed)
+ *   atRiskEdgeIds?: string[] — real edges incident to a residual flag
  *   primarySpreadNodeId?: string | null — highest-risk spread target (red node)
  *   primarySpreadEdgeId?: string | null — link to primary target (red edge)
  *   simulationTick?: number

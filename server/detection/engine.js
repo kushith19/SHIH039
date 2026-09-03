@@ -3,6 +3,7 @@ import { runTgnnAnomaly } from './tgnn.js'
 import { promoteIncidents } from './incident.js'
 import { DETECTION_MODE_TGNN } from './modes.js'
 import { TRUST_CONFIG } from '../../shared/trustConfig.js'
+import { peerExposureFromFlags } from '../../shared/trustModel.js'
 
 export { DETECTION_MODE_TGNN }
 
@@ -35,14 +36,20 @@ export function runDetection(input) {
   for (const id of tgnnResult.anomalyNodeIds) {
     reasonsByNodeId[id] = ['tgnn_embed']
   }
+  const knownIds = new Set((input.endpoints ?? []).map((ep) => ep.id))
+  const exposure = peerExposureFromFlags(
+    input.dependencies,
+    tgnnResult.anomalyNodeIds,
+    knownIds
+  )
   const result = {
     nodes: nodeHits,
     edges: [],
     anomalyNodeIds: tgnnResult.anomalyNodeIds,
     spreadEdgeIds: [],
     compromisedNodeIds: [...tgnnResult.anomalyNodeIds],
-    atRiskNodeIds: [],
-    atRiskEdgeIds: [],
+    atRiskNodeIds: exposure.atRiskNodeIds,
+    atRiskEdgeIds: exposure.atRiskEdgeIds,
     primarySpreadNodeId: null,
     primarySpreadEdgeId: null,
     isolationScoresByNodeId: tgnnResult.isolationScoresByNodeId,

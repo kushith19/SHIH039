@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  assetCatalog,
   attackCatalog,
   getAssetsGroupedByDomain,
+  getLiveCityAssets,
 } from '../graph/assetCatalog'
 import { ATTACK_PRESETS } from '../graph/attackPresets'
 
@@ -267,7 +267,7 @@ export default function SidebarAssets({
           />
         ) : showDevices ? (
           <DomainAssetList
-            assets={assetCatalog}
+            assets={getLiveCityAssets()}
             onDragStart={(e, asset) => handleDragStart(e, asset.type)}
           />
         ) : null}

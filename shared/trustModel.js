@@ -171,21 +171,64 @@ export function localPosture({ intrinsic, behavioral, interaction }, config = TR
   return clampTrust((wi * intrinsic + wb * behavioral + wx * interaction) / sum)
 }
 
-export function peerFromNeighborLocal(localById, neighborIds, selfId) {
+export function peerFromNeighborLocal(localById, neighborIds, selfId, config = TRUST_CONFIG) {
   const selfLocal = Number(localById.get?.(selfId) ?? localById[selfId]) || 0
+  const isolatedUses = cfg(config).peer?.isolatedUses ?? 'local'
   if (!neighborIds || neighborIds.length === 0) {
-    return selfLocal
+    return isolatedUses === 'local' ? selfLocal : 0
   }
-  let sum = 0
-  let n = 0
+  const values = []
   for (const id of neighborIds) {
     const v = Number(localById.get?.(id) ?? localById[id])
     if (!Number.isFinite(v)) continue
-    sum += v
-    n += 1
+    values.push(v)
   }
-  if (n === 0) return selfLocal
-  return sum / n
+  if (values.length === 0) return isolatedUses === 'local' ? selfLocal : 0
+  const aggregate = String(cfg(config).peer?.aggregate ?? 'min').toLowerCase()
+  if (aggregate === 'mean') {
+    return values.reduce((a, b) => a + b, 0) / values.length
+  }
+  return Math.min(...values)
+}
+
+/**
+ * 1-hop peer exposure from real edges. Seeds stay flagged; neighbors are at-risk only.
+ * Does not invent topology or residual flags.
+ *
+ * @param {Array<{ id?: string, source?: string, target?: string }>} edges
+ * @param {string[]} anomalyNodeIds
+ * @param {Set<string> | string[]} [knownIds]
+ * @returns {{ atRiskNodeIds: string[], atRiskEdgeIds: string[] }}
+ */
+export function peerExposureFromFlags(edges, anomalyNodeIds, knownIds) {
+  const seeds = new Set((anomalyNodeIds ?? []).filter(Boolean).map(String))
+  const nodeIds = knownIds instanceof Set ? knownIds : new Set((knownIds ?? []).map(String))
+  const restrict = nodeIds.size > 0
+  const atRiskNodes = new Set()
+  const atRiskEdges = []
+  const seenEdge = new Set()
+
+  for (const e of edges ?? []) {
+    const source = String(e?.source ?? '')
+    const target = String(e?.target ?? '')
+    if (!source || !target || source === target) continue
+    if (restrict && (!nodeIds.has(source) || !nodeIds.has(target))) continue
+    const srcSeed = seeds.has(source)
+    const tgtSeed = seeds.has(target)
+    if (!srcSeed && !tgtSeed) continue
+    const edgeId = String(e.id ?? `${source}|${target}`)
+    if (!seenEdge.has(edgeId)) {
+      seenEdge.add(edgeId)
+      atRiskEdges.push(edgeId)
+    }
+    if (srcSeed && !seeds.has(target)) atRiskNodes.add(target)
+    if (tgtSeed && !seeds.has(source)) atRiskNodes.add(source)
+  }
+
+  return {
+    atRiskNodeIds: [...atRiskNodes].sort(),
+    atRiskEdgeIds: atRiskEdges,
+  }
 }
 
 export function blendTrust(

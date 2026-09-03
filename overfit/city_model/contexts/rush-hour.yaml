@@ -26,78 +26,10 @@ modifiers:
     networkActivity: high
 
   finance:
-  digital-banking-platform:
     activityLevel: very-high
     workload: very-high
     networkActivity: very-high
-    transactionActivity: very-high
-    authenticationActivity: very-high
-
-  customer-identity-service:
-    activityLevel: very-high
-    workload: very-high
-    authenticationActivity: very-high
-    identityVerificationActivity: high
-
-  bank-gateway:
-    activityLevel: very-high
-    workload: very-high
-    networkActivity: very-high
-    transactionActivity: very-high
-
-  core-banking-system:
-    activityLevel: very-high
-    workload: very-high
-    transactionActivity: very-high
-    databaseActivity: very-high
-
-  payment-processing-system:
-    activityLevel: very-high
-    workload: very-high
-    transactionActivity: very-high
-    networkActivity: very-high
-
-  card-processing-system:
-    activityLevel: very-high
-    workload: very-high
-    transactionActivity: very-high
-    authorizationActivity: very-high
-
-  fraud-detection-system:
-    activityLevel: very-high
-    workload: very-high
-    transactionAnalysis: very-high
-    alertGeneration: high
-
-  transaction-monitoring-system:
-    activityLevel: very-high
-    workload: very-high
-    monitoringActivity: very-high
-    anomalyDetectionActivity: high
-
-  interbank-payment-gateway:
-    activityLevel: very-high
-    workload: very-high
-    networkActivity: very-high
-    transactionActivity: very-high
-
-  atm-network-gateway:
-    activityLevel: high
-    workload: high
-    networkActivity: very-high
-    transactionActivity: high
-
-  atm-switching-system:
-    activityLevel: high
-    workload: high
-    networkActivity: very-high
-    transactionActivity: high
-
-  financial-data-platform:
-    activityLevel: very-high
-    workload: very-high
-    dataProcessingActivity: very-high
-    dataAccessActivity: high
+    expectedUsers: very-high
 
   public-safety:
     activityLevel: high

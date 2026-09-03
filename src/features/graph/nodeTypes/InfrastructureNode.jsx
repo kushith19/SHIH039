@@ -97,6 +97,7 @@ function InfrastructureNode({ id, data, selected }) {
   const trustScore = trustModel?.trustScore ?? 100
 
   const flaggedByScan = attackOn && (hack?.anomalyNodeIds ?? []).includes(id)
+  const peerExposed = attackOn && !flaggedByScan && (hack?.atRiskNodeIds ?? []).includes(id)
   const anomaly = {
     isAnomaly: flaggedByScan,
     trustAnomaly: flaggedByScan,
@@ -129,12 +130,16 @@ function InfrastructureNode({ id, data, selected }) {
     ? NORMAL_NODE_STYLE
     : isCriticalRed
       ? HACK_TAMPERED
-      : !drift
-        ? HACK_MUTED
-        : HACK_DRIFT
+      : peerExposed || drift
+        ? HACK_DRIFT
+        : HACK_MUTED
 
   const ppsLabel = ppsFormatter.format(displayPps)
   const trustLabel = trustFormatter.format(trustScore)
+  const peerLabel =
+    attackOn && Number.isFinite(Number(trustModel?.peerTrust))
+      ? trustFormatter.format(trustModel.peerTrust)
+      : null
   const showAnomalyDetectedBadge = attackOn && isAnomalyDetected(anomaly)
   const runtime = runtimeStateOf(data)
   const isInjected = runtime.provenance === 'injected'
@@ -151,10 +156,10 @@ function InfrastructureNode({ id, data, selected }) {
         boxShadow: `inset 3px 0 0 ${border}`,
       }}
     >
-      {showAnomalyDetectedBadge || isInjected ? (
+      {showAnomalyDetectedBadge || peerExposed || isInjected ? (
         <div className="pointer-events-none absolute -top-2 left-1 right-1 z-10 text-center text-[11px] font-medium leading-tight">
           <span className="inline-block rounded bg-[var(--tn-surface)] px-1.5 py-0.5 text-[var(--tn-text)] shadow-[var(--tn-shadow-sm)]">
-            {showAnomalyDetectedBadge ? 'Anomaly' : 'Unknown node'}
+            {showAnomalyDetectedBadge ? 'Anomaly' : peerExposed ? 'Peer exposed' : 'Unknown node'}
           </span>
         </div>
       ) : null}
@@ -188,6 +193,12 @@ function InfrastructureNode({ id, data, selected }) {
             <span className="text-[var(--tn-muted)]">trust</span>
             <span style={{ color: base }}>{trustLabel}%</span>
           </div>
+          {peerLabel != null ? (
+            <div className="flex items-center justify-between gap-1 text-[11px] tabular-nums">
+              <span className="text-[var(--tn-muted)]">peer</span>
+              <span style={{ color: base }}>{peerLabel}%</span>
+            </div>
+          ) : null}
           {metricDriftHint ? (
             <div className="mt-0.5 truncate text-[11px] font-medium text-[var(--tn-warn)]">
               {metricDriftHint}

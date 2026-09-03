@@ -12,6 +12,7 @@ city:
     - infrastructure/healthcare/hospital-emr.yaml
     - infrastructure/healthcare/medical-iot-gateway.yaml
     - infrastructure/healthcare/pharmacy-management.yaml
+    - infrastructure/healthcare/hospital-backup-power.yaml
 
     # Transportation
     - infrastructure/transportation/public-transport-management.yaml
@@ -24,12 +25,14 @@ city:
     - infrastructure/energy/power-substation-controller.yaml
     - infrastructure/energy/scada-control-server.yaml
     - infrastructure/energy/smart-meter-gateway.yaml
+    - infrastructure/energy/scada-backup-power.yaml
 
     # Telecommunications
     - infrastructure/telecommunications/dns-dhcp-services.yaml
     - infrastructure/telecommunications/mobile-network-core.yaml
     - infrastructure/telecommunications/network-management-system.yaml
     - infrastructure/telecommunications/telecom-network-gateway.yaml
+    - infrastructure/telecommunications/telecom-backup-gateway.yaml
 
     # Finance
     - infrastructure/finance/atm-network-gateway.yaml
@@ -44,6 +47,7 @@ city:
     - infrastructure/finance/interbank-payment-gateway.yaml
     - infrastructure/finance/atm-switching-system.yaml
     - infrastructure/finance/financial-data-platform.yaml
+    - infrastructure/finance/core-banking-backup.yaml
 
     # Water
     - infrastructure/water/smart-water-meter-gateway.yaml

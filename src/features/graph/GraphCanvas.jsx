@@ -32,6 +32,7 @@ import {
   getDefaultCanvasState,
 } from './graphIO'
 import { buildTrustByNodeId, getEdgeExpectedPps, getNodeBaselineMetrics, getNodeEffectiveMetrics, getNodeExpectedMetrics } from './peerTrust'
+import { peerExposureFromFlags } from '@shared/trustModel.js'
 import {
   NODE_METRIC_KEYS,
   clampNonNegative,
@@ -42,6 +43,20 @@ import {
 const NODE_TYPE = INFRASTRUCTURE_NODE_TYPE
 const EDGE_TYPE = 'directedLabeled'
 const EMPTY_TRUST = Object.freeze({})
+
+function applyPeerExposure(scan, graphEdges, nodeIds) {
+  const serverNodes = scan.atRiskNodeIds ?? []
+  const serverEdges = scan.atRiskEdgeIds ?? []
+  if (serverNodes.length > 0 || serverEdges.length > 0) {
+    return { ...scan, atRiskNodeIds: serverNodes, atRiskEdgeIds: serverEdges }
+  }
+  const derived = peerExposureFromFlags(graphEdges, scan.anomalyNodeIds, nodeIds)
+  return {
+    ...scan,
+    atRiskNodeIds: derived.atRiskNodeIds,
+    atRiskEdgeIds: derived.atRiskEdgeIds,
+  }
+}
 
 function graphApplySignature(nodes, edges) {
   let s = `${nodes.length},${edges.length}`
@@ -207,6 +222,7 @@ function GraphCanvasInner({
   hackSimulatorRef.current = hackSimulator
 
   const serverDetection = multiplayer?.detection ?? null
+  const knownNodeIds = useMemo(() => new Set(nodes.map((n) => n.id)), [nodes])
   const securityScan = useMemo(() => {
     if (paused) {
       return {
@@ -248,15 +264,15 @@ function GraphCanvasInner({
         tgnnSkippedAttackTicks: serverDetection?.tgnnSkippedAttackTicks ?? 0,
       }
     }
-    if (serverDetection != null) {
-      return {
+    return applyPeerExposure(
+      {
         nodes: serverDetection.nodes ?? [],
         edges: serverDetection.edges ?? [],
         anomalyNodeIds: serverDetection.anomalyNodeIds ?? [],
         spreadEdgeIds: [],
         compromisedNodeIds: serverDetection.anomalyNodeIds ?? [],
-        atRiskNodeIds: [],
-        atRiskEdgeIds: [],
+        atRiskNodeIds: serverDetection.atRiskNodeIds ?? [],
+        atRiskEdgeIds: serverDetection.atRiskEdgeIds ?? [],
         primarySpreadNodeId: null,
         primarySpreadEdgeId: null,
         isolationScoresByNodeId: serverDetection.isolationScoresByNodeId ?? {},
@@ -266,27 +282,11 @@ function GraphCanvasInner({
         tgnnWarmupCollected: serverDetection.tgnnWarmupCollected ?? 0,
         tgnnWarmupTicks: serverDetection.tgnnWarmupTicks ?? 15,
         tgnnSkippedAttackTicks: serverDetection.tgnnSkippedAttackTicks ?? 0,
-      }
-    }
-    return {
-      nodes: [],
-      edges: [],
-      anomalyNodeIds: [],
-      spreadEdgeIds: [],
-      compromisedNodeIds: [],
-      atRiskNodeIds: [],
-      atRiskEdgeIds: [],
-      primarySpreadNodeId: null,
-      primarySpreadEdgeId: null,
-      isolationScoresByNodeId: {},
-      reasonsByNodeId: {},
-      detectionMode: 'tgnn',
-      tgnnCalibrating: false,
-      tgnnWarmupCollected: 0,
-      tgnnWarmupTicks: 15,
-      tgnnSkippedAttackTicks: 0,
-    }
-  }, [paused, serverDetection, mpPhase])
+      },
+      edges,
+      knownNodeIds
+    )
+  }, [paused, serverDetection, mpPhase, edges, knownNodeIds])
 
   const trustByNodeId = useMemo(() => {
     if (paused) return EMPTY_TRUST

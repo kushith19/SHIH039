@@ -16,6 +16,7 @@ import PatternsPanel from '../features/dashboard/PatternsPanel'
 import AttackStoryPanel from '../features/story/AttackStoryPanel'
 import KpiStrip from '../features/dashboard/KpiStrip'
 import RiskMomentumCard from '../features/dashboard/RiskMomentumCard'
+import FinancialExposureCard from '../features/dashboard/FinancialExposureCard'
 import CommanderPanel from '../features/commander/CommanderPanel'
 import {
   derivePosture,
@@ -298,6 +299,7 @@ export default function DashboardPage({
     pageBody = (
       <div className="space-y-6">
         {kpiStrip}
+        <FinancialExposureCard detection={detection} nodes={nodes} edges={edges} />
         <RiskMomentumCard riskMomentum={detection?.riskMomentum ?? null} />
       </div>
     )

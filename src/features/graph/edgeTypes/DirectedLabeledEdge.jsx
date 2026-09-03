@@ -27,13 +27,16 @@ function DirectedLabeledEdge(edgeProps) {
     displayPps > 0 ? `${displayPps.toLocaleString()} pkt/s` : null
 
   const drift = hasScenarioDrift({ baselinePps: expected, effectivePps: displayPps })
+  const atRisk = attackOn && (hack?.atRiskEdgeIds ?? []).includes(id)
   const chipClass = attackOn
-    ? !drift
-      ? 'border-[var(--tn-line)] text-[var(--tn-muted)]'
-      : 'border-[var(--tn-warn)] text-[var(--tn-warn)]'
+    ? atRisk || drift
+      ? 'border-[var(--tn-warn)] text-[var(--tn-warn)]'
+      : 'border-[var(--tn-line)] text-[var(--tn-muted)]'
     : 'border-[var(--tn-line)]'
 
-  const edgeStyle = undefined
+  const edgeStyle = atRisk
+    ? { stroke: '#d97706', strokeWidth: 2 }
+    : undefined
 
   return (
     <>

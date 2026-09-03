@@ -1,9 +1,10 @@
 import { MarkerType } from '@xyflow/react'
-import { assetCatalog, getAssetByType } from './assetCatalog'
+import { getAssetByType } from './assetCatalog'
 import { DISTRICT_ANCHORS } from './cityMap'
 import { INFRASTRUCTURE_NODE_TYPE, dataFromAsset } from './infrastructureNode'
 import { getCityModelOverlay } from '@shared/cityContext.js'
 import { catalogTypeForYaml } from '@shared/cityModel/endpointMap.js'
+import { LIVE_CITY_GRAPH_TYPES } from '@shared/cityModel/liveGraphTypes.js'
 
 const NODE_TYPE = INFRASTRUCTURE_NODE_TYPE
 const EDGE_TYPE = 'directedLabeled'
@@ -58,10 +59,12 @@ export const CITY_DEPENDENCIES = [
   { source: 'power_substation', target: 'government_services', label: 'Civic feed', packetsPerSecond: 6_400 },
   { source: 'power_substation', target: 'data_centers', label: 'Facility power', packetsPerSecond: 10_500 },
   { source: 'power_substation', target: 'airport_infrastructure', label: 'Airfield power', packetsPerSecond: 8_800 },
+  { source: 'power_substation', target: 'plc_controller', label: 'SCADA', packetsPerSecond: 6_800 },
   { source: 'power_substation', target: 'ev_infrastructure', label: 'Depot power', packetsPerSecond: 5_400 },
   { source: 'power_substation', target: 'street_lighting', label: 'Civic lighting', packetsPerSecond: 3_100 },
 
   { source: 'water_supply', target: 'wastewater_sewage', label: 'Collection', packetsPerSecond: 4_200 },
+  { source: 'water_supply', target: 'flood_management', label: 'Quality / drainage', packetsPerSecond: 2_400 },
   { source: 'water_supply', target: 'healthcare', label: 'Potable supply', packetsPerSecond: 3_200 },
   { source: 'water_supply', target: 'food_supply', label: 'Process water', packetsPerSecond: 2_400 },
   { source: 'water_supply', target: 'public_housing', label: 'Mains', packetsPerSecond: 2_800 },
@@ -94,18 +97,23 @@ export const CITY_DEPENDENCIES = [
   { source: 'identity_access', target: 'education', label: 'Campus SSO', packetsPerSecond: 3_200 },
 
   { source: 'telecom_gateway', target: 'hospital_gateway', label: 'Hospital WAN', packetsPerSecond: 9_800 },
+  { source: 'mqtt_broker', target: 'hospital_gateway', label: 'Clinical IoT', packetsPerSecond: 4_100 },
+  { source: 'object_storage', target: 'hospital_emr', label: 'Pharmacy records', packetsPerSecond: 2_600 },
   { source: 'hospital_gateway', target: 'hospital_auth', label: 'Hospital LAN', packetsPerSecond: 6_400 },
   { source: 'hospital_auth', target: 'hospital_emr', label: 'EMR session', packetsPerSecond: 5_200 },
   { source: 'hospital_gateway', target: 'healthcare', label: 'Clinical network', packetsPerSecond: 7_800 },
 
   { source: 'government_services', target: 'citizen_services', label: 'Service portal', packetsPerSecond: 6_100 },
   { source: 'government_services', target: 'education', label: 'School district', packetsPerSecond: 3_400 },
+  { source: 'education', target: 'campus_network', label: 'Campus WAN', packetsPerSecond: 3_800 },
+  { source: 'telecom_gateway', target: 'campus_network', label: 'Campus backhaul', packetsPerSecond: 4_400 },
   { source: 'government_services', target: 'municipal_operations', label: 'Civic ops', packetsPerSecond: 4_100 },
   { source: 'government_services', target: 'public_housing', label: 'Housing authority', packetsPerSecond: 2_600 },
   { source: 'government_services', target: 'libraries_cultural', label: 'Civic programs', packetsPerSecond: 1_800 },
   { source: 'urban_infrastructure', target: 'government_services', label: 'Asset register', packetsPerSecond: 2_600 },
   { source: 'municipal_operations', target: 'street_lighting', label: 'Lighting ops', packetsPerSecond: 1_500 },
 
+  { source: 'traffic_management', target: 'smart_actuator', label: 'Field sensors', packetsPerSecond: 3_200 },
   { source: 'road_infrastructure', target: 'traffic_management', label: 'Signals', packetsPerSecond: 3_800 },
   { source: 'traffic_management', target: 'metro_rail', label: 'ITS / SCADA', packetsPerSecond: 4_200 },
   { source: 'traffic_management', target: 'airport_infrastructure', label: 'Landside flow', packetsPerSecond: 3_100 },
@@ -125,12 +133,39 @@ export const CITY_DEPENDENCIES = [
   { source: 'emergency_services', target: 'healthcare', label: 'Ambulance routing', packetsPerSecond: 2_800 },
   { source: 'emergency_services', target: 'fire_rescue', label: 'Dispatch', packetsPerSecond: 2_400 },
   { source: 'police_services', target: 'government_services', label: 'Records', packetsPerSecond: 2_100 },
+  { source: 'public_safety_gateway', target: 'telecom_gateway', label: 'Safety WAN', packetsPerSecond: 5_200 },
+  { source: 'public_safety_systems', target: 'public_safety_gateway', label: 'Safety core', packetsPerSecond: 3_600 },
   { source: 'public_safety_systems', target: 'emergency_alert', label: 'CAP', packetsPerSecond: 2_200 },
   { source: 'public_safety_systems', target: 'police_services', label: 'CAD', packetsPerSecond: 3_400 },
   { source: 'disaster_management', target: 'emergency_alert', label: 'Warnings', packetsPerSecond: 1_700 },
   { source: 'fire_rescue', target: 'disaster_management', label: 'Incident', packetsPerSecond: 1_500 },
 
   { source: 'cloud_digital', target: 'banking_financial', label: 'Core banking', packetsPerSecond: 11_000 },
+  { source: 'digital_banking_platform', target: 'customer_identity_service', label: 'Customer IAM', packetsPerSecond: 6_800 },
+  { source: 'digital_banking_platform', target: 'bank_gateway', label: 'Banking channel', packetsPerSecond: 9_200 },
+  { source: 'digital_banking_platform', target: 'telecom_gateway', label: 'Banking WAN', packetsPerSecond: 5_400 },
+  { source: 'bank_gateway', target: 'banking_financial', label: 'Core posting', packetsPerSecond: 10_500 },
+  { source: 'bank_gateway', target: 'telecom_gateway', label: 'Bank WAN', packetsPerSecond: 4_800 },
+  { source: 'card_processing_system', target: 'banking_financial', label: 'Card settlement', packetsPerSecond: 7_600 },
+  { source: 'card_processing_system', target: 'payment_processing_system', label: 'Card rails', packetsPerSecond: 6_400 },
+  { source: 'payment_processing_system', target: 'banking_financial', label: 'Payment posting', packetsPerSecond: 8_800 },
+  { source: 'payment_processing_system', target: 'fraud_detection_system', label: 'Fraud screen', packetsPerSecond: 4_200 },
+  { source: 'payment_processing_system', target: 'transaction_monitoring_system', label: 'TMS feed', packetsPerSecond: 3_800 },
+  { source: 'fraud_detection_system', target: 'transaction_monitoring_system', label: 'Alert correlation', packetsPerSecond: 2_400 },
+  { source: 'fraud_detection_system', target: 'financial_data_platform', label: 'Case data', packetsPerSecond: 2_800 },
+  { source: 'transaction_monitoring_system', target: 'financial_data_platform', label: 'Ledger analytics', packetsPerSecond: 3_200 },
+  { source: 'interbank_payment_gateway', target: 'payment_processing_system', label: 'RTGS / ACH', packetsPerSecond: 7_100 },
+  { source: 'interbank_payment_gateway', target: 'telecom_gateway', label: 'Interbank WAN', packetsPerSecond: 4_600 },
+  { source: 'atm_switching_system', target: 'atm_network_gateway', label: 'ATM switch', packetsPerSecond: 6_200 },
+  { source: 'atm_switching_system', target: 'banking_financial', label: 'ATM posting', packetsPerSecond: 5_800 },
+  { source: 'atm_network_gateway', target: 'telecom_gateway', label: 'ATM WAN', packetsPerSecond: 4_400 },
+  { source: 'financial_data_platform', target: 'banking_financial', label: 'Core extracts', packetsPerSecond: 5_100 },
+  { source: 'customer_identity_service', target: 'banking_financial', label: 'Account binding', packetsPerSecond: 3_600 },
+  { source: 'customer_identity_service', target: 'identity_access', label: 'Civic federation', packetsPerSecond: 2_900 },
+  { source: 'citizen_services', target: 'payment_processing_system', label: 'Municipal payments', packetsPerSecond: 3_400 },
+  { source: 'payment_processing_system', target: 'citizen_services', label: 'Receipts', packetsPerSecond: 2_200 },
+  { source: 'payment_processing_system', target: 'hospital_gateway', label: 'Clinical billing', packetsPerSecond: 1_800 },
+  { source: 'payment_processing_system', target: 'public_transport', label: 'Fare payments', packetsPerSecond: 2_100 },
   { source: 'supply_chain', target: 'retail_infrastructure', label: 'Replenishment', packetsPerSecond: 4_800 },
   { source: 'supply_chain', target: 'food_supply', label: 'Wholesale', packetsPerSecond: 3_700 },
   { source: 'postal_delivery', target: 'citizen_services', label: 'Last mile', packetsPerSecond: 2_200 },
@@ -213,15 +248,16 @@ function cityNode(assetType, position) {
 }
 
 /**
- * One infrastructure endpoint per City Model catalog type (sectors + facility stacks).
+ * One node per YAML-backed city-model endpoint (~40).
  */
 export function buildCityDependencyGraph() {
   const indices = {}
-  const nodes = assetCatalog.map((asset) => {
-    const district = DOMAIN_TO_DISTRICT[asset.domain] ?? 'urban'
+  const nodes = LIVE_CITY_GRAPH_TYPES.map((assetType) => {
+    const asset = getAssetByType(assetType)
+    const district = DOMAIN_TO_DISTRICT[asset?.domain] ?? 'urban'
     const index = indices[district] ?? 0
     indices[district] = index + 1
-    return cityNode(asset.type, layoutPosition(district, index))
+    return cityNode(assetType, layoutPosition(district, index))
   })
 
   const known = new Set(nodes.map((n) => n.data.type))
@@ -247,3 +283,4 @@ export function buildCityDependencyGraph() {
     viewport: { x: -380, y: -140, zoom: 0.4 },
   }
 }
+

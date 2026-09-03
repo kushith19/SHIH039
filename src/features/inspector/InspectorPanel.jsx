@@ -175,6 +175,10 @@ export default function InspectorPanel({
     const maxDeviation = maxMetricDeviation(baselineMetrics, effective)
     const flagged =
       sim?.active === true && (sim.anomalyNodeIds ?? []).includes(selectedNode.id)
+    const peerExposed =
+      sim?.active === true &&
+      !flagged &&
+      (sim.atRiskNodeIds ?? []).includes(selectedNode.id)
     return {
       ...row,
       peerTrust: row.peerTrust ?? row.peerTrustStructural,
@@ -185,7 +189,7 @@ export default function InspectorPanel({
       trustAnomaly: flagged,
       attackOrigin: nodeIsAttackSeed(selectedNode.id, [selectedNode], sim),
       spreadReached: false,
-      atRisk: false,
+      atRisk: peerExposed,
     }
   }, [selectedNode, sim, baselineMetrics])
 
@@ -207,6 +211,7 @@ export default function InspectorPanel({
     if (!hackModeActive || !nodeTrust) return null
     if (nodeTrust.attackOrigin) return 'Attack seed'
     if (nodeScenarioUi?.anomalyDetected) return 'Flagged'
+    if (nodeTrust.atRisk) return 'Peer exposed'
     if (nodeScenarioUi?.drift && !nodeScenarioUi?.critical) {
       return calibrating ? 'Drift · idle window' : 'Drift'
     }
@@ -298,12 +303,23 @@ export default function InspectorPanel({
                 <span className="tn-badge">
                   Trust {Math.round(nodeTrust.trustScore)}%
                 </span>
+                <span className="tn-badge">
+                  Peer {Math.round(nodeTrust.peerTrust)}%
+                </span>
+                {hackModeActive && !calibrating ? (
+                  <span className="tn-badge">
+                    Residual{' '}
+                    {tgnnUi?.isolation == null
+                      ? '—'
+                      : `${Math.round(tgnnUi.isolation * 100)}%`}
+                  </span>
+                ) : null}
                 <span
                   className={[
                     'tn-badge',
                     nodeScenarioUi?.anomalyDetected
                       ? 'text-[var(--tn-crit)]'
-                      : nodeScenarioUi?.drift
+                      : nodeTrust.atRisk || nodeScenarioUi?.drift
                         ? 'text-[var(--tn-warn)]'
                         : '',
                   ].join(' ')}
@@ -311,9 +327,11 @@ export default function InspectorPanel({
                   {threatLabel ??
                     (nodeScenarioUi?.anomalyDetected
                       ? 'Anomaly'
-                      : nodeScenarioUi?.drift
-                        ? `Drift ${nodeTrust.deviationPercent.toFixed(0)}%`
-                        : 'Stable')}
+                      : nodeTrust.atRisk
+                        ? 'Peer exposed'
+                        : nodeScenarioUi?.drift
+                          ? `Drift ${nodeTrust.deviationPercent.toFixed(0)}%`
+                          : 'Stable')}
                 </span>
               </div>
             ) : null}
@@ -459,6 +477,11 @@ export default function InspectorPanel({
                   <span>Behavioural {Math.round(nodeTrust.behavioralComponent)}%</span>
                   <span>Interaction {Math.round(nodeTrust.interactionComponent)}%</span>
                 </div>
+                {nodeTrust.atRisk ? (
+                  <p className="text-xs text-[var(--tn-muted)]">
+                    Peer dropped because a graph neighbor is flagged. Assessment, not a confirmed kill-chain.
+                  </p>
+                ) : null}
               </div>
             ) : null}
 

@@ -40,7 +40,7 @@ export const TRUST_CONFIG = Object.freeze({
   }),
 
   peer: Object.freeze({
-    aggregate: 'mean',
+    aggregate: 'min',
     isolatedUses: 'local',
   }),
 

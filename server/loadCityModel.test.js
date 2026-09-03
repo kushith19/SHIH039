@@ -24,6 +24,9 @@ test('city model YAML loads contexts and scales expected telemetry', () => {
   const rushHealthcare = contextMultiplier('rush_hour', 'healthcare', 'packetsPerSecond')
   const rushEnergy = contextMultiplier('rush_hour', 'energy', 'packetsPerSecond')
   const normalHealthcare = contextMultiplier('normal_day', 'healthcare', 'packetsPerSecond')
+  const rushFinancePps = contextMultiplier('rush_hour', 'finance', 'packetsPerSecond')
+  const nightFinancePps = contextMultiplier('night', 'finance', 'packetsPerSecond')
+  const normalFinancePps = contextMultiplier('normal_day', 'finance', 'packetsPerSecond')
 
   assert.equal(normalDefault, 1)
   assert.ok(rushTransportPps > 1, `rush transport pps ${rushTransportPps}`)
@@ -31,6 +34,9 @@ test('city model YAML loads contexts and scales expected telemetry', () => {
   assert.ok(rainWaterPps > 1, `rain water pps ${rainWaterPps}`)
   assert.ok(rainEmergencyPps > 1, `rain emergency pps ${rainEmergencyPps}`)
   assert.ok(rushEnergy > 1, `rush energy pps ${rushEnergy}`)
+  assert.ok(normalFinancePps > 1, `normal finance pps ${normalFinancePps}`)
+  assert.ok(rushFinancePps > normalFinancePps, `rush finance ${rushFinancePps} vs normal ${normalFinancePps}`)
+  assert.ok(nightFinancePps < 1, `night finance pps ${nightFinancePps}`)
   assert.equal(
     rushHealthcare,
     normalHealthcare,
@@ -60,6 +66,31 @@ test('city model YAML loads infrastructure and actors despite path aliases', () 
   )
   assert.ok(model.endpoints['traffic-camera'], 'traffic-camera endpoint')
   assert.ok(model.endpoints['traffic-management-controller'])
+  const financeIds = [
+    'atm-network-gateway',
+    'bank-gateway',
+    'core-banking-system',
+    'payment-processing-system',
+    'digital-banking-platform',
+    'customer-identity-service',
+    'card-processing-system',
+    'fraud-detection-system',
+    'transaction-monitoring-system',
+    'interbank-payment-gateway',
+    'atm-switching-system',
+    'financial-data-platform',
+  ]
+  for (const id of financeIds) {
+    assert.ok(model.endpoints[id], `finance endpoint ${id}`)
+  }
+  assert.ok(
+    model.dependencies.some(
+      (d) =>
+        (d.source === 'citizen-services-portal' && d.target === 'payment-processing-system') ||
+        (d.source === 'payment-processing-system' && d.target === 'citizen-services-portal')
+    ),
+    'citizen portal ↔ payment processing'
+  )
   assert.ok(Object.keys(model.endpoints).length >= 40, `got ${Object.keys(model.endpoints).length} endpoints`)
   assert.ok(model.actors.length > 0, 'actors loaded')
   assert.ok(model.actors.some((a) => a.id === 'citizens'))
