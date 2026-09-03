@@ -1,0 +1,520 @@
+[
+  {
+    "chunk_id": "04ae8d546abb201031039094e601beecf5e6bcd88937ac4266950e34b252b16e",
+    "text": "Principles for Designed-In Security and Privacy for Smart Cities",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "Principles for Designed-In Security and Privacy for Smart Cities",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "8d732bf8322c6e02a9643668b1c50fac888e81f8941e0c94f40fec430f3a6ecb",
+    "text": "Corey Dickens \u2020 \n Dakota Consulting, Inc.  \nSilver Spring, MD, USA  \n corey.dickens@nist.gov",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "Corey Dickens \u2020 \n Dakota Consulting, Inc.  \nSilver Spring, MD, USA  \n corey.dickens@nist.gov",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "4d6786b0d7f4f0cfbfa93bca0558309107260a612f08ff4dd4354426223ca63b",
+    "text": "Paul Boynton \u2020 \n National Institute of Standards and\n\nTechnology  \nGaithersburg, MD, USA",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "Paul Boynton \u2020 \n National Institute of Standards and",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "240375c2d02df0e841350be350f0ad82a0d69a466d45ff96236ddf540b2d3026",
+    "text": "paul.boynton@nist.gov",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "paul.boynton@nist.gov",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "10bb0d19ef6e97ffb11578c461a6a43bdf6ecaf3470e06df3bab1093d84a7c33",
+    "text": "Sokwoo Rhee \u2020 \n National Institute of Standards and\n\nTechnology  \nGaithersburg, MD, USA",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "Sokwoo Rhee \u2020 \n National Institute of Standards and",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "30025083d7062a54a071eb4baf6bf5a2ac54f158397e7a003a43591bedd13aad",
+    "text": "sokwoo.rhee@nist.gov",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "sokwoo.rhee@nist.gov",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "3941852f31af535a28f07bfd3d16c0797db1ae195780a7481a9db6064ae517a5",
+    "text": "ABSTRACT\n\nThis paper presents the design and implementation of a process for \nan exploratory study that identifies a set of principles for designed-\nin security and privacy for smart city projects from among Global \nCity Teams Challenge (GCTC) \u2013 Smart and Secure Cities and \nCommunities Challenge (SC3) participants. The study was \nconducted based on information from the National Institute of \nStandards and Technology (NIST) GCTC Action Clusters database \nand interactions with the project teams.  A research process was \ndeveloped and implemented, comprising the following three steps:\n\n(1) Investigate project descriptions created by the project\n\nleads on the NIST GCTC database and other public \nsources;\n\n(2) Gather additional input from volunteer GCTC\n\ncollaborators; and\n\n(3) Identify a set of governing principles commonly shared\n\nby examples of GCTC projects.\n\nBased on the outcomes of this process, a set of common principles \nhas been identified that enable designed-in security and privacy \nconsiderations among the projects: specific technology usage, \nimplementation of a cybersecurity management process and \nframework, and cybersecurity expertise and public-private \npartnerships. Characteristics of planning and implementation of \nsecurity and privacy considerations from four example GCTC \nprojects are described and analyzed in detail to illustrate the \nprocess.",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "ABSTRACT",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "d70774b319eba82f38d54b9dbc5be6dafcd2da4fddbedf0f7bed64fa7419509b",
+    "text": "CCS CONCEPTS\n\n\u2022 Smart City \u2022 Cybersecurity Framework \u2022 Cyber-Physical Systems \n\u2022 Internet of Things \u2022 Network Infrastructure",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "CCS CONCEPTS",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "603b986e08958d76feef077fab261a6066a9a41b0c1b7610b4775eee595c683b",
+    "text": "KEYWORDS\n\nSmart \ncity, \nCybersecurity, \nCyber-Physical \nSystems, \nIoT, \nInfrastructure, Privacy, Resiliency\n\nACM Reference format:\n\nCorey Dickens, Paul Boynton, and Sokwoo Rhee. 2019. Principles for \nDesigned-In Security and Privacy for Smart Cities. In Proceedings of ACM \nCPS-Week. ACM, New York, NY, USA, 5 pages.  \nhttps://doi.org/10.1145/3313237.3313300",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "KEYWORDS",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "b12026d71a754776a087c209c4cc774e2d0953cd0dda200a6f90ef73db1b2b7e",
+    "text": "1 \nIntroduction\n\nCities and communities across the US and internationally are \nattempting to implement community-scale smart systems to \nimprove city management efficiency, increase infrastructure \nresilience, and provide more convenient and secure services for \ntheir constituents [1][2]. These smart city and community \ninitiatives can be complicated projects composed of many different \ntechnical \ndomains, \nincluding \ninformation \ntechnology, \ncommunication networks, computer analytics, sensors, power \nelectronics, and control systems.  These systems and technologies \nneed to interact and communicate in a secure and privacy-\nprotecting manner to effectively operate and meet the needs of city \nand community stakeholders in terms of privacy and information \nintegrity [3].\n\nDue to numerous interoperability complexities and the lack of in-\nhouse cybersecurity expertise, many city and communities are \ninitiating smart city projects in which security and privacy are \naddressed after initial project development and implementation \n(rather than considered as an integral component designed-in at the \nbeginning of the project).  Although this approach may seem \nsimpler at the beginning, it does not guarantee systematic and \nholistic implementation of security and privacy that works best for \nthe given smart city project. Moreover, additional patchworks for",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "1 \nIntroduction",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "fb3da686557206b6985b1df4091efcdc37cd2df7e9bcd457ca03c60b4bd46043",
+    "text": "\u2020Smart Grid and Cyber-Physical Systems Program Office, Engineering Laboratory, \nNational Institute of Standards and Technology, U.S. Department of Commerce \n \nACM acknowledges that this contribution was authored or co-authored by an \nemployee, contractor, or affiliate of the United States government. As such, the \nUnited States government retains a nonexclusive, royalty-free right to publish or \nreproduce this article, or to allow others to do so, for Government purposes only. \nOfficial contribution of the United States government; not subject to copyright in the \nUnited States. \n \nSCOPE '19, April 15, 2019, Montreal, QC, Canada \n\u00a9 2019 Association for Computing Machinery. \nACM ISBN 978-1-4503-6703-5/19/04\u2026$15.00 \nhttps://doi.org/10.1145/3313237.3313300\n\nSCOPE w/GCTC, CPS-IoT Week, April 2019, Montreal, Canada  \nC. Dickens et al.",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "1 \nIntroduction",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "3ef76a8788b323b229f9af9ab8c5f024f521ffe99104ee8fff424023c30d3d00",
+    "text": "security and privacy as an \u201cafterthought\u201d may lead to unintended \nerrors and suboptimal performance of the implemented system. \nTherefore, it is important to identify a set of governing principles \nfor designed-in security and privacy for smart city projects and take \nthem into account at the beginning of project planning. This paper \ndescribes our work in identifying a common set of principles for \nsecurity and privacy consideration that offer best practices and \nguidelines that could be used by communities as examples and a \ntemplate for cybersecurity planning and integration for smart city \nprojects.  To illustrate the process, the paper describes several \nexamples of existing smart city projects that are designed and \nplanned from a perspective of trustworthiness, privacy, and security \nand provide examples that other cities and communities can \nconsider in developing their own plans using available tools such \nas National Institute of Standards and Technology\u2019s (NIST\u2019s) \nCyber-Physical Systems (CPS) Framework [4].",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "1 \nIntroduction",
+    "page_number": 2
+  },
+  {
+    "chunk_id": "269384707f9da45efc93378db95696fafafee79feeab7d3e07aee9c166618e9e",
+    "text": "2 \nMethodology\n\nThe methodology to identify a common set of designed-in security \nand privacy principles followed an investigation of Global City \nTeams Challenge (GCTC) project descriptions in the NIST GCTC \ndatabase [5] and discussions with GCTC collaborators. The process \nused to identify the principles from the technical use cases can be \nsummarized as follows:\n\n(1) Investigate project descriptions created by the project\n\nleads on the NIST GCTC database and other public \nsources;\n\n(2) Gather \nadditional \ninput \nfrom \nvolunteer \nGCTC \ncollaborators; and\n\n(3) Identify a set of governing principles commonly shared\n\nby examples of GCTC project.",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "2 \nMethodology",
+    "page_number": 2
+  },
+  {
+    "chunk_id": "28d4f8b0971fde680ee4ff46f0e437e0b5ed1bee41a2e4edd4c88d3bc3afbccf",
+    "text": "2.1 \nInvestigating GCTC Database Project \nDescriptions and other Public Sources\n\nThe GCTC is a program initiated and led by NIST, and \nimplemented in partnership with other U.S. federal agencies \nincluding the Department of Homeland Security Science and \nTechnology Directorate (DHS S&T). The program was established \nin 2014 as an outgrowth of the successful SmartAmerica Challenge \nlaunched in 2013 [6] to encourage development of replicable and \nscalable models for incubation and deployment of interoperable, \nsecure, standard-based solutions using advanced technologies, such \nas Internet of Things (IoT) and CPS, and to demonstrate their \nmeasurable benefits in cities and communities. A cornerstone of the \nprogram is to incentivize public\u2013private collaborations to develop \nsustainable integration models that can be used globally by \ninterested community stakeholders [7]. Cities and communities \ncollaborate with technology innovators to develop smart city \nprojects, called Action Clusters, in relation to a chosen sector, with \nan aim to manage and control city resources in a secure and \nefficient manner (Figure 1). GCTC Action Clusters cover a wide \nrange of application sectors that cover many infrastructures.  Table\n\n1 lists several application sectors covered by GCTC Action \nClusters.",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "2.1 \nInvestigating GCTC Database Project \nDescriptions and other Public Sources",
+    "page_number": 2
+  },
+  {
+    "chunk_id": "8a56cecf596de6f6f1054f03e13b89ab230b4ad834e5e7f2fb02e20e9fad8be0",
+    "text": "GCTC participants are ideal for this type of exploratory case study \nbecause they are already engaged in smart city projects and detailed \nin the GCTC database. Therefore, examples of smart city projects \nwere identified from among the past participants of GCTC and \nadditional information was obtained from other public sources such \nas the GCTC Wiki [8].",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "2.1 \nInvestigating GCTC Database Project \nDescriptions and other Public Sources",
+    "page_number": 2
+  },
+  {
+    "chunk_id": "99bf9d80f31e9c6d0232291b798fca858d9499960b2d576a868f05e28359437a",
+    "text": "Table 1. GCTC Action Cluster Sectors\n\nApplication Areas\n\nTransportation\n\nPublic Safety\n\nUtility (Energy, Water, and Environment)\n\nData Governance and Exchange\n\nWireless\n\nEducation\n\nAgriculture and Rural",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "Table 1. GCTC Action Cluster Sectors",
+    "page_number": 2
+  },
+  {
+    "chunk_id": "bf9373e279e2828eb13d06fb98c4adebfdf626e03d74838aeb1cb8dec826ce38",
+    "text": "2.2 \nGathering Additional Input from GCTC \nCollaborators\n\nThe GCTC project descriptions created by the project leads in the \ndatabase provided an overview of participants\u2019 projects, but in most \ncases, they offered limited information about cybersecurity \nintegration.  Therefore, conversations were needed with \nparticipants to fill in the gaps for cybersecurity details that were not \ndiscussed in descriptions posted in the NIST database.\n\nTo fill in the information gaps about cybersecurity integration, \nremote meetings were set up with several GCTC teams to explain",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "2.2 \nGathering Additional Input from GCTC \nCollaborators",
+    "page_number": 2
+  },
+  {
+    "chunk_id": "cc048ddb486df3ed11ad35cfea9dc4e5f36ff095b573a81cae1fbcf500384e76",
+    "text": "Figure 1. GCTC Action Clusters\n\nPrinciples for Designed-In Security and Privacy for Smart Cities \nSCOPE w/GCTC, CPS-IoT Week, April 2019, Montreal, Canada\n\nthe goal of the analysis and gather additional information on their \nprojects.",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "Figure 1. GCTC Action Clusters",
+    "page_number": 2
+  },
+  {
+    "chunk_id": "7f238b33a403227ac0d738592495198a40fffb0bb5e8421881607bbf4d8684ae",
+    "text": "2.3 \nAnalysis of the Projects and Identifying a Set \nof Principles for Designed-in Security and \nPrivacy Implementation\n\nThe GCTC collaborative partners described their projects in terms \nof cybersecurity integration as an initial design priority.  \nSummaries of the discussions and project reviews were developed \ndetailing specific information pertinent to relevant concepts and \ntopics for designed-in security and privacy for smart city projects. \nFrom the detailed descriptions collected through the investigation \nof project descriptions on the NIST GCTC database, and one-on-\none conversations with the GCTC collaborators, a set of common \nconsiderations for designed-in security and privacy could be \nidentified.",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "2.3 \nAnalysis of the Projects and Identifying a Set \nof Principles for Designed-in Security and \nPrivacy Implementation",
+    "page_number": 2
+  },
+  {
+    "chunk_id": "dfc711cb69bb4b8b1a676355adfcf681b97f3161d9cc294dbfc19710fba1061c",
+    "text": "3 \nSmart City Project Use Cases\n\nFour projects are described in this paper as examples of uses cases. \nThe four projects consist of:\n\n(1) Secure Smart Lights / Sensors project, San Leandro,\n\nCalifornia, USA;\n\n(2) Smart \nTrip \nLas \nVegas: \nSafer \nand \nConnected \nTransportation, Las Vegas, Nevada, USA;\n\n(3) Building Portfolio Cyber-Secure, Real-Time Utility Data\n\nIntegration, Pittsburgh, Pennsylvania, USA; and\n\n(4) Underground Infrastructure Sensing and Mapping for\n\nSmart \nMaintenance, \nSustainability, \nUsage \nand \nResilience, Burlington Vermont, USA.",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "3 \nSmart City Project Use Cases",
+    "page_number": 2
+  },
+  {
+    "chunk_id": "07ecf7122f9ead16ba505ee16db293b2462f0d7b62e8682158ba391b05fb6185",
+    "text": "3.1 \nSecure Smart Lights/Sensors, San Leandro, \nCalifornia\n\nThe San Leandro project is a utility/energy sector project that is \ncomprised of a secure controllable network of efficient street lights \nproviding reduced energy consumption and safety [9]. The lighting \nsolution offers autonomous or scheduled illumination dimming that \ncan be controlled from the district level down to a specific light \nnode.\n\nThe core team, a public-private partnership, consists of a \ngovernment partner, the City of San Leandro (CSL), and two \ntechnology private companies.  CSL decided to outsource the \nproject for a developed turn-key solution.  The companies \ncollaborated to provide the cybersecurity expertise and the LED \nbased smart lighting solution. The cybersecurity solution adopted \nby the city is based on the concept of \u201cmoving target data \nprotection\u201d designed to render common attacks intractable as it \nremoves contextual cues while increasing obfuscation via various \ndistributed computation techniques [9].\n\nThe cybersecurity concerns are handled using the Information \nSecurity Maturity Model (ISM3) framework with the Open Source \nSecurity Information Management (OSSIM) tool [10][11]. The \nOSSIM platform implemented provides intrusion detection and \nprevention.",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "3.1 \nSecure Smart Lights/Sensors, San Leandro, \nCalifornia",
+    "page_number": 2
+  },
+  {
+    "chunk_id": "7e15ed2212aeaec2ce09175a9d557ad1b242507d22255e0d116965cbad481d3b",
+    "text": "3.2 \nSmart Trip Las Vegas: Safer Connected \nTransportation, Las Vegas, Nevada\n\nThe Las Vegas project is a transportation sector project that uses a \ntechnology that provides fleet vehicles the capability to gather \nintelligence about traffic and pedestrian issues to increase \npedestrian safety. The project aims to use connected car \ntechnologies to provide actionable messaging to drivers on road \nconditions while adopting open standard vehicle communication \nprotocols based on a consortia-developed technology enabling \nfaster deployment among vehicle manufacturers. The system \nestablishes secure, reliable, two-way wireless connectivity between \nthe in-vehicle unit and city-hosted servers so that vehicle data flows \nand actionable alerts return to inform the driver. The project also \ndevelops analytics and trend reports that support city/region/state \ntransportation planning decisions for the welfare of citizens and \nvisitors [12].\n\nThe team, a public-private partnership, consists of two government \nentities\u2014the City of Las Vegas (CLV) and the Regional \nTransportation Commission (RTC) of Southern Nevada\u2014and a \ntechnology private company.",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "3.2 \nSmart Trip Las Vegas: Safer Connected \nTransportation, Las Vegas, Nevada",
+    "page_number": 2
+  },
+  {
+    "chunk_id": "9be3a369ce4824a637155288c535d66415965b462a3e52d6744e4a5e6bbfb899",
+    "text": "The two municipal entities provided management and the fleet \nvehicles.  The technology company developed the turnkey solution \nin terms of software, hardware, integration, and security.  The \ntechnology was integrated without a cyber-based management \nplan, but with a security framework leveraged by the private partner \nand security protocols that were used in the technology.",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "3.2 \nSmart Trip Las Vegas: Safer Connected \nTransportation, Las Vegas, Nevada",
+    "page_number": 3
+  },
+  {
+    "chunk_id": "2c2da443cbf67a2366db23a8c47ff543cf301cb8b515abe67eb7fba0a5113921",
+    "text": "3.3 \nBuilding Portfolio Cyber-Secure, Real Time \nUtility Data Integration, Pittsburgh, \nPennsylvania\n\nThe Pittsburgh project is leveraged from an energy efficiency \nproject in the U.S. Department of Energy (DOE) sponsored energy \nefficiency hub.  The foundation of the project focused on plug load \ntechnology coupled with utility portfolio data management for \nenergy management and reduction for commercial buildings. Based \non visualizations and artificial intelligence algorithms developed at \nthe Carnegie Mellon University (CMU) School of Architecture \n(SOA), the solution is a cloud-based building information system \nthat can integrate with utility and building data to provide \nvisualizations, benchmarking and recommendations for building \nportfolio energy efficiencies and indoor environmental quality. \nThis project also plans to include the first independent Smart \nBuilding/Smart City training, testing and certification lab at the \nEnergy Innovation Center in Pittsburgh, PA [13].\n\nSCOPE w/GCTC, CPS-IoT Week, April 2019, Montreal, Canada  \nC. Dickens et al.\n\nThe core team is a public-private partnership composed of the City \nof Pittsburgh, a private technology company, and a technology \ninnovation entity.\n\nThis project was implemented with no cybersecurity framework, \nbut the private technology company chose and implemented a \nturnkey plug/Wi-Fi solution with embedded security features.",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "3.3 \nBuilding Portfolio Cyber-Secure, Real Time \nUtility Data Integration, Pittsburgh, \nPennsylvania",
+    "page_number": 3
+  },
+  {
+    "chunk_id": "a22a7c09b877c54412d065b8d61689611f42c724359cc10f8d5f3ab2e7a7ef9b",
+    "text": "3.4 \nUnderground Infrastructure Sensing and \nMapping for Smart Maintenance, \nSustainability, Usage and Resilience, \nBurlington, Vermont\n\nThe Vermont project is a utility-based project for underground \ninfrastructure maintenance and resiliency.  This project centers \naround an autonomous sensor node that can be networked to \nprovide infrastructure monitoring and 3D mapping. The project \nuses sensing and information technology to determine the state of \ninfrastructure and provide it in an appropriate, timely, and secure \nformat for the users. Information processing techniques convert the \ndata in information-laden databases for use in analytics, graphical \npresentations, metering and planning [14].\n\nThe primary team is a public-private relationship consisting of two \ncities in Vermont (Burlington and Winooski), a private technology \ncompany, and a university.\n\nThe Vermont city entities administered overall management and \nenabled access to city infrastructure, while the private company \ndeveloped the technical solution.  The university researchers \naddressed security concerns and integrated cybersecurity measures \ninto design decisions, considering the NIST cybersecurity \nframework.",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "3.4 \nUnderground Infrastructure Sensing and \nMapping for Smart Maintenance, \nSustainability, Usage and Resilience, \nBurlington, Vermont",
+    "page_number": 3
+  },
+  {
+    "chunk_id": "52147f4e9a03b611fb94802d31fc2a66c695b380f67cfd8ab6a13cc52a64786c",
+    "text": "4 \nDesigned-in Security and Privacy Principles\n\nFrom the research of the GCTC smart city projects and more \nextensive examination of a few existing use cases, a set of \ncommonly addressed principles for smart city projects with \ndesigned-in security and privacy has emerged: specific technology \nusage, implementation of a cybersecurity management process, and \ncybersecurity expertise and public-private partnerships.",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "4 \nDesigned-in Security and Privacy Principles",
+    "page_number": 3
+  },
+  {
+    "chunk_id": "ce0969fa04f0f5ffd9f6a085e489c578ba6293d249d15c0704587487ae27dc80",
+    "text": "4.1 \nSpecific Technology Usage\n\nMost of the projects investigated in this paper clearly focus on a \nspecific technology such as San Leandro\u2019s use of moving target \ndata protection technology (Table 2) that is most suitable for a \ntechnical use case study rather than a general Internet of Things \n(IoT) platform. \nThis ensures the security and privacy \nconsiderations during planning and implementation of the project \ncan be focused and efficiently managed for specific use cases. \nSuccessful examples of specific technology usage can be more \nreadily transferrable and usable by other use cases with similar \ngoals.",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "4.1 \nSpecific Technology Usage",
+    "page_number": 3
+  },
+  {
+    "chunk_id": "1e4f5bc7ebfae02edb3efcd8d4a8654243ef078ba06dc32724c06a1aaed2d9e1",
+    "text": "Table 2 Specific technologies from example projects\n\nSpecific Technologies\n\nIntelligent street light with moving target data\n\nprotection technology\n\nWifi smart plug with embedded security features\n\nInfrastructure sensor node considering NIST\n\ncybersecurity framework\n\nTraffic monitor with built-in security protocols",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "Table 2 Specific technologies from example projects",
+    "page_number": 3
+  },
+  {
+    "chunk_id": "2fb27f4ba88c63a86bd32c6cfd9060275201e68b5958bc4e71a63f081c539b54",
+    "text": "4.2 \nImplementation of a Cybersecurity \nManagement Process and Framework\n\nMany of the projects investigated considered the use of a systematic \napproach to developing the cybersecurity elements of their smart \ncity/community project, such as San Leandro\u2019s efficient street light \nproject. This included following a defined management process \n(Table 3) and applying a defined framework, such as the NIST \nCybersecurity \nFramework \n(CSF) \nused \nin \nthe \nVermont \nmunicipalities example, where the framework provides a \nfoundation for understanding and managing security risks (Table 4) \n[15].",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "4.2 \nImplementation of a Cybersecurity \nManagement Process and Framework",
+    "page_number": 3
+  },
+  {
+    "chunk_id": "3e3930b3787d18d5e6e7d541253f48a81945f431a383bfbc86aab368507d6583",
+    "text": "Table 3 Cybersecurity management components\n\nManagement\n\nPre-evaluation\n\nStrategic planning\n\nOperative planning\n\nImplementation\n\nPost-evaluation",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "Table 3 Cybersecurity management components",
+    "page_number": 3
+  },
+  {
+    "chunk_id": "26e5373d6cf8c07734c80db812c2f8a3f2f5f5f4008f3fc4b48bf827399afe8f",
+    "text": "Table 4 Core topics of NIST Cybersecurity Framework [15]\n\nNIST Cybersecurity\n\nFramework Core\n\nFunctions\n\nIdentify\n\nProtect\n\nDetect\n\nRespond\n\nRecovery\n\nPrinciples for Designed-In Security and Privacy for Smart Cities \nSCOPE w/GCTC, CPS-IoT Week, April 2019, Montreal, Canada",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "Table 4 Core topics of NIST Cybersecurity Framework [15]",
+    "page_number": 3
+  },
+  {
+    "chunk_id": "ca5abc661c3983f4dfae9db71c91f6f4142689c0b0f71638bb2b5165a9069d70",
+    "text": "4.3 \nCybersecurity Expertise and Public-Private \nPartnerships\n\nMost of the example use cases relied on cybersecurity expertise \nfrom private sector partners to help guide their project. This \nincludes communities who do not have extensive, in-house \ncybersecurity expertise, such as the City of Pittsburgh and Las \nVegas projects, which collaborated with vendors. The inclusion of \nexpert partners from academia or industry to drive cybersecurity \ndesign and integration for the project was a major consideration \nshared by the example use cases. Understanding how such a \npartnership can work in practice, impacts the productivity of the \nplanning \nand \nimplementation \nof \nsecurity \nand \nprivacy \nconsiderations in these projects.",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "4.3 \nCybersecurity Expertise and Public-Private \nPartnerships",
+    "page_number": 3
+  },
+  {
+    "chunk_id": "ce6379d042f04f004ec46d6587f686b40288ac3719ffc7c3fc8c1d7e3e6404e2",
+    "text": "5 \nConclusion\n\nAfter collaborative discussions with GCTC partners to understand \nsecurity and privacy aspects of their technology integration and \nreviewing several projects in the GCTC database, the following \ncommon principles and shared best practices were identified for \nsecurity and privacy consideration and implementation:\n\n(1) \nSpecific Technology Usage;\n\n(2) \nImplementation of a cybersecurity management process \nand framework; and\n\n(3) \nCybersecurity Expertise and Public-Private Partnerships.\n\nFour example projects were described in this paper to illustrate how \nthese principles and practices can be implemented to develop smart \ncity projects that improve city infrastructure with designed-in \nsecurity and privacy.",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "5 \nConclusion",
+    "page_number": 3
+  },
+  {
+    "chunk_id": "a05183bb985e502542a2f865c0067c5e74b669da3fefe592434aafdeec99b43c",
+    "text": "ACKNOWLEDGMENTS\n\nThe Department of Homeland Security Science and Technology \nDirectorate partially sponsored the production of this material \nunder a Financial Transaction with the National Institute of \nStandards and Technology.",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "ACKNOWLEDGMENTS",
+    "page_number": 3
+  },
+  {
+    "chunk_id": "e88018a624139584cb7f5bb21f86f088aa9cbfcfab9566b11a3cdf198b8db268",
+    "text": "DISCLAIMER\n\nOfficial contribution of the United States government; not subject \nto copyright in the United States. Certain commercial products may \nbe identified in order to adequately specify the procedure; this does \nnot imply endorsement or recommendation by the National \nInstitute of Standards and Technology or the Department of \nHomeland Security Science and Technology Directorate, nor does \nit imply that such products are necessarily the best available for the \npurpose.",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "DISCLAIMER",
+    "page_number": 3
+  },
+  {
+    "chunk_id": "046639f49c7746c37d78bc8c45406ccdaa39925c418fb0821772a6a696e72fe4",
+    "text": "REFERENCES\n\n[1] PwC US.  Smart Cities: Five Smart Steps to Cybersecurity.\n\nhttps://www.pwc.com/us/en/services/consulting/cybersecurit\n\ny/library/broader-perspectives/smart-cities.html. Published \nDec. 2017. Accessed on Nov 9, 2018. \n[2] Lohrmann, Dan. Securing the Smart City. Government\n\nTechnology.  https://www.govtech.com/security/Securing-\nthe-Samrt-City.html. Published April/May 2018. Accessed \non Dec 17, 2018. \n[3] Data Security Council of India: Nasscom Initiative. PwC\n\nIndia. Creating Cyber Secure Smart Cities. \nhttps//www.pwc.in/assets/pdfs/publications/2018/creating-\ncyber-secure-cities.pdf. Published 2018. Accessed on Dec \n17. 2018 \n[4] NIST. Framework for Cyber-Physical Systems.\n\nhttps://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.S\nP.1500-201.pdf.  Publish 2017. Accessed on Nov 10, 2018. \n[5] NIST. Global City Teams Challenge. Smart and Secure\n\nCities and Communities Challenge. \nhttp://pages.nist.gov/GCTC/. Accessed on Nov 6, 2018. \n[6] SmartAmerica Challenge. https://smartamerica.org/.\n\nAccessed on Feb 7, 2019 \n[7] Rhee, S. Catalyzing the Internet of Things and Smart Cities:\n\nGlobal City Teams Challenge.  2016; 1st International \nWorkshop on Science of Smart City Operations and \nPlatforms Engineering in partnership with Global City \nTeams Challenge, Pages 1-4, Vienna, Austria, April 11, \n2016, IEEE Explore Digital Library \n[8] Global City Teams Challenge Action Cluster.",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "REFERENCES",
+    "page_number": 3
+  },
+  {
+    "chunk_id": "f8afa853a04240132739aa3a3e345ae0d502ba0777c24d678ada3731d4aee64c",
+    "text": "https://gctc.opencommons.org/Category:ActionCluster. \nAccessed on Jan 31, 2019  \n[9] GCTC Wiki. CryptoMove San Leandro Smart Lights Project.\n\nhttps://gctc.opencommons.org/CryptoMove_San_Leandro_S\nmart_Lights_Project. Accessed on Feb 4, 2019 \n[10] ComputerWeekly.com. Open Information Security Maturity\n\nModel (O-ISM3). \nhttps://ww.computerweekly.comehandbook/Open-\nInformation-Security-Maturity-Mode-O-ISM3. Published \nJan. 2011. Accessed on February 2, 2019. \n[11] Wikipedia contributors. OSSIM. Wikipedia. The Free\n\nEncyclopedia. January 7, 2019. \nhttps://en.wikipedia.org/w/index.php?titles=OSSIM&oldid=8\n77265361. Accessed on February 2, 2019. \n[12] GCTC Wiki. GENIVI Las Vegas Connected Vehicle Pilot\n\nProject. \n.https://gctc.opencommons.org/GENIVI_Las_Vegas_Connec\nted_Vehicle_Pilot_Project. Accessed on Feb 4, 2019 \n[13] GCTC Wiki. Pittsburgh building portfolio cyber-secure,\n\nreal-time utility data integration and AI analysis. \nhttps://gctc.opencommons.org/Pittsburgh_building_portfolio\n_cyber-secure,_real-\ntime_utility_data_integration_and_AI_analysis. Accessed on \nFeb 4, 2019 \n[14] GCTC Wiki.  Underground Infrastructure Sensing and\n\nMapping. \nhttps://gctc.opencommons.org/Underground_Infrastructure_\nSensing_and_Mapping. Accessed on Feb 4, 2019 \n[15] NIST. An Introduction to the Components of the Framework.\n\nCybersecurity Framework. \nhttp://www.nist.gov/cyberframewwork/online-\nlearning/components-framework. Accessed on Nov 6, 2018.",
+    "metadata": {
+      "category": "smart-city",
+      "source": "Unknown",
+      "document_name": "20190214 Principles for Designed-In Security and Privacy for Smart City vFINAL_Camera_ready.pdf",
+      "document_type": "pdf",
+      "document_hash": "c0905f4f5fc9885e810883aa6db010ce84d633a10ba7d29e4f4c6466007534df",
+      "extra": {}
+    },
+    "section": "REFERENCES",
+    "page_number": 5
+  }
+]

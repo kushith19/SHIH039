@@ -1,0 +1,1234 @@
+[
+  {
+    "chunk_id": "db3ff763deac2246d1b65d04a37e7bf103c022249cb879337dbcb35836ca389b",
+    "text": "Infrastructure Resilience \nPlanning Framework \nPLAYBOOK\n\nFEBRUARY 2025\nCybersecurity and Infrastructure Security Agency",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "Infrastructure Resilience \nPlanning Framework \nPLAYBOOK",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "8f260e957a260775606f6c75d5f4effa15b6ee3e9429fe856db8030622eee210",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "00f4384a2fef1406477ed17ec79564ca42bc02b4e1d20ce9b1e4f33a8e33b546",
+    "text": "Contents\n\n2\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "Contents",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "cb4d42ae66c7c7177684444cdf1e26fef125c2797b66c48165f44808c754cace",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "b09af347834309fc971473175af6a985b18c16e1ab3079d8ab1777b032b72a2a",
+    "text": "IRPF PLAYBOOK OVERVIEW\n\nThe Infrastructure Resilience Planning Framework (IRPF) Playbook is a supplementary, how-to guide to assist \nusers in executing IRPF guidance to incorporate infrastructure resilience into planning so that communities \ncan become more secure and resilient in the face of multiple threats and changes. Designed as a companion \nto the IRPF, this Playbook offers users concise instruction and highlights useful resources for accomplishing \nkey actions within each of the five steps for planning for infrastructure resilience. The Playbook also provides \na narrative hypothetical illustration of how a community might conduct planning using the various steps of the \nIRPF.\n\nIn addition, the Playbook includes several helpful appendices:\n\n\u2022 Appendix A explains in a simple manner various foundational concepts of infrastructure resilience.\n\n\u2022 Appendix B outlines how the various planning elements and actions laid out in this Playbook could \nbe specifically integrated into three common types of community plans\u2014Hazard Mitigation Plan, \nComprehensive Economic Development Strategy, and Emergency Operations Plan.\n\n\u2022 Appendix C provides links for all of the IRPF resources and templates identified for use throughout the \nPlaybook.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "IRPF PLAYBOOK OVERVIEW",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "161095fd58825a59ea959f941016035f25cde9c1c91913e2476bcba7af361735",
+    "text": "Intended Users: The primary users of this Playbook are intended to be state, local, tribal, and territorial \ngovernments (SLTTGs), regional planning organizations, and public and private sector infrastructure \nsystem owners/operators seeking to enhance their resilience and security and/or incorporate elements of \ninfrastructure resilience into their planning. Other users may include those providing planning support or \ntechnical assistance to primary users.\n\nBenefits: Resilient infrastructure is critical to the safety, security, and viability of our communities. There are \nmany benefits to prioritizing infrastructure resilience, such as helping minimize the detrimental impacts of \nnatural and man-made hazards on our communities, reducing the risk of disruption to critical services, and \nkeeping restoration costs low. Additionally, a secure and resilient infrastructure can enhance the overall quality \nof life for community members by improving the mobility and connectivity of essential services, leading to \nincreased economic opportunities.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "IRPF PLAYBOOK OVERVIEW",
+    "page_number": 3
+  },
+  {
+    "chunk_id": "a33b20f1110a9669302efc7752a895652883b31b7386e9455c903788b6494f79",
+    "text": "Throughout this Playbook, we provide links to resources developed by partners other than the \nFederal Government. This information is provided \u201cas is\u201d for informational purposes only. CISA does \nnot provide any warranties of any kind regarding this information. CISA does not endorse any entity, \nproduct or service, including any subjects of analysis. Any reference to specific commercial products, \nprocesses, or services by service mark, trademark, manufacturer, or otherwise, does not constitute or \nimply their endorsement, recommendation, or favoring by CISA.\n\n3\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "IRPF PLAYBOOK OVERVIEW",
+    "page_number": 3
+  },
+  {
+    "chunk_id": "5dad3be489bcfcb22dc79db38925fc4330d06f267275d8f8022e27fa69cd4f11",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 3
+  },
+  {
+    "chunk_id": "100af7559ddcb23ed7338c69dffb7167d40303d6feb06692e5cbbd5d8b8dd0af",
+    "text": "STEP 1: LAY THE FOUNDATION\n\n1.1 Identify a Project Champion\n\nBefore you get started\n\nHelpful Resources:\n\n\u2022 A preliminary list of potential championing \nentities or individuals\n\nOutcomes\n\n\u2022 A committed individual or entity to advocate \nfor the planning effort\n\nFind your champion. Any resilience planning initiative needs a champion to be successful. The Project \nChampion is the individual or entity who will promote and actively support your planning efforts. The champion \nshould serve as the project coordinator, helping generate buy-in and sustain project momentum. When seeking \na Project Champion, look for someone who will:\n\n\u2022 Help identify participants\n\n\u2022 Provide or garner the resources needed to accomplish the effort\n\n\u2022 Help resolve any obstacles that may arise\n\n\u2022 Ensure that project goals are met\n\n\u2022 Relay outcomes to key participants\n\nDepending on your community and culture, members from local non-governmental organizations, houses \nof worship, or volunteer-led community boards could serve as potential resources when looking for your \nchampion.\n\nObjective\n\nForm a collaborative planning group, engage infrastructure stakeholders, and review existing \ninformation that may be relevant to the planning effort.\n\nActions to Accomplish\n\n1.1 Identify a project champion\n\n1.2 Define and scope the effort\n\n1.3 Collect and review existing information\n\n1.4 Form collaborative planning group\n\n1.5 Establish goals and objectives\n\n4\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1: LAY THE FOUNDATION",
+    "page_number": 3
+  },
+  {
+    "chunk_id": "43618e70da48654448333a6c6f47b15cd12c3b8a798b74510dd01575823c65e7",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\n1.2 Define and Scope the Effort\n\nBefore you get started\n\nHelpful Resources:\n\n\u2022 IRPF\u2019s Table 3. Planning Team Lead\nQualifications\n\n\u2022 IRPF\u2019s quick-start tool IRPF Launchpoint\n\nOutcomes\n\n\u2022 An assigned Planning Team Lead\n\n\u2022 Preliminary project plan that outlines\ntimeline and staffing\n\n\u2022 Purpose or problem statement\n\nSelect a Planning Team Lead. The Planning Team Lead will be the project manager and would be best filled \nby an individual with the skillsets listed in Table 3 of the IRPF. The Planning Team Lead may be appointed \nby the Project Champion, take on this role organically during early discussions, be nominated from within \nthe planning team, or volunteer to fill the role. In coordination with the Project Champion, the planning Team \nLead should conduct preliminary activities to lay the foundation for the planning effort, including defining the \npurpose of your effort, developing a scope and schedule, setting up planning meetings, identifying and inviting \nstakeholders, and other planning activities.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 3
+  },
+  {
+    "chunk_id": "adc09c6ca930a76fdf8a5d771533d7751ca02ad3b948cdf97e023aded88fda38",
+    "text": "Staff your effort. Developing infrastructure security and resilience is a complex and multi-faceted effort that \nrequires a diverse team with a broad range of skills and knowledge across multiple domains. Individuals with \nbackgrounds in engineering, planning, and policy administration would prove to be useful, although not crucial \nto ensure community resilience. If a community lacks the internal capacity to staff their resilience effort, \nacademic institutions, regional development organizations, professional planning organization networks, non-\nprofit organizations, regional collaborative working groups, and consultants are suitable sources to assist your \nefforts. Additionally, having a team with representatives from across the community may enhance the overall \nsuccess of the resilience-building process.\n\nFund your effort. A good way to fund your effort is to integrate it into an existing community planning process \nthat is already funded, or one for which grants, or technical assistance are available. One example of such \nfunding for planning is FEMA\u2019s Hazard Mitigation Grant Program which offers resources to state, local, tribal, \nor territorial governments to develop hazard mitigation plans or conduct planning related activities that reduce \nor mitigate future disaster losses in their communities.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 5
+  },
+  {
+    "chunk_id": "873f54435f1f4cded8da096a023cc3ccfd162134f7dfcd61ce906c3bcb0e51de",
+    "text": "Define your effort by asking yourself purpose questions. Start framing and defining your effort by asking \nquestions that can help you understand what is driving the desire or need for resilience planning in your \ncommunity:\n\n\u2022 Is there a particular issue, threat, or hazard my community is facing?\n\n\u2022 Is there an existing community plan that needs updating?\n\n\u2022 Are there specific shortcomings in infrastructure serving the community that need to be addressed?\n\n\u2022 Is there a specific infrastructure system my community is particularly concerned about?\n\n\u2022 Is there specific funding my community is trying to use or become eligible for?\n\nBased on the answers to these questions, develop a succinct purpose statement to guide your planning effort.\n\n5\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 5
+  },
+  {
+    "chunk_id": "0d5962914f21c2ee2bfb95db6105bb24e189962a3c866c478ad49da460c7759e",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\nFor additional help in focusing your planning, check out CISA\u2019s IRPF Launchpoint resource, a downloadable \nquick-start tool that walks through a series of questions to help you understand your needs and point you to the \nmost pertinent IRPF guidance.\n\nIRPF Launchpoint\n\n6\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 5
+  },
+  {
+    "chunk_id": "934eee57489c9e66e88977758606a06992123aac581784bbdf6fbacbf4902120",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\n1.3 Collect and Review Existing Information\n\nBefore you get started\n\nWhat You\u2019ll Need:\n\n\u2022 Purpose statement established in Action \n1.2\n\n\u2022 Awareness of existing plans and data\n\nHelpful Resources:\n\n\u2022 IRPF\u2019s Data Collection Sample List of \nResources\n\n\u2022 IRPF\u2019s Table 2. Planning Efforts the IRPF \nCan Inform\n\nOutcomes\n\nExisting information/data relevant to your \nplanning effort, such as historical records of \ndisasters, hazard information, economic data, \nand infrastructure asset/system data.\n\nIdentify previous information. A vital step in establishing a solid foundation is to review previous planning \nefforts, studies, mapping, stakeholder feedback, existing plans and data, best practices, and other data that \ncan inform your effort. Review both the Data Collection Sample List of Resources and the list of potentially \nexisting plans in IRPF Table 2. Planning Efforts the IRPF Can Inform to identify those that may have information \npertinent to your current planning effort. Next, identify the owner of each data source or plan and contact them \nto obtain that information.\n\nData Collection Sample List of Resources",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 5
+  },
+  {
+    "chunk_id": "3d7b15c4621a78db89d57898d5d1ec3fc79af0f5268f167cd7056bb2019353fe",
+    "text": "Review collected information. Once relevant data are collected, it is essential to review infrastructure \ninformation to gather an accurate and comprehensive understanding to make informed decisions regarding \nthe resilience effort. To accomplish this task, it is crucial to first determine information pertinent to the \ncommunity\u2019s infrastructure assets, systems, networks, data on potential threats, hazards, and disasters. Next, \nreview regulatory and compliance information within the community that may need to be updated to comply \nwith the resilience efforts. Lastly, identify resilience vulnerabilities within this dataset to discern potential points \nof concern.\n\n7\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 7
+  },
+  {
+    "chunk_id": "784dfa923cef620942aeadfb243bee25e33d17b5266f03a72926431f07922965",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\n1.4 Form Collaborative Planning Group\n\nBefore you get started\n\nWhat You\u2019ll Need:\n\n\u2022 Purpose statement established in Action \n1.2\n\n\u2022 Awareness of existing partnerships and \ncollaborations\n\nHelpful Resources:\n\n\u2022 IRPF\u2019s Planning Participant Contact \nInformation Sheet\n\n\u2022 IRPF\u2019s Stakeholder Invitation Letter\n\n\u2022 IRPF\u2019s Table 4. Potential Planning Group \nParticipant\n\n\u2022 IRPF\u2019s Figure 1. Results of Effective \nCollaboration\n\n\u2022 CISA Regional Staff \nhttps://www.cisa.gov/about/regions\n\nOutcomes\n\n\u2022 A dedicated core planning team who can \nexecute or be involved in most planning \nactivities\n\n\u2022 List of willing participants who can \nperiodically provide insight, information, \nand input",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 7
+  },
+  {
+    "chunk_id": "d1313c3a03561b40b631ae785ce51be817e70710e07c9a0d559aa04735a8fd44",
+    "text": "Identify participants. Keep your established planning purpose in mind as you review the list of potential \nstakeholders in IRPF\u2019s Table 4. Potential Planning Group Participants to help you identify who might be relevant \nparticipants in your planning effort. These participants may include community and private sector partners \nresponsible for the planning, design, development, investment in, and operations and management of critical \ninfrastructure assets and systems. It may be beneficial to use the \u201csnowball method\u201d to identify additional \nparticipation that you may not have thought of within the effort. Specifically, once you have contacted the more \nobvious stakeholders, ask them, \u201cwho else should be included in this effort?\u201d and see if they recommend any \nother entities or names lacking within the group. Use the Planning Participant Contact Information Sheet to \nkeep track of contact information for potential stakeholders organized by type.\n\nPlanning Participant Contact Information Sheet\n\nInvite participants. When you have identified participants and their relevant contact information, your planning \nteam lead should invite them to participate. The Stakeholder Invitation Letter provides example content for use \nin inviting and encouraging participation in your planning process.\n\nStakeholder Invitation Letter\n\n8\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "5f23122df29c28829eccddb664d507c143dcb3ecd6b0f8c97573912518d3af67",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\nSecure commitments and document participation. After sending out invitations, be sure to follow up with \ninvited stakeholders to confirm their commitment to participate and provide them with a high-level overview \nof what that will entail. It is suggested to divide the participants into a \u201cCore Team\u201d responsible for day-to-day \nactions and a \u201cCollaborative Team\u201d consisting of subject matter experts and other skilled individuals, which \nwould assist the team to inform high-level decisions or strategic planning. Consider adding columns to the \nPlanning Participant Contact Information table to track which identified stakeholders have agreed to participate \nin the planning process, their level of participation (core planning team vs. broad collaboration group), and \nultimately what activities they participate in (e.g., meetings attended, information submitted, feedback \nprovided, etc.).\n\n1.5 Establish Goals and Objectives\n\nBefore you get started\n\nWhat You\u2019ll Need:\n\n\u2022 Purpose statement established in Action \n1.2\n\n\u2022 Existing community goals\n\nHelpful Resources:\n\n\u2022 IRPF\u2019s Sample Goals and Objectives\n\nOutcomes\n\n\u2022 Clear resilience planning goals and \nobjectives.\n\nClearly lay out what you intend to accomplish. Start with the purpose statement you developed during initial \nscoping activities (Action 1.2) and further develop it into distinctly outlined intentions, or goals and objectives, \nfor your planning effort.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "565c87ab0cc435496b6618a262733b15796e6871769bce3a0877b1b5ebb5a94f",
+    "text": "\u2022 Formulate resilience goal(s): Goals are broad statements that describe what you seek to achieve \nthrough planning for infrastructure resilience. These can be developed through a review of existing \ngoals the community has, such as a community vision contained in their master plan; collaborative \ndiscussions with the core planning team; and consultation with key community stakeholders.\n\n\u2022 Establish specific planning objective(s): For each identified goal, determine specific activities needed \nto achieve the goal, whether its filling knowledge gaps, performing analysis, or establishing partnerships, \nas examples.\n\nYou may find it helpful to review the Sample Goals and Objectives resource in the IRPF to give you some ideas \nof what infrastructure resilience planning goals and objectives might look like.\n\nSample Goals and Objectives\n\n9\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 9
+  },
+  {
+    "chunk_id": "078f0fe379c17dddd0528e2554a95484a19e6e9d1525a979384b0e4a345a136c",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\nKey Takeaways\n\n\u2022 It is important to identify a Project Champion who can authorize time and resources for the planning \neffort and is invested in incorporating infrastructure resilience into planning. A strong champion can \nhelp generate buy-in, arrange resources as needed, and help coordinate stakeholder participation.\n\n\u2022 A key step is defining and scoping the effort and determining goals and objectives; this includes \ndetermining how the IRPF will be used to support a planning effort and determining what resources \nwill be most applicable. This may change over time as the planning process proceeds, but it is \nhelpful up front to know what outcomes you\u2019re seeking from integrating the IRPF into planning.\n\n\u2022 Establish a list of relevant stakeholders. Broad participation is valuable when examining the \nresilience of critical infrastructure systems because those systems cross geographic boundaries \nand involve a wide range of owners, operators, regulators, and end users.\n\n10\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 9
+  },
+  {
+    "chunk_id": "fcd650be4d09726af2a2d3b051213728ea02b51eb0e3b8855fa9e54e1a312e41",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\nHypothetical Example: Step 1 in Action\n\nAmy and Aaron are planners with the Woodvale County Department of Planning. They have heard presentations \non enhancing security and resiliency and as planners in a growing community in the Southwest U.S., they\u2019d like \nto incorporate it into their planning activities. Interested in pursuing these concepts further, they speak to their \nboss, Denise, who leads the planning department. Denise is initially reluctant but is intrigued by an opportunity \nto reduce long-term infrastructure costs by investing wisely today. She agrees to have the department \nchampion the effort and authorizes Amy and Aaron to spend time digging into resilience and also agrees to \ncoordinate with other relevant departments and external partners.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 9
+  },
+  {
+    "chunk_id": "1cac430362fef76c170eb2239f57ed54ee13db476466cfd32a96314476183a3b",
+    "text": "With Denise\u2019s support behind them, Amy and Aaron begin breaking down a big question: what does \ninfrastructure resilience actually mean for our community and how do we do it? In one of the recent \npresentations in which they participated, they learned about the IRPF and its accompanying quick-start tool, \nIRPF Launchpoint. They review the IRPF to better understand how incorporating infrastructure resilience into \nplanning can contribute to a stronger community. They then sit down to complete the IRPF Launchpoint, and \nafter about 15 minutes, have a better understanding of areas to focus on in their planning. The analysis from \nIRPF Launchpoint suggests they understand risk but need help identifying dependencies. They have a large, \ndiverse community and they could spend years studying ways to improve security and resilience, but they also \nhave a day job to do. Sure, Denise has authorized some time for them to study how infrastructure resilience \ncould benefit Woodvale, but that time isn\u2019t infinite. To make real progress, they\u2019ll have to focus their efforts in a \nway that supports their ongoing projects and priorities.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 11
+  },
+  {
+    "chunk_id": "eb09b02d57e4522277be0bb02813635bc079d29f8fcf80943ed702b855d8607b",
+    "text": "They speak with Denise and other community leaders and determine that there is concern about the effects \nof drought and flooding for Woodvale. Woodvale\u2019s economic strength is largely due to the presence of \nchemical manufacturing and healthcare services industries in the community. These water-intensive industries \nare especially affected by drought and rely on predictable water and wastewater services that have been \ndisrupted by previous storms. Moreover, the local water and wastewater treatment systems are expanding to \naccommodate a growing population and the community is conducting capital investment planning to ensure \ntheir infrastructure can keep pace. Amy and Aaron decide they\u2019ll help lead an effort to better understand risks \nto these systems to support ongoing capital planning and inform next year\u2019s Emergency Operation Plan update.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 11
+  },
+  {
+    "chunk_id": "b8ed8ef1c267a8b39a95f37b888e78936b7e3e54fe5fe79fcd8b2452dde7ac50",
+    "text": "To get started, Aaron and Amy gather up relevant plans, documents, and data, including the most recent \nhazard mitigation plan, GIS mapping of the current water and wastewater systems, emergency operations \nplans, data for growth projections, and capital plans. They also begin outreach to key partners, including the \nWoodvale Water Utility, the Regional and State Public Utility Commissions, Woodvale Emergency Management, \nand community groups. At this point, Amy and Aaron are simply informing these partners that an effort is \nunderway, consulting them about how they perceive the challenges, and asking for their input in outlining goals \nand objectives.\n\nUltimately, Amy and Aaron establish the following intentions for the planning effort:\n\nGoal\n\nImprove the resilience of key community functions by strengthening water and wastewater services in \nWoodvale through Capital Investment and Hazard Mitigation Planning\n\nOBJECTIVE 1: Understand risks to water and wastewater systems from drought and flooding\n\nOBJECTIVE 2: Understand dependencies for water and wastewater system operations and understand \ndownstream dependencies on water and wastewater services\n\nOBJECTIVE 3: Identify projects and activities that will enhance the security and resilience of water and \nwastewater services\n\n11\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 11
+  },
+  {
+    "chunk_id": "6c3cb903c2b913e215b1a902c2385e01f8fee4d939313bef3be53f60ba793875",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 11
+  },
+  {
+    "chunk_id": "d4222c86889b16357e82e8ff491983eb83fb9a83c081f450434d73a2ee4072d7",
+    "text": "STEP 2: IDENTIFY CRITICAL INFRASTRUCTURE\n\nObjective\n\nIdentify infrastructure that is critical to the community and the dependencies among those \ncritical infrastructure systems and assets.\n\nActions to Accomplish\n\n2.1 Identify infrastructure\n\n2.2 Prioritize infrastructure\n\n2.3 Identify infrastructure dependencies\n\n2.1 Identify Infrastructure\n\nBefore you get started\n\nWhat You\u2019ll Need:\n\n\u2022 Base knowledge of existing critical utilities \nand community services\n\nHelpful Resources:\n\n\u2022 IRPF\u2019s Infrastructure Assets Matrix\n\n\u2022 IRPF\u2019s Datasets for Infrastructure \nIdentification\n\nOutcomes\n\n\u2022 Inventory of infrastructure assets\n\nDetermine what infrastructure is critical to your community.\n\n\u2022 Take a functional approach \u2013 What are essential functions in my community? What infrastructure \nsystems enable those functions?\n\n\u2022 Cover the fundamentals \u2013 Identify key local systems associated with the four fundamental CI sectors \u2013 \nWater & Wastewater, Communications, Transportation, and Energy.\n\nDocument key information. You may already have pre-existing information on critical infrastructure assets \nand systems in your community, but if you don\u2019t, the Infrastructure Assets Matrix provides a template for what \ninformation you should consider collecting. The resource identifies key data collection suggestions for critical \ninfrastructure systems and assets.\n\nInfrastructure Assets Matrix: Suggested Data Fields\n\n12\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 2: IDENTIFY CRITICAL INFRASTRUCTURE",
+    "page_number": 11
+  },
+  {
+    "chunk_id": "1584daf716a8efaa508dfef108318952fbd9acb3634aa90b8a029fa3fbf1795d",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\nUpdate and expand your data. If needed, update and expand your data on infrastructure in your community to \nbetter match the scope of your effort established during Step 1. The Datasets for Infrastructure Identification \nresource provides links to Homeland Infrastructure Foundation-Level Data (HIFLD) datasets which provides \nbasis geospatial data from federally derived information, and your CISA Regional Office may be able to provide \nsupplementary information on infrastructure in your community. The document also provides instructions for \naccessing resources like ArcGIS MapViewer, ArcGIS StoryMaps, the Homeland Security Information Network \n(HSIN), and other datasets to explore the critical infrastructure assets in your area.\n\nDatasets for Infrastructure Identification\n\n13\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 11
+  },
+  {
+    "chunk_id": "81047ccd03fb416c11bcb46cc11423eb96227d3faec00484e8bc3ccb633ffabb",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\n2.2 Prioritize Infrastructure\n\nBefore you get started\n\nWhat You\u2019ll Need:\n\n\u2022 Inventory of infrastructure assets \nestablished in Action 2.1\n\nHelpful Resources:\n\n\u2022 IRPF\u2019s Table 5. Key Consideration for \nPrioritizing Infrastructure Systems/Assets\n\nOutcomes\n\n\u2022 List of priority infrastructure systems/\nassets\n\nRank your identified infrastructure. Planning for infrastructure can be overwhelming if you try to consider \neverything all in one effort. Thus, it is wise to narrow the scope of your effort by prioritizing infrastructure \nsystems and/or assets in your inventory list. This can be done by following the basic approach described below:\n\n1. Choose criteria. First, determine factors by which to rate each infrastructure system/asset you\u2019ve \nidentified. Table 5 in the IRPF suggests five possible ones to use \u2014Safety, Context, Operational, \nEconomic, and Service\u2014that focus on the impact infrastructure has on your community. You can choose \none or more of these impact criteria or determine others that best suit your needs, such as exposure to a \nparticular hazard of concern (e.g., flooding, security breach) or eligibility for a particular funding program.\n\n2. Rate infrastructure. Focusing on one of your chosen criteria at a time, do a quick assessment of each \nidentified infrastructure system/asset and rate them as either low, medium, or high (or alternately use \nnumerical scoring) based on how well they meet the criterion.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 11
+  },
+  {
+    "chunk_id": "cb868c760f1750e6a62198cbf86229e6c7f811e6df4680288041691c1ab03706",
+    "text": "3. Combine ratings. After completing the rating for each of your chosen criteria, combine (add up) the \nratings across criteria to get a total \u2018score\u2019 for each individual infrastructure system/asset.\n\n4. Order by priority. Finally, sort your rated infrastructure from highest to lowest total score to result in a \nprioritized list of your identified infrastructure\u2014those at the top being higher priority to address.\n\nNote: Your infrastructure prioritization may change over time or be different from one planning effort to the next \ndepending on the goal of the effort. That is to be expected as new infrastructure systems/assets emerge and/\nor new priority issues arise. Planning for security and resilience is inherently an iterative process.\n\nFocus on priority infrastructure. To most effectively use your allocated time and resources, focus on your \nhighest priority infrastructure systems first. Include lower priority infrastructure sectors, systems, and assets as \ntime and resources allow.\n\n14\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 14
+  },
+  {
+    "chunk_id": "1bdc1ee8dbb0bee5e95187d8264071794fb3521ef8ea7b8e5be9b867ca1e7f62",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\n2.3 Identify Infrastructure Dependencies\n\nBefore you get started\n\nWhat You\u2019ll Need:\n\n\u2022 Inventory of infrastructure assets \nestablished in Action 2.1\n\nHelpful Resources:\n\n\u2022 IRPF\u2019s Infrastructure Dependency Primer\n\n\u2022 IRPF\u2019s Dependency Identification \nWorksheet\n\n\u2022 IRPF\u2019s Community Systems Dependency \nDiscussion Guide\n\n\u2022 IRPF\u2019s System Owner/Operator \nDependency Interview Guide\n\n\u2022 IRPF\u2019s Meeting Facilitation Guide\n\n\u2022 IRPF\u2019s Table 6. Examples of Typical \nDependencies\n\nOutcomes\n\n\u2022 List of critical dependencies for key \ninfrastructure systems\n\nGet your bearings. If you\u2019re already familiar with dependencies, great! If not (or if you\u2019re just looking for a \nrefresher), CISA\u2019s online Infrastructure Dependency Primer (IDP) is a great resource for learning about them. \nThe IDP consists of three modules with information and videos that that can be independently explored to help \nyou better understand critical infrastructure dependencies, the impact they have on communities, and how to \naddress them. The LEARN module, in particular, contains especially useful content to assist you in identifying \ndependencies:\n\n\u2022 \u201cHow Dependencies Affect Communities\u201d video \u2013 illustrates how a single event can disrupt multiple \nsystems due to dependencies and impact nearly every facet of daily life.\n\n\u2022 \u201cWhat Are Dependencies\u201d section \u2013 provides a definition of dependencies including key characteristics \nand types",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 14
+  },
+  {
+    "chunk_id": "0e7c3285ea05343e32cba926a7b7e4d40fefbd2b1d8167e83b573be6a482ca0e",
+    "text": "\u2022 \u201cCloser Look\u201d section \u2013 presents information about the four universally important infrastructure systems \nand their common upstream and downstream dependencies.\n\nInfrastructure Dependency Primer\n\n15\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 15
+  },
+  {
+    "chunk_id": "24d27ac84498f93cc5851f250bbb79584771cbadd69b086d3846db948f8ae378",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\nCollect data. Use the IRPF\u2019s Dependency Identification Worksheet as a guide for what information will be \npertinent to obtain in order to start identifying potential dependencies associated with each of the most \nfundamental infrastructure systems in your community.\n\nDependency Identification Worksheet\n\nIn addition, CISA has developed a series of question sets and guides that can help you facilitate discussions \nwith critical infrastructure stakeholders to collect dependency information, as follows:\n\n\u2022 Facilitate a group discussion using questions from the Community Systems Dependency Discussion \nGuide with various government officials, community groups, and local business owners.\n\nCommunity Systems Dependency Discussion Guide\n\n\u2022 Conduct one-on-one interviews with utility and critical infrastructure owners and operators using \nquestions from the System Owner/Operator Dependency Interview Guide.\n\nSystem Owner/Operator Dependency Interview Guide\n\n\u2022 Conduct a community-level infrastructure dependency identification exercise using the facilitation \nquestions and handout provided in the Meeting Facilitation Guide.\n\nMeeting Facilitation Guide\n\nKey Takeaways\n\n\u2022 Identify what critical infrastructure systems support functions within your community, prioritize those \nsystems, and identify key dependencies for them.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 15
+  },
+  {
+    "chunk_id": "6edefbb23316b3cf53379b22e959b1daf15ca3e7980e776c10a5f601e2e45a5c",
+    "text": "\u2022 Several resources support this process including an asset matrix that can help communities \nthink through the assets and systems that may exist in their communities, and a worksheet and \ndiscussion guide that can be used to document key dependencies in either interview settings with \nsystem operators or in workshop settings.\n\n\u2022 Dependency questionnaires can be used in group or one-on-one settings with community partners \nand infrastructure system operators. These guides are based on more than decade of experience \nconducting assessments of infrastructure systems and dependencies.\n\n16\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 16
+  },
+  {
+    "chunk_id": "e88620ffa553f833949ac71c7605e4938271efe3c2091b5390f197811070a562",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\nHypothetical Example: Step 2 in Action\n\nAmy and Aaron are ready to dig in. To kick things off they begin by reviewing the set of critical infrastructure \nidentified in their current Hazard Mitigation Plan as well as the GIS data from open source providers and the \nHomeland Security Information Network (HSIN) they collected for the water and wastewater treatment systems. \nThey quickly realize they\u2019ll have to do some updating, since a key chemical manufacturer began operations \nlast year and recent expansions to the water and wastewater treatment systems have not been reflected in the \nEmergency Operation Plan or GIS platform. They get in touch with the Woodvale Water Utility to get the latest \ndata on their systems, including treatment facilities, storage facilities, pumping and lift stations, and water \nmains and trunklines. Knowing that they\u2019ll also be preparing for an update to their Emergency Operation Plan \nsoon, they also reach out to their CISA Protective Security Advisor and CISA Regional Office to identify other \ncritical infrastructure asset and system data relevant to their community. Equipped with this new data, Aaron \nand Amy feel prepared to forge on.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 16
+  },
+  {
+    "chunk_id": "4174d399788205b4af99d8f46e5883b7cbc43e636ed9e202d78841ff590bd9fb",
+    "text": "During the discussion with the Woodvale Water Utility, they are also able to prioritize the water and wastewater \nsystems by ranking them based on the Context and Service considerations from IRPF Table 5, thus accounting \nfor how they support important healthcare and manufacturing industries in the community. The next step is to \nbetter understand how those systems operate, identify dependencies for water and wastewater operations, and \ndetermine how disruptions to those systems might affect other key sectors and community functions. To get \nstarted, they review the videos and guidance provided in the Infrastructure Dependency Primer to understand \nthe importance of dependency analysis and learn about common dependencies for the water and wastewater \nsector. They set up an interview with operations personnel at Woodvale Water Utility and use the IRPF\u2019s \nDependency Identification Worksheet to facilitate the discussion. Through that discussion they learn several \ncritical things:\n\n\u2022 The water and wastewater treatment systems are heavily reliant on both electric power and \ncommunications services to operate at full capacity.\n\n\u2022 Woodvale Water Utility does have backup generators at all of its water and wastewater treatment \nfacilities but in an emergency, some facilities may have to be prioritized because of fuel \navailability.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 17
+  },
+  {
+    "chunk_id": "f9884ce9e232370cde9000f411451f3c4d4159c8cdcf47157486346abb7a2e6d",
+    "text": "\u2022 Woodvale Water Utility does not have backup generators for all lift and pumping stations; even \nif treatment facilities are operating, it cannot guarantee that lines remain pressurized and that \nsewage continues to move through the system.\n\n\u2022 Communications systems support process control and quality monitoring within treatment \nfacilities and throughout the system. Within facilities, wired internet service is essential to \ncontinued operations, and remote monitoring and control of pumping stations and storage \nfacilities help the system to operate safely and efficiently.\n\n\u2022 Only one pumping station is responsible for sending treated water to a key industrial district that houses \nseveral major chemical manufacturing facilities and also contains a hospital.\n\n\u2022 There are water system interconnects between the Woodvale Water Utility and two neighboring water \nsystems, Hamilton County to the northeast, and Los Gatos to the south.\n\n\u2022 These interconnects allow for Woodvale to receive treated water from or send treated water to \nneighboring communities in an emergency.\n\n17\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 17
+  },
+  {
+    "chunk_id": "c2a344041dbc71a03761b485ff93e988b3db480c85ffd31f15eb03a4ad7ade13",
+    "text": "STEP 5\nSTEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 5\nSTEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 17
+  },
+  {
+    "chunk_id": "52bde6d1ce7920ac3d9c3a9a3db12e59167fb7efe50b17cc0d65d438e3cdd2f2",
+    "text": "Based on this discussion, Amy and Aaron have uncovered some potential challenges as well as a couple of new \nstakeholders. First, they hold a meeting with businesses in the industrial district served by only one pumping \nstation. While not all the businesses show, they are able to have a productive conversation about water \nrequirements and impacts of water disruption using the IRPF\u2019s Meeting Facilitation Guide as well as possible \noptions for managing a disruption. While they see loss of water service due to a pumping station outage as \na problem, several businesses raise an issue that is even more pressing\u2014water reliability. They use large \nvolumes of water in their processes and the risk of shortages due to drought is their major concern. Next, Amy \nand Aaron reach out to the water utilities in Los Gatos and Hamilton. While these operators agree that there \nare interconnects with their systems in place, they aren\u2019t exactly sure how things would work in an emergency. \nThere aren\u2019t memoranda of understanding or documented procedures in place for using interconnected \nemergency water services, and the capability hasn\u2019t been exercised or tested. Finally, Aaron and Amy hold \na series of meetings with emergency management personnel, healthcare facilities, and members of the \ncommunity to identify how they rely on the water sector. Through this effort, they determine that while major \nhealthcare facilities in the community have ample onsite water storage and plans to replenish it, disruptions to \nthe wastewater system could take them offline in just over a day. Similarly, while evacuation centers have plans \nfor distributing bottled water, they don\u2019t have contracts for portable toilets in the event of wastewater system \ndisruption.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 5\nSTEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 18
+  },
+  {
+    "chunk_id": "994825104b715bbf0df02b2e63c995554000500f070d7cca69a63bdb1caab4e4",
+    "text": "After several weeks of meetings and deep discussions on the water and wastewater sector, Amy and Aaron are \nfeeling much better informed about how the water sector operates, what it depends on, and what depends on \nit. With their initial work on dependencies complete, Aaron and Amy get ready for the next step.\n\n18\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 5\nSTEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 18
+  },
+  {
+    "chunk_id": "3c57b891f4e271f15157605ba414c30880e0332bb2561e3fc556b098449bbf4c",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 18
+  },
+  {
+    "chunk_id": "14fc9de881b354b2b09048f7f8f69f9670207076f3dc9206c3a0164a6c8dfcbf",
+    "text": "STEP 3: ASSESS RISK\n\nObjective\n\nIdentify infrastructure that is critical to the community and the dependencies among those \ncritical infrastructure systems and assets.\n\nActions to Accomplish\n\n3.1 Identify threats and hazards to infrastructure\n\n3.2 Assess infrastructure vulnerabilities\n\n3.3 Assess consequences\n\n3.4 Prioritize risk to infrastructure\n\n3.1 Identify Threats and Hazards to Infrastructure\n\nBefore you get started\n\nWhat You\u2019ll Need:\n\n\u2022 Inventory of infrastructure assets and \nsystems from Step 2: Identify Critical \nInfrastructure\n\n\u2022 Hazard information including records of \npast events, which may be in the form \nof historical or experiential knowledge of \nstakeholders\n\nHelpful Resources:\n\n\u2022 IRPF\u2019s Table 7. Example of Threats & \nHazards by Category\n\n\u2022 IRPF\u2019s Hazard Information and Analysis \nResources\n\nOutcomes\n\n\u2022 List of priority threats/hazards\n\n19\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 3: ASSESS RISK",
+    "page_number": 18
+  },
+  {
+    "chunk_id": "fc7079014f52af725cccc9b67575bf1abce5da4e3b61cd9b8df8aa585284e781",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\nConsider hazards of all types. There are a myriad of threats and hazards that could affect your infrastructure. \nIt is a good idea to consider all types, including those you have experienced in the past and those you haven\u2019t. \nReview the list of example natural, accidental, and deliberate hazards in the IRPF (Table 7) and identify those \nthat are applicable to your identified critical infrastructure systems. When available, it may be helpful to overlay \nhazard maps with maps of infrastructure systems to determine if and/or where they coincide.\n\nThe IRPF\u2019s Hazard Information and Analysis Resources document identifies various sources of hazard \ninformation that can be useful in determining your infrastructure systems\u2019 exposure to various natural hazards.\n\nHazard Information and Analysis Resources\n\nFocus on significant threats. At this point, your list of applicable hazards may still be quite long. To prioritize \nhazards with the greatest potential impact, rank them based on the likelihood that each one will occur.\n\n20\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 18
+  },
+  {
+    "chunk_id": "d07eeeacb5bce6ffee12c72cebaea94fd2031b49c5b96876b604b6ae8b65aef9",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\n3.2 Assess Infrastructure Vulnerabilities\n\nBefore you get started\n\nWhat You\u2019ll Need:\n\n\u2022 Inventory of infrastructure assets and \nsystems from Step 2: Identify Critical \nInfrastructure\n\n\u2022 List of priority threats/hazards established \nin Action 3.1\n\nHelpful Resources:\n\n\u2022 IRPF\u2019s System Owner/Operator \nDependency Interview Guide\n\n\u2022 IRPF\u2019s Risk Assessment Methodologies\n\nOutcomes\n\n\u2022 List of key infrastructure vulnerabilities\n\nEngage infrastructure owners/operators. To understand the vulnerabilities and operational capabilities \nof an infrastructure system, ask those who know the system best. The IRPF\u2019s System Owner/Operator \nInterview Guide can help you facilitate a discussion with infrastructure owners or operators to identify system \nvulnerabilities and potential service limitations during a hazard event.\n\nIdentify susceptibility to hazards. Match priority hazards with appropriate critical infrastructure components to \nassess the characteristics that may render the infrastructure susceptible to disruption.\n\n\u2022 For all types of hazards, consider characteristics such as location, design, dependencies, redundancies, \nand operational ability to adapt or recover.\n\n\u2022 For deliberate threats, also consider public accessibility, recognizability, security system effectiveness, \nand proximity to other targets.\n\nSystem Owner/Operator Dependency Interview Guide",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 18
+  },
+  {
+    "chunk_id": "d34ad97a6ebb9cef310382ddce6fb107257a45f7be9db30c9e8bfed7d77ee6df",
+    "text": "The IRPF Risk Assessment Methodologies resource describes various methods for analyzing hazard \nvulnerabilities that you may want to consider using.\n\nRisk Assessment Methodologies\n\n21\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 21
+  },
+  {
+    "chunk_id": "e5699be277cb002e48c58753cb834981b2fd819b1b736c6a73c7540845b9ade7",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\n3.3 Assess Consequences\n\nBefore you get started\n\nWhat You\u2019ll Need:\n\n\u2022 Inventory of infrastructure assets and \nsystems\n\n\u2022 List of priority threats/hazards\n\n\u2022 List of key infrastructure vulnerabilities\n\n\u2022 Infrastructure system service information\n\nHelpful Resources:\n\n\u2022 Records of historical events\n\nOutcomes\n\n\u2022 Estimated potential impacts to \ninfrastructure for each identified threat/\nhazard and consequences of service \ndisruptions\n\nEstimate potential losses. Using the same hazard and infrastructure pairings from the vulnerability \nassessment, estimate the effects of an event in terms of human safety (injury, illness, loss of life), loss of \nservice, physical damages, and economic losses caused by infrastructure disruptions.\n\nDraw on past history. A review of historic hazard events can be a good way to gather insights into the \nconsequences an incident can have on infrastructure systems, as well as the effects a disruption of critical \nservices has on the public and the economy. Use historic data from past events around the country to estimate \nthe losses associated with similar scenarios you are assessing.\n\nEngage infrastructure owners/operators. To understand who and what would be affected by an infrastructure \nsystem disruption, consult with the experts on that system\u2014the operators. A discussion with infrastructure \noperators about service area and key customers can yield insights on potential impacts of system disruption.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 21
+  },
+  {
+    "chunk_id": "65e3514f6025694b01681827b1afbc47cd750eb1bda548e72478aaba4c847829",
+    "text": "22\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 22
+  },
+  {
+    "chunk_id": "245a34f64f449b0f728ac83e75c9553a6389ad9436a67069d55fd139516474a7",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\n3.4 Prioritize Risk to Infrastructure\n\nBefore you get started\n\nWhat You\u2019ll Need:\n\n\u2022 Inventory of infrastructure assets and \nsystems from Step 2: Identify Critical \nInfrastructure\n\n\u2022 List of priority threats/hazards established \nin Action 3.1\n\n\u2022 List of key infrastructure vulnerabilities \nestablished in Action 3.2\n\n\u2022 Estimated potential consequences \nestablished in Action 3.3\n\nOutcomes\n\n\u2022 Prioritized ranking of infrastructure risks\n\nRank system disruption risk. Rank infrastructure-hazard pairings from highest to lowest risk based on the \ncombination of greatest threat likelihood, most vulnerable system, and largest consequence of disruption.\n\nKey Takeaways\n\n\u2022 Understanding what infrastructure systems are exposed to threats, how the systems are vulnerable \nto those threats, and what the consequences of disruption might be to essential functions those \nsystems provide can help communities better comprehend what needs to be done to reduce risk and \nenhance resilience.\n\n\u2022 The IRPF contains several resources that can support a risk assessment, including a list of sources \nfor hazard exposure data and a set of risk assessment methodologies that communities can choose \nto apply as they seek to better understand threat, vulnerability, and consequence.\n\n23\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 22
+  },
+  {
+    "chunk_id": "a7e35930794fedc637a3c4dd58dda4acab69aa0034e7f8b919509268dcf110c1",
+    "text": "STEP 5\nSTEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\nHypothetical Example: Step 3 in Action\n\nNow that Aaron and Amy have identified priority water and wastewater system assets and both upstream and \ndownstream dependencies, they turn their focus to understanding and determining what the risk is to these \ncritical systems. They begin by first focusing on what hazards or threats their water and wastewater systems are \nexposed to, as well as the hazards that may affect the electric power and communications systems on which \nthe water and wastewater systems rely.\n\nThere is a long list of historical data on threats and hazards to sort through including nearly annual flooding \nand occasional windstorms. As Aaron and Amy sort through the list trying to rank them by likelihood, they \nrecognize that there are multiple other hazards that they haven\u2019t specifically experienced but that may affect \ntheir systems, such as a deliberate cyberattack that Aaron recalls hearing about happening to a utility\u2019s \ncommunication system in another state.\n\nAaron and Amy continue to read through the list of potential hazards/threats identifying all that might be \napplicable to their critical systems. They then rank the list of hazards by likelihood of occurrence using their \nbest judgement based on the information they can gather from historical records and future predictions. \nFlooding and cyberattacks turn out to be the highest priority hazards.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 5\nSTEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 22
+  },
+  {
+    "chunk_id": "ddf3705de78de1be80c7cf36112280f9ba8107555e624bbfb2f39c5f3c7e33a7",
+    "text": "Amy and Aaron must also assess the infrastructure assets vulnerabilities, which means more engagement with \nthe owners and operators on the ground. To better understand which assets to engage, Amy and Aaron overlay \nflood maps to identify water and wastewater facilities that are in areas of concern, finding that a critical pump \nstation is in the floodplain.\n\nAaron and Amy hold a discussion with Woodvale Water Utility\u2019s SCADA/IT director where it is also revealed that \ntheir cybersecurity protocols may be a bit outdated.\n\nAaron and Amy next begin to determine how the consequences disrupt basic community functions, such as \nblocked roads affecting tourism, as well as disrupting the day-to-day activities of the local workforce of their \ncommunity\u2019s chemical manufacturing and healthcare services industries. Amy and Aaron specifically look at \nthe various hazard-asset scenarios and evaluate consequences using the information they gathered about \ndependencies to estimate the cascading impacts of disruption of water service. For example, they are able to \nsee how the aged piping system, if compromised, could lead to a boil water advisory lasting as long as a week \nbased on repair time estimates. They also recognize that a heavy rain could lead to a mudslide over the city\u2019s \nclosest interstate entrance, which will not only disrupt the flow of traffic ultimately affecting critical supply lines, \nbut also sever internet cables slowing communications.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 5\nSTEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 24
+  },
+  {
+    "chunk_id": "13175ae8ff06032ca15ba309194928780c631ace60fa7823432ff809f8ab7514",
+    "text": "As their consequence research continues, Aaron and Amy are able to make use of the IRPF\u2019s System Owner/\nOperator Dependency Interview Guide to facilitate discussions with the identified owners and operators. This in \nturn guides the discussion to focus on how the systems and assets could be affected, and what ripple effects \nthere might be through the dependencies.\n\nAfter working through this assessment of threats, vulnerabilities, and consequences, Aaron and Amy have a \ngood idea of the risks associated with their critical water and wastewater systems.\n\n24\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 5\nSTEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 24
+  },
+  {
+    "chunk_id": "a2c4102827200a9d2de5a9657996b410ef6306e6e4a753a8c504e0b0fb26392f",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 24
+  },
+  {
+    "chunk_id": "87335fb9675cdc3bd09e06aa4cb5ef5eb6210d1e0135f7d31bc07c8b52c3cf97",
+    "text": "STEP 4: DEVELOP ACTIONS\n\nObjective\n\nIdentify mitigation strategies to address priority infrastructure risks and achieve community \nsecurity and resilience goals.\n\nActions to Accomplish\n\n4.1 Refine goals and objectives\n\n4.2 Identify resilience solutions to mitigate risk\n\n4.3 Identify and assess existing resources and capabilities\n\n4.4 Select resilience solutions for implementation\n\n4.5 Develop implementation strategies\n\n4.1 Refine Goals and Objectives\n\nBefore you get started\n\nWhat You\u2019ll Need:\n\n\u2022 Findings from Step 2: Identify Critical \nInfrastructure\n\n\u2022 Findings from Step 3: Assess Risk\n\nHelpful Resources:\n\n\u2022 IRPF\u2019s Sample Goals and Objectives\n\nOutcomes\n\n\u2022 Updated goals and objectives",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 4: DEVELOP ACTIONS",
+    "page_number": 24
+  },
+  {
+    "chunk_id": "012d5a39e57acc11ed8ecc50764990d0e985c3d46aad4320ef7703b477d5696b",
+    "text": "Revalidate resilience objectives. With the insight you gained about infrastructure that is critical to your \ncommunity, revisit the security and resilience goals and objectives you established at the beginning of your \nplanning effort. Ask yourself, \u2018Do these goals and objectives address what I now know are priority systems \nand risks?\u2019 Then, in collaboration with the core planning team, adjust the objectives, if necessary, to reflect \nyour current knowledge and increased understanding of what will likely most improve resilience. For additional \nvalidation or inspiration when revising your resilience objectives, refer to the IRPF\u2019s Sample Goals and \nObjectives resource. It is advised to take a holistic approach to your community\u2019s infrastructure to recognize \npotential future infrastructure degradation and potential disruptions within critical nodes.\n\nSample Goals and Objectives\n\n25\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 4: DEVELOP ACTIONS",
+    "page_number": 25
+  },
+  {
+    "chunk_id": "63c4957849a4f5e14554a1df5b6832a30b3473f19ab17052577aff50b547e531",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\n4.2 Identify Resilience Solutions to Mitigate Risk\n\nBefore you get started\n\nWhat You\u2019ll Need:\n\n\u2022 Refined list of goals and objectives \nestablished in Action 4.1\n\n\u2022 Findings from Step 2: Identify Critical \nInfrastructure\n\n\u2022 Findings from Step 3: Assess Risk\n\nHelpful Resources:\n\n\u2022 IRPF\u2019s Sources for Resilient Solutions\n\n\u2022 CISA\u2019s Infrastructure Dependency Primer\n\nOutcomes\n\n\u2022 List of potential solutions and strategies to \nmitigate identified risks\n\nDevelop solutions. Once you have the identified infrastructure risks by conducting a risk assessment, the next \ntask is to determine what can be done to mitigate those risks and increase security and resilience. Options for \nmitigation efforts can take the shape of new policies, strategies, plans, programs, or even new infrastructure \nprojects.\n\nThe IRPF contains a resource, Sources for Resilient Solutions, that provides links to sources with resilience \nsolution ideas for addressing various types of hazard risks.\n\nSources for Resilient Solutions\n\nIn addition, CISA\u2019s online Infrastructure Dependency Primer IMPLEMENT module has a Resilience Solutions \nsection that lists various approaches, ideas, and things to consider in identifying solutions to address \ninfrastructure dependency risks.\n\nInfrastructure Dependency Primer\n\n26\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 25
+  },
+  {
+    "chunk_id": "1092a0b29f9e83ec5884eb5ed83c907814157aad20a46eab8d3b7ef0e9033193",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\n4.3 Identify and Assess Existing Resources and Capabilities\n\nBefore you get started\n\nWhat You\u2019ll Need:\n\n\u2022 Information about authorities, policies, \nprograms, administrative/technical \ncapabilities, and financial resources within \nyour community\n\nHelpful Resources:\n\n\u2022 IRPF\u2019s Sample Capability Assessment \nWorksheet\n\n\u2022 IRPF\u2019s Figure 2. Common Types of \nCommunity Capabilities\n\nOutcomes\n\n\u2022 A list of currently available community \ncapabilities that can be used to implement \nidentified resilience solutions\n\nAssess existing capabilities. As a planning group, review the common example types of community \ncapabilities listed in IRPF Figure 2 and identify the capabilities that exist within your community and amongst \nkey infrastructure stakeholders. Then assess each capability to determine which ones could potentially be \napplied to help implement identified resilience solutions. The IRPF provides a sample assessment worksheet \nthat can be used as a template to help with your capabilities review.\n\nSample Capability Assessment Worksheet\n\n27\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 25
+  },
+  {
+    "chunk_id": "4683eb334cbbd0a04dc1f4c35021d37cf426937a06aa02b18829a5cf11ae00e4",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\n4.4 Select Resilience Solutions for Implementation\n\nBefore you get started\n\nWhat You\u2019ll Need:\n\n\u2022 Findings from Step 3: Assess Risk\n\n\u2022 List of resilience solutions established in \nAction 4.2\n\n\u2022 Understanding of existing capabilities from \nAction 4.3\n\nHelpful Resources:\n\n\u2022 IRPF\u2019s Mitigation Alternatives Evaluation \nGuide\n\n\u2022 NIST\u2019s Economic Decision Guide Software\n\n\u2022 FEMA\u2019s Benefit-Cost Analysis Toolkit\n\n\u2022 IRPF\u2019s Criteria for Evaluating Solutions box\n\nOutcomes\n\n\u2022 Evaluated and prioritized list of resilience \nsolutions/projects\n\nEvaluate options. It is important to determine which of the various solutions or projects you have identified will \nbe the best ones to implement. To do so, you will want to work together as a planning team to weigh the pros \nand cons of your various solutions. The IRPF identifies a variety of factors to consider in doing so, including \nsocial, political, legal, environmental, and financial aspects. You may want to use one the following methods to \nevaluate and prioritize solutions for implementation:\n\n\u2022 Coordinate with existing resources. If there is an existing public initiative, technical capability, or \nfunded contract that could be utilized to take action on one of the identified resilience solutions, that \nsolution should be prioritized for implementation.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 25
+  },
+  {
+    "chunk_id": "0be0b02132e19887c231b34c1c6758dd0ee05e02c6baca846a67f55e875121ab",
+    "text": "\u2022 Facilitate an evaluation workshop. Use questions from the Mitigation Alternatives Evaluation Guide \nresource in the IRPF or the IRPF\u2019s Criteria for Evaluating Solutions box to facilitate a discussion with the \ncore planning team to qualitatively evaluate options.\n\nMitigation Alternatives Evaluation Guide\n\n28\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 28
+  },
+  {
+    "chunk_id": "61d781556b3b50e7a536e187225e705c81d7ad6b295d6a7f2825acf30e7ec415",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\n\u2022 Perform a benefit-cost analysis. This can be done by estimating the total risk reduction benefits of a \nsolution and comparing it to the estimated overall cost of implementing it.\n\n\u2022 Cost should include estimated design, construction, and future operations or maintenance costs \nof a solution or project.\n\n\u2022 Benefits are equal to the estimated economic value of any consequences that would be avoided \nby implementing the solution or project. Examples include avoided:\n\n\u2022 loss of life and/or physical injury\n\u2022 property damage\n\u2022 critical service loss (e.g., no potable water for 100 people for 2 days)\n\u2022 business operation downtime resulting in revenue loss\n\n\u2022 After estimating benefits and costs for each solution option, rank them based on their benefit-\ncost ratio (BCR), which is calculated by dividing the combined estimated benefits by the overall \nestimated cost. The higher the BCR, the more cost-effective the solution. Solutions with BCRs \nless than 1.0 are potentially not worthwhile to implement.\n\n29\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 28
+  },
+  {
+    "chunk_id": "b03acf375c22219ead4ee67ceb3686feb0349e5ed03272a1dd41567ced9bf94e",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\n4.5 Develop Implementation Strategies\n\nBefore you get started\n\nWhat You\u2019ll Need:\n\n\u2022 Prioritized list of infrastructure systems, \nassets, and risks from Step 2: Identify \nCritical Infrastructure and Step 3: Assess \nRisk\n\n\u2022 Evaluated and prioritized list of resilience \nsolutions established in Action 4.4\n\nHelpful Resources:\n\n\u2022 IRPF\u2019s Resilient Solution Strategy \nWorksheet\n\nOutcomes\n\n\u2022 A resilience solutions implementation \nstrategy\n\nLay out a plan of action. Now that you have refined your goals, assessed your capabilities, and identified \npriority security and resilience solutions, all that remains is developing a plan to implement them. This is where \nyou should describe how each solution will be implemented and administered by the community, such as \nresponsible party, timeline, funding requirements, steps involved, and potential barriers.\n\nYou can use the Resilient Solution Strategy Worksheet in the IRPF directly or as a guide to document potential \ninfrastructure resilience projects identified during the planning process.\n\nResilient Solution Strategy Worksheet\n\n30\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 28
+  },
+  {
+    "chunk_id": "7251c4c2d462ba96649a98ef34ed0903083f3c62c6fa47ded0af9141adc1a11f",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\nKey Takeaways\n\n\u2022 Revisit and refine the goals set out at the start of the planning process to ensure they remain \naccurate based on the data collection and analysis completed up to that point.\n\n\u2022 Work through the process of reviewing the most important risks to community functions and identify \noptions for enhancing security and resilience. Based on an assessment of existing capabilities and \nresources, as well as other selection factors like cost, communities can be guided through a process \nof selecting projects and priorities that will best reduce their risk.\n\n\u2022 There are resources to help communities work through this process, including a guide for assessing \ncommunity capabilities, a guide for evaluating mitigation alternatives, and a worksheet for \ndeveloping strategies for increasing resilience.\n\n\u2022 The resilience solutions resource provides links to best practices, case studies, and other documents \nthat offer ideas for enhancing resilience and reducing risk.\n\n31\nCISA | DEFEND TODAY, SECURE TOMORROW\n\nHypothetical Example: Step 4 in Action\n\nAaron and Amy are now getting the planning team ready for the next phase in their security and resilience \nplanning effort. They know the hazards that threaten the community, and what could happen to the critical \ninfrastructure that Woodvale County relies on.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 28
+  },
+  {
+    "chunk_id": "08ad3bbb80b79e8fe9d4ab2a95c8c711a697805d57635d2584a0f7c4bdf0340a",
+    "text": "They present their information to Denise, who while reluctant to do any large reforms is impressed at the \ncollected data on Woodvale\u2019s critical infrastructure assets, and how hazards could affect the community.\n\nAaron and Amy review the goal and objectives they established during Step 1 of their security and \nresilience planning process. The goal identified was to improve the resilience of key community functions by \nstrengthening water and wastewater services in Woodvale through Capital Investment and Hazard Mitigation \nPlanning. Before proceeding, they take the time to look back at what they learned to see about refining or \naltering the original goal and objectives.\n\nWhile conducting Step 2 activities on infrastructure identification, Aaron and Amy obtained GIS data to support \nhow to prioritize the water and wastewater systems with links to the healthcare and manufacturing industries \nin the community. In addition, they learned there aren\u2019t established or tested procedures in place for using \ninterconnected emergency water services. They agree no refinement was needed based on the information \ngathered in Step 2.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 32
+  },
+  {
+    "chunk_id": "791f93649185fb6215c7bda84ea9d4fdda22bb8cd48080fb028f0d5e87cd39dc",
+    "text": "During the risk assessments of Step 3, the planning team spent time reviewing historical data of past incidents \nand establishing rankings of what hazards or threats water and wastewater systems are exposed to, as well \nas the hazards that may affect the electric power and communications systems on which the water and \nwastewater systems rely. The group agreed that flooding should be their highest priority, and the deliberate \nthreat of cyberattacks should also be prioritized. After reviewing with Denise, the third objective was refined to \ninclude cyber resilience:\n\nOBJECTIVE 3: Identify projects and activities that will enhance the physical and cyber resilience of water and \nwastewater services\n\nAmy and Aaron must now develop a set of action steps to include identification, evaluation, and selection of \nproject/solutions to enhance resilience. With their better understood goals and risk information, they begin to \nexamine new policies and programs.\n\nUsing the IRPF\u2019s Sources for Resilient Solutions, they\u2019re led to the existing guides and lessons learned on how \nbest to achieve their goal.\n\nAmy and Aaron use the sample solutions in consultation with the Woodvale Water Utility, as well as other \nstakeholders from previous steps, and discuss what actions would have the greatest impact on improving their \nresilience. By referring back to the IRPF\u2019s Mitigation Alternatives Evaluation Guide, they conduct a preliminary \nbenefit-cost analysis, and estimate timelines for completion.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 32
+  },
+  {
+    "chunk_id": "0854151500b430bb88afa1ba3b54ebdf1bea86c8799199c9f8a09ece2b58338b",
+    "text": "The planning team develops concepts for drought related supply chain emergencies, including back up \nagreements with neighboring jurisdictions, as well as the building of additional culverts and water collection \npoints to divert flooding away from Woodvale\u2019s main transportation routes.\n\nThrough the evaluation of these actions, Aaron and Amy can now collaborate with multiple partner agencies \nwithin Woodvale County during evaluation workshops. These agencies can provide insight on costs, timeline, as \nwell as point them to existing programs that are in need of updating.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 32
+  },
+  {
+    "chunk_id": "e35d917bc46fb4d5926577483a81fb601246479d3200330b5f80b6ce0d4f197c",
+    "text": "STEP 5\nSTEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\n32\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 5\nSTEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 32
+  },
+  {
+    "chunk_id": "0a68212ea85fba870f14f3860a7ca021bb381b2403b6009829cd0d5c5d41d3ef",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 32
+  },
+  {
+    "chunk_id": "b49d42b50718754fe8e6ada9c53b61bc9055af149d1fdb24200393d6937b3e49",
+    "text": "STEP 5: IMPLEMENT & EVALUATE\n\nObjective\n\nImplement prioritized resilience solutions through existing planning mechanisms, potential \nfunding sources, and technical assistance programs.\n\nActions to Accomplish\n\n5.1 Implement through existing planning mechanisms\n\n5.2 Monitor and evaluate effectiveness\n\n5.3 Update plans\n\n5.1 Implement Through Existing Planning Mechanisms\n\nBefore you get started\n\nWhat You\u2019ll Need:\n\n\u2022 Findings from Step 2: Identify Critical \nInfrastructure and Step 3: Assess Risk\n\n\u2022 Implementation strategy from Step 4: \nDevelop Actions\n\nHelpful Resources:\n\n\u2022 IRPF\u2019s IRPF Plan Integration\n\n\u2022 IRPF\u2019s Compendium of Programs and \nMechanisms for Funding Infrastructure \nResilience\n\n\u2022 IRPF Playbook Appendix B\n\nOutcomes\n\n\u2022 Infrastructure resilience considerations \nintegrated into existing community plans\n\n33\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 5: IMPLEMENT & EVALUATE",
+    "page_number": 32
+  },
+  {
+    "chunk_id": "8ff3b7d254d711d7b08e2ecc3a390f192cedf66bcf8ffc89f57dedeb73a91ba2",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\nIntegrate findings into existing plans. While the results of your IRPF-supported planning effort can be \ndocumented in a standalone resilience plan, the most effective and efficient way to implement your findings \nis to incorporate them into community plans that already exist. Key elements to integrate into existing plans \ninclude:\n\n\u2022 identified priority infrastructure systems/assets\n\n\u2022 a summary of critical dependencies\n\n\u2022 a summary of risks to key infrastructure systems/assets\n\n\u2022 the list of identified resilience solutions/projects\n\n\u2022 your solutions/project implementation strategy\n\nFor general ideas on how information/outcomes derived from using the IRPF can be incorporated into different \ntypes of existing community plans (e.g., comprehensive plans, capital improvement plans, and others) check \nout the IRPF Plan Integration resource.\n\nIRPF Plan Integration\n\nIn addition, check out Appendix B of this playbook, which provides explicit mapping of IRPF steps/actions \nto the required elements of three specific, commonly developed plans\u2014Local Hazard Mitigation Plan (HMP), \nComprehensive Economic Development Strategy (CEDS), and Emergency Operations Plan.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 32
+  },
+  {
+    "chunk_id": "d506de93d512194285bda6caa65dc612a95f8226fe0e0457f3412eb7a2c8e6bf",
+    "text": "Obtain assistance. Funding and resources are always in high demand, in this step you should familiarize \nyourself not only with traditional mechanism such as taxes, fees, and bonds, but also grants at the public and \nprivate level, as well as partnering with other initiatives to share financing. CISA offers the Compendium of \nPrograms and Mechanisms for Funding Infrastructure Resilience to assist your search for relevant grants and \nfunding for your resiliency goals.\n\nCompendium of Programs and Mechanisms for Funding Infrastructure Resilience\n\n34\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 34
+  },
+  {
+    "chunk_id": "8b94fafcb530436965d898dd8aead0302beb3c11610aa96fc700adaa5b71ff64",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\n5.2 Monitor and Evaluate Effectiveness\n\nBefore you get started\n\nWhat You\u2019ll Need:\n\n\u2022 Implementation Strategy from Step 4: \nDevelop Actions\n\nHelpful Resources:\n\n\u2022 IRPF\u2019s Key Considerations for Evaluating \nPlans\n\n\u2022 CISA Tabletop Exercise Package [https://\nwww.cisa.gov/resources-tools/resources/\ncisa-tabletop-exercise-package]\n\nOutcomes\n\n\u2022 An established review process to gage \nprogress toward resilience\n\nTrack progress. To realize success of your security and resilience planning efforts, lay out a process for periodic \nreview of identified infrastructure risks and the progress of resilience measures implementation. Include the \nfollowing elements in this review plan:\n\n\u2022 Schedule: Establish a timeline for review. This may be a discrete date, such as 2 years from completion \nof the planning effort, or a recurring timeline, such as every 5 years.\n\n\u2022 Responsible Party: Identify an entity/person who will be accountable for completing the review. Possible \ncandidates may be the Project Champion entity, the Planning Team Lead, or another core planning team \nparticipant.\n\n\u2022 Type of Review: Identify the method that will be used for evaluation.\n\n\u2022 One method may be to hold a workshop with the former core planning team participants to \nfacilitate a discussion around the following questions:",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 34
+  },
+  {
+    "chunk_id": "449875594879507067b50bc30c2d70a6855333771ed502505db057cd79aabb22",
+    "text": "\u2022 Have the nature or magnitude of the threats or hazards changed? \n\u2022 Are there new threats or hazards affecting the community? \n\u2022 Do the identified goals, objectives, and solutions address current and expected risk \nconditions? \n\u2022 Have the security and resilience solutions been implemented and completed? \n\u2022 Has the implementation of solutions resulted in expected outcomes? \n\u2022 Are current resources adequate to implement solutions? \n\u2022 What other resources are needed to implement the solutions? \n\u2022 What factors have resulted in successful implementation of solutions? \n\u2022 What obstacles to implementation have you encountered? What can be done to overcome \nthese obstacles?\n\n\u2022 Another good evaluation method is conducting exercises or hazard scenario simulations with \ncommunity and infrastructure stakeholders. Visit the CISA Tabletop Exercise Packages webpage \nfor tools to help you conduct exercises for a wide range of scenarios.\n\n35\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 35
+  },
+  {
+    "chunk_id": "4bb3d82fa963665c2163e5d99600e7b0eea886329af5f77100b8d4dfa0053232",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\n5.3 Update Plans\n\nBefore you get started\n\nWhat You\u2019ll Need:\n\n\u2022 Established review process to gage \nprogress towards resilience\n\nHelpful Resources:\n\n\u2022 IRPF\u2019s Key Reasons for Updating Plans\n\nOutcomes\n\n\u2022 Revisions to existing plans\n\nContinually improve. Now that you have the data on how well your program is doing, incorporate these metrics \ninto future efforts. It is important to follow the lessons learned be they successes or obstacles, and then make \nchanges where needed. These might be as simple as updating action implementation timelines, stakeholder \ncommunications, funding sources, or your known hazards based on new events.\n\nKey Takeaways\n\n\u2022 This final step provides guidance on how IRPF outcomes can be incorporated into plans and links \nto funding and financing opportunities. It also provides a process for monitoring and evaluating the \neffectiveness of resilience solutions and updating plans.\n\n\u2022 The funding compendium is a list of federal, state, and non-governmental funding programs that can \nbe used to support resilience solution implementation. It provides links to relevant grant and loan \nprograms, as well as contextual information about eligibility and requirements\n\n36\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 35
+  },
+  {
+    "chunk_id": "77dbaf4fd2a5fa523a5f2eb096468a45862679e61ebf0217f55ac276bf26a76e",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\nHypothetical Example: Step 5 in Action\n\nAaron and Amy have presented their actions to Denise, and it is agreed these plans could help make Woodvale \nCounty more secure and resilient. Now the only thing left is to implement and evaluate. Aaron and Amy start by \nreviewing the IRPF\u2019s Plan Integration Resource, which provides an overview of possible integrations with other \ncommunity planning efforts/processes that Woodvale County might have in place. With that as a starting point, \nthey identify some existing planning mechanisms at a workshop with several of the new partner agencies.\n\nFor their goal, Aaron and Amy find an existing Capital Investment Plan (CIP), which has a set process to provide \nfor advance project identification, planning, evaluation, scope definition, design, public discussion, cost \nestimating and financial planning over the next five years. They ensure cybersecurity concerns are included in \nthe plan.\n\nDenise is able to facilitate the actions of the planning team that have been incorporated in the community\u2019s CIP \nas newly identified capital projects for implementation.\n\nThey further are able to leverage an upcoming Hazard Mitigation Plan (HMP) update for flooding concerns. \nCommunities use HMP\u2019s to identify risks and vulnerabilities associated with natural disasters and to develop \nlong-term strategies for protecting people and property from future hazard events.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 35
+  },
+  {
+    "chunk_id": "fd9d70a1bf1bdbb78ef73b5b306f1910f8dd5c11a743b169213dc36f4a706f3e",
+    "text": "The Woodvale County Planning Department intends to get this HMP approved by the Federal Emergency \nManagement Agency, which would make it eligible for receiving certain types of pre- and post-disaster \nassistance.\n\nWith these plans now in place, Denise directs Aaron and Amy to monitor the plans and update them as \nnecessary. As an existing plan, the CIP had already established maintenance procedures for measuring \nperformance and incorporating changes on a set schedule. The HMP, on the other hand, is a new plan for \nWoodvale.\n\nAaron and Amy set up an evaluation process to monitor, evaluate, and assess the effectiveness of its planning \nactivities. This process establishes set times where their department will collect feedback based on successes, \nobstacles encountered, and lessons learned that would be added to future plan iterations over the next five \nyears.\n\nWith Woodvale County more prepared, it is also more resilient. Aaron and Amy now begin to review how the \nIRPF can help support their community for other resilience goals not considered this time around.\n\n37\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 37
+  },
+  {
+    "chunk_id": "b8f03ba827ac1d00727e45918db2f047c3e50d182c039689949d791041836f7d",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 37
+  },
+  {
+    "chunk_id": "839188895fba84c1d7b5e105c6bc385170e4e9335d99db39841155b99184a6c1",
+    "text": "APPENDIX A. FOUNDATIONAL INFRASTRUCTURE RESILIENCE CONCEPTS\n\nWhat Makes Infrastructure Important?\n\nInfrastructure is the backbone of our communities. Virtually everything we do\u2014from getting around town, to \nsending an e-mail at work, to making our evening meal\u2014relies on a network of interconnected infrastructure \nsystems. The importance of an infrastructure system or asset is based on the societal function(s) that it \nenables, be it health, public safety, economic growth, environmental considerations, or something else. Users \nshould consider what functions and services are most critical or important to their community.\n\nWhat Is Critical Infrastructure?\n\nPer the National Security Memorandum on Critical Infrastructure Security and Resilience (NSM-22), critical \ninfrastructure comprises the physical and virtual assets and systems so vital to the Nation that their incapacity \nor destruction would have a debilitating impact on national security, national economic security, or national \npublic health or safety.  It is diverse and complex, and includes distributed networks, varied organizational \nstructures, operating models, interdependent systems, and governance constructs.\n\nWhat Is Infrastructure Risk?\n\nOur infrastructure systems are increasingly at risk, which by definition is the potential for an adverse outcome \ndue to the combination of threat, vulnerability, and consequence.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "APPENDIX A. FOUNDATIONAL INFRASTRUCTURE RESILIENCE CONCEPTS",
+    "page_number": 37
+  },
+  {
+    "chunk_id": "f50e35b7be13e36b17f0deb294c2d8a2691da90fce9ac35eef60528f2ab36132",
+    "text": "\u2022 There are three main types of threats to infrastructure \u2014natural (e.g., flooding), accidental (e.g., \nmaintenance failure), and deliberate (e.g., terrorist)\u2014each of which have an associated likelihood of \noccurrence.\n\n\u2022 An infrastructure system\u2019s vulnerability is its susceptibility to failure, damage, or disruption due to one of \nthese threats. Examples of vulnerabilities include a flaw in an IT system\u2019s cybersecurity or location of an \nasset in a floodplain.\n\n\u2022 Consequence is the direct or indirect impact of a threat because of a vulnerability. Consequence is often \nmeasured in terms of loss of life, damage to property, and disruption of normal operations.\n\nWhat Are Infrastructure Dependencies?\n\nDependencies are relationships of reliance within and among infrastructure systems that must be maintained \nfor those systems to operate and provide services. Dependencies can be one-way relationships, such as \na water system\u2019s reliance on electric power to run pumps and treatment operations. Dependencies can \nalso be two-way relationships where the operations of both systems mutually affect the other. For example, \ncommunications systems depend on electric power to operate and transmit signals, and in turn, electric power \nsystems rely on communications systems to monitor and control the transmission of power.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "APPENDIX A. FOUNDATIONAL INFRASTRUCTURE RESILIENCE CONCEPTS",
+    "page_number": 38
+  },
+  {
+    "chunk_id": "c45adedfcd94e0eaab0c409b04141b7c2b5c3bbe8676afea96c6db56df8941ed",
+    "text": "The National Infrastructure Protection Plan affirms that an understanding of critical infrastructure \ndependencies is essential to enhancing the resilience of communities. This is because dependencies represent \nboth the efficient manner in which infrastructure systems work together, but also the potential points of failure \nthat can lead to cascading disruptions across systems that deliver essential services.\n\nWhat Is Resilience?\n\nGiven infrastructure\u2019s vital significance and the fact that it is increasingly at risk, ensuring both its security \nand resilience is paramount. In accordance with NSM-22, resilience means the ability to prepare for threats \nand hazards, adapt to changing conditions, and withstand and recover rapidly from adverse conditions and \ndisruptions.\n\n38\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "APPENDIX A. FOUNDATIONAL INFRASTRUCTURE RESILIENCE CONCEPTS",
+    "page_number": 38
+  },
+  {
+    "chunk_id": "20f2886e03991171cbdd8f3a6541cca326126f40ae53f61fce0081c04d52ec3b",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5\n\nHow Can Infrastructure Resilience Be Incorporated into Planning?\n\nInfrastructure resilience can be integrated into almost any type of community planning, including \ncomprehensive, hazard mitigation, capital improvement, emergency response, economic development, and \nbusiness continuity planning.\n\nSome specific ways in which this can be done include:\n\n\u2022 Evaluating the effectiveness of an existing plan based on how it addresses implications of infrastructure \nsecurity and resilience,\n\n\u2022 Adding a description of critical infrastructure systems and the important societal functions they enable \nin the community overview section of an existing plan,\n\n\u2022 Including mapping of critical infrastructure systems and their service areas for use by emergency \nresponders,\n\n\u2022 Using infrastructure risk analysis to identify obstacles to resilience that need to be addressed,\n\n\u2022 Identifying new projects, policies, or procedures to plans based on the risks associated with \ninfrastructure, or\n\n\u2022 Adding a specific annex to a plan focused on the risk of and resilience solutions for a specific \ninfrastructure system that is critical to the community or region.\n\nCISA\u2019s IRPF provides flexible and voluntary guidance and resources that planners can use to incorporate \ninfrastructure resilience into their planning activities. Considering infrastructure risk and resilience in planning \ncan lead to more informed decision-making and better outcomes.",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 38
+  },
+  {
+    "chunk_id": "21aae5d872c2d3a6139c3e13431de5307ff918323dec54859b7a9bda44088221",
+    "text": "39\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 39
+  },
+  {
+    "chunk_id": "d98afc8f97281d11593e4407418b95496ddc79cbb7c192c2e8f07e4dcd819cbc",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 39
+  },
+  {
+    "chunk_id": "3977d1543edcb09a644b32765c0f69aba72b517add0b6eea57c6bf8a3aa38feb",
+    "text": "APPENDIX B. GRAPHICS SHOWING INTEGRATION INTO SELECT PLANS\n\nStrengths",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "APPENDIX B. GRAPHICS SHOWING INTEGRATION INTO SELECT PLANS",
+    "page_number": 39
+  },
+  {
+    "chunk_id": "e103f5376c39f7d5ffa149bda4e2a9c11ecc8fa206023f005804e71d5937157b",
+    "text": "COMPREHENSIVE ECONOMIC",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "COMPREHENSIVE ECONOMIC",
+    "page_number": 39
+  },
+  {
+    "chunk_id": "c9511d564cf81743e7f9d2b21a4fdb7faa9b2a603ddb609c8e285eba96bf37c4",
+    "text": "DEVELOPMENT STRATEGY*\n\nSWOT \nAnalysis\n\nStrategic \nDirection/ \nAction Plan\n\nSummary Background\n\nWeaknesses\n\nGoals & \nObjectives\n\nImplementation\n\nActions\n\nOpportunities\n\nThreats\n\nCompendium of Programs \nand Mechanisms for Funding\nInfrastructure Resilience\n\n4.4 Select Resilience Solutions for Implementation\n\n*U.S. Economic Development Administration. CEDS Content.\nhttps://www.eda.gov/resources/comprehensive-economic-development-strategy/content\n\nSample Goals \nand Objectives\n\nMitigation Alternatives \nEvaluation Guide\n\nSources for Resilient Solutions\n4.2 Identify Resilience Solutions to Mitigate Risk\n\n4.1 Refine Goals and Objectives\n\n1.5 Establish Goals and Objectives\n\n3.3 Assess Consequences\n\n3.2 Assess Infrastructure Vulnerabilities\n\n3.1 Identify Threats and Hazards to Infrastructure\n\u2022 Focus on significant threats\n\n2.3 Identify Infrastructure Dependencies\n\n5.1 Implement Through Existing Mechanisms\n\u2022 Obtain assistance\n\n2.1 Identify Infrastructure\n\u2022 Determine what is critical; Cover the fundamentals\n\n2.1 Identify Infrastructure\n\u2022 Determine what is critical; Cover the fundamentals\n\nDependency Identification \nWorksheet\n\n2.2 Prioritize Infrastructure\n\u2022 Rank identified infrastructure: Choose economic criteria\n\n2.1 Identify infrastructure\n\u2022 Determine what is critical; Take a functional approach\n\u2022 Update and expand data\n\nDatasets for \nInfrastructure \nIdentification\n\nFigure B1. Incorporating the Outcomes of IRPF Actions into a Comprehensive Economic Development Strategy",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "DEVELOPMENT STRATEGY*",
+    "page_number": 39
+  },
+  {
+    "chunk_id": "c13f7feab71bf23c2a568f01a1ef9bbb5a06f5f0d306204b7c86c2e737c82d82",
+    "text": "HAZARD MITIGATION PLAN*\n\n4.5 Develop Implementation Strategies\n\nSources for Resilient \nSolutions\n\nResilient Solutions \nStrategy Worksheet\n\n3.4 Prioritize Risk to Infrastructure\n\n4.4 Select Resilience Solutions for Implementation\n\n4.2 Identify Resilience Solutions to Mitigate Risk\n\n1.4 Form Collaborative Planning Group\n\u2022 Identify participants\n\u2022 Invite participants\n\nPlanning Participant Contact \nInformation Sheet\n\nElement C:\n\nMitigation\n\nStrategy\n\nC.3\nGoals to Reduce\n\nVulnerabilities\n\nC.4\nMitigation Actions\n\nElement A:\n\nPlanning\n\nProcess\n\nA.2\nInvolvement\n\nin Planning\n\nA.4\nIncorporation\n\nof Info\n\nElement B:\n\nRisk \nAssessment\n\nB.2\nVulnerability &\n\nImpact from\n\nHazards\n\nC.5\nPrioritized\nAction Plan\n\nSample Goals \nand Objectives\n4.1 Refine Goals and Objectives\n\n1.5 Establish Goals and Objectives\n\nDependency Identification \nWorksheet\n3.2 Assess Infrastructure Vulnerabilities\n\n2.3 Identify Infrastructure Dependencies\n\n3.3 Assess Consequences\n\n1.3 Collect and Review Information\n\u2022 Identify previous information\n\u2022 Review collected information\n\nData Collection Sample \nList of Resources\n\nStakeholder Invitation \nLetter Template\n\nMitigation Alternatives \nEvaluation Guide\n\n*Federal Emergency Management Agency. Local Mitigation Planning \nPolicy Guide, FP206-21-0002. Released Apr 2022, Effective Apr 2023.\n\nFigure B2. Incorporating the Outcomes of IRPF Actions into a Hazard Mitigation Plan\n\n40\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "HAZARD MITIGATION PLAN*",
+    "page_number": 39
+  },
+  {
+    "chunk_id": "f0656fc73e4bb1b42b9ea5962fc43977e773dd5f885c3b12c3b473fa36a4247f",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 39
+  },
+  {
+    "chunk_id": "70a537cf24657820e4d80216befedf5584f295185546d60fc9baa6bd6d0f6c39",
+    "text": "EMERGENCY OPERATIONS PLAN*\n\n4.2 Identify Resilience Solutions to Mitigate Risk\n\n3.2 Assess Infrastructure Vulnerabilities\n\n4.2 Identify Resilience Solutions to Mitigate Risk\n\n2.3 Identify Infrastructure Dependencies\n\nLogistics\n\nFunctional Annexes\n\nHazard/Threat Annexes\n\nDependency Identification \nWorksheet\n3.2 Assess Infrastructure Vulnerabilities\n\n2.3 Identify Infrastructure Dependencies\n\n3.4 Prioritize Risk to Infrastructure\n\nAdministration, \nFinance and Logistics\n\nConcept of Operations\n\nOrganization and Assignment\n\nof Responsibilities\n\nSituation \nOverview\n\nPurpose, Scope, \nSituation Overview\n\nand Planning \nAssumptions\n\n4.3 Identify and Assess Existing Resources \nand Capabilities\n\nSample Goals \nand Objectives\n1.3 Collect and Review Existing Information\n\n1.5 Establish Goals and Objectives\n\n1.4 Form Collaborative Planning Group\n\n4.3 Identify and Assess Existing Resources \nand Capabilities\n\nSources for Resilient \nSolutions\n\nMitigation Alternatives \nEvaluation Guide\n\n*Federal Emergency Management Agency. Comprehensive Preparedness.\nGuide 101: Developing and Maintaining Emergency Operations Plans. Sep \n2021, Version 3.0, p. 30-35, 67-108.\n\nFigure B3. Incorporating the Outcomes of IRPF Actions into an Emergency Operations Plan\n\n41\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "EMERGENCY OPERATIONS PLAN*",
+    "page_number": 39
+  },
+  {
+    "chunk_id": "b16edd6892926df734cb8072c834a517b3a66a8dc0d805123ba0b176ea1cc115",
+    "text": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "STEP 1\nSTEP 2\nSTEP 3\nSTEP 4\nSTEP 5",
+    "page_number": 39
+  },
+  {
+    "chunk_id": "6ae62be3905fd26378e6abbf090b9c48425b2b6c1985de38589ef9009fe21820",
+    "text": "APPENDIX C. AFFILIATED RESOURCES & TEMPLATES\n\nStep 1: Lay the Foundation\n\n\u2022 IRPF Launchpoint\n\u2022 Data Collection Sample List of Resources\n\u2022 Planning Participant Contact Information Sheet\n\u2022 Stakeholder Invitation Letter\n\u2022 Sample Goals and Objectives\n\nStep 2: Identify Critical Infrastructure\n\n\u2022 Infrastructure Assets Matrix: Suggested Data Fields\n\u2022 Datasets for Infrastructure Identification\n\u2022 Infrastructure Dependency Primer (IDP)\n\u2022 Dependency Identification Worksheet\n\u2022 Community Systems Dependency Discussion Guide\n\u2022 System Owner/Operator Dependency Interview Guide\n\u2022 Meeting Facilitation Guide\n\nStep 3: Assess Risk\n\n\u2022 Hazard Information and Analysis Resources\n\u2022 System Owner/Operator Dependency Interview Guide\n\u2022 Risk Assessment Methodologies\n\nStep 4: Develop Actions\n\n\u2022 Sample Goals and Objectives\n\u2022 Sources for Resilient Solutions\n\u2022 Infrastructure Dependency Primer (IDP)\n\u2022 Sample Capability Assessment Worksheet\n\u2022 Mitigation Alternatives Evaluation Guide\n\u2022 Resilient Solution Strategy Worksheet\n\nStep 5: Implement & Evaluate\n\n\u2022 IRPF Plan Integration\n\u2022 Compendium of Programs and Mechanisms for Funding Infrastructure Resilience\n\nReferences\n\n\u2022 Infrastructure Resilience Planning Framework\n\u2022 Methodology for Assessing Regional Infrastructure Resilience\n\n42\nCISA | DEFEND TODAY, SECURE TOMORROW",
+    "metadata": {
+      "category": "resilience",
+      "source": "CISA",
+      "document_name": "Infra Resilience Planning Framework",
+      "document_type": "pdf",
+      "document_hash": "d34b6677bc16f301e573cbee82e6eac736b1a388638934dab0e82576fc5085c2",
+      "extra": {}
+    },
+    "section": "APPENDIX C. AFFILIATED RESOURCES & TEMPLATES",
+    "page_number": 39
+  }
+]

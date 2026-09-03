@@ -1,0 +1,1934 @@
+[
+  {
+    "chunk_id": "c96ac45aa3e3f2dc344f6aab259f6aec09a8e12044fb2439c0631de7f4f5c908",
+    "text": "NISTIR 8259A",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "NISTIR 8259A",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "3ebcd3ee0c88481a5510768ad320ee37127b4b64a43e8b2bd04cb66592bcfd54",
+    "text": "IoT Device Cybersecurity Capability",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "IoT Device Cybersecurity Capability",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "26d6a26c68c6d4b22d7fc9c64f9a5a5cecf7a89f68062b6dca8bf158b92206cd",
+    "text": "Core Baseline",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Core Baseline",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "25ed20f43beb16a5c235b993be041cdd5373cbd6345d73e03886ea1ed07c32cc",
+    "text": "Michael Fagan \nKaterina N. Megas",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Michael Fagan \nKaterina N. Megas",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "c8f9e371b44d3e4e26e01d0e6157e717bd0d7d0a83e8076a55e6bec55464ca6a",
+    "text": "Karen Scarfone",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Karen Scarfone",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "90a05f08ab4d116e6b840d57d88777da855d7e45694c537a479b44fc6b0f5e4f",
+    "text": "Matthew Smith",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Matthew Smith",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "3ec6218ceb4b41a004c71a5d879dc50c86def4691893a4403ba00bff64b1aeee",
+    "text": "This publication is available free of charge from:",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "This publication is available free of charge from:",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "caf5b262895f6dfdc6a9f4a1bd949447c8934faef65f2e5cd6f8c0796742c4cb",
+    "text": "https://doi.org/10.6028/NIST.IR.8259A",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "https://doi.org/10.6028/NIST.IR.8259A",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "290da3b8e193298835dc4bf511b8e336923b76cec890c30aa593b03f37900207",
+    "text": "NISTIR 8259A",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "NISTIR 8259A",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "29b7e69ba6346a6792b28f67e11581244603be054c72c2db18db68ff1fba8e68",
+    "text": "IoT Device Cybersecurity Capability",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "IoT Device Cybersecurity Capability",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "6ac70473a8fd790578e7bb9d8b1c41a8e39ba88c4842bd0eee33bf7885696def",
+    "text": "Core Baseline",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Core Baseline",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "d17ddc88156b603ce468c570a18ad11b583bff14b17b27975f86d0f0b6a09e24",
+    "text": "Michael Fagan \nKaterina N. Megas \nApplied Cybersecurity Division \nInformation Technology Laboratory",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Michael Fagan \nKaterina N. Megas \nApplied Cybersecurity Division \nInformation Technology Laboratory",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "0b92081be62cb5ae4e2761fb8cf0bf3b93804e13aaf7b19f48e35d26bf4db436",
+    "text": "Karen Scarfone \nScarfone Cybersecurity",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Karen Scarfone \nScarfone Cybersecurity",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "200def14a18ab10e183f45afa3f1ca2c7e27d3c24eeac96dd06cd79e345d3999",
+    "text": "Clifton, VA",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Clifton, VA",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "b71275b2fd3e0554009a43abc9ebdb3854caabec7f7b6bb0b7c4641c47a2f1e3",
+    "text": "Matthew Smith \nHuntington Ingalls Industries",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Matthew Smith \nHuntington Ingalls Industries",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "ff4010ccc4827c6b5280aecbe597e1d6496f7a52bb5d6ab46b9a4134832b94af",
+    "text": "Annapolis Junction, MD",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Annapolis Junction, MD",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "4b2e2f3dc7a4d60e6d976c6f02d9ffb183d552f6c7e8f691fd90e0de3b8ff7f9",
+    "text": "This publication is available free of charge from:",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "This publication is available free of charge from:",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "79042b3fc92d178918ea87744240655529c891ca4c6700f778bf5e68762c5aaa",
+    "text": "https://doi.org/10.6028/NIST.IR.8259A",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "https://doi.org/10.6028/NIST.IR.8259A",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "d111b866ca407abf657ce87de9ac7b830959e2c34fd18426bbe6000d0808c912",
+    "text": "May 2020",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "May 2020",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "948def945c9a012c5882263dd9cec73f8a2a17f1656c4fad56fe980374830622",
+    "text": "U.S. Department of Commerce\n\nWilbur L. Ross, Jr., Secretary\n\nNational Institute of Standards and Technology  \nWalter Copan, NIST Director and Under Secretary of Commerce for Standards and Technology",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "U.S. Department of Commerce",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "d3ef41789b1b1343c6cabc1adb6669eb6e8e919b5af6a78ed482cd6d74238558",
+    "text": "National Institute of Standards and Technology Interagency or Internal Report 8259A\n\n23 pages (May 2020)\n\nThis publication is available free of charge from:\n\nhttps://doi.org/10.6028/NIST.IR.8259A\n\nCertain commercial entities, equipment, or materials may be identified in this document in order to describe an \nexperimental procedure or concept adequately. Such identification is not intended to imply recommendation or \nendorsement by NIST, nor is it intended to imply that the entities, materials, or equipment are necessarily the best \navailable for the purpose.\n\nThere may be references in this publication to other publications currently under development by NIST in \naccordance with its assigned statutory responsibilities. The information in this publication, including concepts and \nmethodologies, may be used by federal agencies even before the completion of such companion publications. Thus, \nuntil each publication is completed, current requirements, guidelines, and procedures, where they exist, remain \noperative. For planning and transition purposes, federal agencies may wish to closely follow the development of \nthese new publications by NIST.\n\nOrganizations are encouraged to review all draft publications during public comment periods and provide feedback \nto NIST. Many NIST cybersecurity publications, other than the ones noted above, are available at \nhttps://csrc.nist.gov/publications.",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "National Institute of Standards and Technology Interagency or Internal Report 8259A",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "1cb3269f6998afd1728b94af17bc3b8ee5fd5841c725791dc32632c2951389a4",
+    "text": "Comments on this publication may be submitted to:\n\nNational Institute of Standards and Technology \nAttn: Applied Cybersecurity Division, Information Technology Laboratory\n\n100 Bureau Drive (Mail Stop 2000) Gaithersburg, MD 20899-2000 \nEmail: iotsecurity@nist.gov",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Comments on this publication may be submitted to:",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "2b6385d61068d2493c98f96e4957a9719ab89f2e945548ce008fd39f15e6ecf3",
+    "text": "All comments are subject to release under the Freedom of Information Act (FOIA).\n\nNISTIR 8259A \n \n  IOT DEVICE CYBERSECURITY CAPABILITY CORE BASELINE",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "All comments are subject to release under the Freedom of Information Act (FOIA).",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "f18a4b84f02325d7e40e290a573eadf96958a862acb4c48565b4fb0600051a40",
+    "text": "ii\n\nThis publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8259A",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "ii",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "4763c5cf8bef0b933995399113fb7a1b365fcc201c1d00a383abeaddb7de1105",
+    "text": "Reports on Computer Systems Technology\n\nThe Information Technology Laboratory (ITL) at the National Institute of Standards and \nTechnology (NIST) promotes the U.S. economy and public welfare by providing technical \nleadership for the Nation\u2019s measurement and standards infrastructure. ITL develops tests, test \nmethods, reference data, proof of concept implementations, and technical analyses to advance \nthe development and productive use of information technology. ITL\u2019s responsibilities include the \ndevelopment of management, administrative, technical, and physical standards and guidelines for \nthe cost-effective security and privacy of other than national security-related information in \nfederal information systems.",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Reports on Computer Systems Technology",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "671075efa1330ba26f9b0d93bdcb12c25d5d8ffc2201e7168ecd0a8c61ee9c63",
+    "text": "Abstract\n\nDevice cybersecurity capabilities are cybersecurity features or functions that computing devices \nprovide through their own technical means (i.e., device hardware and software). This publication \ndefines an Internet of Things (IoT) device cybersecurity capability core baseline, which is a set \nof device capabilities generally needed to support common cybersecurity controls that protect an \norganization\u2019s devices as well as device data, systems, and ecosystems. The purpose of this \npublication is to provide organizations a starting point to use in identifying the device \ncybersecurity capabilities for new IoT devices they will manufacture, integrate, or acquire. This \npublication can be used in conjunction with NISTIR 8259, Foundational Cybersecurity Activities \nfor IoT Device Manufacturers.",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Abstract",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "96a141ddb2bd71b3ee1d7031fd1522909cd854f4b178cf5b853c686c6043f714",
+    "text": "Keywords",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Keywords",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "cf468415872dc61e71c9498d093525be0c3b6adedfa49cfe1a1a560670e5e704",
+    "text": "cybersecurity baseline; Internet of Things (IoT); securable computing devices.",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "cybersecurity baseline; Internet of Things (IoT); securable computing devices.",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "a6575f56c7de3a1e756a00e88e3d2299ca51f444676dd32f76efb9c8eacbd009",
+    "text": "Acknowledgments\n\nThe authors wish to thank all contributors to this publication, including the participants in \nworkshops and other interactive sessions; the individuals and organizations from the public and \nprivate sectors, including manufacturers from various sectors as well as several manufacturer \ntrade organizations, who provided feedback on the preliminary essay and the public comment \ndrafts; and colleagues at NIST who offered invaluable inputs and feedback. Special thanks to \nCybersecurity for IoT Program team members Barbara Cuthill and Jeff Marron and the NIST \nFISMA Implementation Project team for their extensive help in copy editing.",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Acknowledgments",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "498f18c3c202e60354a9bfedacb327ff553745cfa40cfde4bca983aa2317748f",
+    "text": "Audience",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Audience",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "c6a1b6ae33d6fb14aa41873319d2d76b4dd28aab94ad5be23336947b958eefdf",
+    "text": "The main audience for this publication is IoT device manufacturers. This publication may also \nhelp IoT device customers or integrators.\n\nNISTIR 8259A \n \n  IOT DEVICE CYBERSECURITY CAPABILITY CORE BASELINE",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "The main audience for this publication is IoT device manufacturers. This publication may also \nhelp IoT device customers or integrators.",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "b727a0e7bf5069fb5d04463667d7af3e2da0ee915e6046856d374c1180f3df0d",
+    "text": "iii\n\nThis publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8259A",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "iii",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "323177e7ecdfaa7e0728011f0aab09b673534c4c8d65ac8c500f871e68b356f6",
+    "text": "Table of Contents",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Table of Contents",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "2674e323e1f540e1226ca57e8bcbcce8f7321e28e7018078d409e792edc4c663",
+    "text": "1 \nIntroduction ............................................................................................................ 1",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "1 \nIntroduction ............................................................................................................ 1",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "77c504f264a023cbfdd92563d11e4ef6c06b239cb0c7ac4dce0fadb7739bfeaa",
+    "text": "2 \nIoT Device Cybersecurity Capability Core Baseline Definition .......................... 3",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "2 \nIoT Device Cybersecurity Capability Core Baseline Definition .......................... 3",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "3e94ea504fe4308b024076eb88d6e9cd6d826df1dec09db14ad1f86fd6805ef5",
+    "text": "Appendix A\u2014 Understanding the IoT Device Cybersecurity Capability Core \nBaseline in the Context of Customer Needs and Goals ........................................... 14\n\nNISTIR 8259A \n \n  IOT DEVICE CYBERSECURITY CAPABILITY CORE BASELINE\n\nThis publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8259A",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Appendix A\u2014 Understanding the IoT Device Cybersecurity Capability Core \nBaseline in the Context of Customer Needs and Goals ........................................... 14",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "cc6a76e070c46274137df9ebae8519c661a59eab0885d547c7e6871ed97fc160",
+    "text": "Patent Disclosure Notice\n\nNOTICE: ITL has requested that holders of patent claims whose use may be required for \ncompliance with the guidance or requirements of this publication disclose such patent claims to \nITL. However, holders of patents are not obligated to respond to ITL calls for patents and ITL \nhas not undertaken a patent search in order to identify which, if any, patents may apply to this \npublication.\n\nAs of the date of publication and following call(s) for the identification of patent claims whose \nuse may be required for compliance with the guidance or requirements of this publication, no \nsuch patent claims have been identified to ITL.",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Patent Disclosure Notice",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "8f8aeb5efad0027acb9d87d79eb1d19208ab0bb56f7ac0e3ef77c19a0abd820f",
+    "text": "No representation is made or implied by ITL that licenses are not required to avoid patent \ninfringement in the use of this publication.\n\nNISTIR 8259A \n \n  IOT DEVICE CYBERSECURITY CAPABILITY CORE BASELINE\n\nThis publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8259A",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "No representation is made or implied by ITL that licenses are not required to avoid patent \ninfringement in the use of this publication.",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "fe4bf8307d04ebe3f3027529ff191596a938c7aaa05361839949927ff75fa3a4",
+    "text": "1 \nIntroduction\n\nComputing devices that integrate physical and/or sensing capabilities and network interface \ncapabilities are being designed, developed, and deployed at an ever-increasing pace. These \ndevices are fulfilling customer needs in all sectors of the economy. Many of these computing \ndevices are connected to the internet. A novel characteristic of these devices is the combination \nof connectivity and the ability to sense and/or affect the physical world. As devices become \nsmaller and more complex, with an increasing number of features, the security of those devices \nalso becomes more complex. This publication defines a baseline set of device cybersecurity \ncapabilities that organizations should consider when confronting the challenge of the Internet of \nThings (IoT).\n\nDevice cybersecurity capabilities are cybersecurity features or functions that computing devices \nprovide through their own technical means (i.e., device hardware and software). The IoT device \ncybersecurity capability core baseline (core baseline)1 defined in this publication is a set of \ndevice capabilities generally needed to support commonly used cybersecurity controls that \nprotect devices as well as device data, systems, and ecosystems. The concept of a baseline in any \ncontext requires careful consideration; security capabilities for IoT devices are no exception.",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "1 \nIntroduction",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "18cf5ea841606ed474c227b747c77bd378e89e4dadb2cd322c0c902447433aff",
+    "text": "The core baseline has been derived from researching common cybersecurity risk management \napproaches and commonly used capabilities for addressing cybersecurity risks to IoT devices, \nwhich were refined and validated using a collaborative public-private process to incorporate all \nviewpoints. Multiple requests for comment were issued, and multiple workshops and roundtables \nwere held. NIST is committed to an open and transparent process that facilitates stakeholder \nfeedback and iterative improvement.\n\nThese capabilities were developed in the context of NISTIR 8259, Foundational Cybersecurity \nActivities for IoT Device Manufacturers [2], which discusses considerations for manufacturers to \nhelp guide them in choosing and implementing the device cybersecurity capabilities their IoT \ndevices will provide. NISTIR 8259 also defines terminology and concepts that provide critical \ncontext for understanding device cybersecurity capabilities as one part of the entire IoT \ncybersecurity ecosystem. Thus, though both NISTIR 8259 and this publication have \nmanufacturers as the intended audience, the considerations and capabilities discussed across the \ntwo publications can be used by manufacturers, integrators, or consumers. For more information \non how these capabilities can be incorporated into a manufacturer\u2019s development processes, see \nNISTIR 8259. Other organizations can use the core baseline in the context that is available and \nappropriate to them.",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "1 \nIntroduction",
+    "page_number": 7
+  },
+  {
+    "chunk_id": "a73ec827a92510b6c6d344faefd3b8a92c8bba4d3b76f723ea8744c4139f6517",
+    "text": "Regardless of an organization\u2019s role, this baseline is intended to give all organizations a starting \npoint for IoT device cybersecurity risk management, but the implementation of all capabilities is \nnot considered mandatory. The individual capabilities in the baseline may be implemented in\n\n1  \nThe usage of the term \u201cbaseline\u201d in this publication should not be confused with the low-, moderate-, and high-impact \nsystem control baselines set forth in NIST Special Publication (SP) 800-53 [1] to help federal agencies meet their \nobligations under the Federal Information Security Modernization Act (FISMA) and other federal policies. In that context, \nthe low-, moderate-, and high-impact control baselines apply to an information system, which may include multiple \ncomponents, including devices. In this publication, \u201cbaseline\u201d is used in the generic sense to refer to a set of foundational \nrequirements or recommendations, and the core baseline described is meant to apply to individual IoT devices.\n\nNISTIR 8259A \n \n  IOT DEVICE CYBERSECURITY CAPABILITY CORE BASELINE\n\nThis publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8259A\n\nfull, in part, or not at all. It is left to the implementing organization to understand the unique risk \ncontext in which it operates and what is appropriate for its given circumstance. For more \ninformation on how to conduct a risk assessment, see NIST Special Publication 800-30, Guide \nfor Conducting Risk Assessments [3].",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "1 \nIntroduction",
+    "page_number": 7
+  },
+  {
+    "chunk_id": "d6d71fbb1ad5db590d328f0cf79c712c3f80cd82ac363141bb9555b8ae0795fd",
+    "text": "Furthermore, this baseline is not the only set of capabilities that exist. This baseline represents a \ncoordinated effort to produce a definition of common capabilities, not an exhaustive list. \nTherefore, an implementing organization may define capabilities that better suit their \norganization. Using these additional capabilities to support IoT device cybersecurity risk \nmanagement is encouraged. For more information on IoT device security and privacy \nconsiderations, see NISTIR 8228, Considerations for Managing Internet of Things (IoT) \nCybersecurity and Privacy Risks [4].\n\nNISTIR 8259A \n \n IOT DEVICE CYBERSECURITY CAPABILITY CORE BASELINE",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "1 \nIntroduction",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "cfcfbaa708bae0f02dc921d36e8d9bd22d479a68fc9119039cbe084ab0c2ad1b",
+    "text": "3\n\nThis publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8259A",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "3",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "04eda38b0c4c10ee51729ba57e1f7aa344057f844b7e6c53a52c5d61450be7e9",
+    "text": "2 \nIoT Device Cybersecurity Capability Core Baseline Definition\n\nTable 1 defines the IoT device cybersecurity capability core baseline. The core baseline\u2019s role is as a default for minimally securable \ndevices. However, device cybersecurity capabilities will often need to be added or removed from an IoT device\u2019s design, integration, or \nacquisition to best address an organization\u2019s common cybersecurity risks. The core baseline does not specify how the device \ncybersecurity capabilities are to be achieved, so organizations who choose to adopt the core baseline for any of the IoT devices they \nproduce, integrate, or acquire have considerable flexibility in implementing it to effectively address needs.",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "2 \nIoT Device Cybersecurity Capability Core Baseline Definition",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "c40b9ff76a1e7a73debf265191ba9c051e27ae17813151e804fead241804810b",
+    "text": "Each row in Table 1 covers one of the device cybersecurity capabilities in the core baseline:\n\n\u2022 The first column defines the capability. Note that Figure 1, which is located in Appendix A, indicates how the capability relates \nto the risk mitigation areas and challenges defined in NISTIR 8228, Considerations for Managing Internet of Things (IoT) \nCybersecurity and Privacy Risks [3].\n\n\u2022 The second column provides a numbered list of common elements of that capability\u2014elements an organization seeking to \nimplement the core baseline often (but not always) would use in order to achieve the capability. (Note: the elements are not \nintended to be comprehensive, nor are they in any particular order.)",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Each row in Table 1 covers one of the device cybersecurity capabilities in the core baseline:",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "b5228bb019c360ade536668762fa80adcf169afae34ba9f8442bed945af56dbb",
+    "text": "\u2022 The third column explains the rationale for needing the capability and its common elements to be included in the core baseline.\n\n\u2022 The last column lists IoT reference examples that indicate existing sources of IoT device cybersecurity guidance specifying a \nsimilar or related capability. Because the table only covers the basics of the capabilities, the references can be invaluable for \nunderstanding each capability in more detail and learning how to implement each capability in a reasonable manner. The \nfollowing are the references used in Table 1:",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "\u2022 The third column explains the rationale for needing the capability and its common elements to be included in the core baseline.",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "fe3acdf5c312042ba81e4181d3c184da481ccc779dc4c7723b21aa6ad0f45978",
+    "text": "o AGELIGHT: AgeLight Digital Trust Advisory Group, \u201cIoT Safety Architecture & Risk Toolkit (IoTSA) v3.1\u201d [5]",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "o AGELIGHT: AgeLight Digital Trust Advisory Group, \u201cIoT Safety Architecture & Risk Toolkit (IoTSA) v3.1\u201d [5]",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "4134be018b98e589b363b1e88b4acb7222389d940b03fbe086e8af9a29152e5a",
+    "text": "o BITAG: Broadband Internet Technical Advisory Group (BITAG), \u201cInternet of Things (IoT) Security and Privacy",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "o BITAG: Broadband Internet Technical Advisory Group (BITAG), \u201cInternet of Things (IoT) Security and Privacy",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "612f1e9d6b61bd39e4fcef2590d28167d72af2590554411e2282b7a29e658499",
+    "text": "Recommendations\u201d [6]",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Recommendations\u201d [6]",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "b01b1d61e3c2aaff4ad89d013c6709bf085d4a545cfbc8e17f6b8aaf647c1ef5",
+    "text": "o CSA: Cloud Security Alliance (CSA) IoT Working Group, \u201cIdentity and Access Management for the Internet of Things\u201d",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "o CSA: Cloud Security Alliance (CSA) IoT Working Group, \u201cIdentity and Access Management for the Internet of Things\u201d",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "88ae80cd76c99c5ee5d7eedbabf60ae64887d694a8aaeff9453289857787f263",
+    "text": "[7]",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "[7]",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "63b219e0af2176ad691d9868f116af1a685a66358ad1cbb8c2178eaeaa05df37",
+    "text": "o CSDE: Council to Secure the Digital Economy (CSDE), \u201cThe C2 Consensus on IoT Device Security Baseline Capabilities\u201d",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "o CSDE: Council to Secure the Digital Economy (CSDE), \u201cThe C2 Consensus on IoT Device Security Baseline Capabilities\u201d",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "ec2de4646b40932a7d99f4b5d29abc784d155c2a4406de3d3e1df04adf5cac50",
+    "text": "[8]",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "[8]",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "8e251c537f9b67eda9044b2c093dca9adebf5260603f4b806b19dde34f124f54",
+    "text": "o CTIA: CTIA, \u201cCTIA Cybersecurity Certification Test Plan for IoT Devices, Version 1.0.1\u201d [9]\n\nNISTIR 8259A \n \n IOT DEVICE CYBERSECURITY CAPABILITY CORE BASELINE",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "o CTIA: CTIA, \u201cCTIA Cybersecurity Certification Test Plan for IoT Devices, Version 1.0.1\u201d [9]",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "4c89b32ec9510fb3896530c9bbc73aa91ad212355dfc78b929bcc5ab03fa5c3a",
+    "text": "4\n\nThis publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8259A",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "4",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "41ed85f1b4a84fe13f315fa338b04fbcc647d1c74ab7c3a40bbd3c7ec8a3594c",
+    "text": "o ENISA: European Union Agency for Network and Information Security (ENISA), \u201cBaseline Security Recommendations",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "o ENISA: European Union Agency for Network and Information Security (ENISA), \u201cBaseline Security Recommendations",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "3690237bf6770f5466a38da48f74e7665e899443d9eb7e002090576128061541",
+    "text": "for IoT in the context of Critical Information Infrastructures\u201d [10]",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "for IoT in the context of Critical Information Infrastructures\u201d [10]",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "8c0525186fb95a64101bd67c6b62e7006a511348ccf2306be0297edf868c29fd",
+    "text": "o ETSI: European Telecommunications Standards Institute (ETSI), \u201cCyber Security for Consumer Internet of Things\u201d [11]",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "o ETSI: European Telecommunications Standards Institute (ETSI), \u201cCyber Security for Consumer Internet of Things\u201d [11]",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "b649c96275cc8ce162ca6570c0d666405ba7623e468b7e7937a659a444eab9f9",
+    "text": "o GSMA: Groupe Sp\u00e9ciale Mobile Association (GSMA), \u201cGSMA IoT Security Assessment\u201d [12]",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "o GSMA: Groupe Sp\u00e9ciale Mobile Association (GSMA), \u201cGSMA IoT Security Assessment\u201d [12]",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "113a6889da082ba019b94dc6bda7a93b8f1464d898858643fceb01c2d4b778f5",
+    "text": "o IEC: International Electrotechnical Commission (IEC), \u201cIEC 62443-4-2, Edition 1.0, Security for industrial automation and",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "o IEC: International Electrotechnical Commission (IEC), \u201cIEC 62443-4-2, Edition 1.0, Security for industrial automation and",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "ef4a3873c8416ba4a6e041a2356f1ec952148575acacf47e02ea88551ea6fc90",
+    "text": "control systems \u2013 Part 4-2: Technical security requirements for IACS components\u201d [13]",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "control systems \u2013 Part 4-2: Technical security requirements for IACS components\u201d [13]",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "daf1d0be9b5a79a095dd6d095fbe461a0a5ba0832169f0e6b6afcb96a24bf99d",
+    "text": "o IIC: Industrial Internet Consortium (IIC), \u201cIndustrial Internet of Things Volume G4: Security Framework\u201d [14]",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "o IIC: Industrial Internet Consortium (IIC), \u201cIndustrial Internet of Things Volume G4: Security Framework\u201d [14]",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "0652cc65647e818c1a14b5f3edf110377ff21409c7dbe63332c5bda6a6faeb81",
+    "text": "o IoTSF: IoT Security Foundation (IoTSF), \u201cIoT Security Compliance Framework, Release 2\u201d [15]",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "o IoTSF: IoT Security Foundation (IoTSF), \u201cIoT Security Compliance Framework, Release 2\u201d [15]",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "d117f7ee0ebf143cf594b3aebee2ef910c4dd746abd8bc1ba1370073531ca372",
+    "text": "o ISOC/OTA: Internet Society/Online Trust Alliance (OTA), \u201cIoT Security & Privacy Trust Framework v2.5\u201d [16]",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "o ISOC/OTA: Internet Society/Online Trust Alliance (OTA), \u201cIoT Security & Privacy Trust Framework v2.5\u201d [16]",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "d44aa4b7b787bbac13716ab61105789eebb6064e3076bde428327db3c762ae4d",
+    "text": "o NEMA: National Electrical Manufacturers Association (NEMA), \u201cCyber Hygiene Best Practices\u201d [17]",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "o NEMA: National Electrical Manufacturers Association (NEMA), \u201cCyber Hygiene Best Practices\u201d [17]",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "6d258b175037b71f2e1b0ebabc4767385a2746832058c2e1b3f852967ee7c59f",
+    "text": "o OCF: Open Connectivity Foundation (OCF) \u201cOCF Security Specification Version 2.1.2\u201d [18]",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "o OCF: Open Connectivity Foundation (OCF) \u201cOCF Security Specification Version 2.1.2\u201d [18]",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "f865a20f2511f1f3cef8086d8bb4f9ceb9564c77949d02094dd4540a7a5ade0f",
+    "text": "o PSA: Platform Security Architecture (PSA) Joint Stakeholder Agreement (JSA) Members, \u201cPSA Certified\u2122 Level I",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "o PSA: Platform Security Architecture (PSA) Joint Stakeholder Agreement (JSA) Members, \u201cPSA Certified\u2122 Level I",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "d90007e8d9f2b862c704c021b04155f4d56fa8799f260353be9166ea8351ab09",
+    "text": "Questionnaire, Version 2.0 Beta\u201d [19]",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Questionnaire, Version 2.0 Beta\u201d [19]",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "48a705a8325cabbfdfcbec18981a54a3730288490e96c6c7569958ec8a85014a",
+    "text": "Appendix B provides the definitions for the underlined terms in Table 1.\n\nNISTIR 8259A \n \n IOT DEVICE CYBERSECURITY CAPABILITY CORE BASELINE",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Appendix B provides the definitions for the underlined terms in Table 1.",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "61b319e3393f1a5b7411b2bc881c9c6caab5a10d583f73aaf705adc7c11478bd",
+    "text": "5\n\nThis publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8259A",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "5",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "7c3add80b65c69e0095cb0ca1ee7f77ab263dc1c80c55987faf16d3ad80ed466",
+    "text": "Table 1: The Device Cybersecurity Capability Core Baseline for Securable IoT Devices",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Table 1: The Device Cybersecurity Capability Core Baseline for Securable IoT Devices",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "54f00bebd72ed6da4579b7801ac97c97b140a32ce1286223531412b14a0680ad",
+    "text": "Device Cybersecurity",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Device Cybersecurity",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "a5716e354177e75b5368037560561b69bbb2ac82fe117bd17e9b1ce93097aead",
+    "text": "Capability",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Capability",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "7caf081920156d4b0d2a948264a93081bad62358fd65520c9c428e2e28da36a9",
+    "text": "Common Elements \nRationale \nIoT Reference Examples",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Common Elements \nRationale \nIoT Reference Examples",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "a233f1b306e2820dbff0d5e85488f751cfeee7ad71e607020765e1ba311734b1",
+    "text": "Device Identification: \nThe IoT device can be \nuniquely identified \nlogically and \nphysically.\n\n1. A unique logical identifier \n2. A unique physical identifier at an \nexternal or internal location on the \ndevice authorized entities can access \nNote: the physical and logical identifiers \nmay represent the same value, but they \ndo not have to.\n\n\u2022 This capability supports asset management, which \nin turn supports vulnerability management, access \nmanagement, data protection, and incident \ndetection. \n\u2022 The unique logical identifier can be used to \ndistinguish the device from all others, usually for \nautomated device management and monitoring. \nThis may require that it be immutable to allow for \nconsistent identification using the identifier. The \nunique logical identifier may also be used for device \nauthentication, but consideration should be made to \nselect an appropriate identifier for the purpose. \n\u2022 The unique physical identifier can be used to \ndistinguish the device from all others whenever the \nunique logical identifier is unavailable, such as \nduring device deployment and decommissioning, or \nafter a device failure. \n\u2022 The capability may also need an additional logical \nidentifier that will not necessarily be unique which is \nused for more specific purposes such as device \nintent signaling.",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Device Identification: \nThe IoT device can be \nuniquely identified \nlogically and \nphysically.",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "819b8ae122f6d395cb05ddac50ca563aacca562cdfc3e2f07aecfe5a1a0a8ce2",
+    "text": "\u2022 CSA: 1 \n\u2022 CSDE: 5.1.1 \n\u2022 CTIA: 4.13 \n\u2022 ENISA: GP-PS-10 \n\u2022 GSMA: CLP13_6.6.2, 6.8.1, \n6.20.1 \n\u2022 IEC: CR 1.2 \n\u2022 IIC: 7.3, 8.5, 11.7, 11.8 \n\u2022 IoTSF: 2.4.8.1, 2.4.14.3, \n2.4.14.4 \n\u2022 OCF: 7.1.1 \n\u2022 PSA: C1.4, R2.1\n\nNISTIR 8259A \n \n IOT DEVICE CYBERSECURITY CAPABILITY CORE BASELINE",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Device Identification: \nThe IoT device can be \nuniquely identified \nlogically and \nphysically.",
+    "page_number": 11
+  },
+  {
+    "chunk_id": "e0e81a21ccbf72d2d42d82b859caebc7902e4cda430acdb53c28c86a8df9ad77",
+    "text": "6\n\nThis publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8259A",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "6",
+    "page_number": 11
+  },
+  {
+    "chunk_id": "7d2fa5cb1a6e104ddd846c1201145bb7f6f376cc99e2e20dbb32f6d9544c2fab",
+    "text": "Device Cybersecurity",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Device Cybersecurity",
+    "page_number": 11
+  },
+  {
+    "chunk_id": "611393a51a4260fbde8d84368700ce9347c22030e5308038c25c3a01c13bea29",
+    "text": "Capability",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Capability",
+    "page_number": 11
+  },
+  {
+    "chunk_id": "4d0614770d99a88731bf01c8568fae89717d6e1d6683734a7aa7794f20cb79bf",
+    "text": "Common Elements \nRationale \nIoT Reference Examples\n\nDevice \nConfiguration: The \nconfiguration of the IoT \ndevice\u2019s software can \nbe changed, and such \nchanges can be \nperformed by \nauthorized entities \nonly.\n\n1. The ability to change the device\u2019s \nsoftware configuration settings \n2. The ability to restrict configuration \nchanges to authorized entities only \n3. The ability for authorized entities to \nrestore the device to a secure \nconfiguration defined by an authorized \nentity\n\n\u2022 This capability supports vulnerability management, \naccess management, data protection, and incident \ndetection. \n\u2022 An authorized entity may want to alter a device\u2019s \nconfiguration for a variety of reasons, including \ncybersecurity, interoperability, privacy, and usability. \nWithout a device configuration capability, an \nauthorized entity cannot customize a device to meet \nits needs, integrate the device into the authorized \nentity's environment, etc.  \n\u2022 Most cybersecurity capabilities are at least \nsomewhat dependent on the presence of a device \nconfiguration capability. \n\u2022 Unauthorized entities may want to change a \ndevice's configuration for many reasons, such as \ngaining unauthorized access, causing the device to \nmalfunction, or secretly monitoring the device's \nenvironment. \n\u2022 The ability to restore a secure configuration for a \ndevice is helpful when the current configuration \ncontains errors, has been damaged or corrupted, or \nis otherwise no longer thought to be trustworthy.",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Common Elements \nRationale \nIoT Reference Examples",
+    "page_number": 11
+  },
+  {
+    "chunk_id": "20c3ca109985448bdfbd47c9de0881886655c2e8efa6084eeed5acb93df6aaef",
+    "text": "\u2022 BITAG: 7.1 \n\u2022 CSA: 22 \n\u2022 ENISA: GP-TM-06 \n\u2022 IEC: CR 7.4, CR 7.6 \n\u2022 IIC: 7.3, 7.6, 8.10, 11.5 \n\u2022 IoTSF: 2.4.8.17, 2.4.15 \n\u2022 ISOC/OTA: 26 \n\u2022 OCF: 5.3.3, 8.2, 12, 13.3.1 \n\u2022 PSA: C2.3, R6.1, R7.1\n\nNISTIR 8259A \n \n IOT DEVICE CYBERSECURITY CAPABILITY CORE BASELINE",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Common Elements \nRationale \nIoT Reference Examples",
+    "page_number": 12
+  },
+  {
+    "chunk_id": "d8942b1e26925d01379b774d38493326be8509c60d8fe8d839eae140bbd99a4b",
+    "text": "7\n\nThis publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8259A",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "7",
+    "page_number": 12
+  },
+  {
+    "chunk_id": "4e20279eb693521a595e289d7bda00ebb9a695efc92a1bc911b6fe365b0a7f23",
+    "text": "Device Cybersecurity",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Device Cybersecurity",
+    "page_number": 12
+  },
+  {
+    "chunk_id": "dd8933fc2558a90836e46cf0c42acd08f9156d356f05d9e1d27ea8dfe11e723c",
+    "text": "Capability",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Capability",
+    "page_number": 12
+  },
+  {
+    "chunk_id": "d968d0021f24abfbeb41a253493f56808fbad77a04f9bcdc929d68995dfb8bfe",
+    "text": "Common Elements \nRationale \nIoT Reference Examples\n\nData Protection: The \nIoT device can protect \nthe data it stores and \ntransmits from \nunauthorized access \nand modification.\n\n1. The ability to use demonstrably secure \ncryptographic modules for \nstandardized cryptographic algorithms \n(e.g., encryption with authentication, \ncryptographic hashes, digital signature \nvalidation) to prevent the confidentiality \nand integrity of the device\u2019s stored and \ntransmitted data from being \ncompromised \n2. The ability for authorized entities to \nrender all data on the device \ninaccessible by all entities, whether \npreviously authorized or not (e.g., \nthrough a wipe of internal storage, \ndestruction of cryptographic keys for \nencrypted data) \n3. Configuration settings for use with the \nDevice Configuration capability \nincluding, but not limited to, the ability \nfor authorized entities to configure the \ncryptography use itself, such as \nchoosing a key length",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Common Elements \nRationale \nIoT Reference Examples",
+    "page_number": 12
+  },
+  {
+    "chunk_id": "f380bbc26489779a3d86dd11e64741842e2a6f5d6e9828aa7701cb2c2f425a62",
+    "text": "\u2022 This capability supports access management, data \nprotection, and incident detection. \n\u2022 Authorized entities (e.g, customers, administrators, \nusers) often want the confidentiality of their data \nprotected so unauthorized entities cannot access \ntheir data and misuse it. \n\u2022 Authorized entities often want the integrity of their \ndata protected so it is not inadvertently or \nintentionally changed, which could have a variety of \nadverse consequences (e.g., issuing the wrong \ncommand to a piece of equipment, concealing \nmalicious activity).\n\n\u2022 AGELIGHT: 5, 7, 18, 24, 25, \n34 \n\u2022 BITAG: 7.2, 7.10 \n\u2022 CSDE: 5.1.3, 5.1.4, 5.1.5, \n5.1.8, 5.1.10 \n\u2022 CTIA: 4.8, 5.14, 5.15 \n\u2022 ENISA: GP-OP-04, GP-TM-\n02, GP-TM-04, GP-TM-14, \nGP-TM-24, GP-TM-32, GP-\nTM-34, GP-TM-35, GP-TM-\n39, GP-TM-40 \n\u2022 ETSI: 4.4-1, 4.5-1, 4.5-2, \n4.11-1, 4.11-2, 4.11-3 \n\u2022 GSMA: CLP13_6.4.1.1, 6.11, \n6.12.1.1, 6.19, 7.6.1, \n8.10.1.1, 8.11.1 \n\u2022 IEC: CR 3.1, CR 3.4, CR 4.1, \nCR 4.2, CR 4.3 \n\u2022 IIC: 7.3, 7.4, 7.6, 7.7, 8.8, \n8.11, 8.13, 9.1, 10.4, 11.9 \n\u2022 IoTSF: 2.4.6.5, 2.4.7, 2.4.8.8, \n2.4.8.16, 2.4.9, 2.4.12.2, \n2.4.16.1, 2.4.16.2 \n\u2022 ISOC/OTA: 2, 17, 33 \n\u2022 OCF: 8.2, 11.2.1, 11.3, \n14.2.2 \n\u2022 PSA: C1.1, C1.4, C2.4, D5.2, \nR2.2, R2.3,  R6.1, R7.1\n\nNISTIR 8259A \n \n IOT DEVICE CYBERSECURITY CAPABILITY CORE BASELINE",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Common Elements \nRationale \nIoT Reference Examples",
+    "page_number": 13
+  },
+  {
+    "chunk_id": "3ae9e915ad6b67e79076fe672d9b5dfbee05bc6bf9709e6ae1cf0a637a46b2cb",
+    "text": "8\n\nThis publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8259A",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "8",
+    "page_number": 13
+  },
+  {
+    "chunk_id": "49c253a6208cae08e0f10b7b0c6d23c18d0bf3892ac2e94e3dae2f07792e2f4d",
+    "text": "Device Cybersecurity",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Device Cybersecurity",
+    "page_number": 13
+  },
+  {
+    "chunk_id": "b422d39ea581054336320cbff0ff297b2f287a257350e716161a39c7dad0fc6c",
+    "text": "Capability",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Capability",
+    "page_number": 13
+  },
+  {
+    "chunk_id": "f4db5593071f9a5825564d40149eda9f7353783d070f6025dad2a1dbf62a8934",
+    "text": "Common Elements \nRationale \nIoT Reference Examples\n\nLogical Access to \nInterfaces: The IoT \ndevice can restrict \nlogical access to its \nlocal and network \ninterfaces, and the \nprotocols and services \nused by those \ninterfaces, to \nauthorized entities \nonly.\n\n1. The ability to logically or physically \ndisable any local and network \ninterfaces that are not necessary for \nthe core functionality of the device \n2. The ability to logically restrict access to \neach network interface to only \nauthorized entities (e.g., device \nauthentication, user authentication) \n3. Configuration settings for use with the \nDevice Configuration capability \nincluding, but not limited to, the ability \nto enable, disable, and adjust \nthresholds for any ability the device \nmight have to lock or disable an \naccount or to delay additional \nauthentication attempts after too many \nfailed authentication attempts",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Common Elements \nRationale \nIoT Reference Examples",
+    "page_number": 13
+  },
+  {
+    "chunk_id": "9872568d6df61085b377378ee80a75969f86e9818d5dfb55cd59af34f8180a5e",
+    "text": "\u2022 This capability supports vulnerability management, \naccess management, data protection, and incident \ndetection. \n\u2022 Limiting access to interfaces reduces the attack \nsurface of the device, giving attackers fewer \nopportunities to compromise it. For example, \nunrestricted network access to an IoT device \nenables attackers to directly interact with the device, \nwhich significantly increases the likelihood of the \ndevice being compromised. \n\u2022 Access to interfaces may be partially or completely \nlimited based on the device\u2019s state. For example, if \na device has not been provisioned with proper \nnetwork credentials, all access to/from network \ninterfaces would be limited if using a secure on-\nboarding scheme.\n\n\u2022 AGELIGHT: 10, 13, 14, 15, \n16, 19 \n\u2022 BITAG: 7.1, 7.2, 7.3, 7.6 \n\u2022 CSA: 2, 4, 20 \n\u2022 CSDE: 5.1.2 \n\u2022 CTIA: 3.2, 3.3, 3.4, 4.2, 4.3, \n4.9, 5.2 \n\u2022 ENISA: GP-TM-08, GP-TM-\n09, GP-TM-21, GP-TM-22, \nGP-TM-25, GP-TM-27, GP-\nTM-29, GP-TM-33, GP-TM-\n42, GP-TM-44, GP-TM-45 \n\u2022 ETSI: 4.1-1, 4.4-1, 4.6-1, 4.6-\n2 \n\u2022 GSMA: CLP13_6.9.1, 6.12.1, \n6.20.1, 7.6.1, 8.2.1, 8.4.1 \n\u2022 IEC: CR 1.1, CR 1.2, CR 1.5, \nCR 1.7, CR 1.11, CR 2.1, CR \n2.2, CR 2.13, CR 7.7, EDR \n2.13 \n\u2022 IIC: 7.3, 7.4, 8.3, 8.6, 11.7 \n\u2022 IoTSF: 2.4.4.5, 2.4.4.9, \n2.4.5.5, 2.4.6.3, 2.4.6.4, \n2.4.7, 2.4.8 \n\u2022 ISOC/OTA: 3, 12, 13, 14, 15, \n16 \n\u2022 NEMA: Segmenting \nNetworks, User Management, \nHardening Devices \n\u2022 OCF: 5.1, 5.2, 10, 12 \n\u2022 PSA: C2.3, D2.1, D2.2, D2.3, \nD2.4, D3.1 D3.3, R3.1, R3.2, \nR3.3, R4.2, R4.5 R6.1",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Common Elements \nRationale \nIoT Reference Examples",
+    "page_number": 14
+  },
+  {
+    "chunk_id": "b63082a1802aac8cc47824fd2200a993ab915db61fdd3174dab2bdb51f90f6be",
+    "text": "NISTIR 8259A \n \n IOT DEVICE CYBERSECURITY CAPABILITY CORE BASELINE",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Common Elements \nRationale \nIoT Reference Examples",
+    "page_number": 15
+  },
+  {
+    "chunk_id": "d50a416bb54ccd8ceca768da11ab00e00814c41e2e5c8b361a6a7ab318462741",
+    "text": "9\n\nThis publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8259A",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "9",
+    "page_number": 15
+  },
+  {
+    "chunk_id": "c85c6766d2a570dc74f25ac99342d9ca7bf7466e765ea4b4a66d7e1d91e82ec2",
+    "text": "Device Cybersecurity",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Device Cybersecurity",
+    "page_number": 15
+  },
+  {
+    "chunk_id": "bee5a3132114c3dff7f52346c05b60d0b92be30d134e65ca2fb32d8be90bd027",
+    "text": "Capability",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Capability",
+    "page_number": 15
+  },
+  {
+    "chunk_id": "40aa39e6cd0361db1eb612c14caf168d756aa3cb0d42883ffb95d25458cb3e02",
+    "text": "Common Elements \nRationale \nIoT Reference Examples\n\nSoftware Update: The \nIoT device\u2019s software \ncan be updated by \nauthorized entities only \nusing a secure and \nconfigurable \nmechanism.\n\n1. The ability to update the device\u2019s \nsoftware through remote (e.g., network \ndownload) and/or local means (e.g., \nremovable media) \n2. The ability to verify and authenticate \nany update before installing it \n3. The ability for authorized entities to roll \nback updated software to a previous \nversion  \n4. The ability to restrict updating actions \nto authorized entities only  \n5. The ability to enable or disable \nupdating \n6. Configuration settings for use with the \nDevice Configuration capability \nincluding, but not limited to:\n\na. The ability to configure any remote\n\nupdate mechanisms to be either \nautomatically or manually initiated \nfor update downloads and \ninstallations  \nb. The ability to enable or disable\n\nnotification when an update is \navailable and specify who or what \nis to be notified",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Common Elements \nRationale \nIoT Reference Examples",
+    "page_number": 15
+  },
+  {
+    "chunk_id": "5b3d7710117b62fed0abfaae971f8f043afd63a1a852d40269be846a71b0938c",
+    "text": "\u2022 This capability supports vulnerability management. \n\u2022 Updates can remove vulnerabilities from an IoT \ndevice, which lowers the likelihood of an attacker \ncompromising the device. \n\u2022 Updates can correct IoT device operational \nproblems, which can improve device availability, \nreliability, performance, and other aspects of device \noperation. \n\u2022 Some authorized entities will need automatic update \ncapabilities to meet their cybersecurity goals and \nneeds, while others would prefer or need more \ndirect control over updates and their application. \n\u2022 Some organizations may want a rollback capability \nin the event that an update inadvertently impacts \ncritical applications or integration with other \nsystems, while other organizations may prefer to \neliminate the risk of someone intentionally or \ninadvertently rolling software back to a vulnerable \nversion.\n\n\u2022 AGELIGHT: 1, 2, 4 \n\u2022 BITAG: 7.1 \n\u2022 CSDE: 5.1.9 \n\u2022 CTIA: 3.5, 3.6, 4.5, 4.6, 5.5, \n5.6 \n\u2022 ENISA: GP-TM-05, GP-TM-\n06, GP-TM-18, GP-TM-19 \n\u2022 ETSI: 4.3-1, 4.3-2, 4.3-7 \n\u2022 GSMA: 7.5.1 \n\u2022 IEC: CR 3.4, EDR 3.10 \n\u2022 IIC: 7.3, 11.5.1 \n\u2022 IoTSF: 2.4.5.1, 2.4.5.2, \n2.4.5.3, 2.4.5.4, 2.4.5.8, \n2.4.6.1 \n\u2022 ISOC/OTA: 1, 6, 8 \n\u2022 NEMA: Updating Devices \n\u2022 OCF: 14.5 \n\u2022 PSA: C2.1, C2.2, R1.1, R1.2, \nR6.1\n\nNISTIR 8259A \n \n IOT DEVICE CYBERSECURITY CAPABILITY CORE BASELINE",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Common Elements \nRationale \nIoT Reference Examples",
+    "page_number": 15
+  },
+  {
+    "chunk_id": "9e6378edcf82508ec7e174be4fb2eccbc05939bc9a03471918b9f1adab08db7f",
+    "text": "10\n\nThis publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8259A",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "10",
+    "page_number": 15
+  },
+  {
+    "chunk_id": "804c3df23482b8788b0269e5744eeda472ff1ee0983b11b0a14447f4d4e95eab",
+    "text": "Device Cybersecurity",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Device Cybersecurity",
+    "page_number": 15
+  },
+  {
+    "chunk_id": "a133fad043a0bb7ba1fcc7660ccbbf13420088a1913f1226edb8869717e1610a",
+    "text": "Capability",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Capability",
+    "page_number": 15
+  },
+  {
+    "chunk_id": "5aa75670049d99025aca70c27d5977fb8f5dee6f44e8e2f2a24c903b87d8f81e",
+    "text": "Common Elements \nRationale \nIoT Reference Examples\n\nCybersecurity State \nAwareness: The IoT \ndevice can report on \nits cybersecurity state \nand make that \ninformation accessible \nto authorized entities \nonly.\n\n1. The ability to report the device\u2019s \ncybersecurity state  \n2. The ability to differentiate between \nwhen a device will likely operate as \nexpected from when it may be in a \ndegraded cybersecurity state \n3. The ability to restrict access to the \nstate indicator so only authorized \nentities can view it \n4. The ability to prevent any entities \n(authorized or unauthorized) from \nediting the state except for those \nentities that are responsible for \nmaintaining the device\u2019s state \ninformation \n5. The ability to make the state \ninformation available to a service on \nanother device, such as an event/state \nlog server\n\n\u2022 This capability supports vulnerability management \nand incident detection. \n\u2022 Cybersecurity state awareness helps enable \ninvestigating compromises, identifying misuse, and \ntroubleshooting certain operational problems. \n\u2022 How the device makes other entities aware of a \ncybersecurity state will vary based on context-\nspecific needs and goals, but may include capturing \nand logging information about events in a persistent \nrecord that may have to be stored off the device, \nsending signals to a monitoring system to be \nhandled externally, or alerting via an interface on the \nIoT device itself.",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Common Elements \nRationale \nIoT Reference Examples",
+    "page_number": 15
+  },
+  {
+    "chunk_id": "cb2a5b2adf7133bf445ee6e3f0a8e72a327f84a2a7664c048c87496aebc15468",
+    "text": "\u2022 CSDE: 5.1.7 \n\u2022 CTIA: 4.7, 4.12, 5.7, 5.16 \n\u2022 ENISA: GP-TM-55, GP-TM-\n56 \n\u2022 ETSI: 4.7-2, 4.10-1 \n\u2022 GSMA: CLP13_6.13.1, 7.2.1, \n9.1.1.2 \n\u2022 IEC: CR 2.8, CR 3.9, CR 6.1, \nCR 6.2 \n\u2022 IIC: 7.3, 7.5, 7.7, 8.9, 10.3, \n10.4 \n\u2022 IoTSF: 2.4.7.5 \n\u2022 NEMA: Monitoring Devices \nand Systems \n\u2022 OCF: 5.1, 5.7, 8.6, 12, 13.8, \n13.16 \n\u2022 PSA: C1.3, D1.1, D3.2, D3.4, \nD3.5, D5.1, R4.1, R4.3, R4.4\n\nNISTIR 8259A \n \n  IOT DEVICE CYBERSECURITY CAPABILITY CORE BASELINE",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Common Elements \nRationale \nIoT Reference Examples",
+    "page_number": 16
+  },
+  {
+    "chunk_id": "b2e6f870307a7bf2580b6d03a259684fd177d52f898c6b9d2818ec1cf79241d6",
+    "text": "11\n\nThis publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8259A",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "11",
+    "page_number": 16
+  },
+  {
+    "chunk_id": "9c32783b86ee5280cf988a2ae9eef10cb986361573b7e8f90e8b61b2a145ba4c",
+    "text": "References",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "References",
+    "page_number": 16
+  },
+  {
+    "chunk_id": "8e67b0e1dabc732ef4e4f824476ccee2fc1e4893f5bd001618b72659a14b822a",
+    "text": "[1] \nJoint Task Force Transformation Initiative (2013) Security and Privacy Controls for \nFederal Information Systems and Organizations. (National Institute of Standards and \nTechnology, Gaithersburg, MD), NIST Special Publication (SP) 800-53, Rev. 4, \nIncludes updates as of January 22, 2015. https://doi.org/10.6028/NIST.SP.800-53r4 \n[2] \nFagan M, Megas KN, Scarfone K, Smith M (2020) Foundational Cybersecurity \nActivities for IoT Device Manufacturers. (National Institute of Standards and \nTechnology, Gaithersburg, MD), NIST Interagency or Internal Report (IR) 8259. \nhttps://doi.org/10.6028/NIST.IR.8259  \n[3] \nJoint Task Force Transformation Initiative (2012) Guide for Conducting Risk \nAssessments. (National Institute of Standards and Technology, Gaithersburg, MD), \nNIST Special Publication (SP) 800-30, Rev. 4. https://doi.org/10.6028/NIST.SP.800-\n30r1  \n[4] \nBoeckl K, Fagan M, Fisher W, Lefkovitz N, Megas K, Nadeau E, Piccarreta B, Gabel \nO\u2019Rourke D, Scarfone K (2019) Considerations for Managing Internet of Things (IoT) \nCybersecurity and Privacy Risks. (National Institute of Standards and Technology, \nGaithersburg, MD), NIST Interagency or Internal Report (IR) 8228. \nhttps://doi.org/10.6028/NIST.IR.8228 \n[5] \nAgeLight Digital Trust Advisory Group (2019) IoT Safety Architecture & Risk Toolkit \n(IoTSA) v3.1. (AgeLight Advisory & Research Group, Bellevue, WA). \nhttp://agelight.com/iot.html  \n[6] \nBroadband Internet Technical Advisory Group (BITAG) (2016) Internet of Things (IoT) \nSecurity and Privacy Recommendations. (Broadband Internet Technical Advisory \nGroup [BITAG], Denver, CO). https://www.bitag.org/documents/BITAG_Report_-\n_Internet_of_Things_(IoT)_Security_and_Privacy_Recommendations.pdf  \n[7] \nCloud Security Alliance (CSA) IoT Working Group (2015) Identity and Access \nManagement for the Internet of Things. (Cloud Security Alliance [CSA]). \nhttps://cloudsecurityalliance.org/download/identity-and-access-management-for-the-iot/ \n[8] \nCouncil to Secure the Digital Economy (CSDE) (2019) The C2 Consensus on IoT \nDevice Security Baseline Capabilities. (Council to Secure the Digital Economy \n[CSDE]). https://securingdigitaleconomy.org/wp-content/uploads/2019/09/CSDE_IoT-\nC2-Consensus-Report_FINAL.pdf  \n[9] \nCTIA (2018) CTIA Cybersecurity Certification Test Plan for IoT Devices, Version \n1.0.1. (CTIA, Washington, DC). https://www.ctia.org/about-ctia/test-plans/  \n[10] \nEuropean Union Agency for Network and Information Security (ENISA) (2017) \nBaseline Security Recommendations for IoT in the context of Critical Information \nInfrastructures. (European Union Agency for Network and Information Security \n[ENISA], Athens, Greece). https://www.enisa.europa.eu/publications/baseline-security-\nrecommendations-for-iot",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "References",
+    "page_number": 17
+  },
+  {
+    "chunk_id": "54bc408f2b215a4f2a7ae0ef2ba9e4fd8ac20077e7ef3a553b9ccf15b49e1a3a",
+    "text": "NISTIR 8259A \n \n  IOT DEVICE CYBERSECURITY CAPABILITY CORE BASELINE",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "References",
+    "page_number": 18
+  },
+  {
+    "chunk_id": "07f8e9ed7aba422a4bb95ac5086c91e9afbda67d157a1ae489ee8ad553038d4f",
+    "text": "12\n\nThis publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8259A",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "12",
+    "page_number": 18
+  },
+  {
+    "chunk_id": "bce505f77cd42b08052c5c77c753b9f98aaebce53c893cf0072433399a6fa216",
+    "text": "[11] \nEuropean Telecommunications Standards Institute (ETSI) (2019) Cyber Security for \nConsumer Internet of Things. ETSI Technical Specification 103 645 V1.1.1.2 (European \nTelecommunications Standards Institute [ETSI], Sophia Antipolis Cedex, France). \nhttps://www.etsi.org/deliver/etsi_ts/103600_103699/103645/01.01.01_60/ts_103645v01\n0101p.pdf  \n[12] \nGroupe Sp\u00e9ciale Mobile Association (GSMA) (2017) GSMA IoT Security Assessment. \n(Groupe Sp\u00e9ciale Mobile Association [GSMA], London, UK). \nhttps://www.gsma.com/iot/iot-security-assessment/  \n[13] \nInternational Electrotechnical Commission (IEC) (2019) IEC 62443-4-2, Edition 1.0, \nSecurity for industrial automation and control systems, Part 4-2: Technical security \nrequirements for IACS components. (International Electrotechnical Commission [IEC], \nGeneva, Switzerland). https://webstore.iec.ch/publication/34421  \n[14] \nIndustrial Internet Consortium (IIC) (2016) Industrial Internet of Things Volume G4: \nSecurity Framework. (Industrial Internet Consortium [IIC], Needham, MA). \nhttps://www.iiconsortium.org/IISF.htm  \n[15] \nIoT Security Foundation (IoTSF) (2018) IoT Security Compliance Framework, Release \n2. (IoT Security Foundation [IoTSF], Livingston, Scotland). \nhttps://www.iotsecurityfoundation.org/best-practice-guidelines/  \n[16] \nOnline Trust Alliance (OTA) (2017) IoT Security & Privacy Trust Framework v2.5. \n(Online Trust Alliance [OTA], an Internet Society initiative). \nhttps://www.internetsociety.org/resources/doc/2018/iot-trust-framework-v2-5/  \n[17] \nNational Electrical Manufacturers Association (NEMA) (2018) Cyber Hygiene Best \nPractices. (National Electrical Manufacturers Association [NEMA], Rosslyn, VA). \nhttps://www.nema.org/Standards/Pages/Cyber-Hygiene-Best-Practices.aspx  \n[18] \nOpen Connectivity Foundation (OCF) (2020) OCF Security Specification Version 2.1.2. \n(Open Connectivity Foundation [OCF], Beaverton, Oregon). \nhttps://openconnectivity.org/specs/OCF_Security_Specification_v2.1.2.pdf  \n[19] \nPlatform Security Architecture (PSA) Joint Stakeholder Agreement (JSA) Members \n(2020) PSA Certified\u2122 Level 1 Questionnaire, Version 2.0 Beta. (Arm Limited, \nCambridge, United Kingdom). https://www.psacertified.org/security-certification/psa-\ncertified-level-1  \n[20] \nJohnson A, Dempsey K, Ross R, Gupta S, Bailey D (2011) Guide for Security-Focused \nConfiguration Management of Information Systems. (National Institute of Standards \nand Technology, Gaithersburg, MD), NIST Special Publication (SP) 800-128. \nhttps://doi.org/10.6028/NIST.SP.800-128 \n[21] \nBarker E, Chen L, Roginsky A, Vassilev A, Davis R (2019) Recommendation for Pair-\nWise Key-Establishment Schemes Using Discrete Logarithm Cryptography. (National \nInstitute of Standards and Technology, Gaithersburg, MD), NIST Special Publication \n(SP) 800-56A, Rev. 3. https://doi.org/10.6028/NIST.SP.800-56Ar3",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "12",
+    "page_number": 18
+  },
+  {
+    "chunk_id": "edf41f2992749d968b7aa0667b9f7d9e81aeae3f73e2e5d7ab2aa29caac6b3b1",
+    "text": "2  \nETSI is currently developing ETSI European Standard 303 645, which is similar to but not identical to the 103 645 \nTechnical Specification cited here. The 303 645 version is not used in this publication because it is still a draft.\n\nNISTIR 8259A \n \n  IOT DEVICE CYBERSECURITY CAPABILITY CORE BASELINE",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "12",
+    "page_number": 18
+  },
+  {
+    "chunk_id": "7d471bcbf50f1cbdf39f9ee2ed5a1f013f8b0ab89c11848797e012ef58818879",
+    "text": "13\n\nThis publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8259A\n\n[22] \nCommittee on National Security Systems (2015) Committee on National Security \nSystems (CNSS) Glossary. (National Security Agency, Ft. Meade, MD), CNSS \nInstruction (CNSSI) No. 4009.  \n[23] \nSouppaya M, Scarfone K (2013) Guide to Enterprise Patch Management Technologies. \n(National Institute of Standards and Technology, Gaithersburg, MD), NIST Special \nPublication (SP) 800-40, Rev. 3. https://doi.org/10.6028/NIST.SP.800-40r3\n\nNISTIR 8259A \n \n  IOT DEVICE CYBERSECURITY CAPABILITY CORE BASELINE",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "13",
+    "page_number": 18
+  },
+  {
+    "chunk_id": "fed1ff2f97000cf10e96a0d077a9c766e5a313bc362dd1e808c1858d27d72fde",
+    "text": "14\n\nThis publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8259A",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "14",
+    "page_number": 18
+  },
+  {
+    "chunk_id": "dee7e4696780a46d3c2f8b60e4d251b5f4412dfcb026596100ee22face334c77",
+    "text": "Appendix A\u2014Understanding the IoT Device Cybersecurity Capability Core Baseline in",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Appendix A\u2014Understanding the IoT Device Cybersecurity Capability Core Baseline in",
+    "page_number": 18
+  },
+  {
+    "chunk_id": "8c525fe7026249641c1d68ec855c9953f075e9c2bbc83f2fa69b436aa548b498",
+    "text": "the Context of Customer Needs and Goals\n\nOrganizations should keep in mind that the capabilities presented in Table 1 are meant as a \nstarting point to help provide the means stakeholders may need to meet common cybersecurity \nneeds and goals. Risk mitigation areas that customers may pursue is one way to consider \ncybersecurity needs and goals that may need to be supported by an IoT device through device \ncybersecurity capabilities. For example, Figure 1 shows the risk mitigation areas and challenges \ndefined in NISTIR 8228, Considerations for Managing Internet of Things (IoT) Cybersecurity \nand Privacy Risks [3] that would be supported, in part, by the capabilities defined in Table 1. \nNISTIR 8228 cites additional challenges that the core device cybersecurity capabilities do not \naddress because those challenges generally apply to relatively few IoT devices compared to the \napplicability of the core capabilities.",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "the Context of Customer Needs and Goals",
+    "page_number": 18
+  },
+  {
+    "chunk_id": "111d0e4e533b2b38a994427593b6d227fd5ca6050c71fdc686f5f238de787997",
+    "text": "Figure 1: NISTIR 8228 Risk Mitigation Areas Supported by Each Core Device Cybersecurity Capability\n\nFigure 1 demonstrates that a broad and common set of risk mitigation areas was considered for \nthe core baseline, which should be understood by manufacturers and other readers using the core \nbaseline as a starting point. Though IoT devices providing the basic device cybersecurity \ncapabilities described in the core baseline may help many customers more easily meet their \ncybersecurity needs and goals while using IoT devices, in reality, customers will likely target \ndifferent and more specific risk mitigation areas. Therefore, the six capabilities and common \nelements in Table 1 should not be considered the universal and complete definition of necessary \ndevice cybersecurity capabilities for all customers.",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Figure 1: NISTIR 8228 Risk Mitigation Areas Supported by Each Core Device Cybersecurity Capability",
+    "page_number": 18
+  },
+  {
+    "chunk_id": "53764471b5dc070339ba982ee9bf10a03f2df9985e5f55f127adae2030a45cbc",
+    "text": "As described in NISTIR 8259, manufacturers should consider their IoT device\u2019s expected \ncustomers and expected use cases to begin to identify the precise device cybersecurity \ncapabilities needed in context. Manufacturers can further define the device cybersecurity \ncapabilities with new or additional elements based on their knowledge and research of their \ncustomers. This may mean incorporating device cybersecurity capabilities to support risk \nmitigations in other areas than what is discussed here (e.g., penetration or other forms of \ncomponent testing/validation, specific network architectures to reduce risk) or incorporating \nmore unique elements for an IoT device that support less broadly applicable, but in the context of\n\nNISTIR 8259A \n \n  IOT DEVICE CYBERSECURITY CAPABILITY CORE BASELINE",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Figure 1: NISTIR 8228 Risk Mitigation Areas Supported by Each Core Device Cybersecurity Capability",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "9570e3d3e8a4d2bbdaf8e06a435cd6f83e41acdb42d0953dcc321ec98a39a115",
+    "text": "15\n\nThis publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8259A\n\na customer or use case vitally important risk mitigations and other cybersecurity needs and goals. \nManufacturers should also keep in mind other considerations in addition to risk mitigations that \nmay impact device cybersecurity and their elements, such as usability considerations based on \nthe customer and use case,  roles and responsibility related to cybersecurity and how customers \nmay expect them to be distributed, and societal cybersecurity needs and goals (e.g., protection \nagainst the development of botnets) that may not be directly reflected in the customer\u2019s needs \nand goals, to name a few.\n\nNISTIR 8259A \n \n  IOT DEVICE CYBERSECURITY CAPABILITY CORE BASELINE",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "15",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "398c032bede9cf3723c7a167b68544435531e39a1862f29f062d1124ea2f8d87",
+    "text": "16\n\nThis publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8259A",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "16",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "bd752236f59d795122402976bee860bea29a326bdd7c4c1310929878768ef444",
+    "text": "Appendix B\u2014Glossary",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Appendix B\u2014Glossary",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "cdcd2af9a7cbb7aa21a6f6df76004f93792dc275ded774ef5146e82dd1975340",
+    "text": "Selected terms used in this document are defined below.",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Selected terms used in this document are defined below.",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "a684d9f19c17edb847e7c44f048d1eb69bee17f4295df78b063eac8a83e2a1b0",
+    "text": "Authorized \nEntity\n\nAn entity that has implicitly or explicitly been granted approval to interact \nwith a particular IoT device. The device cybersecurity capabilities in the core \nbaseline do not specify how authorization is implemented for distinguishing \nauthorized and unauthorized entities, but can include identity management \nand authentication to establish the authorization of entities. It is left to the \norganization to decide how each device will implement authorization. Also, \nan entity authorized to interact with an IoT device in one way might not be \nauthorized to interact with the same device in another way.\n\nConfiguration \n\u201cThe possible conditions, parameters, and specifications with which an \ninformation system or system component can be described or arranged [20].\u201d \nThe Device Configuration capability does not define which configuration \nsettings should exist, simply that a mechanism to manage configuration \nsettings exists.",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Authorized \nEntity",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "0c1d71c01e291a2002a928e36452c60bed4890f8930d5ca82b523dbce9dc5fe3",
+    "text": "Core Baseline \nA set of technical device capabilities needed to support common \ncybersecurity controls that protect the customer\u2019s devices and device data, \nsystems, and ecosystems.",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Core Baseline \nA set of technical device capabilities needed to support common \ncybersecurity controls that protect the customer\u2019s devices and device data, \nsystems, and ecosystems.",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "9b7f196ca9a69b7435aa90f89e496e8df1e907414d5f8952aa956c9cd52c9a0e",
+    "text": "Cybersecurity \nState\n\nThe condition of a device\u2019s cybersecurity expressed in a way that is \nmeaningful and useful to authorized entities. For example, a very simple \ndevice might express its state in terms of whether or not it is operating as \nexpected, while a complex device might perform cybersecurity logging, check \nits integrity at boot and report the results, and examine and report additional \naspects of its cybersecurity state.",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Cybersecurity \nState",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "f7a7331bb0467425864ac0f98ebdbec61c2dbbb6a5771a7775a531b353e85080",
+    "text": "Degraded \nCybersecurity \nState\n\nA cybersecurity state that indicates the device\u2019s cybersecurity has been \nsignificantly negatively impacted, such as the device being unable to operate \nas expected, or the integrity of the device\u2019s software being violated.",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Degraded \nCybersecurity \nState",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "5db46b56d17b65ef122e86a5b99101492f8271dbf279de29f5626db4581974f1",
+    "text": "Device \nCybersecurity \nCapability \nCore Baseline",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Device \nCybersecurity \nCapability \nCore Baseline",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "b1b37fce278282f53747ace18dc6788778256f297b958685f7a10f84700b4111",
+    "text": "See core baseline.",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "See core baseline.",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "5423107536a0e232bd70d66b2da78db247366c110b18912998d8d3a60dffcf5e",
+    "text": "Device \nIdentifier\n\nA context-unique value\u2014a value unique within a specific context\u2014that is \nassociated with a device (for example, a string consisting of a network \naddress). (This definition is derived from [21].)",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Device \nIdentifier",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "1d29f14ede83adc9799818687e1d393a40e26efedc7fb7c9821c83d07c9c0ebc",
+    "text": "Entity \nA person, device, service, network, domain, manufacturer, or other party who \nmight interact with an IoT device.\n\nInterface \nA boundary between the IoT device and entities where interactions take place. \n(This definition is derived from [22].) There are two types of interfaces: \nnetwork and local.\n\nNISTIR 8259A \n \n  IOT DEVICE CYBERSECURITY CAPABILITY CORE BASELINE",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Entity \nA person, device, service, network, domain, manufacturer, or other party who \nmight interact with an IoT device.",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "61e452e745e6bb91feb894dd27d7cb411651df70ed91094579720592e7bc062b",
+    "text": "17\n\nThis publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8259A",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "17",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "ffeabc37a47842d737d4f02fa1541c49aa6d2842bedce273d4ec82a65b81609c",
+    "text": "Local Interface An interface that can only be accessed physically, such as a port (e.g., USB,",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Local Interface An interface that can only be accessed physically, such as a port (e.g., USB,",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "110784529b482d4d8594f376ae67129c43a20ac882529d25c79e44688a1dac4e",
+    "text": "audio, video/display, serial, parallel, Thunderbolt) or a removable media drive \n(e.g., CD/DVD drive, memory card slot).",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "audio, video/display, serial, parallel, Thunderbolt) or a removable media drive \n(e.g., CD/DVD drive, memory card slot).",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "0d8437741e806e324f46f3f8993f1f0e07da797547c955d9889146b989a76652",
+    "text": "Logical \nIdentifier",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Logical \nIdentifier",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "23707da87089d05a157b9ab79007d5c337b6041b4803eb0969363276ff71729e",
+    "text": "A device identifier that is expressed logically by the device\u2019s software. An \nexample is a media access control (MAC) address assigned to a network \ninterface.",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "A device identifier that is expressed logically by the device\u2019s software. An \nexample is a media access control (MAC) address assigned to a network \ninterface.",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "a83e8932e628007590eb02c1e9eb4539299a803b71f6867d6ed548cca00df243",
+    "text": "Network \nInterface",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Network \nInterface",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "a2eadf71a54610024adebde9441a6fe75314c6b3f7493c83f003ab8701edcf2e",
+    "text": "An interface that connects the IoT device to a network.",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "An interface that connects the IoT device to a network.",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "9da99353e7e79e969e3d8ca8a3849177520b2a3cefb208a7c19c3714595e6e0d",
+    "text": "Physical \nIdentifier",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Physical \nIdentifier",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "6fca3a8c5ae5bfbe6f2409777f9e2c3e941a5e2a92baa32981154b24a6962527",
+    "text": "A device identifier that is expressed physically by the device (e.g., printed \nonto a device\u2019s housing, displayed on a device\u2019s screen).",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "A device identifier that is expressed physically by the device (e.g., printed \nonto a device\u2019s housing, displayed on a device\u2019s screen).",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "579aa17cd2f2c92355fe446510e454dae42e8e7e0de70aec1886307c1bc02b27",
+    "text": "Software \n\u201cComputer programs and associated data that may be dynamically written or \nmodified during the device\u2019s execution\u201d (e.g., application code, libraries) [1].",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Software \n\u201cComputer programs and associated data that may be dynamically written or \nmodified during the device\u2019s execution\u201d (e.g., application code, libraries) [1].",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "cdbbdbb2e5285cde821f25785f33002761b7a7f202c051954678882a999db8fb",
+    "text": "Update \nA patch, upgrade, or other modification to code that corrects security and/or \nfunctionality problems in software. (This definition is derived from [23].)",
+    "metadata": {
+      "category": "iot",
+      "source": "NIST",
+      "document_name": "NIST IR 8259A",
+      "document_type": "pdf",
+      "document_hash": "b3b54b00b5ac3f3582a3e3fd17d3f25b18f848a51f113000b6489adbcce374b4",
+      "extra": {}
+    },
+    "section": "Update \nA patch, upgrade, or other modification to code that corrects security and/or \nfunctionality problems in software. (This definition is derived from [23].)",
+    "page_number": 20
+  }
+]

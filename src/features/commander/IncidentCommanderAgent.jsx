@@ -110,7 +110,9 @@ export default function IncidentCommanderAgent({
         <InvestigateView intel={intel} />
       ) : null}
 
-      <KnowledgeSection intel={intel} />
+      {mode === COMMANDER_MODES.INVESTIGATE ? (
+        <KnowledgeSection intel={intel} />
+      ) : null}
 
       {mode === COMMANDER_MODES.RESPOND && intel?.plan ? (
         <RespondView intel={intel} />
@@ -218,16 +220,6 @@ function RespondView({ intel }) {
       </section>
 
       <GraphImpactBlock graph={intel.sections?.graphImpact} path={path} />
-
-      {intel.sections?.financialImpact ? (
-        <section className="tn-surface px-5 py-5">
-          <h2 className="tn-section-title">Financial impact</h2>
-          <StatusBadge tone="muted">Simulated exposure</StatusBadge>
-          <p className="mt-3 text-sm leading-relaxed">
-            {intel.sections.financialImpact.narrative}
-          </p>
-        </section>
-      ) : null}
     </>
   )
 }

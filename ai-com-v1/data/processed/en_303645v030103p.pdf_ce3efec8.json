@@ -1,0 +1,1976 @@
+[
+  {
+    "chunk_id": "5ccb220e2ee5b4ee53220f19df635eb3585ac79328abafb31c2aa868d7d442bf",
+    "text": "ETSI EN 303 645 V3.1.3 (2024-09)",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "ETSI EN 303 645 V3.1.3 (2024-09)",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "c466236bf2ade974b0fc823989ba6747ae1ea83e0142b1c5255c76bf7baceacb",
+    "text": "CYBER; \nCyber Security for Consumer Internet of Things:",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "CYBER; \nCyber Security for Consumer Internet of Things:",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "facc400cbc80dac04e0b1b6b468191934606f41f64d4cc34510676234e9a3c94",
+    "text": "Baseline Requirements",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Baseline Requirements",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "46d2728a247271c9c92d90dacef15e3d8f0be5213bef21c33e94665c164c81a6",
+    "text": "EUROPEAN STANDARD\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n2\n\nReference \nREN/CYBER-00127\n\nKeywords \ncybersecurity, IoT, privacy",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "EUROPEAN STANDARD",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "e3fef1cd5250608002f584d527bdccab4927dd2a6b205b075aeafe1c1487bec1",
+    "text": "ETSI\n\n650 Route des Lucioles \nF-06921 Sophia Antipolis Cedex - FRANCE\n\nTel.: +33 4 92 94 42 00   Fax: +33 4 93 65 47 16\n\nSiret N\u00b0 348 623 562 00017 - APE 7112B \nAssociation \u00e0 but non lucratif enregistr\u00e9e \u00e0 la \nSous-Pr\u00e9fecture de Grasse (06) N\u00b0 w061004871",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "ETSI",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "099a472eccd71badca84806d9f6192f02e39d82f2239d0fcedc354fc311eb5c9",
+    "text": "Important notice\n\nThe present document can be downloaded from the\n\nETSI Search & Browse Standards application.\n\nThe present document may be made available in electronic versions and/or in print. The content of any electronic and/or \nprint versions of the present document shall not be modified without the prior written authorization of ETSI. In case of any\n\nexisting or perceived difference in contents between such versions and/or in print, the prevailing version of an ETSI\n\ndeliverable is the one made publicly available in PDF format on ETSI deliver.\n\nUsers should be aware that the present document may be revised or have its status changed,\n\nthis information is available in the Milestones listing.\n\nIf you find errors in the present document, please send your comments to\n\nthe relevant service listed under Committee Support Staff.\n\nIf you find a security vulnerability in the present document, please report it through our\n\nCoordinated Vulnerability Disclosure (CVD) program.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Important notice",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "f23c1bad41f30e684a2fe0b64f4b2f9a07abb485e2f9e82826e891e2656c2cea",
+    "text": "Notice of disclaimer & limitation of liability\n\nThe information provided in the present deliverable is directed solely to professionals who have the appropriate degree of\n\nexperience to understand and interpret its content in accordance with generally accepted engineering or\n\nother professional standard and applicable regulations.  \nNo recommendation as to products and services or vendors is made or should be implied. \nIn no event shall ETSI be held liable for loss of profits or any other incidental or consequential damages.\n\nAny software contained in this deliverable is provided \"AS IS\" with no warranties, express or implied, including but not \nlimited to, the warranties of merchantability, fitness for a particular purpose and non-infringement of intellectual property \nrights and ETSI shall not be held liable in any event for any damages whatsoever (including, without limitation, damages \nfor loss of profits, business interruption, loss of information, or any other pecuniary loss) arising out of or related to the use\n\nof or inability to use the software.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Notice of disclaimer & limitation of liability",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "349990134302088d7376f2a6bd07b3bda7e45f7474b35cb55c2bed493370916a",
+    "text": "Copyright Notification\n\nNo part may be reproduced or utilized in any form or by any means, electronic or mechanical, including photocopying and\n\nmicrofilm except as authorized by written permission of ETSI. \nThe content of the PDF version shall not be modified without the written authorization of ETSI.\n\nThe copyright and the foregoing restriction extend to reproduction in all media.\n\n\u00a9 ETSI 2024. \nAll rights reserved.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n3",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Copyright Notification",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "274f5ef986180d502831ceaa6303754c3b444f9e23664e4b3baaa0f0ff08f601",
+    "text": "Contents\n\n1 \nScope ........................................................................................................................................................ 6\n\n2 \nReferences ................................................................................................................................................ 6 \n2.1 \nNormative references ......................................................................................................................................... 6 \n2.2 \nInformative references ........................................................................................................................................ 7\n\n3 \nDefinition of terms, symbols and abbreviations ....................................................................................... 8 \n3.1 \nTerms .................................................................................................................................................................. 8 \n3.2 \nSymbols ............................................................................................................................................................ 11 \n3.3 \nAbbreviations ................................................................................................................................................... 11\n\n4 \nImplementation of the standard .............................................................................................................. 12",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Contents",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "c23ca66f1499cbd0d7f5a770670b5d3e1eaca0f9bf1b7d9d934a0456140775eb",
+    "text": "5 \nCyber security provisions for consumer IoT .......................................................................................... 12 \n5.0 \nReporting implementation ................................................................................................................................ 12 \n5.1 \nNo universal default passwords ........................................................................................................................ 13 \n5.2 \nImplement a means to manage reports of vulnerabilities ................................................................................. 14 \n5.3 \nKeep software updated ..................................................................................................................................... 16 \n5.4 \nSecurely store sensitive security parameters .................................................................................................... 20 \n5.5 \nCommunicate securely ..................................................................................................................................... 21 \n5.6 \nMinimize exposed attack surfaces .................................................................................................................... 22 \n5.7 \nEnsure software integrity .................................................................................................................................. 24 \n5.8 \nEnsure that personal data is secure ................................................................................................................... 24 \n5.9 \nMake systems resilient to outages .................................................................................................................... 25 \n5.10 \nExamine system telemetry data ........................................................................................................................ 25 \n5.11 \nMake it easy for users to delete user data ......................................................................................................... 25 \n5.12 \nMake installation and maintenance of devices easy ......................................................................................... 26 \n5.13 \nValidate input data............................................................................................................................................ 27",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Contents",
+    "page_number": 3
+  },
+  {
+    "chunk_id": "ce5cdd01da8ef30ed171b4cd7283a36479ae2da931f24c15b8ce00ecda8bc657",
+    "text": "6 \nData protection provisions for consumer IoT ......................................................................................... 28\n\nAnnex A (informative): \nBasic concepts and models ............................................................................ 30\n\nA.1 \nArchitecture ............................................................................................................................................ 30\n\nA.2 \nDevice states ........................................................................................................................................... 32\n\nA.3 \nInterfaces ................................................................................................................................................ 34\n\nAnnex B (informative): \nImplementation conformance statement pro forma ................................... 36\n\nAnnex C (informative): \nChange history ............................................................................................... 40\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n4",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Contents",
+    "page_number": 3
+  },
+  {
+    "chunk_id": "93ae8058e9ccc1cf30168abb7a6cc8fd17f3fda74a7c6371e0fcac9aa4d88e82",
+    "text": "Intellectual Property Rights\n\nEssential patents\n\nIPRs essential or potentially essential to normative deliverables may have been declared to ETSI. The declarations \npertaining to these essential IPRs, if any, are publicly available for ETSI members and non-members, and can be \nfound in ETSI SR 000 314: \"Intellectual Property Rights (IPRs); Essential, or potentially Essential, IPRs notified to \nETSI in respect of ETSI standards\", which is available from the ETSI Secretariat. Latest updates are available on the \nETSI Web server (https://ipr.etsi.org/).\n\nPursuant to the ETSI Directives including the ETSI IPR Policy, no investigation regarding the essentiality of IPRs, \nincluding IPR searches, has been carried out by ETSI. No guarantee can be given as to the existence of other IPRs not \nreferenced in ETSI SR 000 314 (or the updates on the ETSI Web server) which are, or may be, or may become, \nessential to the present document.\n\nTrademarks\n\nThe present document may include trademarks and/or tradenames which are asserted and/or registered by their owners. \nETSI claims no ownership of these except for any which are indicated as being the property of ETSI, and conveys no \nright to use or reproduce any trademark and/or tradename. Mention of those trademarks in the present document does \nnot constitute an endorsement by ETSI of products, services or organizations associated with those trademarks.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Intellectual Property Rights",
+    "page_number": 3
+  },
+  {
+    "chunk_id": "36ef9aa177d858b7dde9f783d9942292daf039517f8a93e6b7fef82e458b302c",
+    "text": "DECT\u2122, PLUGTESTS\u2122, UMTS\u2122 and the ETSI logo are trademarks of ETSI registered for the benefit of its \nMembers. 3GPP\u2122 and LTE\u2122 are trademarks of ETSI registered for the benefit of its Members and of the 3GPP \nOrganizational Partners. oneM2M\u2122 logo is a trademark of ETSI registered for the benefit of its Members and of the \noneM2M Partners. GSM\u00ae and the GSM logo are trademarks registered and owned by the GSM Association.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Intellectual Property Rights",
+    "page_number": 4
+  },
+  {
+    "chunk_id": "caddb7f27d5ca30dcc2c740b253b7c955349885d0d46b81eece9ec33ed8dc92b",
+    "text": "BLUETOOTH\u00ae is a trademark registered and owned by Bluetooth SIG, Inc.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "BLUETOOTH\u00ae is a trademark registered and owned by Bluetooth SIG, Inc.",
+    "page_number": 4
+  },
+  {
+    "chunk_id": "15dbf771a825a3495b9caf40bd93224b66095c7d735627c5151a84fa94968e98",
+    "text": "Foreword\n\nThis European Standard (EN) has been produced by ETSI Technical Committee Cyber Security (CYBER).",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Foreword",
+    "page_number": 4
+  },
+  {
+    "chunk_id": "8ab967710939906aa3bd7da9f2d77e784ed09ac04b6a270d89599e75e1f3240f",
+    "text": "National transposition dates\n\nDate of adoption of this EN: \n11 September 2024\n\nDate of latest announcement of this EN (doa): \n31 December 2024\n\nDate of latest publication of new National Standard \nor endorsement of this EN (dop/e):\n\n30 June 2025\n\nDate of withdrawal of any conflicting National Standard (dow): \n30 June 2025",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "National transposition dates",
+    "page_number": 4
+  },
+  {
+    "chunk_id": "9a131cf9d8d660531edf1c88835650dd45b8942b17a9fa12e484d6d062c4f0c8",
+    "text": "Modal verbs terminology\n\nIn the present document \"shall\", \"shall not\", \"should\", \"should not\", \"may\", \"need not\", \"will\", \"will not\", \"can\" and \n\"cannot\" are to be interpreted as described in clause 3.2 of the ETSI Drafting Rules (Verbal forms for the expression of \nprovisions).\n\n\"must\" and \"must not\" are NOT allowed in ETSI deliverables except when used in direct citation.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n5",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Modal verbs terminology",
+    "page_number": 4
+  },
+  {
+    "chunk_id": "24668e647d31d2171a9d5c866613cb85e31d81b4ea0acb7fc3ccc5fe96b9dbf6",
+    "text": "Introduction\n\nAs more devices in the home connect to the Internet, the cyber security and data protection of the Internet of Things \n(IoT) becomes a growing concern. People entrust their personal data to an increasing number of online devices and \nservices. Products and appliances that have traditionally been offline are now connected and need to be designed to \nwithstand cyber threats.\n\nThe present document brings together widely considered good practices in security for Internet-connected consumer \ndevices in a set of high-level outcome-focused provisions. The objective of the present document is to support all \nparties involved in the development and manufacturing of consumer IoT with guidance on securing their products.\n\nThe provisions are primarily outcome-focused, rather than prescriptive, giving organizations the flexibility to innovate \nand implement security and data protection solutions appropriate for their products.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Introduction",
+    "page_number": 4
+  },
+  {
+    "chunk_id": "6a81a014da80b52946c412a868c670ac4b08df4cc086be762f840ab1979d040e",
+    "text": "The present document is not intended to solve all security, data protection and privacy challenges associated with \nconsumer IoT. It also does not focus on protecting against attacks that are prolonged/sophisticated or that require \nsustained physical access to the device. Rather, the focus is on the technical controls and organizational policies that \nmatter most in addressing the most significant and widespread security shortcomings. Overall, a baseline level of \nsecurity and data protection is considered; this is intended to protect against elementary attacks on fundamental design \nweaknesses (such as the use of easily guessable passwords).\n\nThe present document provides a set of baseline provisions applicable to all consumer IoT devices. It is intended to be \ncomplemented by other standards defining more specific provisions and fully testable and/or verifiable requirements for \nspecific devices which, together with the present document, will facilitate the development of assurance schemes.\n\nA clause in the present document in some cases begins with general information about the context of the following \nprovisions. A provision is followed by explanatory text describing, where appropriate, the intent of the provision and \nhow the provision might be implemented. Further information on implementation examples is given in ETSI \nTR 103 621 [i.31].",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Introduction",
+    "page_number": 5
+  },
+  {
+    "chunk_id": "f5ea71d7d458827d7d70b1b860dff3c5d4c34fe8921556273b5d8cb8564d4faf",
+    "text": "Many consumer IoT devices and their associated services process and store personal data, the present document can \nhelp in ensuring that these are compliant with the General Data Protection Regulation (GDPR) [i.7]. Security by design \nis an important principle that is endorsed by the present document.\n\nETSI TS 103 701 [i.19] provides guidance on how to assess and assure IoT products against provisions within the \npresent document.\n\nThe provisions in the present document have been developed following a review of published standards, \nrecommendations and guidance on IoT security and privacy, including: ETSI TR 103 305-3 [i.1], ETSI \nTR 103 309 [i.2], ENISA Baseline Security Recommendations [i.8], UK Department for Digital, Culture, Media and \nSport (DCMS) Secure by Design Report [i.9], IoT Security Foundation Compliance Framework [i.10], GSMA IoT \nSecurity Guidelines and Assessment [i.11], ETSI TR 103 533 [i.12], DIN SPEC 27072 [i.20] and OWASP Internet of \nThings [i.23].\n\nNOTE: \nMappings of the landscape of IoT security standards, recommendations and guidance are available in \nENISA Baseline Security Recommendations for IoT - Interactive Tool [i.15] and in Copper Horse \nMapping Security & Privacy in the Internet of Things [i.14].\n\nAs consumer IoT products become increasingly secure, it is envisioned that future revisions of the present document \nwill mandate provisions that are currently recommendations in the present document.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n6",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Introduction",
+    "page_number": 5
+  },
+  {
+    "chunk_id": "ae52acd56610a0753d440618a7830d23f8928f24153777e3165e1b3bdd676ebc",
+    "text": "1 \nScope\n\nThe present document specifies high-level security and data protection provisions for consumer IoT devices that are \nconnected to network infrastructure (such as the Internet or home network) and their interactions with associated \nservices. A non-exhaustive list of examples of consumer IoT devices includes:\n\n\u2022 \nconnected children's toys and baby monitors;\n\n\u2022 \nconnected smoke detectors, door locks and window sensors;\n\n\u2022 \nIoT gateways, base stations and hubs to which multiple devices connect;\n\n\u2022 \nsmart cameras, smart speakers and smart Televisions together with their remote controls;\n\n\u2022 \nwearable health trackers;\n\n\u2022 \nconnected home automation and alarm systems, especially their gateways and hubs;\n\n\u2022 \nconnected appliances, such as washing machines and fridges; and\n\n\u2022 \nsmart home assistants.\n\nMoreover, the present document addresses security considerations specific to constraints in device resources.\n\nEXAMPLE: \nTypical device resources that might constrain the security capabilities are energy supply, \ncommunication bandwidth, processing power or (non-)volatile memory capacity.\n\nThe present document provides basic guidance through examples and explanatory text for organizations involved in the \ndevelopment and manufacturing of consumer IoT on how to implement those provisions. Table B.1 provides a schema \nfor the reader to give information about the implementation of the provisions.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "1 \nScope",
+    "page_number": 5
+  },
+  {
+    "chunk_id": "6dde80685338a495c67596db48f52ed19d0a6f3dedb9964392a932143647a226",
+    "text": "Devices that are not consumer IoT devices, for example those that are primarily intended to be used in manufacturing, \nhealthcare or other industrial applications, are not in scope of the present document.\n\nThe present document has been developed primarily to help protect consumers, however, other users of consumer IoT \nequally benefit from the implementation of the provisions set out here.\n\nAnnex A (informative) of the present document has been included to provide context to clauses 4, 5 and 6 (normative). \nAnnex A contains examples of device and reference architectures and an example model of device states including data \nstorage for each state.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "1 \nScope",
+    "page_number": 6
+  },
+  {
+    "chunk_id": "8aabfee051f9a19153c27d4b04e1ec95a1a7b5210cecdb4dad5a0038571e4725",
+    "text": "2 \nReferences",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "2 \nReferences",
+    "page_number": 6
+  },
+  {
+    "chunk_id": "e829beab0236cdec70d0f7afac47b578dd96512c1323b1519622ef4f57d9ee1d",
+    "text": "2.1 \nNormative references\n\nReferences are either specific (identified by date of publication and/or edition number or version number) or \nnon-specific. For specific references, only the cited version applies. For non-specific references, the latest version of the \nreferenced document (including any amendments) applies.\n\nReferenced documents which are not found to be publicly available in the expected location might be found at \nhttps://docbox.etsi.org/Reference/.\n\nNOTE: \nWhile any hyperlinks included in this clause were valid at the time of publication, ETSI cannot guarantee \ntheir long term validity.\n\nThe following referenced documents are necessary for the application of the present document.\n\nNot applicable.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n7",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "2.1 \nNormative references",
+    "page_number": 6
+  },
+  {
+    "chunk_id": "4848baa50936ac9b72054b6758fe8e16f34136732778ffd0a6442cd555763e09",
+    "text": "2.2 \nInformative references\n\nReferences are either specific (identified by date of publication and/or edition number or version number) or \nnon-specific. For specific references, only the cited version applies. For non-specific references, the latest version of the \nreferenced document (including any amendments) applies.\n\nNOTE: \nWhile any hyperlinks included in this clause were valid at the time of publication, ETSI cannot guarantee \ntheir long term validity.\n\nThe following referenced documents are not necessary for the application of the present document but they assist the \nuser with regard to a particular subject area.\n\n[i.1] \nETSI TR 103 305-3: \"Cyber Security (CYBER); Critical Security Controls for Effective Cyber \nDefence; Part 3: Internet of Things Sector\".\n\n[i.2] \nETSI TR 103 309: \"CYBER; Secure by Default - platform security technology\".\n\n[i.3] \nNIST Special Publication 800-63B: \"Digital Identity Guidelines - Authentication and Lifecycle \nManagement\".\n\n[i.4] \nISO/IEC 29147: \"Information technology - Security techniques - Vulnerability Disclosure\".\n\n[i.5] \nOASIS csaf-v2.0: \"Common Security Advisory Framework\", version 2.0,edited by Langley Rock, \nStefan Hagen, and Thomas Schmidt, 18 November 2022 and the errata 01.\n\n[i.6] \nETSI TR 103 331: \"Cyber Security (CYBER); Structured threat information sharing\".",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "2.2 \nInformative references",
+    "page_number": 6
+  },
+  {
+    "chunk_id": "a99cc14b0357392887f27458ef1153c3e3a4a284f9ecf13782f8b4616e16896e",
+    "text": "[i.7] \nRegulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 on the \nprotection of natural persons with regard to the processing of personal data and on the free \nmovement of such data, and repealing Directive 95/46/EC (General Data Protection Regulation).\n\n[i.8] \nENISA: \"Baseline Security Recommendations for IoT in the context of Critical Information \nInfrastructures\", November 2017, ISBN: 978-92-9204-236-3, doi: 10.2824/03228.\n\n[i.9] \nUK Department for Digital, Culture, Media and Sport: \"Secure by Design: Improving the cyber \nsecurity of consumer Internet of Things Report\", March 2018.\n\n[i.10] \nIoT Security Foundation: \"IoT Security Assurance Framework\", Release 3.0, November 2021.\n\n[i.11] \nGSMA: \"GSMA IoT Security Guidelines and Assessment\".\n\n[i.12] \nETSI TR 103 533: \"SmartM2M; Security; Standards Landscape and best practices\".\n\n[i.13] \nCommission Notice 2016/C 272/01: \"The \"Blue Guide\" on the implementation of EU products \nrules 2016\" (Text with EEA relevance).\n\n[i.14] \nCopper Horse: \"Mapping Security & Privacy in the Internet of Things\".\n\n[i.15] \nENISA: \"Baseline Security Recommendations for IoT - Interactive Tool\".\n\n[i.16] \nIoT Security Foundation: \"Understanding the Contemporary Use of Vulnerability Disclosure in \nConsumer Internet of Things Product Companies\".\n\n[i.17] \nF-Secure: \"IoT threats: Explosion of 'smart' devices filling up homes leads to increasing risks\".\n\n[i.18] \nW3C\u00ae: \"Web of Things at W3C\".",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "2.2 \nInformative references",
+    "page_number": 7
+  },
+  {
+    "chunk_id": "efaca0ce8a5d6d844b0aa685ea9602bf98ceb146c5617fec06d9c065ba0567e0",
+    "text": "[i.19] \nETSI TS 103 701: \"CYBER; Cyber Security for Consumer Internet of Things: Conformance \nAssessment of Baseline Requirements\".\n\n[i.20] \nDIN SPEC 27072: \"Information Technology - IoT capable devices - Minimum requirements for \nInformation security\".\n\n[i.21] \nGSMA\u2122: \"Coordinated Vulnerability Disclosure (CVD) Programme\".\n\n[i.22] \nIoT Security Foundation: \"Vulnerability Disclosure - Best Practice Guidelines\".\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n8\n\n[i.23] \nOWASP Internet of Things (IoT) Top 10 2018.\n\n[i.24] \nIEEE 802.15.4-2015\u2122/Cor 1-2018: \"IEEE Standard for Low-Rate Wireless Networks, \nCorrigendum 1\".\n\n[i.25] \nETSI TS 102 221: \"Smart Cards; UICC-Terminal interface; Physical and logical characteristics\".\n\n[i.26] \nGSMA\u2122: \"SGP.22 Technical Specification v2.2.1\".\n\n[i.27] \nISO/IEC 27005:2022: \"Information technology - Security techniques - Information security risk \nmanagement\".\n\n[i.28] \nMicrosoft\u00ae Corporation: \"The STRIDE Threat Model\".\n\n[i.29] \nETSI TR 121 905: \"Digital cellular telecommunications system (Phase 2+) (GSM); Universal \nMobile Telecommunications System (UMTS); LTE; 5G; Vocabulary for 3GPP Specifications \n(3GPP TR 21.905)\".\n\n[i.30] \nETSI TR 103 838: \"Cyber Security; Guide to Coordinated Vulnerability Disclosure\".\n\n[i.31] \nETSI TR 103 621: \" Guide to Cyber Security for Consumer Internet of Things\".\n\n[i.32] \nFIRST: \"Guidelines and Practices for Multi-Party Vulnerability Coordination and Disclosure\".",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "2.2 \nInformative references",
+    "page_number": 7
+  },
+  {
+    "chunk_id": "0d22c82be0a0c2618e6bf82ac8e2ea743a4333b36e93ca2c64c82e2d0d12df48",
+    "text": "[i.33] \nISO/IEC TR 5895: \"Cybersecurity - Multi-party coordinated vulnerability disclosure and \nhandling\".\n\n[i.34] \nISO/IEC 16500-6:1999: \"Information technology Generic digital audio-visual systems\".",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "2.2 \nInformative references",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "2d244c0a164f2394aa433e385c948f9ec45936bc8439e11e50cce758c829ede3",
+    "text": "3 \nDefinition of terms, symbols and abbreviations",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "3 \nDefinition of terms, symbols and abbreviations",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "0a22615c9d8a64d29161cdd255a2810a092f7908f9093fee7c61ca79e5075927",
+    "text": "3.1 \nTerms\n\nFor the purposes of the present document, the following terms apply:\n\nadministrator: user who has the highest-privilege level possible for a user of the device, which can mean they are able \nto change any configuration related to the intended functionality\n\nassociated services: digital services that, together with the device, are part of the overall consumer IoT product and that \nare typically required to provide the product's intended functionality\n\nEXAMPLE 1: \nAssociated services can include mobile applications, cloud computing/storage and third party \nApplication Programming Interfaces (APIs).\n\nEXAMPLE 2: \nA device transmits telemetry data to a third-party service chosen by the device manufacturer. This \nservice is an associated service.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "3.1 \nTerms",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "50b03917f1e0088716625f1684db41efbcb9badda780b8ad5470f92fabb6d3af",
+    "text": "authentication mechanism: method used to prove the authenticity of an entity\n\nNOTE: \nAn \"entity\" can be either a user or machine.\n\nEXAMPLE: \nAn authentication mechanism can be the requesting of a password, scanning a QR code, or use of a \nbiometric fingerprint scanner.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "authentication mechanism: method used to prove the authenticity of an entity",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "0d241c4cf22ead1d2b57ddaa85c480b2b071976442d737d14678b99867c8b56a",
+    "text": "authentication value: individual value of an attribute used by an authentication mechanism\n\nEXAMPLE: \nWhen the authentication mechanism is to request a password, the authentication value can be a \ncharacter string. When the authentication mechanism is a biometric fingerprint recognition, the \nauthentication value can be the index fingerprint of the left hand.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n9\n\nbest practice: measures that have been shown to provide appropriate security for the corresponding use case\n\nNOTE 1: Appropriate security for the corresponding use case also considers properties of the technology, operating\n\nenvironment and risk.\n\nNOTE 2: Multiple organizations, such as SDOs and public authorities, maintain guides and catalogues of measures\n\nthat can be used to identify best practice.\n\nEXAMPLE: \nApplying a security configuration for a specific functionality that takes into account common \nattacks and is endorsed by multiple organizations such as SDOs and public authorities.\n\nbest practice cryptography: cryptography that is suitable for the corresponding use case and has no indications of a \nfeasible attack with current readily available techniques\n\nNOTE 1: This does not refer only to the cryptographic primitives used, but also implementation, key generation and\n\nhandling of keys.\n\nNOTE 2: Multiple organizations, such as SDOs and public authorities, maintain guides and catalogues of\n\ncryptographic methods that can be used.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "authentication value: individual value of an attribute used by an authentication mechanism",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "75600cc5a3cdedbaa067da9e02b8ba0b8e4ed7c422f0ac8a6bd8cd2b9eaff085",
+    "text": "EXAMPLE: \nThe device manufacturer uses a communication protocol and cryptographic library provided with \nthe IoT platform and where that library and protocol have been assessed against feasible attacks, \nsuch as replay.\n\nconsumer: natural person who is acting for purposes that are outside her/his trade, business, craft or profession\n\nNOTE: \nOrganizations, including businesses of any size, use consumer IoT. For example, Smart Televisions are \nfrequently deployed in meeting rooms, and home security kits can protect the premises of small \nbusinesses.\n\nconsumer IoT device: network-connected (and network-connectable) device that has relationships to associated \nservices and are used by the consumer typically in the home or as electronic wearables\n\nNOTE 1: Consumer IoT devices are commonly also used in business contexts. These devices remain classified as\n\nconsumer IoT devices.\n\nNOTE 2: Consumer IoT devices are often available for the consumer to purchase in retail environments. Consumer\n\nIoT devices can also be commissioned and/or installed professionally.\n\ncritical security parameter: security-related confidential information whose disclosure or modification can \ncompromise the security of the device\n\nEXAMPLE: \nSecret cryptographic keys, authentication values such as passwords, PINs, private components of \ncertificates.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "authentication value: individual value of an attribute used by an authentication mechanism",
+    "page_number": 9
+  },
+  {
+    "chunk_id": "c403c11f898529593d73337be32b0ab7221480e550a754bdda17b59a4b1c39ca",
+    "text": "debug interface: physical interface used by the manufacturer to communicate with the device during development or to \nperform triage of issues with the device and that is not used as part of the consumer-facing functionality\n\nEXAMPLE: \nTest points, UART, SWD, JTAG.\n\ndefined support period: minimum length of time, expressed as a period or by an end-date, for which a manufacturer \nwill provide security updates\n\nNOTE: \nThis definition focuses on security aspects and not other aspects related to product support such as \nwarranty.\n\ndevice manufacturer: entity that creates an assembled final consumer IoT product, which is likely to contain the \nproducts and components of many other suppliers",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "authentication value: individual value of an attribute used by an authentication mechanism",
+    "page_number": 9
+  },
+  {
+    "chunk_id": "8e88b922fed76a92a07b1ad50125e17d512c18fc039b3a1b78a08d0744857d19",
+    "text": "factory default: state of the device after factory reset or after final production/assembly\n\nNOTE: \nThis includes the physical device and software (including firmware) that is present on it after assembly.\n\ninitialization: process that activates the network connectivity of the device for operation and optionally sets \nauthentication features for a user or for network access",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "factory default: state of the device after factory reset or after final production/assembly",
+    "page_number": 9
+  },
+  {
+    "chunk_id": "7a34ab19b93246a41c79feafda4a04d0798a15694d3c3e7618136ef545454c98",
+    "text": "initialized state: state of the device after initialization\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n10",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "initialized state: state of the device after initialization",
+    "page_number": 9
+  },
+  {
+    "chunk_id": "796854f49b38aa79afbd2d526eed3581e66cdb64fc60726d31468092fbb5a143",
+    "text": "IoT product: consumer IoT device and its associated services\n\nisolable: able to be removed from the network it is connected to, where any functionality loss caused is related only to \nthat connectivity and not to its main function; alternatively, able to be placed in a self-contained environment with other \ndevices if and only if the integrity of devices within that environment can be ensured\n\nEXAMPLE: \nA Smart Fridge has a touchscreen-based interface that is network-connected. This interface can be \nremoved without stopping the fridge from keeping the contents chilled.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "IoT product: consumer IoT device and its associated services",
+    "page_number": 9
+  },
+  {
+    "chunk_id": "6add1e7f98bbd40ad006b064bf35f307e42ee19861dc89f34e9a834a1bfb2d6a",
+    "text": "logical interface: virtual interface used to communicate with the device at a logical layer\n\nNOTE 1: Typically, the semantic, syntactic, and symbolic attributes of information flows for logical interfaces are\n\nspecified. The are alternative definitions for logical interfaces e.g. in ISO/IEC 16500-6:1999 [i.34] that \nutilize this property.\n\nNOTE 2: A logical interface may utilize a network interface to exchange information with remote endpoints.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "logical interface: virtual interface used to communicate with the device at a logical layer",
+    "page_number": 9
+  },
+  {
+    "chunk_id": "c387020d5f253a3a1f48cdfa2012964247e21cd2603b28244cae3e395c73f18f",
+    "text": "manufacturer: relevant economic operator in the supply chain (including the device manufacturer)\n\nNOTE: \nThis definition acknowledges the variety of actors involved in the consumer IoT ecosystem and the \ncomplex ways by which they can share responsibilities. Beyond the device manufacturer, such entities \ncan also be, for example and depending on a specific case at hand: importers, distributors, integrators, \ncomponent and platform providers, software providers, IT and telecommunications service providers, \nmanaged service providers and providers of associated services.\n\nnetwork interface: physical interface that can be used to access the functionality of consumer IoT via a network",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "manufacturer: relevant economic operator in the supply chain (including the device manufacturer)",
+    "page_number": 9
+  },
+  {
+    "chunk_id": "bf69732bc2edb017f4c6656278bfcf3b1e33288c6e04ce17524b6e1e28f0d060",
+    "text": "owner: user who owns or who purchased the device",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "owner: user who owns or who purchased the device",
+    "page_number": 9
+  },
+  {
+    "chunk_id": "2b1e88681fc2c5486afe21d3bc5a8e90574b6ee52bace3f019763a5bff0a197b",
+    "text": "personal data: any information relating to an identified or identifiable natural person\n\nNOTE: \nThis term is used to align with well-known terminology but has no legal meaning within the present \ndocument.\n\nphysical interface: physical port or air interface (such as radio, audio or optical) used to communicate with the device \nat the physical layer\n\nEXAMPLE: \nRadios, ethernet ports, serial interfaces such as USB, and those used for debugging.\n\npublic security parameter: security-related public information whose modification can compromise the security of the \ndevice\n\nEXAMPLE 1: \nA public key to verify the authenticity/integrity of software updates.\n\nEXAMPLE 2: \nPublic components of certificates.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "personal data: any information relating to an identified or identifiable natural person",
+    "page_number": 9
+  },
+  {
+    "chunk_id": "32ff0240e5108d2b2271bef8b98d7d81d1d5b40211d8f7c88b8542e3dcb1a3f2",
+    "text": "remotely accessible: intended to be accessible from outside the local network",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "remotely accessible: intended to be accessible from outside the local network",
+    "page_number": 9
+  },
+  {
+    "chunk_id": "328480b696dcdcf15b54d2a64a2d0bab90cf4fc3498ba31c845acd494160d99c",
+    "text": "security module: set of hardware, software, and/or firmware that implements security functions\n\nEXAMPLE: \nA device contains a hardware root of trust, a cryptographic software library that operates within a \ntrusted execution environment, and software within the operating system that enforces security \nsuch as user separation and the update mechanism. These all make up the security module.\n\nsecurity update: software update that addresses security vulnerabilities either discovered by or reported to the \nmanufacturer\n\nNOTE: \nSoftware updates can be purely security updates if the severity of the vulnerability requires a higher \npriority fix.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "security module: set of hardware, software, and/or firmware that implements security functions",
+    "page_number": 9
+  },
+  {
+    "chunk_id": "9c54932691c7c777a5aa9a486af038716173c12dc199cb9409571fec46423976",
+    "text": "sensitive security parameters: critical security parameters and public security parameters",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "sensitive security parameters: critical security parameters and public security parameters",
+    "page_number": 9
+  },
+  {
+    "chunk_id": "cf5c480adfec9eaafebc63909e5cf835238800697c214015a1023394a01292c9",
+    "text": "software service: software component of a device that is used to support functionality\n\nEXAMPLE: \nA runtime for the programming language used within the device software or a daemon that \nexposes an API used by the device software, e.g. a cryptographic module's API.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n11\n\ntelemetry data: data from a device that provide information related to the usage of that device which could help the \nmanufacturer to identify security-related issues\n\nEXAMPLE: \nA consumer IoT device reports software malfunctions to the manufacturer enabling them to \nidentify and remedy the cause.\n\nNOTE 1: Telemetry data cover usage data, performance data, but also sensor data which facilitate the monitoring of\n\nthe device's physical and environmental conditions. Therefore, telemetry data do not only help to identify \nsecurity-related issues, but also help to improve the device's performance and user experience.\n\nNOTE 2: Depending on the content of the telemetry data, telemetry data such as usage data may be considered as\n\npersonal data.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "software service: software component of a device that is used to support functionality",
+    "page_number": 9
+  },
+  {
+    "chunk_id": "74256524d09df8aa8b24a4ddf2638c7679369935711b7f28327f7b5380f8a42b",
+    "text": "unique per device: unique for each individual device of a given product class or type",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "unique per device: unique for each individual device of a given product class or type",
+    "page_number": 9
+  },
+  {
+    "chunk_id": "cf649157110e4011b2def7eaacc4d30d4a1da2fef19d6c57ebdd364ee885a0aa",
+    "text": "user: natural person or organization",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "user: natural person or organization",
+    "page_number": 9
+  },
+  {
+    "chunk_id": "84335e9fe03487281918fadad60966a217105c30ac80ee1764b82c6d26a5ab71",
+    "text": "user interface: user facing interface of the consumer IoT device\n\nEXAMPLE: \nButtons, screens, speaker, audio/video recorder as part of the consumer IoT device or user facing \nlogical interfaces such as frontends of services provided by the consumer IoT device.\n\nvulnerability management process: course of action in which an organization addresses and remediates a disclosed \nvulnerability",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "user interface: user facing interface of the consumer IoT device",
+    "page_number": 9
+  },
+  {
+    "chunk_id": "b48b291b9556e52954a4d30b3af7fe33aaaf24cdfedac4aa17b03b00be244fdb",
+    "text": "3.2 \nSymbols\n\nVoid.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "3.2 \nSymbols",
+    "page_number": 9
+  },
+  {
+    "chunk_id": "9036e0d52f4d58c4f1d9511a6d42637cf1546255e4b3e93de25dd628e8a24fff",
+    "text": "3.3 \nAbbreviations\n\nFor the purposes of the present document, the following abbreviations apply:\n\nAPI \nApplication Programming Interface \nARP  \nAddress Resolution Protocol \nASLR \nAddress Space Layout Randomization \nCVD \nCoordinated Vulnerability Disclosure \nCSAF  \nCommon Security Advisory Framework  \nDDoS \nDistributed Denial of Service \nDHCP  \nDynamic Host Configuration Protocol \nDLNA  \nDigital Living Network Alliance \nDNS \nDomain Name System \nDSC \nDedicated Security Components \nENISA \nEuropean Union Agency for Network and Information Security \nEU \nEuropean Union \nGDPR \nGeneral Data Protection Regulation \nGSM \nGlobal System for Mobile communications \nGSMA \nGSM Association \nHTTP  \nHyperText Transfer Protocol \nICMP  \nInternet Control Message Protocol \nIEEE \nInstitute of Electrical and Electronics Engineers \nIoT \nInternet of Things \nIP \nInternet Protocol \nISO \nInternational Organization for Standardization \nJTAG \nJoint Test Action Group \nLAN \nLocal Area Network \nLoRaWAN \nLong Range Wide Area Network \nLTE  \nLong Term Evolution \nMAC \nMedia Access Control \nMMU  \nMemory Management Unit \nMPCVD \nMulti-Party Coordinated Vulnerability Disclosure \nMPU  \nMemory Protection Unit\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n12",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "3.3 \nAbbreviations",
+    "page_number": 9
+  },
+  {
+    "chunk_id": "2997ff5fc2581caf6d596064dcb142e1349f979c7d280af07da87745891d2c8e",
+    "text": "NFC  \nNear Field Communication \nNIST \nNational Institute of Standards and Technology \nNTP  \nNetwork Time Protocol \nNX \nNo eXecute \nOTP \nOne-Time Password \nOWASP \nOpen Web Application Security Project \nQR \nQuick Response \nRES  \nRESet \nSBOM \nSoftware Bill of Materials \nSDO \nStandards Development Organization \nSE \nSecure Elements \nSQL  \nStructured Query Language \nSSID \nService Set IDentifier \nSTRIDE \nSpoofing, Tampering, Repudiation, Information disclosure, Denial of service, Elevation of \nprivilege \nSWD \nSerial Wire Debug \nTEE \nTrusted Execution Environment \nTS \nTechnical Specification \nUART \nUniversal Asynchronous Receiver-Transmitter \nUI \nUser Interface \nUICC  \nUniversal Integrated Circuit Card \nUK \nUnited Kingdom \nUSB \nUniversal Serial Bus \nWAN \nWide Area Network \nWPS  \nWi-Fi Protected Setup",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "3.3 \nAbbreviations",
+    "page_number": 12
+  },
+  {
+    "chunk_id": "f6e3fa257aa35cf4ca987dd310366fcfeba483a1fe97b47ac42f8c5c28a43e34",
+    "text": "4 \nImplementation of the standard\n\nThe implementation of provisions in the present document is informed by risk assessment and threat modelling (such as \nISO/IEC 27005:2022 [i.27] and STRIDE Threat Model [i.28]) and data protection and privacy impact assessments; that \nare performed by the device manufacturer and/or other relevant entities and are out of scope of the present document. \nFor certain use cases and following risk assessment, it can be appropriate to apply additional provisions as well as those \ncontained within the present document. In all cases, security, data protection and privacy by design and by default \nshould be used to inform the product development process, following risk assessment, but that is out of scope of the \npresent document.\n\nThe present document sets a security and data protection baseline; however, due to the broad landscape of consumer \nIoT it is recognized that the applicability of provisions is dependent on each device. The present document provides a \ndegree of flexibility through the use of non-mandatory \"should\" provisions (recommendations).\n\nThe present document defines the security requirements for the device, it does not define a testing or certification \nmethod to assess the requirements against. Some methods of fulfilling the requirements in the present document can \nimpact testing and certification making it very difficult, or even impossible, to demonstrate compliance in certain test \nregimes.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "4 \nImplementation of the standard",
+    "page_number": 12
+  },
+  {
+    "chunk_id": "71b23c0e1b80aba8d2c370b78037c8aa6f4df36c0b161c187b7b7e56211d1b04",
+    "text": "Testing and certification involving third party assessment is likely to require documentation, including architectural \ndesign documentation, security requirements capture and analysis, threat models and environmental assumptions, policy \ndocumentation for lifecycle management (including supply chain management), assessment certificates for any \ncomponents that are used to implement functionality required in the present document. These documentation \nrequirements will be defined by the testing regime and are out of scope of the present document. A way to assess \nconformance to the present document is specified in ETSI TS 103 701 [i.19].",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "4 \nImplementation of the standard",
+    "page_number": 12
+  },
+  {
+    "chunk_id": "febbf96b699c3d9dc252ece75b492f56c3ec7d62195f48a425b8da9816710b89",
+    "text": "5 \nCyber security provisions for consumer IoT",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5 \nCyber security provisions for consumer IoT",
+    "page_number": 12
+  },
+  {
+    "chunk_id": "accc9086d3834fc200828dc08b58d55a084df5e769d568d8d71db92efa1ac2d9",
+    "text": "5.0 \nReporting implementation\n\nProvision 5.0-1 A justification shall be recorded for each recommendation in the present document that is considered to \nbe not applicable for or not fulfilled by the consumer IoT device.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n13\n\nIt is recommended that the manufacturer conducts a threat modelling to identify, analyse and mitigate threats to the \ndevice.\n\nTable B.1 provides a schema to record these justifications in a structured manner. This is to allow other stakeholders \n(e.g. assurance assessors, members of the supply chain, security researchers or retailers) to determine whether \nprovisions have been applied correctly and appropriately.\n\nEXAMPLE 1: \nThe manufacturer publishes a completed version of table B.1 alongside the product description on \ntheir website.\n\nEXAMPLE 2: \nThe manufacturer completes table B.1 for internal record keeping. Sometime later, an external \nassurance organization assesses a product against the present document and requests information \nrelating to the product's security design. The manufacturer can easily provide this information as it \nis contained within table B.1.\n\nCases where a provision is not applicable or not fulfilled by the consumer IoT device can include:\n\n\u2022 \nwhen the use case of a device determines constraints in resources that prevent the implementation of certain \nsecurity measures or certain security measures are not appropriate to the identified risk (security or privacy);",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.0 \nReporting implementation",
+    "page_number": 12
+  },
+  {
+    "chunk_id": "a410359c474971860821e4a0a46d4ae775fe23b75d9bef8be95c6aaf6aa2e7ab",
+    "text": "\u2022 \nwhere the functionality described in the provision is not included (e.g. a device that only presents data without \nrequiring authentication);\n\n\u2022 \nwhen the use case for the device requires compliance with additional industry or regulatory requirements that \npreclude compliance with the provision.\n\nEXAMPLE 3: \nThe consumer IoT device and associated service processes payments and is therefore required to \ncomply with the payment card industry specifications and for transaction processing and industry \nand regulatory requirements for fraud monitoring. Fraud monitoring can conflict with \nprovision 5.11-2 that recommends allowing users to be able to delete all personal data on the \nassociated service, potentially including the records necessary to detect fraudulent activity.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.0 \nReporting implementation",
+    "page_number": 13
+  },
+  {
+    "chunk_id": "34d3d375f54b3c3db695d2d4f1382ad8f9a79d8d7265f5e74be4e6a7fdb14a5c",
+    "text": "5.1 \nNo universal default passwords\n\nProvision 5.1-1 Where passwords are used to authenticate users against the device or for machine-to-machine \nauthentication, and in any state other than the factory default, all consumer IoT device passwords shall be unique per \ndevice or defined by the user.\n\nNOTE 1: There are many mechanisms used for performing authentication, and passwords are not the only\n\nmechanism for authenticating a user to a device. However if they are used, following best practice on \npasswords is encouraged according to NIST Special Publication 800-63B [i.3].\n\nNOTE 2: Standard pairing codes are not considered as passwords used for machine-to-machine authentication.\n\nMany consumer IoT devices are sold with universal default usernames and passwords (such as \"admin, admin\") for user \ninterfaces through to network protocols. Continued usage of universal default values has been the source of many \nsecurity issues in IoT [i.17] and the practice needs to be discontinued. The above provision can be achieved by the use \nof pre-installed passwords that are unique per device and/or by requiring the user to choose a password that follows best \npractice as part of initialization, or by some other method that does not use passwords.\n\nEXAMPLE 1: \nDuring initialization a consumer IoT device generates certificates that are used to authenticate a \nuser to the consumer IoT device via an associated service like a mobile application.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.1 \nNo universal default passwords",
+    "page_number": 13
+  },
+  {
+    "chunk_id": "874f20177a900e15b9f7270ac6de9abf0084265b01a651d85db66e4a589effd4",
+    "text": "To increase security, multi-factor authentication, such as use of a password plus OTP procedure, can be used to better \nprotect the consumer IoT device or an associated service. Consumer IoT device security can further be strengthened by \nhaving unique and immutable identities.\n\nProvision 5.1-2 Where pre-installed unique per device passwords are used to authenticate users against the device or \nfor machine-to-machine authentication, these shall be generated with a mechanism that reduces the risk of automated \nattacks against a class or type of consumer IoT device.\n\nEXAMPLE 2: \nPre-installed passwords are sufficiently randomized.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n14\n\nAs a counter-example, passwords with incremental counters (such as \"password1\", \"password2\" and so on) are easily \nguessable. Further, using a password that is related in an obvious way to public information (sent over the air or within \na network), such as MAC address or Wi-Fi\u00ae SSID, can allow for password retrieval using automated means.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.1 \nNo universal default passwords",
+    "page_number": 13
+  },
+  {
+    "chunk_id": "79bdfa78aa809815694077471916392eb562721cc21c9d630b93724fdf3973e7",
+    "text": "Provision 5.1-2A Passwords should not be used for machine-to-machine authentication.\n\nUsing human-memorable passwords for machine-to-machine authentication is generally not appropriate, but pre-shared \nkeys can be appropriate when their use follows best practice.\n\nProvision 5.1-3 Authentication mechanisms used to authenticate users against the consumer IoT device or used for \nmachine-to-machine authentication shall use best practice cryptography, appropriate to the properties of the technology, \noperating environment, risk and usage.\n\nProvision 5.1-4 Where a user can authenticate against a consumer IoT device, the consumer IoT device shall provide to \nthe user or an administrator a simple mechanism to change the authentication value used.\n\nEXAMPLE 3: \nFor biometric authentication values the device manufacturer allows this change in authentication \nvalue through retraining against a new biometric.\n\nEXAMPLE 4: \nA parent in a household creates an account on the consumer IoT device for their child and selects \nand manages the PIN or password that the child uses. The parent is an administrator on the \nconsumer IoT device and can restrict the child from changing the PIN or password.\n\nEXAMPLE 5: \nTo make it simple for the user to change a password, the manufacturer designs the password \nchange process in a way that it requires a minimal number of steps. The manufacturer explains the \nprocess in a user manual and in a video tutorial.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.1-2A Passwords should not be used for machine-to-machine authentication.",
+    "page_number": 13
+  },
+  {
+    "chunk_id": "3cc9d4c75a2558c51e9e5c810f00b077c8390d067cd1282f9ab9216cd4d379dd",
+    "text": "An authentication mechanism used for authenticating users, whether it be a fingerprint, password or other token, needs \nto have its value changeable. This is easier when this mechanism is part of the normal usage flow of the consumer IoT \ndevice.\n\nProvision 5.1-5 The consumer IoT device shall have a mechanism available which makes successful brute-force attacks \non authentication mechanisms via network interfaces impracticable unless the device has a resource constraint \ndetermined by the use case that prevents the implementation.\n\nEXAMPLE 6: \nA consumer IoT device has a limitation on the number of authentication attempts within a certain \ntime interval. It also uses increasing time intervals between attempts.\n\nEXAMPLE 7: \nThe client application is able to lock an account or to delay additional authentication attempts after \na limited number of failed authentication attempts.\n\nThis provision addresses attacks that perform \"credential stuffing\" or exhaust an entire key-space. It is important that \nthese types of attacks are detected by the consumer IoT device and defended against, whilst guarding against a related \nthreat of \"resource exhaustion\" and denial of service attacks.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.1-2A Passwords should not be used for machine-to-machine authentication.",
+    "page_number": 14
+  },
+  {
+    "chunk_id": "010028e4c64071c978aa7f52931895d3d58d8a7e14967f6bda23701ed1641845",
+    "text": "5.2 \nImplement a means to manage reports of vulnerabilities\n\nManufacturers that provide IoT products have a duty of care to consumers and third parties who can be harmed by their \nfailure to have a CVD programme in place. Additionally, companies that share this information through industry bodies \ncan assist others who can be suffering from the same problem.\n\nDisclosures can comprise different approaches depending on the circumstances:\n\n\u2022 \nVulnerabilities related to single products or services: the problem is expected to be reported directly to the \naffected stakeholder (usually the device manufacturer, IoT service provider or mobile application developer). \nThe source of these reports can be security researchers or industry peers.\n\n\u2022 \nSystemic vulnerabilities: a stakeholder, such as a device manufacturer, can discover a problem that is \npotentially systemic. Whilst fixing it in the device manufacturer's own product is crucial, there is significant \nbenefit to industry and consumers from sharing this information. Similarly, security researchers can also seek \nto report such systemic vulnerabilities. For systemic vulnerabilities, a relevant competent industry body can \ncoordinate a wider scale response.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n15\n\nNOTE 1: The Common Security Advisory Framework (CSAF) [i.5] can also be useful to exchange information on\n\nsecurity vulnerabilities.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.2 \nImplement a means to manage reports of vulnerabilities",
+    "page_number": 14
+  },
+  {
+    "chunk_id": "501612314f80c474562919893fce0a2eada2b142623051630d8cdfd196011485",
+    "text": "Cyber security threat information sharing can support organizations in developing and producing secure products \naccording to ETSI TR 103 331 [i.6].\n\nProvision 5.2-1 The manufacturer shall make a vulnerability disclosure policy publicly available. This policy shall \ninclude, at a minimum:\n\n\u2022 \ncontact information for the reporting of issues; and\n\n\u2022 \ntimelines for initial acknowledgement of receipt of a vulnerability report; and\n\n\u2022 \ntimelines for when the person who reported the issue will receive status updates until the resolution of the \nreported issues.\n\nNOTE 2: Different notations are possible to describe time values in the timetable (e.g. \"7 days\", \"quickly\", etc.).\n\nETSI TR 103 838 [i.30] contains an example for a vulnerability disclosure policy including timelines for \ninitial acknowledgement of receipt and a proposal for information on timelines for status updates until the \nresolution of the reported issues. The time needed to find a solution can vary depending e.g. on the \ncriticality of the disclosed vulnerability.\n\nA vulnerability disclosure policy clearly specifies the process through which security researchers and others are able to \nreport issues. Such policy can be updated as necessary to further ensure transparency and clarity in the dealings of the \nmanufacturer with security researchers, and vice versa.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.2 \nImplement a means to manage reports of vulnerabilities",
+    "page_number": 15
+  },
+  {
+    "chunk_id": "c39070a7eff68d344e4e468c6ce71f7ca2352fefa22bc92888f0d56d86be585f",
+    "text": "Coordinated Vulnerability Disclosure (CVD) is a set of processes for dealing with disclosures about potential security \nvulnerabilities and to support the remediation of these vulnerabilities. CVD is standardized by the International \nOrganization for Standardization (ISO) in the ISO/IEC 29147 [i.4] on vulnerability disclosure. Moreover, a guide to \nCVD is given in ETSI TR 103 838 [i.30]. CVD has been proven to be successful in some large software companies \naround the world. Multi-Party Coordinated Vulnerability Disclosure (MPCVD) refers to the application of CVD in a \nmulti-stakeholder scenario, for example when products from multiple manufacturers are affected by the same \nvulnerability. Manufacturers can refer to the guidelines from ISO/IEC TR 5895 [i.33] and FIRST [i.32] to adapt their \nCVD processes accordingly.\n\nIn the IoT industry, CVD is currently not well-established [i.16] as some companies are reticent about dealing with \nsecurity researchers. Here, CVD provides companies a framework to manage this process. This gives security \nresearchers an avenue to inform companies of security issues, puts companies ahead of the threat of malicious \nexploitation and gives companies an opportunity to respond to and resolve vulnerabilities in advance of a public \ndisclosure.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.2 \nImplement a means to manage reports of vulnerabilities",
+    "page_number": 15
+  },
+  {
+    "chunk_id": "9c5106315a3454ff80f51655186bfd1edd92e96a3dcd9059e6e5d98ad0ee3bd5",
+    "text": "Provision 5.2-2 Disclosed vulnerabilities should be acted on in a timely manner.\n\nA \"timely manner\" for acting on vulnerabilities varies considerably and is incident-specific; however, conventionally, \nthe vulnerability management process is following a properly documented process including clear responsibilities and \ncompleted within 90 days for a software solution, including availability of patches and notification of the issue. A \nhardware fix can take considerably longer to address than a software fix. Additionally, a fix that has to be deployed to \ndevices can take time to roll out compared with a server software fix.\n\nProvision 5.2-3 Manufacturers should continually monitor for, identify and rectify security vulnerabilities within \nconsumer IoT products they sell, produce, have produced and associated services they operate during the defined \nsupport period.\n\nNOTE 3: Manufacturers are expected to exercise due care for all software and hardware components used in the\n\nproduct, this includes due care related to the selected third parties that provide associated services to \nsupport the functions of the product.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.2-2 Disclosed vulnerabilities should be acted on in a timely manner.",
+    "page_number": 15
+  },
+  {
+    "chunk_id": "022c2676d59f3993c23bcee39ff0830b18bb32be19cbc7dc939e765e47e97e65",
+    "text": "Software solutions often contain open source and third party software components. Creating and maintaining list of all \nsoftware components and their sub-components is a pre-requisite to be able to monitor for product vulnerabilities. \nVarious tools exist to scan source code and binaries and build a so-called Software Bill Of Materials (SBOM), which \nidentifies third party components and the versions used in the product. This information is then used to monitor for the \nassociated security and licensing risks of each identified software component.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n16\n\nVulnerabilities are expected to be reported directly to the affected stakeholders in the first instance. If that is not \npossible, vulnerabilities can be reported to national authorities. Manufacturers are also encouraged to share information \nwith competent industry bodies, such as the GSMA [i.21] and the IoT Security Foundation. Guidance on Coordinated \nVulnerability Disclosure is available from the IoT Security Foundation [i.22] which references ISO/IEC 29147 [i.4].\n\nThe management of vulnerabilities is expected to be performed for devices within their defined support period. \nHowever, manufacturers can continue this outside that period and release security updates to rectify vulnerabilities.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.2-2 Disclosed vulnerabilities should be acted on in a timely manner.",
+    "page_number": 15
+  },
+  {
+    "chunk_id": "26391d9965d34ed0e24dc68b5ab967c338dbc36ad4e72790be1ef67ad93825c0",
+    "text": "5.3 \nKeep software updated\n\nDeveloping and deploying security updates in a timely manner is one of the most important actions a manufacturer can \ntake to protect its customers and the wider technical ecosystem. It is good practice that all software is kept updated and \nwell maintained.\n\nIn many cases, publishing software updates involves multiple dependencies on other organizations such as \nmanufacturers that produce sub-components; however, this is not a reason to withhold updates. It can be useful for the \nmanufacturer to consider the entire software supply chain in the development and deployment of security updates.\n\nIt is often advisable not to bundle security updates with more complex software updates, such as feature updates. A \nfeature update that introduces new functionality can trigger additional requirements and delay delivery or user's \nacceptance of the update to consumer IoT devices.\n\nFrom a user's perspective it is desirable to generally separate security from feature updates.\n\nEXAMPLE 1: \nUnder the EU Product Legislation, a feature update could change the intended use of a device and \nthus turn it into a new product, requiring a new conformity assessment to be conducted. However, \na software update with limited impact could be considered a maintenance update which would not \nrequire a new conformity assessment. More information on the impact of software updates in the \ncontext of the EU Product Legislation can be found in the Blue Guide [i.13].",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.3 \nKeep software updated",
+    "page_number": 15
+  },
+  {
+    "chunk_id": "9a540fab2e55b2d14c6ece39b3b1c213bfd9cb60d5304a1a24844b58f8183105",
+    "text": "Each provision from 5.3-3 to 5.3-12 is dependent upon an update mechanism being implemented.\n\nProvision 5.3-1 All software components in consumer IoT devices that are not immutable due to security reasons \nshould be securely updateable.\n\nNOTE 1: Managing software updates successfully generally relies on communication of version information for\n\nsoftware components between the consumer IoT device and the manufacturer.\n\nNOTE 2: For most devices the operating system, applications and network protocol stacks cannot be considered as\n\nimmutable due to security reasons.\n\nEXAMPLE 2: \nThe first stage boot loader on a consumer IoT device is written once to device storage and from \nthen on is immutable.\n\nEXAMPLE 3: \nOn consumer IoT devices with several microcontrollers (e.g. one for communication and one for \nthe application) some of them might not be updateable.\n\nProvision 5.3-2 The consumer IoT device shall have a secure update mechanism unless the device has a resource \nconstraint determined by the use case that prevents the implementation.\n\nNOTE 3: There are cases where provision 5.3-1 applies even where 5.3-2 does not.\n\nNOTE 4: Use case determined resource constraints are technical constraints of a consumer IoT device that are the\n\nresult of appropriate design decisions that are necessary to implement the use case of the consumer IoT \ndevice and cannot solely be justified by potential economic reasons to avoid the implementation of a \nsecure update mechanism.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Each provision from 5.3-3 to 5.3-12 is dependent upon an update mechanism being implemented.",
+    "page_number": 15
+  },
+  {
+    "chunk_id": "aa4ab4543311a2361d5f59f9974338216f99948135f34bc62bd7dd25b7b928af",
+    "text": "NOTE 5: Typical resource constraints that can prevent the implementation of a secure update mechanism are\n\nminimal communication bandwidth or energy supply.\n\nEXAMPLE 4: \nA battery driven sensor designed to wirelessly communicate measurements with a low frequency \nover a for a long period of time might have use case determined resource constraints in \ncommunication bandwidth or energy supply that prevent the implementation of a secure update \nmechanism.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n17\n\nEXAMPLE 5: \nDesign decisions for a consumer IoT device do not result in limited resources solely to avoid the \ncosts associated with the implementation of a secure update mechanism but instead result in \nsufficient resources and the implementation of a secure update mechanism.\n\n\"Securely updateable\" and \"secure update mechanism\" means that there are adequate measures to prevent an attacker \nmisusing the update mechanism.\n\nEXAMPLE 6: \nMeasures can include the use of authentic software update servers, integrity protected \ncommunications channels, verifying the authenticity and integrity of software updates. It is \nrecognized that there are great variances in software update mechanisms and what constitutes \n\"installation\".\n\nEXAMPLE 7: \nAn anti-rollback policy based on version checking can be used to prevent downgrade attacks.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Each provision from 5.3-3 to 5.3-12 is dependent upon an update mechanism being implemented.",
+    "page_number": 16
+  },
+  {
+    "chunk_id": "d6ad6402e260af7a186602e03337309c5cdad121e35c9a8d57b4a673de7f29ed",
+    "text": "Update mechanisms can range from the consumer IoT device downloading the update directly from a remote server, \ntransmitted from a mobile application or transferred over a USB or other physical interface. If an attacker compromises \nthis mechanism, it allows for a malicious version of the software to be installed on the consumer IoT device.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Each provision from 5.3-3 to 5.3-12 is dependent upon an update mechanism being implemented.",
+    "page_number": 17
+  },
+  {
+    "chunk_id": "41a75faca7852f18d0e7b39b6b6571715eb1123c23c89a0429a98574a32cc33c",
+    "text": "Provision 5.3-3 An update shall be simple for the user to apply.\n\nThe degree of simplicity depends on the design and intended usage of the consumer IoT device. Some examples can be \ngiven as follows, but are not exhaustive. An update that is simple to apply will be automatically applied, initiated using \nan associated service (such as a mobile application), or via a web interface on the consumer IoT device. If an update is \ndifficult to apply, then that increases the chance that a user will repeatedly defer updating the consumer IoT device, \nleaving it in a vulnerable state.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.3-3 An update shall be simple for the user to apply.",
+    "page_number": 17
+  },
+  {
+    "chunk_id": "81cb5cd7bfb60322688688eccc092ff811a6cfa2e27fc3fc78c9dfd91eb09ae7",
+    "text": "Provision 5.3-4 Void.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.3-4 Void.",
+    "page_number": 17
+  },
+  {
+    "chunk_id": "fe33cedfe92cdbbc120b02808249f3c3c278b946f9da4f1eb0f6098817a18799",
+    "text": "Provision 5.3-4A One secure update mechanism should be configurable to be automated.\n\nNOTE 6: An automated update mechanism obtains information on available updates without user interaction when\n\nhaving suitable network access and either installs updates without user interaction or processes available \nupdates after user's consent with minimal user interaction.\n\nProvision 5.3-4B During initialization the consumer IoT device should activate an automatic secure update mechanism \nafter user's consent.\n\nIf an automatic update fails, then a user can, in some circumstances, no longer be able to use a device. Detection \nmechanisms such as watchdogs and the use of dual-bank flash or recovery partitions can ensure that the consumer IoT \ndevice returns to either a known good version or the factory state.\n\nSecurity updates can be provided for consumer IoT devices in a preventative manner, as part of automatic updates, \nwhich can remove security vulnerabilities before they are exploited. Managing this can be complex, especially if there \nare parallel associated service updates, consumer IoT device updates and other service updates to deal with. Therefore, \na clear management and deployment plan is beneficial to the manufacturer, as is transparency to consumers about the \ncurrent state of update support.\n\nProvision 5.3-5 The consumer IoT device or an associated service should check after initialization whether security \nupdates are available.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.3-4A One secure update mechanism should be configurable to be automated.",
+    "page_number": 17
+  },
+  {
+    "chunk_id": "413ebdeaf425c921ac20b63b20ca1dbbd6977c729d0a4c1607fa3ff28d3c5de1",
+    "text": "EXAMPLE 8: \nThe user could be shown the existence of updates via the interface with which the consumer IoT \ndevice is initialized.\n\nFor some products, it can be more appropriate for the associated service, rather than the consumer IoT device, to \nperform such checks.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.3-4A One secure update mechanism should be configurable to be automated.",
+    "page_number": 17
+  },
+  {
+    "chunk_id": "3bd9c86c255fb6bae6b59b3584ab535a8f0aec1e1e858ee029047bc44044ebc0",
+    "text": "Provision 5.3-6 Void.\n\nProvision 5.3-6A If the consumer IoT device supports automated updates, the user should be able to enable and disable \nthe automatic update mechanism and postpone the installation of updates provided via an automatic update mechanism.\n\nProvision 5.3-6B If the consumer IoT device supports update notifications, the user should be able to enable and \ndisable the update notifications.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n18\n\nIt is important from a consumer rights and ownership perspective that the user is in control of whether or not they \nreceive updates. There are good reasons why a user may choose not to update, including security. In addition, if an \nupdate is deployed and subsequently found to cause issues, manufacturers can ask users to not upgrade their software in \norder that those consumer IoT devices are not affected.\n\nProvision 5.3-7 The consumer IoT device shall use best practice cryptography to facilitate secure update mechanisms.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.3-6 Void.",
+    "page_number": 17
+  },
+  {
+    "chunk_id": "f9f39f7178372f5a40de42565cf6fa552f7291082416f2cb1ded15ccfc8539a7",
+    "text": "Provision 5.3-8 Security updates shall be timely.\n\n\"Timely\" in the context of security updates can vary, depending on the particular issue and fix, as well as other factors \nsuch as the ability to reach a device or considerations based on other device resource constraints. It is important that a \nsecurity update that fixes a critical vulnerability (i.e. one with potentially adverse effects of a large scale) is handled \nwith appropriate priority by the manufacturer. Once a fix is made available, users can be notified through a bulletin \nprocess or other appropriate means. Due to the complex structure of modern software and the ubiquity of \ncommunication platforms, multiple stakeholders can be involved in a security update.\n\nEXAMPLE 9: \nA particular software update involves a third party vendor of software libraries, an IoT device \nmanufacturer, and an IoT service platform operator. Collaboration between these stakeholders \nensures appropriate timeliness of the software update.\n\nProvision 5.3-9 The consumer IoT device should verify the authenticity and integrity of software updates.\n\nA common approach for confirming that an update is valid is to verify its integrity and authenticity. This can be done on \nthe consumer IoT device.\n\nProvision 5.3-10 Where updates are delivered over a network interface, the consumer IoT device shall verify the \nauthenticity and integrity of each update via a trust relationship.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.3-8 Security updates shall be timely.",
+    "page_number": 17
+  },
+  {
+    "chunk_id": "afef79637e77a1fd210bfcee8e68e4c1366bd05b22eadd3de26dd8751b693bfc",
+    "text": "NOTE 7: Valid trust relationships include: authenticated communication channels, presence on a network that\n\nrequires the consumer IoT device to possess a critical security parameter or password to join, digital \nsignature based verification of the update, or confirmation by the user.\n\nNOTE 8: The validation of the trust relationship is essential to ensure that a non-authorized entity (e.g. consumer\n\nIoT device management platform or consumer IoT device) cannot install malicious code.\n\nConsumer IoT devices can have power limitations that make performing cryptographic operations costly. In such cases, \nverification can be performed by another device that is trusted to perform this verification. The verified update would \nthen be sent over a secure channel to the consumer IoT device. Performing verification of updates at a hub and then on \nthe consumer IoT device, can reduce the risk of compromise.\n\nIt is good practice for a consumer IoT device to act upon the detection of an invalid and potentially malicious update. \nBeyond rejecting the update, and without limitation, it can report the incident to an appropriate service and/or inform \nthe user. In addition, mitigating controls can be put in place to prevent an attacker from bypassing or misusing an \nupdate mechanism. Giving the attacker as little information as possible as part of the update mechanism reduces their \nability to exploit it.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.3-8 Security updates shall be timely.",
+    "page_number": 18
+  },
+  {
+    "chunk_id": "fd6cf6c950920808d7ee26a02fe7d08b7a606a7463860d22b3254d0e036e5a6c",
+    "text": "EXAMPLE 10: When a consumer IoT device detects that an update could not be delivered or applied successfully\n\n(by failing integrity or authentication checks), the consumer IoT device can mitigate information \nleakage by not providing any information about the failure to the initiator of the update process. \nHowever, the consumer IoT device can generate a log entry and deliver notification of the log \nentry to a trusted peer (e.g. a device administrator) over a secure channel, so that the occurrence of \nthe incident is known and the owner or administrator of the consumer IoT device can make an \nappropriate response.\n\nProvision 5.3-11 The user should be informed in a recognizable and apparent manner that a security update is required \ntogether with information on the risks mitigated by that update.\n\nEXAMPLE 11: The manufacturer informs the user that an update is required via a notification on a user interface\n\nor via an email.\n\nProvision 5.3-12 The user should be notified when the application of a software update will disrupt the basic \nfunctioning of the consumer IoT device.\n\nThis notification can include extra detail, such as the approximate expected duration for which the consumer IoT device \nwill be offline.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n19\n\nEXAMPLE 12: A notification includes information about the urgency and approximate expected duration of\n\ndowntime.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.3-8 Security updates shall be timely.",
+    "page_number": 18
+  },
+  {
+    "chunk_id": "5af37eef13f47d69bffd2c13c7b97082b23caa426aa767298d8e3b4842a8dfa4",
+    "text": "It can be critical for users that a consumer IoT device continues to operate during an update. This is why the provision \nabove recommends to notify the user when an update will disrupt functionality where possible. Particularly, consumer \nIoT devices that fulfil a safety-relevant function are expected not to turn completely off in the case of an update; some \nminimal system functional capability is expected. Disruption to functionality can become a critical safety issue for some \ntypes of consumer IoT devices and systems if not considered or managed correctly.\n\nEXAMPLE 13: During an update, a watch will continue to display the time, a home thermostat will continue to\n\nmaintain a reasonable temperature and a Smart Lock will continue to lock and unlock a door.\n\nProvision 5.3-13 The manufacturer shall publish, in an accessible way that is clear and transparent to the user, the \ndefined support period.\n\nWhen purchasing a product and throughout its lifecycle, the consumer expects this period of software update support to \nbe made clear, e.g. publicize on the official website, etc.\n\nProvision 5.3-14 For consumer IoT devices that cannot have their software updated, the rationale for the absence of \nsoftware updates, the period and method of hardware replacement support should be published by the manufacturer in \nan accessible way that is clear and transparent to the user.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.3-8 Security updates shall be timely.",
+    "page_number": 19
+  },
+  {
+    "chunk_id": "34deb0d51a4639b9461776232d9bec4ef48bbc76c9988e43461498c5dd417d9f",
+    "text": "Provision 5.3-15 Void.\n\nProvision 5.3-15A For devices that cannot have their software updated, the consumer IoT device should be isolable.\n\nProvision 5.3-15B For devices that cannot have their software updated, the consumer IoT device hardware should be \nreplaceable.\n\nNOTE 9: Hardware is considered as replaceable when there are defined procedures to replace the hardware or\n\nhardware components esp. when critical vulnerabilities are discovered.\n\nThere are some situations where consumer IoT devices cannot be patched. For such consumer IoT devices a \nreplacement plan needs to be in place and be clearly communicated to the consumer. This plan would typically detail a \nschedule for when technologies will need to be replaced and, where applicable, when support for hardware and software \nends.\n\nProvision 5.3-16 The model designation of the consumer IoT device shall be clearly recognizable, either by labelling \non the consumer IoT device or via a user interface.\n\nThis is often performed by communicating with a consumer IoT device over a logical interface.\n\nEXAMPLE 14: A consumer IoT device has a HTTP (or HTTPS when appropriate) API that reports the model\n\ndesignation (after user authentication).\n\nKnowledge of the specific designation of the consumer IoT device is often required to check the defined support period \nof software updates or the availability of software updates.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.3-15 Void.",
+    "page_number": 19
+  },
+  {
+    "chunk_id": "8adaf5de3d1d767f0f2cb5b4792866b286362ad2b63a8b9a2169b04ec9831920",
+    "text": "Being able to identify devices can assist with update management. Where devices can be offline, or updates fail, \ntracking the update status of user devices through the associated services can assist the user in maintaining device health \nacross all the devices they own. It is recommended that the IoT device is to be clearly recognizable by having both a \nmodel designation and a unique privacy preserving per device identifier, either by labelling on the device or via a \nphysical and logical interface. A unique privacy preserving per device identifier could be generated by the manufacturer \nor could be an identifier the end user sets. and may not be accessible to anyone but the user of the device and associated \nservices. To preserve privacy, the availability and usage of the unique identifier needs to prevent remote services \nunauthorized parties from either identifying or tracking the device or its users. Being able to identify devices can assist \nwith update management.\n\nEXAMPLE 15: A consumer IoT device is identified in a user update dashboard by a user-chosen identifier\n\n(\"KitchenUnit\") that describes the device's location in a way that is unique to the user, although \nunlikely to be unique globally, and would allow the user to identify the device from the name. This \nidentifier is deleted when the device is reset to factory settings.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n20",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.3-15 Void.",
+    "page_number": 19
+  },
+  {
+    "chunk_id": "549c7786e7bc198a1c77134ed0689a93b37e9976ae5ec56faed8a6f89b7b6064",
+    "text": "EXAMPLE 16: A consumer IoT device is identified to the update service by a serial number set by the\n\nmanufacturer only. As is the only identifying information that the update service receives, there is \nno method by which the transfer of the device between users can be tracked or the identity of the \nuser of the device known and tracked. This serial number is not re-used as a device identifier for \nany other purpose.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.3-15 Void.",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "3f0b7fa192f1ef1ad7230e95c6fb4770070f8ff353c835d4fb0c1c20350d1f59",
+    "text": "5.4 \nSecurely store sensitive security parameters\n\nProvision 5.4-1 Sensitive security parameters in persistent storage shall be stored securely by the consumer IoT device.\n\nNOTE 1: Stored critical security parameters need adequate measures to prevent both modification and disclosure\n\nwhile stored public security parameters only need adequate measures to prevent modification.\n\nSecure storage mechanisms can be used to secure sensitive security parameters. Appropriate mechanisms include those \nprovided by a Trusted Execution Environment (TEE), encrypted storage associated with the hardware, Secure \nElements (SE) or Dedicated Security Components (DSC), and processing capabilities of software running on a UICC, \naccording to ETSI TR 121 905 [i.29], ETSI TS 102 221 [i.25], embedded UICC according to GSMA SGP.22 Technical \nSpecification v2.2.1 [i.26].\n\nNOTE 2: This provision applies to persistent storage, but manufacturers can also implement similar approaches for\n\nsensitive security parameters in memory.\n\nEXAMPLE 1: \nThe root keys involved in authorization and access to licensed radio frequencies (e.g. LTE-m \ncellular access) are stored in a UICC.\n\nEXAMPLE 2: \nA remote controlled door-lock using a Trusted Execution Environment (TEE) to store and access \nthe sensitive security parameters.\n\nEXAMPLE 3: \nA wireless thermostat stores the credentials for the wireless network in a tamper protected \nmicrocontroller rather than in external flash storage.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.4 \nSecurely store sensitive security parameters",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "27a926e7b4629ef1a02a97e7bb2e01a3d45003a31cde0f8b09082a49291130c1",
+    "text": "Provision 5.4-2 Where a hard-coded unique per device identity is used in a consumer IoT device for security purposes, \nit shall be implemented in such a way that it resists tampering by means such as physical, electrical or software.\n\nEXAMPLE 4: \nA master key used for network access that is unique to the consumer IoT device is stored in UICC \nwhich is compliant to relevant ETSI standards (for example ETSI TS 102 221 [i.25]).\n\nProvision 5.4-3 Hard-coded critical security parameters in consumer IoT device software source code shall not be used.\n\nReverse engineering of consumer IoT devices and applications can easily discover credentials such as hard-coded \nusernames and passwords in software. These credentials can also be API keys that allow usage of security-sensitive \nfunctions in a remote service, or private keys used in the security of protocols that the consumer IoT device uses to \ncommunicate. Such credentials will often be found within source-code, which is well-known bad practice. Simple \nobfuscation methods also used to obscure or encrypt this hard-coded information can be trivially broken.\n\nProvision 5.4-4 Any critical security parameters used for integrity and authenticity checks of software updates and for \nprotection of communication with associated services in consumer IoT device software shall be unique per device and \nshall be produced with a mechanism that reduces the risk of automated attacks against classes of consumer IoT devices.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.4 \nSecurely store sensitive security parameters",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "a9af12d2aa0359bff625d06ceed81fb0614eaba4153f88fc7eb763bb1e76023e",
+    "text": "EXAMPLE 5: \nA different symmetric key is deployed on every consumer IoT device of the same product class for \ngenerating and verifying message authentication codes for software updates.\n\nEXAMPLE 6: \nThe consumer IoT device uses the manufacturer's public key to verify a software update. This is \nnot a critical security parameter and does not need to be unique per device.\n\nProvisioning a consumer IoT device with unique critical security parameters helps to protect the integrity and \nauthenticity of software updates as well as the communication of the consumer IoT device with associated services. If \nglobal critical security parameters are used, their disclosure can enable wide-scale attacks on other IoT devices such as \nto enable the creation of botnets.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n21",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.4 \nSecurely store sensitive security parameters",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "c58590362701c68442c02022f277ce69879a85cfb1f85b2ab247079f4c3d3741",
+    "text": "5.5 \nCommunicate securely\n\nProvision 5.5-1 The consumer IoT device shall use best practice cryptography to communicate securely.\n\nAppropriateness of security controls and the use of best practice cryptography is dependent on many factors including \nthe properties of technology, operating environment, risk and usage context. As security is ever-evolving it is difficult \nto give prescriptive advice about cryptography or other security measures without the risk of such advice quickly \nbecoming obsolete.\n\nProvision 5.5-2 The consumer IoT device should use reviewed or evaluated implementations to deliver network and \nsecurity functionalities, particularly in the field of cryptography.\n\nReviews and evaluations can involve an independent internal or external entity.\n\nEXAMPLE 1: \nDistributed software libraries within the development and test community, certified software \nmodules, and hardware equipment crypto-service providers (such as the Secure Element and Trust \nExecution Environment) are all reviewed or evaluated.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.5 \nCommunicate securely",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "c0637fe49fb5e41bc10e94da076a61fce1d0c50702859260849daa8dc86a5cab",
+    "text": "Provision 5.5-3 Cryptographic algorithms and primitives should be replaceable.\n\nNOTE 1: This is a building block for \"cryptoagility\".\n\nNOTE 2: Changing cryptographic algorithms and primitives in configuration is a security relevant change.\n\nFor devices that cannot be updated, it is important that the intended lifetime of the device does not exceed the \nrecommended usage lifetime of cryptographic algorithms used by the device (including key sizes).\n\nThe concept of cryptoagility may cover different aspects such as hardware resources of the consumer IoT device \nincluding cryptographic hardware accelerators, background infrastructures such as Public Key Infrastructures and \ndevelopment or design processes that anticipate the lifetime of cryptographic algorithms and primitives.\n\nProvision 5.5-4 Access to consumer IoT device functionality via a network interface in the initialized state should only \nbe possible after authentication on that interface.\n\nNOTE 3: Functionality can vary significantly on the use case and can encompass a range of things, including access\n\nto personal data and device actuators.\n\nThere are consumer IoT devices that provide public, open data for example in the Web of Things [i.18]. These \nconsumer IoT devices are accessible without authentication to provide open access to all.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.5-3 Cryptographic algorithms and primitives should be replaceable.",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "39e1560e1fcc87f31e9863fbc6dc04a2587fdf480fa9aee52bde7afd225bc3db",
+    "text": "There are consumer IoT devices that include the ability to make data or services publicly available within a restricted \nnetwork. These devices will often make assumptions about the network connectivity and/or the sensitivity of the data \nwhich is being made publicly available as part of their expected use.\n\nEXAMPLE 2: \nSmart Television's, expecting to be in a user's home network, can make recorded media publicly \navailable without user authentication but access restricted to the home network only via services \nsuch as DLNA.\n\nThe consumer IoT device can be compromised via vulnerabilities in network services. A suitable authentication \nmechanism can protect against unauthorized access and can contribute to defence-in-depth in the consumer IoT device.\n\nProvision 5.5-5 Consumer IoT device functionality that allows security-relevant changes in configuration via a network \ninterface shall only be accessible after authentication. The exception is for network service protocols that are relied \nupon by the consumer IoT device and where the manufacturer cannot guarantee what configuration will be required for \nthe consumer IoT device to operate.\n\nNOTE 4: Protocols that are an exception include ARP, DHCP, DNS, ICMP, and NTP.\n\nEXAMPLE 3: \nSecurity-relevant changes include permission management, configuration of network keys and \npassword changes.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.5-3 Cryptographic algorithms and primitives should be replaceable.",
+    "page_number": 21
+  },
+  {
+    "chunk_id": "3501250d8bb99d9e182a06d781377e592a8fdedc3c8f19ef1f0b054eb153da4e",
+    "text": "Provision 5.5-6 Critical security parameters should be encrypted in transit, with such encryption appropriate to the \nproperties of the technology, risk and usage.\n\nProvision 5.5-7 The consumer IoT device shall protect the confidentiality of critical security parameters that are \ncommunicated via remotely accessible network interfaces.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n22\n\nMany different methods exist for enrolment and authentication. Some authentication values are provided by out-of-band \nauthentication mechanisms, such as a QR code, and some are human-readable, such as a password.\n\nWhere an authentication mechanism uses unique values per authentication attempt (e.g. in a challenge-response \nmechanism or when using one time passwords as a second factor), the response is not the authentication value itself. \nHowever, it is still good practice to apply confidentiality protection to those values.\n\nConfidentiality protection can be achieved using an encrypted communication channel or payload encryption. This is \noften done using protocols or algorithms at least as strong as the key material transmitted, however other mitigations, \nsuch as the need for close proximity, are available.\n\nNOTE 5: Confidentiality protection often includes integrity protection according to best practice cryptography.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.5-3 Cryptographic algorithms and primitives should be replaceable.",
+    "page_number": 21
+  },
+  {
+    "chunk_id": "d52a204a6f0c3ad739826a60ef48a473f50ae443c5a51a85738884efa004963a",
+    "text": "Provision 5.5-8 The manufacturer shall follow secure management processes for critical security parameters that relate \nto the consumer IoT device and for the entire lifecycle of the critical security parameters.\n\nEXAMPLE 4:  \nOpen, peer-reviewed standards for critical security parameters (commonly referred to as \"key \nmanagement\").",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.5-3 Cryptographic algorithms and primitives should be replaceable.",
+    "page_number": 22
+  },
+  {
+    "chunk_id": "283aea15e13f24182963d4653b45317f86ad35f7a6b1de5685957e465deac414",
+    "text": "5.6 \nMinimize exposed attack surfaces\n\nThe \"principle of least privilege\" is a foundation stone of good security engineering, applicable to IoT as much as in any \nother field of application.\n\nProvision 5.6-1 All unused network interfaces and all unused logical interfaces that are accessible through a network \ninterface shall be disabled.\n\nDisabling unused network and logical interfaces can significantly reduce the attack surface of a consumer IoT device. \nThese interfaces may have been used only during the development phase of the device and are no longer required for \nnormal operation, or may be specific to certain environments or purposes. By default, these interfaces are to be disabled \nbefore the device is made available to the public. The disabling can be realized for example by appropriate access \ncontrol mechanisms that are for example preventing unauthorized access to or misuse of the unused interfaces. \nHowever, users may have the ability to manually enable any disabled interface that is required for their specific usage. \nIn such a case it is to be ensured that the enabling capability cannot be misused easily, e.g. by appropriate access control \nand authentication mechanisms.\n\nEXAMPLE 1: \nAn administrative UI that is supposed to be accessed from the LAN is not accessible from the \nWAN by default.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.6 \nMinimize exposed attack surfaces",
+    "page_number": 22
+  },
+  {
+    "chunk_id": "77b6d5ee87817fa5cb4170096de2a9f9d7321d120315a1bc3a3d9f31dc21fe35",
+    "text": "EXAMPLE 2: \nA Direct Firmware Update service exposed over Bluetooth\u00ae Low Energy is used for development \nbut not expected to be used in production. It is disabled in the final product.\n\nProvision 5.6-2 In the initialized state, the network interfaces of the consumer IoT device shall minimize the \nunauthenticated disclosure of security-relevant information.\n\nSecurity-relevant information can be exposed over a network interface as part of the initialization process. When \nsecurity-relevant information is shared by a consumer IoT device when establishing a connection, it can be used by \nattackers to identify vulnerable devices.\n\nEXAMPLE 3: \nWhen finding vulnerable devices throughout the whole IP address space, security-relevant \ninformation could be information about the device configuration, kernel version or software \nversion.\n\nProvision 5.6-3 Consumer IoT device hardware should not unnecessarily expose physical interfaces to attack.\n\nPhysical interfaces can be used by an attacker to compromise firmware or memory on a consumer IoT device. \n\"Unnecessarily\" refers to the manufacturer's assessment of the benefits of an open interface, used for user functionality \nor for debugging purposes.\n\nEXAMPLE 4: \nA micro-USB port meant to be used to power the consumer IoT device only is physically \nconfigured so as not to also allow command or debug operations.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.6 \nMinimize exposed attack surfaces",
+    "page_number": 22
+  },
+  {
+    "chunk_id": "c2647b667cb51d6dcf228085e8125295e487043e8c015986257fe87f5e2319c2",
+    "text": "Provision 5.6-4 Void.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n23\n\nProvision 5.6-4A Debug interfaces shall be disabled or protected via a best practice authentication or access control \nmechanism.\n\nDebug interfaces are commonly used by manufacturers during the development and testing phases of the consumer IoT \ndevice's lifecycle. However, when placing the consumer IoT device on the market, it is crucial to ensure that potential \nattackers cannot misuse debug interfaces to compromise the consumer IoT device's security. To achieve this, the debug \ninterfaces are to be disabled in software by default, using any means that prevent potential attackers from operating the \ndevice in debugging mode, which would allow them to modify the device's code, including its security mechanisms. It \nis to be impossible for the user of the consumer IoT device to enable any disabled debug interface that is not considered \nto be required for the consumer IoT device's lifecycle. However, if the debug interface is intermittently required after \nthe consumer IoT device is being placed on the market, it would be enough if the interface is disabled in software by \ndefault but can be enabled, when required. In such a case it is to be ensured that the enabling capability cannot be \nmisused easily, e.g. by appropriate access control and authentication mechanisms.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.6-4 Void.",
+    "page_number": 22
+  },
+  {
+    "chunk_id": "dcc345eb68426996132baff463db0cc32b04254f8feb28e8a094f9bd0669df49",
+    "text": "EXAMPLE 5: \nA UART serial interface is disabled through the bootloader software on the consumer IoT device. \nNo logon prompt and no interactive menu is available due to this disabling.\n\nProvision 5.6-4B Debug interfaces that are physical ports should be physically protected by the device.\n\nEXAMPLE 6: \nA device casing prevents accessing a UART serial interface without opening the casing with tools \nor breaking the casing.\n\nNOTE 1: If a debug interface has been disabled, it is not necessary to physically protect it.\n\nProvision 5.6-5 The manufacturer should only enable software services that are used or required for the intended use or \noperation of the consumer IoT device.\n\nEXAMPLE 7: \nThe manufacturer does not provision the consumer IoT device with any background processes, \nkernel extensions, commands, programs or tools that are not required for the intended use.\n\nProvision 5.6-6 Code should be minimized to the functionality necessary for the consumer IoT device to operate.\n\nEXAMPLE 8: \n\"Dead\" or unused code is removed and not considered to be benign.\n\nProvision 5.6-7 Software should run with least necessary privileges, taking account of both security and functionality.\n\nEXAMPLE 9: \nMinimal daemons/processes run with \"root\" privileges. In particular the processes that use network \ninterfaces require unprivileged users rather than requiring a \"root\" user.\n\nEXAMPLE 10: Applications running on a consumer IoT device that includes a multi-user operating system (e.g.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.6-4 Void.",
+    "page_number": 23
+  },
+  {
+    "chunk_id": "35f0145d0674fcd15872ede82c50e162274105685b16ab0c8a0fab0b19b7a587",
+    "text": "Linux\u00ae) use different users for each component or service.\n\nNOTE 2: Linux\u00ae is the registered trademark of Linus Torvalds in the U.S. and other countries.\n\nSoftware attacks on consumer IoT devices that aim to corrupt memory can be mitigated through mechanisms such as \nstack canaries, Address Space Layout Randomization (ASLR). The manufacturer can use platform security features \nwhere they are available to help further reduce the risk. Reducing privileges that they run at and minimizing code also \nhelps to mitigate this risk.\n\nProvision 5.6-8 The consumer IoT device should include a hardware-level access control mechanism for memory.\n\nSoftware exploits often use the lack of access control in memory to execute malicious code. Access control mechanisms \nlimit whether data in memory on the consumer IoT device can be executed. Suitable mechanisms include technologies \nsuch as MMUs or MPUs, executable space protection (e.g. NX bits), memory tagging, and trusted execution \nenvironments.\n\nProvision 5.6-9 The manufacturer should follow secure development processes for software deployed on the consumer \nIoT device.\n\nSecure development processes, including using version control, or enabling security-related compiler options (e.g. stack \nprotection) can help ensure software artefacts are more secure. Manufacturers can use these options when using \ntoolchains that support them.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n24",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.6-4 Void.",
+    "page_number": 23
+  },
+  {
+    "chunk_id": "6784d7171e910f3e2de9e7b3fca03047d7e7f94e1efd3fcc5dcee0871a2d4a2e",
+    "text": "5.7 \nEnsure software integrity",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.7 \nEnsure software integrity",
+    "page_number": 23
+  },
+  {
+    "chunk_id": "db2274d5d61874c34b1d38fcb25949a7e505c862495ac27618125aca6821b249",
+    "text": "Provision 5.7-1 The consumer IoT device should verify its software using secure boot mechanisms.\n\nA hardware root of trust is one way to provide strong attestation as part of a secure boot mechanism. A hardware root of \ntrust is a component of a system from which all other components derive their \"trust\" - i.e. the source of cryptographic \ntrust within that system. To fulfil its function, the hardware root of trust is reliable and resistant to both physical and \nlogical tampering, as there is no mechanism to determine that the component has failed or been altered. By utilizing a \nhardware root of trust, a consumer IoT device can have confidence in results of cryptographic functions, such as those \nutilized for secure boot. A hardware root of trust can be either backed by mechanisms used for secure storage of \ncredentials or other alternatives providing baseline levels of security assurance proportionate to the required level of \nsecurity for a given consumer IoT device.\n\nProvision 5.7-2 If an unauthorized change is detected to the software, the consumer IoT device should alert the user \nand/or administrator to the issue and should not connect to wider networks than those necessary to perform the alerting \nfunction.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.7-1 The consumer IoT device should verify its software using secure boot mechanisms.",
+    "page_number": 23
+  },
+  {
+    "chunk_id": "3957ab720416d41b55db6a6ac199e4ae307b916c6b822f2135da2e7dca1184dd",
+    "text": "The ability to recover remotely from unauthorized changes can rely on a known good state, such as locally storing a \nknown good version to enable safe recovery and updating of the consumer IoT device. This will avoid denial of service \nand costly recalls or maintenance visits, whilst managing the risk of potential takeover of the consumer IoT device by \nan attacker subverting update or other network communications mechanisms.\n\nIf a consumer IoT device detects an unauthorized change to its software, it will be able to inform the right stakeholder. \nIn some cases, consumer IoT devices can have the ability to be in administration mode.\n\nEXAMPLE: \nA thermostat in a room can have a user mode; this mode prevents changing of other settings. If an \nunauthorized change to software is detected, an alert to the administrator is appropriate, as the \nadministrator has the ability to act on the alert (whereas a user does not).",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.7-1 The consumer IoT device should verify its software using secure boot mechanisms.",
+    "page_number": 24
+  },
+  {
+    "chunk_id": "f9eac5c5a290dfa96a67f6d6c80e46d2482545631f1d9b71d75858d711b41880",
+    "text": "5.8 \nEnsure that personal data is secure\n\nAssociated services in the following context are typically cloud services. Moreover these services are controlled or can \nbe influenced by the manufacturer. These services typically are not operated by the user.\n\nThe following provisions also refer to confidentiality protection that often includes integrity protection according to best \npractice cryptography.\n\nProvision 5.8-1 The confidentiality of personal data transiting between the consumer IoT device and associated \nservices should be protected with best practice cryptography, appropriate to the properties of the technology, operating \nenvironment, risk and usage.\n\nProvision 5.8-2 The confidentiality of sensitive personal data communicated between the consumer IoT device and \nassociated services shall be protected with best practice cryptography, appropriate to the properties of the technology, \noperating environment, risk and usage.\n\nNOTE: \nIn the context of this provision, \"sensitive personal data\" is data whose disclosure has a high potential to \ncause harm to the individual. What is to be treated as \"sensitive personal data\" varies across products and \nuse cases, but examples are: video stream of a home security camera, payment information, content of \ncommunication data and timestamped location data. Carrying out security and data protection impact \nassessments can help the manufacturer make appropriate choices.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.8 \nEnsure that personal data is secure",
+    "page_number": 24
+  },
+  {
+    "chunk_id": "5a3956fd6d1bfa6639ce3056bafca358041040e928071eafab478099c563fa3c",
+    "text": "Provision 5.8-3 All external sensing capabilities of the consumer IoT device shall be documented in an accessible way \nthat is clear and transparent for the user.\n\nEXAMPLE: \nAn external sensing capability can be an optic or acoustic sensor.\n\nClause 6 of the present document contains provisions specific to protecting personal data.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n25",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.8 \nEnsure that personal data is secure",
+    "page_number": 24
+  },
+  {
+    "chunk_id": "08da8cc16ee93ae938ca4c5120f12c9089652e9d99cbff134ca670df0a014e56",
+    "text": "5.9 \nMake systems resilient to outages\n\nThe aim of the provisions in the present clause is to ensure that IoT services are kept up and running as the adoption of \nIoT devices across all aspects of a consumer's life increases, including in functions that are relevant to personal safety. It \nis important to note that safety-related regulations can apply, but the key is to avoid making outages the cause of impact \non the user and to design products and services that provide a level of resilience to these challenges.\n\nProvision 5.9-1 Resilience should be built in to consumer IoT products, taking into account the possibility of outages of \ndata networks and power.\n\nProvision 5.9-2 Consumer IoT devices should remain operating and locally functional in the case of a loss of network \naccess and should recover cleanly in the case of restoration of a loss of power.\n\nNOTE: \n\"Recovering cleanly\" normally involves resuming connectivity and functionality in the same or improved \nstate.\n\nProvision 5.9-3 The consumer IoT device should connect to networks in an expected, operational and stable state and \nin an orderly fashion, taking the capability of the infrastructure into consideration.\n\nEXAMPLE 1: \nA Smart Home loses connection to the internet following a power outage. When the network \nconnection is restored, the consumer IoT devices in the home reconnect after a randomized delay \nto minimize network utilization.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.9 \nMake systems resilient to outages",
+    "page_number": 24
+  },
+  {
+    "chunk_id": "9d2f632a9099247886c9f88e7c2103c76dadf8931f187b0c3997383d0643e30a",
+    "text": "EXAMPLE 2: \nAfter making an update available, the manufacturer notifies consumer IoT devices in batches to \nprevent them all simultaneously downloading the update.\n\nIoT systems and devices are relied upon by consumers for increasingly important use cases that can be safety-relevant \nor life-impacting. Keeping services running locally if there is a loss of network is one of the measures that can be taken \nto increase resilience. Other measures can include building redundancy into associated services as well as mitigations \nagainst Distributed Denial of Service (DDoS) attacks or signalling storms, which can be caused by mass-reconnections \nof consumer IoT devices following an outage. It is expected that the level of resilience necessary is proportionate and \ndetermined by usage, with consideration given to others that rely on the system, service or consumer IoT device given \nthat an outage can have a wider impact than expected.\n\nOrderly reconnection means in a manner that takes explicit steps to avoid simultaneous requests, such as for software \nupdates or reconnections, from a large number of IoT devices. Such explicit steps can include the introduction of a \nrandom delay before a reconnection attempt according to an incremental back-off mechanism.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.9 \nMake systems resilient to outages",
+    "page_number": 25
+  },
+  {
+    "chunk_id": "6267f5f6953ebd2f5a388c8f3b53429fdf520c2047b7ef518476db00ef1c6b6b",
+    "text": "5.10 \nExamine system telemetry data\n\nProvision 5.10-1 If telemetry data is collected from consumer IoT products, such as usage and measurement data, it \nshould be examined for security anomalies.\n\nEXAMPLE 1: \nSecurity anomalies can be represented by a deviation from normal behaviour of the consumer IoT \ndevice, as expressed by the monitored indicators, for example an abnormal increase of failed login \nattempts.\n\nEXAMPLE 2: \nTelemetry from multiple devices allows a manufacturer to notice that updates are failing due to \ninvalid software update authenticity checks.\n\nExamining telemetry, including log data, is useful for security evaluation and allows for unusual circumstances to be \nidentified early and dealt with, minimizing security risk and allowing quick mitigation of problems.\n\nClause 6 of the present document contains provisions specific to protecting personal data when telemetry data is \ncollected.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.10 \nExamine system telemetry data",
+    "page_number": 25
+  },
+  {
+    "chunk_id": "36fb36c51565328eb2f40eae94b8f15d2f6e99be7bb04af5518f282b99a0e71e",
+    "text": "5.11 \nMake it easy for users to delete user data\n\nIn the following, the term \"delete\" refers to the software-based process of making data no longer present, accessible or \nrecognizable.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n26\n\nThe simplest form of deleting data is to free up the occupied space by using the respective file system. The data remain \non the storage system until the respective space is being reused and overwritten. A stronger form of deletion is \n\"erasure\", a deliberate process with the aim of making it impractical to recover the data; e.g. by overwriting the data.\n\nConsumer IoT devices often change ownership and will eventually be recycled or disposed of. Mechanisms can be \nprovided that allow the consumer to remain in control and delete personal data from services, devices and applications. \nWhen a consumer wishes to completely delete their personal data, they also expect retrospective deletion of backup \ncopies.\n\nDeleting personal data from a device or service is often not simply achieved by resetting a device back to its factory \ndefault state. There are many use cases where the consumer is not the owner of a device, but wishes to delete their own \npersonal data from the device and all associated services such as cloud services or mobile applications.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.11 \nMake it easy for users to delete user data",
+    "page_number": 25
+  },
+  {
+    "chunk_id": "e53fa4523f42cee400ed1e17cb46a8b1b1dbad9d5cc6969f8fec596b92b24092",
+    "text": "EXAMPLE: \nA user can have temporary usage of consumer IoT products within a rented apartment. Carrying \nout a factory reset of the product can delete configuration settings or disable the device to the \ndetriment of the apartment owner and a future user. A factory reset, deleting all data from the IoT \ndevice, would not be an appropriate way to delete the personal data of a single user in a shared use \ncontext such as this.\n\nNOTE 1: Annex A of the present document contains an example model of device states including data storage for\n\neach state.\n\nDeletion functionality is intended especially for situations when there is a transfer of ownership, when the consumer \nwishes to delete personal data, when the consumer wishes to delete a service from the device and/or when the consumer \nwishes to dispose of the device. It is expected that such functionality is compliant to applicable data protection law, \nincluding the GDPR [i.7].\n\nDeleting personal data \"easily\" means that minimal steps are required to complete that action that each involve minimal \ncomplexity.\n\nSuch a deletion functionality can potentially present an attack vector.\n\nProvision 5.11-1 Users shall be provided with functionality such that all their user data can be erased from the \nconsumer IoT device in a simple manner.\n\nNOTE 2: User data in this context means all individual data which is stored on the IoT device including personal\n\ndata, user configuration and cryptographic material such as user passwords or keys.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.11 \nMake it easy for users to delete user data",
+    "page_number": 26
+  },
+  {
+    "chunk_id": "bf854a96f9908693f2e1ce3c86a5b4f77350c0a45f3471ae5f2544b4082ffce0",
+    "text": "NOTE 3: User data in this context refers to the data that is created by the user or generated by the device as a result\n\nof user activity (e.g. event logs). It does not include data that would be present prior to the user's first \nusage of the device.\n\nProvision 5.11-2 The consumer should be provided with functionality on the consumer IoT device such that personal \ndata can be deleted from associated services in a simple manner.\n\nProvision 5.11-3 Users should be given clear instructions on how to delete and where possible to erase their personal \ndata from the device and associated services.\n\nProvision 5.11-4 Users should be provided with clear confirmation that personal data has been deleted and where \npossible erased from devices and associated services.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.11 \nMake it easy for users to delete user data",
+    "page_number": 26
+  },
+  {
+    "chunk_id": "7610fbf76975ac03b76f045972babbdbd4901e272dce8158dc709ec9000200e9",
+    "text": "5.12 \nMake installation and maintenance of devices easy\n\nProvision 5.12-1 Installation and maintenance of consumer IoT should involve minimal decisions by the user and \nshould follow security best practice on usability.\n\nEXAMPLE 1: \nThe user uses a wizard to setup the consumer IoT device where a subset of configuration options is \npresented with the common defaults already specified and with appropriate security options \nalready turned on by default.\n\nSecurity issues caused by consumer confusion or misconfiguration can be reduced and sometimes eliminated by \nproperly addressing complexity and poor design in user interfaces.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n27\n\nEXAMPLE 2:  \nThe user is able to restore the IoT product to a factory default state from the product itself or its \nassociated services.\n\nEXAMPLE 3:  \nThe IoT product through its associated services applies configuration changes to any selected IoT \nDevices owned by the consumer.\n\nProvision 5.12-2 The manufacturer should provide users with guidance on how to securely set up their consumer IoT \ndevice.\n\nHowever, the ideal is for a process that involves the minimum of human intervention and which achieves a secure \nconfiguration automatically.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.12 \nMake installation and maintenance of devices easy",
+    "page_number": 26
+  },
+  {
+    "chunk_id": "0a5f70d7f8dfa61a2dcb1f073bf3115790deb2ad5afbf89b5405841f4244c686",
+    "text": "Clear guidance to users on how to configure consumer IoT devices securely can also reduce their exposure to threats. \nAn inventory of the IoT Devices in an IoT Product can be visible from the associated services including version, \napplied patches and updates for the user's convenience.\n\nProvision 5.12-3 The manufacturer should provide users with guidance on how to check whether their consumer IoT \ndevice is securely set up and maintained in a secure state.\n\nIn the general case, the average overhead of securely setting up a consumer IoT device is higher than the average \noverhead of checking whether a consumer IoT device is securely setup. The check of a secure setup, from a process \nstandpoint, can be undertaken in large part by the manufacturer through an automated process that communicates with \nthe consumer IoT device remotely. Part of such an automated process could include validation of the consumer IoT \ndevice's capacity to establish a secure communication channel.\n\nThe manufacturer can help consumers keep their device secure by providing or communicating updated security \ninformation (i.e. terms of service, features, guidelines, instructions and notifications, etc.), in simple language and \ntimely manner.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.12 \nMake installation and maintenance of devices easy",
+    "page_number": 27
+  },
+  {
+    "chunk_id": "1b26dd6e27680a328b4bd3a75e0046e77142b3ce48d8044ce7fa9d55aef168ec",
+    "text": "5.13 \nValidate input data",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "5.13 \nValidate input data",
+    "page_number": 27
+  },
+  {
+    "chunk_id": "2dccea2eba7dd44b622f656cb159ab8c8402fc1f99dc03a3071c72b26119ed2a",
+    "text": "Provision 5.13-1 Void.\n\nProvision 5.13-1A Data input at application layer to the device via user interfaces shall be validated by the device \nregarding unexpected data input to prevent system manipulations and failures.\n\nEXAMPLE 1: \nManipulation of the integrated database via SQL injection over a user interface is mitigated via \ndiscarding invalid data input.\n\nSystems can be subverted by incorrectly formatted data or code transferred across different types of interface. \nAutomated tools such as fuzzers can be used by attackers or testers to exploit potential gaps and weaknesses that \nemerge as a result of not validating data.\n\nEXAMPLE 2: \nThe consumer IoT device receives data that is not of the expected type, for example executable \ncode rather than user inputted text. The software on the consumer IoT device has been written so \nthat the input is parameterized or \"escaped\", preventing this code from being run.\n\nProvision 5.13-1B Data input at application layer to the device via network interfaces shall be validated by the device \nregarding unexpected data input to prevent system manipulations and failures.\n\nNOTE: \nThis includes network accessible APIs without prior authentication and network accessible APIs for \nauthentication mechanisms.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.13-1 Void.",
+    "page_number": 27
+  },
+  {
+    "chunk_id": "320017b0728d3c39fbe45020c13ead45352eed19b2ee814d91e633f656c14040",
+    "text": "EXAMPLE 3: \nOut of range data is received by a temperature sensor. Rather than trying to process this input, the \nconsumer IoT device identifies that the data are outside of the possible bounds, discards the data \nand captures the event as telemetry data.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n28",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 5.13-1 Void.",
+    "page_number": 27
+  },
+  {
+    "chunk_id": "da086e7033233436902394a269ba08ab34b8309e9cd76e02d1bbe19de9ec93ae",
+    "text": "6 \nData protection provisions for consumer IoT\n\nMany consumer IoT devices process personal data. Consumers have an expectation that they will be able to protect their \npersonal data by configuring IoT device and associated service functionality appropriately. Hence, itis expected that \nmanufacturers provide features within consumer IoT devices that support the protection of such personal data. In \naddition, there exist laws and regulations that relate to the protection of personal data in consumer IoT devices (for \nexample the GDPR [i.7]). The present document intends to help manufacturers of consumer IoT devices provide a \nnumber of features for the protection of personal data from a strictly technical perspective.\n\nProvision 6-1 The manufacturer shall provide consumers with clear and transparent information about what personal \ndata is processed and for what purposes, by whom, and for how long, for each consumer IoT device and associated \nservice. This also applies to third parties that can be involved, including advertisers.\n\nEXAMPLE 1: \nThis information could be provided by the manufacturer in a privacy policy.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "6 \nData protection provisions for consumer IoT",
+    "page_number": 27
+  },
+  {
+    "chunk_id": "e2a354007684c574333f959fdc7d667abb60b3539e95499324035a45af59716e",
+    "text": "EXAMPLE 2: \nA smart health tracker app stores medical information (sleep profiles, pulse readings, blood \npressure), and activity information (step counts, running speed and location), from paired smart \nfitness devices belonging to the user. This information is provided in a centralized service in order \nfor users to track their training activities and change in fitness over time. This data is held by the \nmanufacturer as the provider of the service, it is not made available to any third parties except as \nregulated by law. The data is retained until either the user deletes it, or the user's account is \ndeactivated (after 90 days of inactivity or by user action).\n\nTo support the information to the user, the manufacturer has a process in place to inform the user with a notification if \npersonal data was compromised as described by the vulnerability management process.\n\nProvision 6-2 Where personal data will be processed on the basis of consumers' consent, the consumer IoT device shall \nprovide a means to acquire this consent in a valid way.\n\nObtaining consent \"in a valid way\" normally involves giving consumers a free, obvious and explicit opt-in choice of \nwhether their personal data can be used for a specified purpose (see also the ETSI TR 103 621 [i.31] for some \nexamples).",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "6 \nData protection provisions for consumer IoT",
+    "page_number": 28
+  },
+  {
+    "chunk_id": "2f329c185833a577c5362285f1ed2c905b54bb3b60843faf7dc29202bc076775",
+    "text": "Provision 6-3 Void.\n\nProvision 6-3A Where personal data will be processed on the basis of consumers' consent, the consumer IoT device \nshall provide a means to withdraw this consent at any time.\n\nProvision 6-3B Where personal data will be processed on the basis of consumers' consent, the consumer IoT device \nshall provide a means of storing information about this consent.\n\nEXAMPLE 3: \nThe device stores timestamps indicating when consent was given or withdrawn, and the data \nprocessing purposes covered by the consent.\n\nProvision 6-4 If telemetry data is collected from consumer IoT products, the processing of personal data should be \nlimited to that which is necessary for the intended functionality identified in provision 6-5.\n\nSome telemetry cannot be easily collected without a risk of personal data collection (e.g. crash dumps). Where \ntelemetry data could contain personal data, the use of techniques such as data anonymization can reduce the risk of \npersonal data compromise if the processing does not require the personal data.\n\nProvision 6-5 If telemetry data is collected from consumer IoT products, consumers shall be provided with information \non what telemetry data is collected, how it is being used, by whom, and for what purposes.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 6-3 Void.",
+    "page_number": 28
+  },
+  {
+    "chunk_id": "b728b96c7729e7489e6754e8f6e17ba22dfb3c7796561e443ae386f26768ed48",
+    "text": "Provision 6-6 Data stored and processed on a consumer IoT device, or made available to an associated service by the \nconsumer IoT device, for purposes identified in provision 6-1 shall be limited to that which is necessary for the purpose \nfor which it is being collected or processed, and deleted once no longer necessary for any of the purposes identified.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n29\n\nEXAMPLE 4: \nA smart Television stores user viewing history and user program ratings in order to suggest \nprograms of interest to the user and save them for later viewing. The viewing history is stored on \nthe device for up to 1 year, after which it deemed no longer relevant for this purpose and deleted. \nUser ratings are retained indefinitely on the device but can be deleted by the user. The programs \nautomatically saved are replaced after 28 days by default, with the user able to configure their own \nretention policy, including indefinite retention. The viewing history is also made available to the \noperator by the device for the purpose of improving suggestions only if the user has consented to \nthis collection.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 6-3 Void.",
+    "page_number": 28
+  },
+  {
+    "chunk_id": "0b6d58941702157ad8683aeb9f4159d17207349df9eed953953270ac4c038b89",
+    "text": "Provision 6-7 When the purpose of data collection from consumer IoT devices, or processing on the consumer IoT \ndevice, is solely to compute an aggregate result, the data collected should be the minimum required to compute the \naggregate, the aggregation should happen as early as possible, and the retention of both collected data and the resulting \naggregate should be minimized.\n\nEXAMPLE 5: \nFederated learning and analytics enable multiple devices to collaboratively train machine learning \nmodels or compute data queries, under the coordination of a central server. Each device's raw data \nis stored locally and not exchanged or transferred; instead, focused updates intended for immediate \naggregation are uploaded to achieve the learning objective.\n\nProvision 6-8 Data anonymization technologies should be used to protect privacy during data collection, processing \nand storage.\n\nEXAMPLE 6:  \nIoT devices may locally add protective noise to data before sending it to centralized aggregators or \nprocessing coordinators.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n30",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Provision 6-3 Void.",
+    "page_number": 29
+  },
+  {
+    "chunk_id": "8c717e799e79c5e7f7e0930b4067ec325e1333fe253239dbb1046242f2cf8797",
+    "text": "Annex A (informative): \nBasic concepts and models",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Annex A (informative): \nBasic concepts and models",
+    "page_number": 29
+  },
+  {
+    "chunk_id": "446934c0f4848817924c5f841dbc997f29e11bdc4aec41d91eb1e2a835f5c26a",
+    "text": "A.1 \nArchitecture\n\nA consumer IoT device is a collection of hardware and software components, generally with physical interfaces which \ncan also be network interfaces. A general example and a specific \"Smart Speaker\" sophisticated example are shown \nbelow in figure A.1. These architectures are informative and it is not expected that a consumer IoT device would have \nall or some of the components pictured.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "A.1 \nArchitecture",
+    "page_number": 29
+  },
+  {
+    "chunk_id": "f41d7ec4f9c7b7e0b808603058dccd4839968dbdc085c597ac555d3c86929f82",
+    "text": "Figure A.1: Examples of a general architecture of a consumer IoT device and",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Figure A.1: Examples of a general architecture of a consumer IoT device and",
+    "page_number": 29
+  },
+  {
+    "chunk_id": "4965a59f5665794562b09848a8438a8f633b0fea81c0b988e820fa7ed84e1c61",
+    "text": "of an architecture for a Smart Speaker\n\nConsumer IoT deployed in the home will often consist of a variety of consumer IoT devices with or without resource \nconstraints that will be connected to the LAN, either directly through IP connectivity, such as over Ethernet or Wi-Fi\u00ae, \nor indirectly via a gateway or hub. This indirect connection to the LAN will generally use non-IP connectivity (e.g. \nprotocols based on IEEE 802.15.4 [i.24]). A router will then connect the LAN to the WAN (i.e. the Internet). In some \ncases, however, a consumer IoT device within the home can connect directly to the WAN over other non-IP or IP \nconnections (such as GSM or LoRaWAN).\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n31\n\nConsumer IoT devices in the home will often connect outwards to (or be connected into by) online or local services. In \nthe present document those that are included by the manufacturer (for example telemetry, or a companion mobile \napplication) or that have to be installed as part of the initialization are classed as associated services - in cases where the \nuser chooses to install a service, or access external content then these would not count as associated services. For \nexample, some scenarios:\n\n\u2022 \nwebsites accessed via a consumer IoT device's browser are likely to not be associated services as the user is \ndeciding to access them, not the developer of the consumer IoT device software;",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "of an architecture for a Smart Speaker",
+    "page_number": 29
+  },
+  {
+    "chunk_id": "3724c6250dd6bcc57bc74ddeb9d588bd8c2c6451d10dff569d491b03f95752de",
+    "text": "\u2022 \nsoftware applications (such as an \"app\" that might be installed on a Smart Television) that run on a consumer \nIoT device; if they are installed by default and the user cannot easily delete them, then they would generally be \nclassified as associated services. If, however, they are installed through a store at the choice of the user, then \nthey would not be associated;\n\n\u2022 \nconnecting to a telemetry platform would be an associated service as this is usually pre-configured by the \ndevice manufacturer.\n\nFigure A.2 provides an example of an architecture for this model of deployment. The \"home\" boundary represents the \napproximate extent of the scope defined for the present document - including communication to associated services.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "of an architecture for a Smart Speaker",
+    "page_number": 31
+  },
+  {
+    "chunk_id": "10d55de93183ef5652b8f138b2e606342b5a4beb21f0c26f4d210158b3754f2b",
+    "text": "Figure A.2: Example of a reference architecture for consumer IoT deployment in a home environment\n\nFigure A.3 shows an example, realistic, deployment of consumer IoT within a home. The following use-cases illustrate \nhow this setup would be used and clarify what would and would not be covered under definitions:\n\n\u2022 \nThe Smart Television communicates with two external services. The first is the Device Telemetry Service (an \nassociated service); this captures, with user permission, information from the Television such as crash logs and \ndata on usage to enable the developers to fix software defects and prioritize development of new functionality. \nThe Smart Television also connects to a Video Sharing Service through an application downloaded by the user \nafter initialization. This Video Sharing Service enables a user to watch entertainment via a third-party \napplication, which is installable within the operating system used by the Television. This streaming service \nwould not be an associated service.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n32\n\n\u2022 \nThe Gateway provides access to a variety of consumer IoT devices with resource constraints, including an \nIEEE 802.15.4 [i.24] mesh network and a Light Sensor, used to monitor and manage the home. It connects to a \nCloud Access Service that enables the user to control their Smart Lock remotely and see data from sensors. \nThis is an associated service.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Figure A.2: Example of a reference architecture for consumer IoT deployment in a home environment",
+    "page_number": 31
+  },
+  {
+    "chunk_id": "4ae6e70c70d24c9e40bc82ca188b1d774cc73edb5665cf667ad78c9e12a7edf3",
+    "text": "\u2022 \nThe Smart Fridge has a web browser installed; this allows the user to view headlines from a news website \nwhile nearby. The news website would not be an associated service.\n\n\u2022 \nThe Weather Sensor is used by the user to check the temperature outside their home. As it is physically remote \nfrom the home itself it is unable to connect to the LAN. Instead it communicates via GSM directly to the \nWAN. The service the Weather Sensor connects to is an associated service.",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Figure A.2: Example of a reference architecture for consumer IoT deployment in a home environment",
+    "page_number": 32
+  },
+  {
+    "chunk_id": "6c628ebc1878d9c23669ceaadcdc7008a8018f154915356c018b508a31899448",
+    "text": "Figure A.3: Example architecture of a consumer IoT deployment",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Figure A.3: Example architecture of a consumer IoT deployment",
+    "page_number": 32
+  },
+  {
+    "chunk_id": "1192e674a11aba43648b0695a5d5baf53ded7a4808da7dc366f7b2db06aec124",
+    "text": "A.2 \nDevice states\n\nDecommissioning consumer IoT devices is out of scope of the present document. A decommissioned consumer IoT \ndevice is in a state where sensitive data is not present. A consumer IoT device (from manufacturing to \ndecommissioning) will transition between several states. These transitions are illustrated in figure A.4, to make clear \nhow the defined states could be used in a consumer IoT device. In this model, a decommissioned consumer IoT device \nwould be in the Factory Default state, as the Factory Reset process is likely to be the process used to remove all user \ndata and configuration.\n\nEXAMPLE: \nWhen decommissioned, a consumer IoT device can be recycled, resold or destroyed.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n33",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "A.2 \nDevice states",
+    "page_number": 32
+  },
+  {
+    "chunk_id": "018c0961979db14269df9b35cb08a2f40b9c816aa21ee3c32eebefc67df9cd20",
+    "text": "Figure A.4: State diagram for consumer IoT device states\n\nWithin these states, figure A.5 shows an example model for what data would be stored within an arbitrary consumer IoT \ndevice. It is not expected that this would be the same for every case.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n34",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Figure A.4: State diagram for consumer IoT device states",
+    "page_number": 32
+  },
+  {
+    "chunk_id": "9d09a37ec48fe699ed91a23f39ef2b0dfdd967a55769b2490705b44463262b39",
+    "text": "Figure A.5: Model of example device storage in states",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Figure A.5: Model of example device storage in states",
+    "page_number": 32
+  },
+  {
+    "chunk_id": "305cab815cfd13cdfe224d437221fdf76b481dbec0283ffe2001a81bee294c4e",
+    "text": "A.3 \nInterfaces\n\nThe present document defines and makes use of several types of interfaces, illustrated in figure A.6. Physical interfaces \nsuch as:\n\n\u2022 \nantennas or RJ45 sockets for communication via a network;\n\n\u2022 \nserial communication interfaces for debugging purposes e.g. via JTAG or UART; or\n\n\u2022 \ninterfaces for wired point-to-point connections e.g. via USB;\n\nenable communication on physical layer. Logical interfaces such as web interfaces for users, APIs for other devices or \n(associated) services or provided by network stacks typically make use of physical interfaces for communication. User \ninterfaces either enable direct interaction with the user e.g. via buttons, screens, speaker or audio/video recorder or are \nimplemented as logical interfaces accessible via physical interfaces.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n35",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "A.3 \nInterfaces",
+    "page_number": 32
+  },
+  {
+    "chunk_id": "01e876ba8f7cd54b42e91d783bbf7d0858649c153ed96b103704e2f5cf4f2b7f",
+    "text": "Figure A.6: Model illustrating interfaces",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Figure A.6: Model illustrating interfaces",
+    "page_number": 32
+  },
+  {
+    "chunk_id": "f20270b35254b525e626bf526bebeb2e6e8b473be3559b88153dc6f9c6f43d01",
+    "text": "1\n2\n3\n4\n5\n6\n7\n8\n9\n*\n0\n#\n\nON/\nOFF\nWPS\nRES\n\nButtons\n\nPIN Pad\n\nUSB Ports\n\nJTAG\n\nWi-Fi\u00ae\n\nEthernet",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "1\n2\n3\n4\n5\n6\n7\n8\n9\n*\n0\n#",
+    "page_number": 32
+  },
+  {
+    "chunk_id": "4a222fa9a8f515f8337e08f85160cc6212f3189f65a23645a3ccd0d063b47832",
+    "text": "Consumer \nIoT Device\n\nScreen/Touchpad\n\nWeb Interface\nfor User Login\n\nIP Interface\n\nWeb Interface\n\nUser File \nExchange\n\nAPI for Cloud \nCommunication",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Consumer \nIoT Device",
+    "page_number": 32
+  },
+  {
+    "chunk_id": "cb55bf36fd73eae0f06f8b2ba0b7d29cfc2e6e37a485d2bcd339eaa17437d5ca",
+    "text": "network interface\n\ndebug interface\n\nphysical interface\n\nlogical interface\n\nNFC\n\n********\n\nuser\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n36",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "network interface",
+    "page_number": 32
+  },
+  {
+    "chunk_id": "4f3b98ad06ca54b854e5d5d3d2ec76922f16aeb8d186d10135506266060b381d",
+    "text": "Annex B (informative): \nImplementation conformance statement pro forma\n\nNotwithstanding the provisions of the copyright clause related to the text of the present document, ETSI grants that \nusers of the present document can freely reproduce the pro forma in the present annex so that it can be used for its \nintended purposes and can further publish the completed annex including table B.1.\n\nTable B.1 can provide a mechanism for the user of the present document (who is expected to be an entity involved in \nthe development or manufacturing of consumer IoT) to give information about the implementation of the provisions \nwithin the present document.\n\nThe reference column gives reference to the provisions in the present document.\n\nThe status column indicates the status of a provision. The following notations are used:\n\nM \nThe provision is a mandatory requirement\n\nR \nThe provision is a recommendation\n\nC \nThe provision is conditional. If the condition is not satisfied, the provision can be marked as N/A \nin an implementation conformance statement.\n\nF \nThis provision applies to a feature, capability or mechanism. The existence of the feature, \ncapability or mechanism is not determined to be mandatory/recommended by the provision. If the \nfeature, capability or mechanism does not exist, the provision can be marked as N/A in an \nimplementation conformance statement.\n\nNOTE 1: Where the Feature (F) notation is used, the provision applies to all instances of the feature. The feature,",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Annex B (informative): \nImplementation conformance statement pro forma",
+    "page_number": 32
+  },
+  {
+    "chunk_id": "14f7c5a482bb06aba62bd5e7de7795bfe49d80b1e570e40b02ad6408e454552f",
+    "text": "capability or mechanisms are identified by the lettered footnotes at the bottom of the table with references \nprovided for the relevant provisions.\n\nNOTE 2: Where the Conditional (C) notation is used, this is conditional on the text of the provision. The conditions\n\nare provided in the numbered footnotes at the bottom of the table with references provided for the \nrelevant provisions to help with clarity.\n\nThe support column can be filled in by the user of the present document. The following notations are used:\n\nY \nThe provision is supported by the implementation\n\nN \nThe provision is not supported by the implementation\n\nN/A \nThe provision is not applicable, either because a condition is not satisfied, or because a feature, \ncapability or mechanism the provision applies to does not exist.\n\nThe detail column can be filled in by the user of the present document:\n\n\u2022 \nIf a provision is supported by the implementation, the entry in the detail column is to contain information on \nthe measures that have been implemented to achieve support.\n\n\u2022 \nIf a provision is not supported by the implementation, the entry in the detail column is to contain information \non the reasons why implementation is not possible or not appropriate.\n\n\u2022 \nIf a provision is not applicable, the entry in the detail column is to contain the rationale for this determination.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n37",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Annex B (informative): \nImplementation conformance statement pro forma",
+    "page_number": 36
+  },
+  {
+    "chunk_id": "ca0da0a77590de92526e5546f5bd10a7f25fae1090cb993893fa7d270f121721",
+    "text": "Table B.1: Implementation of provisions for consumer IoT security",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Table B.1: Implementation of provisions for consumer IoT security",
+    "page_number": 36
+  },
+  {
+    "chunk_id": "4657a0e7b350565e897032eb23b9f6b299601eb550529ce7f02254c3f176682b",
+    "text": "Clause number and title \nReference \nStatus \nSupport \nDetail \n5.0 Reporting implementation \nProvision 5.0-1 \nM \n \n \n5.1 No universal default passwords \nProvision 5.1-1 \nM F (a) \n \n \nProvision 5.1-2 \nM F (b) \n \n \nProvision 5.1-2A \nR \n \n \nProvision 5.1-3 \nM F (c) \n \n \nProvision 5.1-4 \nM F (d) \n \n \nProvision 5.1-5 \nM C F (14, e) \n \n \n5.2 Implement a means to manage reports of vulnerabilities \nProvision 5.2-1 \nM \n \n \nProvision 5.2-2 \nR \n \n \nProvision 5.2-3 \nR \n \n \n5.3 Keep software updated \nProvision 5.3-1 \nR F (f) \n \n \nProvision 5.3-2 \nM C (15) \n \n \nProvision 5.3-3 \nM F (g) \n \n \nProvision 5.3-4A \nR F (g) \n \n \nProvision 5.3-4B \nR F (h) \n \n \nProvision 5.3-5 \nR F (g) \n \n \nProvision 5.3-6A \nR F (h) \n \n \nProvision 5.3-6B \nR F (i) \n \n \nProvision 5.3-7 \nM F (g) \n \n \nProvision 5.3-8 \nM C (12) \n \n \nProvision 5.3-9 \nR F (g) \n \n \nProvision 5.3-10 \nM F (j) \n \n \nProvision 5.3-11 \nR C (12) \n \n \nProvision 5.3-12 \nR C (12) \n \n \nProvision 5.3-13 \nM \n \n \nProvision 5.3-14 \nR C (3) \n \n \nProvision 5.3-15A \nR C (3) \n \n \nProvision 5.3-15B \nR C (3) \n \n \nProvision 5.3-16 \nM \n \n \n5.4 Securely store sensitive security parameters \nProvision 5.4-1 \nM F (k) \n \n \nProvision 5.4-2 \nM F (l) \n \n \nProvision 5.4-3 \nM \n \n \nProvision 5.4-4 \nM F (m) \n \n \n5.5 Communicate securely \nProvision 5.5-1 \nM \n \n \nProvision 5.5-2 \nR \n \n \nProvision 5.5-3 \nR \n \n \nProvision 5.5-4 \nR \n \n \nProvision 5.5-5 \nM F (n) \n \n \nProvision 5.5-6 \nR F (o) \n \n \nProvision 5.5-7 \nM F (o) \n \n \nProvision 5.5-8 \nM C (16) \n \n \n5.6 Minimize exposed attack surfaces \nProvision 5.6-1 \nM F (p) \n \n \nProvision 5.6-2 \nM \n \n \nProvision 5.6-3 \nR \n \n \nProvision 5.6-4A \nM F (q) \n \n \nProvision 5.6-4B \nR F (r) \n \n \nProvision 5.6-5 \nR \n \n \nProvision 5.6-6 \nR \n \n \nProvision 5.6-7 \nR \n \n \nProvision 5.6-8 \nR \n \n \nProvision 5.6-9 \nR \n \n \n5.7 Ensure software integrity \nProvision 5.7-1 \nR \n \n \nProvision 5.7-2 \nR F (s)",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Table B.1: Implementation of provisions for consumer IoT security",
+    "page_number": 37
+  },
+  {
+    "chunk_id": "b8b9048bc10187ba3d4cc469451d342e81d7bb16b1176fd5e7145f919567e9af",
+    "text": "ETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n38",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Table B.1: Implementation of provisions for consumer IoT security",
+    "page_number": 38
+  },
+  {
+    "chunk_id": "f67b5c4733067a31cc9ce6af07558545f1d7256cfa477a5f40216f71e107f5f4",
+    "text": "Clause number and title \nReference \nStatus \nSupport \nDetail \n5.8 Ensure that personal data is secure \nProvision 5.8-1 \nR F (t) \n \n \nProvision 5.8-2 \nM F (u) \n \n \nProvision 5.8-3 \nM F (v) \n \n \n5.9 Make systems resilient to outages \nProvision 5.9-1 \nR \n \n \nProvision 5.9-2 \nR \n \n \nProvision 5.9-3 \nR \n \n \n5.10 Examine system telemetry data \nProvision 5.10-1 \nR F (w) \n \n \n5.11 Make it easy for users to delete user data \nProvision 5.11-1 \nM  \n \n \nProvision 5.11-2 \nR F (x) \n \n \nProvision 5.11-3 \nR  \n \n \nProvision 5.11-4 \nR  \n \n \n5.12 Make installation and maintenance of devices easy \nProvision 5.12-1 \nR \n \n \nProvision 5.12-2 \nR \n \n \nProvision 5.12-3 \nR \n \n \n5.13 Validate input data \nProvision 5.13-1A \nM  \n \n \nProvision 5.13-1B \nM  \n \n \n6 Data protection provisions for consumer IoT \nProvision 6.1 \nM \n \n \nProvision 6.2 \nM F (y) \n \n \nProvision 6.3A \nM F (y) \n \n \nProvision 6.3B \nM F (y) \n \n \nProvision 6.4 \nR F (w) \n \n \nProvision 6.5 \nM F (w) \n \n \nProvision 6.6 \nM F (z) \n \n \nProvision 6.7 \nR F (aa) \n \n \nProvision 6.8 \nR F (z) \n \n \nCondition: \n3) \nsoftware components are not updateable; \n12) \nan update mechanism is implemented; \n14) \nthe consumer IoT device has no resource constraint determined by the use case that prevents the \nimplementation of a mechanism which makes successful brute-force attacks on authentication mechanisms \nvia network interfaces impracticable; \n15) \nthe consumer IoT device has no resource constraint determined by the use case that prevents the \nimplementation of an update mechanism; \n16) \nexistence of critical security parameters that relate to the consumer IoT device; \n \nFeature, capability or mechanism that needs to be present for the corresponding provision to apply: \na) \npasswords can be used to authenticate users against the device or for machine-to-machine authentication; \nb) \npre-installed unique per device passwords can be used to authenticate users against the device or for \nmachine-to-machine authentication; \nc) \ncryptographic authentication mechanisms, including password based mechanisms, can be used to \nauthenticate users against the consumer IoT device or for machine-to-machine authentication; \nd) \nauthentication mechanisms can be used to authenticate users against the consumer IoT device; \ne) \nauthentication mechanisms can be used for authenticating users or devices via network interfaces; \nf) \nsoftware components that are not immutable due to security reasons; \ng) \nsoftware components of the device can be updated; \nh) \nautomatic software updates are supported; \ni) \nupdate notifications are provided when software updates are available; \nj) \nsoftware updates can be delivered over a network interface; \nk) \nsensitive security parameters exist in persistent storage; \nl) \nhard-coded unique per device identities are used in the consumer IoT device for security purposes; \nm) \ncritical security parameters are used for integrity or authenticity checks of software updates or for protection \nof communication with associated services; \nn) \nthe consumer IoT device allows security-relevant changes in configuration via a network interface; \no) \ncritical security parameters used by the device can be communicated outside of the device; \np) \nunused network or network accessible logical interfaces exist; \nq) \ndebug interfaces exist on the device; \nr) \ndebug interfaces that are physical ports exist on the device;",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Table B.1: Implementation of provisions for consumer IoT security",
+    "page_number": 38
+  },
+  {
+    "chunk_id": "f031ca36700dace1d7f2fc999530ca756346cf6cceedb3ad92f817a8410dc09b",
+    "text": "ETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n39\n\nClause number and title \nReference \nStatus \nSupport \nDetail \ns) \nsecure boot or other mechanism to detect unauthorized changes to IoT device software are supported by \nthe device; \nt) \nthe consumer IoT device sends personal data to associated services; \nu) \nthe consumer IoT device sends sensitive personal data to associated services; \nv) \nthe consumer IoT device includes external sensing capabilities; \nw) \ntelemetry data can be collected from consumer IoT devices and products; \nx) \npersonal data can be stored by an associated service; \ny) \nthe consumer IoT device processes personal data on the basis of consumers' consent; \nz) \nthe consumer IoT device processes personal data; \naa) \ncapabilities to collect data from consumer IoT devices or to processed data on the consumer IoT device, \nwhose purpose is solely to compute an aggregate result.\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n40",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Table B.1: Implementation of provisions for consumer IoT security",
+    "page_number": 39
+  },
+  {
+    "chunk_id": "52acfd6b966b8a0ebc4cf898912d09785563776ffaa1fa7cd27331b23b500036",
+    "text": "Annex C (informative): \nChange history\n\nDate \nVersion \nInformation about changes \nFebruary 2019 \n1.1.1 \nPublication as ETSI TS 103 645 \nJune 2020 \n2.1.1 \nPublication as ETSI EN 303 645 \nTransposition into an EN and expansion to 68 provisions \nJune 2020 \n2.1.2 \nPublication as ETSI TS 103 645 - same technical content as ETSI EN 303 645 v2.1.1 \nJanuary 2024 \n3.1.1 \nPublication as ETSI TS 103 645 \u2013 revision to improve applicability and testability\n\nETSI\n\nETSI EN 303 645 V3.1.3 (2024-09) \n41",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Annex C (informative): \nChange history",
+    "page_number": 39
+  },
+  {
+    "chunk_id": "15792afd7f5214efa43010a3c99f9d4e6278811e5cc34d0338137e9d51e28533",
+    "text": "History",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "History",
+    "page_number": 39
+  },
+  {
+    "chunk_id": "16cf46e2bab3d5316983ebd18d55f26e429af7e9051d6a15e3ec56e317334f06",
+    "text": "Document history\n\nV1.1.1 \nFebruary 2019 \nPublication as TS 103 645\n\nV2.1.1 \nJune 2020 \nPublication\n\nV2.1.2 \nJune 2020 \nPublication as TS 103 645\n\nV3.1.1 \nJanuary 2024 \nPublication as TS 103 645\n\nV3.1.2 \nJune 2024 \nEN Approval Procedure \nAP 20240909: 2024-06-11 to 2024-09-09\n\nV3.1.3 \nSeptember 2024 \nPublication",
+    "metadata": {
+      "category": "iot",
+      "source": "Unknown",
+      "document_name": "en_303645v030103p",
+      "document_type": "pdf",
+      "document_hash": "ce3efec89e392064ad0f8c16082d49e219a5f0641e417fec8cb1da4f1765855c",
+      "extra": {}
+    },
+    "section": "Document history",
+    "page_number": 39
+  }
+]

@@ -1,0 +1,968 @@
+[
+  {
+    "chunk_id": "0519b88a7a0c678d283fd3e2c8c1bb81d0b1ef93e76eb25d6920bba7418fa4cc",
+    "text": "Cyber Security Guidelines for",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Cyber Security Guidelines for",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "bc66992e7109a027420f32c703e787f20b2a652449d4b8bacb0bce0a61573b3c",
+    "text": "Smart City Infrastructure\n\nIn collaboration with\n\nTable of Contents\n\nTitle \nPage No.\n\n1 Introduction \n2\n\n2 Threat Landscape for Smart Cities \n6\n\n3 Cybersecurity Standards and Frameworks for Smart Cities \n14\n\n4 Smart City Cybersecurity Architecture \n15\n\n5 Network Security in Smart City Environments \n19\n\n6 Identity and Access Management (IAM) \n20\n\n7 Data security and Privacy \n22\n\n8 Operational Security for Smart City Command and Control \nCentres\n\n23\n\n9 Internet of Things (IoT) Security in Smart Cities \n25\n\n10 Artificial Intelligence (AI) and Machine Learning (ML) Security \n28\n\n11 Disaster Recovery and Business Continuity Planning \n31\n\n12 Compliance and Legal Considerations \n32\n\n13 API Security \n33\n\n14 Training and Awareness \n35\n\n15 Crisis Management & Incident Response \n36\n\n16 Continuous Monitoring and Threat Intelligence \n38\n\n17 Supply Chain Security, Vendor Management and SBOM \n39\n\n18 Penetration Testing and Vulnerability Management \n40\n\n19 Security Audits and Compliance Checks \n42\n\n20 Conclusion  \n43\n\nReferences \n44\n\nUseful materials and Guidelines \n45\n\nAnnexure I \n46\n\nAnnexure II \n54\n\n1. Introduction\n\nSmart cities are a cornerstone of modern urban development, especially in a\n\nrapidly growing economy like India. The concept of smart cities goes beyond\n\nmere technological advancements, aiming to improve the quality of life for\n\nresidents, ensure sustainability, and drive economic growth. Smart cities provide",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 1
+  },
+  {
+    "chunk_id": "f0ffe177c4e9fb0ff1d7b553b11f56a9d080c380c928b34db19cebe72b32d6d5",
+    "text": "sustainable solutions to manage resources and infrastructure effectively.\n\nSmart Cities Mission was launched by the Hon\u2019ble Prime Minister of India on 25\n\nJune, 2015. The main objective of the Mission is to promote cities that provide\n\ncore infrastructure, clean and sustainable environment and give a decent quality\n\nof life to their citizens through the application of \u2018smart solutions\u2019. The Mission\n\naims to drive economic growth and improve quality of life through\n\ncomprehensive work on social, economic, physical and institutional pillars of the\n\ncity. The focus is on sustainable and inclusive development by creation of\n\nreplicable models which act as lighthouses to other aspiring cities. 100 cities have\n\nbeen selected to be developed as Smart Cities through a two-stage competition.\n\nThe objective of Smart Cities Mission under Ministry of Housing and Urban\n\nAffairs is to promote cities that provide core infrastructure and give a decent\n\nquality of life to its citizens, a clean and sustainable environment and application\n\nof \u2018Smart\u2019 Solutions. The focus is on sustainable and inclusive development and\n\nthe idea is to look at compact areas, create a replicable model which will act like\n\na light house to other aspiring cities\n\nSmart Cities use the digital network as the platform to offer urban services and to\n\nbe sustainable. Using the digital network as the fourth utility - along with\n\nelectricity, water, and natural gas, smart cities can integrate multiple digital",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 3
+  },
+  {
+    "chunk_id": "631e3f654b8bb9d45336b9aae91c99374ee008bb92b220654655fe6b29bfbd5b",
+    "text": "systems to deliver on-demand digital services over a highly secure Internet-\n\nenabled cloud infrastructure. Such digital services and related digital networks\n\ncan help cities address urban challenges as well as improve their liveability index.\n\nThe document aims to establish a foundational digitally resilient framework for\n\nprotecting Smart City digital infrastructure against cyber threats. This document\n\noutlines good practices and architectural strategies for safeguarding Smart City\n\nsystems by the State/Union Territory (UT) Computer Security Incident Response\n\nTeam (CSIRT) and Smart City operators. Smart Cities rely heavily on\n\ninterconnected digital services, IoT devices, and centralized command centres to\n\noptimize urban operations, making them particularly vulnerable to a range of\n\ncyber threats. This document is a joint initiative of Indian Computer Emergency\n\nResponse Team (CERT-In) and M/s Kaspersky.\n\nThe building blocks of a smart city infrastructure consist of a digital network\n\nwhich deploys Internet Protocol (IP), including Wireless and Radio Frequency\n\n(RF) networks, Sensors, associated control systems / applications, Correlation\n\nplatform & a mobile / web / application platforms for citizen interaction. The\n\nbuilding blocks of a Smart City are as shown in Figure 1.\n\nFigure. 1. Components of a Smart city infrastructure\n\n1.1. Key Smart City Infrastructure components\n\nThe components of a Smart city infrastructure are briefly described below.",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 3
+  },
+  {
+    "chunk_id": "c448c197a13f9804f6cd575974d3d3a71354f2fa90fd5cdd11fb0037f9bee1ae",
+    "text": "1.1.1. Sensors / Machines / Infrastructure / People:\n\nThese are the input / output devices in the smart city digital infrastructure and\n\nprovide the information about the various parameters that are being tracked, and\n\ncontrol the various parameters that are being monitored / controlled. These could\n\nbe video cameras used for public safety and security surveillance, smart meters\n\nused for energy / water management, traffic counters used for monitoring traffic,\n\nGlobal Positioning System (GPS)  devices to provide location information about\n\npublic transport, traffic light actuators used to control traffic lights, large variable\n\nmessage displays used to provide / disseminate information to the citizens, public\n\naddress systems used to unicast/ multicast/ broadcast local announcements,\n\ntelemedicine facility etc.\n\n1.1.2. Transport network\n\nThe transport network provides a ubiquitous IP network (mostly IP based, but can\n\nuse other communication protocols as well) across the city which can be used by\n\nthe various sensors, control systems etc. to send information to the desired\n\ndestination. The information content, and hence the source and destination of the\n\ninformation would depend upon the application that is generating this\n\ninformation. For example, for a public safety and security surveillance\n\napplication, the sources would be video cameras installed at multiple points in the\n\ncity, and the destination could be the central control room where the video feeds",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 5
+  },
+  {
+    "chunk_id": "46499f2de01c02bc1c40105a65da9240214b9f858305ac7dfcb2d405a66f68b0",
+    "text": "are being monitored. Similarly, for an Energy management application, the\n\nsources could be smart meters installed at the consumer premises, and the\n\ndestination could be the central power station where the utilization is being\n\nmonitored and controlled. The different types of sensors would use different\n\naccess mechanisms for sending information to the Data Centre (DC) e.g.  Public\n\nsafety and security surveillance cameras might use a captive network / MPLS /\n\nWi-Fi infrastructure, water & energy management sensors might use LoRa/\n\nZigBee based access while garbage bin sensors which are scattered across the city\n\nmight use 3G/ 4G access mechanisms.\n\n1.1.3. Data Centre\n\nThe sensor network generates lots of information that needs to be analyzed and\n\nprocessed before it can become actionable. The information also might need to\n\nbe stored for a certain duration of time for historical analysis or forensic purposes.\n\nOther advanced use cases for data stored in DC would be Machine learning and\n\nAI for planning, forecasting, etc. Hence, a smart city infrastructure requires to\n\nhave a DC that can store the information, and run the applications that can convert\n\nthe raw data from the sensor network into actionable information. Further, as the\n\ndegree of \u2018smartness\u2019 increases, there would be multiple applications and sets of\n\nsensors that would send information about the city with respect to multiple\n\ndimensions. All this information might not be useful unless it is correlated among",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 5
+  },
+  {
+    "chunk_id": "d2bd07411b5a2dd836f1bf5de8ae11c3bd58d2de283969745a568918eb45e0c6",
+    "text": "the multiple sources to eliminate redundant information, and dwell on the\n\nintelligence of other applications to make the applications \u2018smarter\u2019 e.g. the video\n\nfeeds form the public safety and security surveillance systems can be used to\n\naugment the traffic management systems.\n\n1.1.4. Command and Control Centre\n\nThis is the place where the processed information is being monitored and actions\n\nbeing authorized based upon the information received. The term Command and\n\nControl Centre can combine several components as probably the separate parts\n\nmay be controlled by different centres but report to the same governing authority.\n\nSmart city can be envisaged as the composition of parts (infrastructures) related\n\nto smart transportation, smart energy, communal services, notification,\n\nentertainment and information services, and many other systems and services.\n\nThey might have different owners and relate to different areas of responsibility.\n\nIn this case there would be no single command and control centre.\n\n1.2. Target Audience\n\nThe audience for this document includes urban infrastructure managers, policy\n\nmakers, Smart City technology providers and cybersecurity professionals who\n\nmust work together to ensure a resilient and secure environment. The document\u2019s\n\nscope covers the lifecycle of Smart City development from planning and\n\nimplementation to maintenance, and continuous improvement, highlighting the\n\nneed for cybersecurity practices to be integrated at every stage.",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 6
+  },
+  {
+    "chunk_id": "4e3ab6ffc4dc5574f4a83763ea5b34dc0a89f55a95c4a30d08eacaf09015d314",
+    "text": "The document aims to provide a high-level overview of the role that cybersecurity\n\nplays in Smart Cities and why it is essential for maintaining public trust, ensuring\n\nsafety, and preventing operational disruptions. Key challenges, such as the need\n\nfor interoperability across diverse systems and the potential for cyber-physical\n\nharm, are also emphasized. The document also addresses how emerging\n\ntechnologies, including IoT, cloud computing and artificial intelligence (AI),\n\nheighten both the potential and vulnerabilities of Smart City initiatives.\n\n2. Threat Landscape for Smart Cities\n\nThe Smart City ecosystem, with its integration of IoT, cloud computing, and\n\nartificial intelligence, creates a complex attack surface vulnerable to a wide range\n\nof cyber threats.\n\nBy interconnecting different systems, a smart city creates a \u201csystem of systems\u201d.\n\nPrimary challenge with respect to security solution for Smart cities are\n\nheterogeneity of data types, interfaces and carrier types. The complexity of such\n\ncollaborating systems increases exponentially to manage data and privacy of a\n\nSmart City implementation. This creates a huge and complex attack surface with\n\na cascade effect as there are numerous points of attack because of the\n\ninterconnected sensors and devices creating an Internet of Everything.\n\nUnderstanding the threat landscape is vital for developing robust defensive\n\nstrategies.  Key cyber threats include cyber-physical attacks where adversaries",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 7
+  },
+  {
+    "chunk_id": "5b72482644177d580f764d4964b2caa1ce8fa620f28326063ace6d1c47512e79",
+    "text": "target infrastructure components like energy grids, water systems, large message\n\npublic displays, public address systems and public transportation, which can have\n\nsevere consequences for urban safety and functionality. Another major threat is\n\ndata privacy and breach risks, as Smart Cities handle large volumes of sensitive\n\ndata on citizens, making them attractive targets for hackers seeking to steal or\n\nmisuse personal information.\n\nDenial of Service (DoS) attacks pose another critical risk, where essential city\n\nservices can be rendered inoperative, causing widespread disruption to daily life.\n\nSimilarly, malware and ransomware attacks can infiltrate Smart City systems,\n\nencrypt data, and demand ransom payments to restore access, potentially\n\ncrippling municipal operations. The insider threat should not be overlooked, as\n\nmalicious insiders or negligent employees with privileged access could\n\nintentionally or unintentionally compromise security.\n\nThere is no common risk assessment framework for Smart Cities. For each and\n\nevery Smart City operator risk assessment exercise should be done. The risk\n\nassessment helps to identify high-priority risks, assess vulnerabilities, and\n\ndetermine their potential impact on the Smart City infrastructure. It is essential\n\nfor developing tailored security controls that align with the unique needs of each\n\nSmart City. Understanding these threats provides Smart City operators with the",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "57f49453ad58111e203f5958b29cd3f96d58ae571c9d69585d3bc609583e9a9e",
+    "text": "insights needed to prioritize cybersecurity investments and prepare for an\n\nevolving threat landscape. The list of types of risks connected to cybersecurity\n\nmight be as follows (but not limited to):\n\n\uf0b7 Safety, including public safety risks\n\n\uf0b7 Privacy risks\n\n\uf0b7 Unlawful surveillance\n\n\uf0b7 Wrongful announcement\n\n\uf0b7 Data tampering\n\n\uf0b7 Property risks\n\n\uf0b7 Risks of service unavailability (DoS) / Defacement\n\n\uf0b7 Financial and operational risks for the service operators\n\n\uf0b7 Risks connected to the use of infrastructure for unintended purpose.\n\nDifferent stakeholders are involved and they can bear different kinds of risks.\n\nThis is quite important for the proper consideration of the threat landscape. It\n\nmight be useful to consider different risks and concerns for the different groups\n\nof stakeholders.\n\nEach and every system or group of systems within a Smart City may be of interest\n\nto attackers \u2013 from adversarial states to cybercriminals, saboteurs, hacktivists and\n\neven cyber terrorists. Some examples of Smart City functional areas with\n\ncorresponding threats list is provided here.\n\n2.1. Intelligent Transportation System\n\nFigure. 2. Intelligent Transport System\n\nIntelligent Transportation System (ITS) can comprise of many components as\n\npresented in Figure 2. Each element of ITS plays a key role in ensuring safe and\n\nefficient urban mobility. However, their interconnectivity and reliance on digital\n\nsystems expose them to distinct cyber and physical threats.",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 8
+  },
+  {
+    "chunk_id": "586bb460fa050f3452581146a0c629f107a9987a836869f567325ccd15065fa1",
+    "text": "From privacy violations in CCTV systems to infrastructure takeovers and\n\npotential operational disruption by exploitation of the central ITS platform, it is\n\nessential to have robust security measures that address these vulnerabilities\n\ncomprehensively to safeguard urban transportation. The ITS encompass multiple\n\nintegrated elements to optimize urban mobility and each component faces distinct\n\nthreats as follows:\n\n2.1.1. CCTV\n\n\uf0b7 Privacy Violation: Unauthorized access to video feeds could lead to a violation\n\nof citizens' privacy, with footage being used for malicious purposes or\n\nunlawful activity.\n\n\uf0b7 Denial of Service (DoS): Attackers could flood the CCTV system with excess\n\ntraffic to make cameras non-functional, preventing effective monitoring\n\nduring crucial incidents.\n\n\uf0b7 Evidence Compromise: CCTV footage can be crucial for law enforcement.\n\nAttackers could tamper with or delete recordings, compromising their value\n\nas evidence during investigations.\n\n2.1.2. Parking / Charging / Access Control Systems\n\n\uf0b7 Parking Fraud: Attackers could exploit vulnerabilities in payment systems to\n\ncommit parking fee evasion or misuse parking permits, leading to revenue\n\nlosses.\n\n\uf0b7 Vehicle Damage: Cyber or physical attacks on automated parking systems\n\ncould lead to damages to vehicles, either by manipulating the parking\n\nmechanism or gaining unauthorized control over automated parking\n\nstructures.\n\n\uf0b7 Unauthorized Access: Poorly secured systems can be vulnerable to",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 10
+  },
+  {
+    "chunk_id": "8aa8a9a3ca5c9cfaf5fb5f472265d16e5ad3e388b54776c94b65af1daff19833",
+    "text": "unauthorized access, allowing attackers to access restricted areas or alter\n\nparking and charging data.\n\n2.1.3. Central ITS Platform\n\n\uf0b7 Transport Infrastructure Takeover: A compromise of the central ITS platform\n\ncan allow attackers to control critical transportation elements like traffic\n\nsignals, communication infrastructure and public safety and security\n\nsurveillance systems, potentially leading to widespread disruption.\n\n\uf0b7 Pivot Point to Attack Municipal Agencies: The ITS platform often integrates\n\nwith other municipal services, making it a potential pivot point for attackers\n\nto infiltrate other governmental systems and disrupt broader services.\n\n\uf0b7 Public safety and security surveillance: Exploiting the ITS to monitor and\n\ntrack public safety and security of individuals could lead to unauthorized mass\n\nsurveillance, raising significant privacy concerns.\n\n\uf0b7 Operational disruption: Control over the central ITS can facilitate acts of\n\nserious disruption, where an attacker may orchestrate traffic chaos, prevent\n\nemergency responses, or cause life-threatening incidents in densely populated\n\nareas.\n\n2.1.4. Traffic Controllers\n\n\uf0b7 Road Accidents: Malicious actors could manipulate traffic controllers (e.g.,\n\ntraffic lights) to cause confusion at intersections, resulting in increased road\n\naccidents.\n\n\uf0b7 Traffic Jams: Attackers may alter traffic light sequences or road signals to\n\ncreate artificial congestion, which can severely affect daily commutes and\n\nproductivity.",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 11
+  },
+  {
+    "chunk_id": "c35186b6459b208931437b2c34d6627c8247119b390cf984e9046aa2b9cc909f",
+    "text": "\uf0b7 Impact on Emergency Services: Deliberate interference with traffic signals\n\ncould delay or obstruct emergency vehicles, preventing them from reaching\n\ncritical locations, leading to potentially life-threatening consequences.\n\n2.2. Public Service Systems\n\nThe Public service systems represent a critical backbone for effective governance,\n\ncitizen welfare, and infrastructure management. However, they face a broad\n\nspectrum of cyber and physical threats, including data breaches, service\n\ndisruptions, fraud, and unauthorized surveillance. These threats necessitate a\n\nrobust security posture involving strong identity management, access controls,\n\nsystem resilience, and continuous monitoring to safeguard public interests and\n\nmaintain the trust and safety of all citizens in a Smart City.\n\nPublic services in a Smart City typically involve integrated digital platforms that\n\nmanage citizen services, welfare programs, administrative tasks, and public\n\nsafety. Listed below are specific threats faced by various elements of public\n\nservice systems:\n\n2.2.1. Citizen Portals and Digital Services\n\n\uf0b7 Identity Theft: Attackers could exploit vulnerabilities to steal personal\n\ninformation, which can be used for fraudulent activities or impersonation,\n\nseverely compromising citizen trust.\n\nFigure 3: Government Services Systems\n\n\uf0b7 Denial of Service (DoS): Malicious actors could overload government portals,\n\nmaking critical citizen services (e.g., healthcare, benefits, permits)",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 11
+  },
+  {
+    "chunk_id": "43d633571e4a9a5af40836e839a9877dd5e7483c1b41abf5c6887f36cc8eef30",
+    "text": "unavailable, causing public inconvenience.\n\n\uf0b7 Unauthorized Access to Sensitive Data: Weak access controls could lead to\n\nunauthorized access to sensitive citizen data, such as personal details, health\n\nrecords, and welfare information, causing privacy breaches.\n\n2.2.2. e-Government Administrative Platforms\n\n\uf0b7 Personally Identifiable Information (PII) data leaks: Platforms holding\n\nadministrative records, such as birth certificates, property records, PAN Card\n\ndetails, Aadhaar Card details, Driving License Card and voter information,\n\netc. are attractive targets for data breaches, compromising citizens' personal\n\ndata. Compromise of stored sensitive information, including citizen records,\n\ncan lead to data exposure and privacy violations, eroding public trust.\n\n\uf0b7 Malware and Spyware Infiltration: Malware could be introduced by malicious\n\nactors into government networks to monitor activities, gather sensitive data,\n\nor disrupt essential functions, potentially affecting service delivery and\n\nconfidentiality.\n\n\uf0b7 System Manipulation: Attackers might manipulate public records for\n\nfraudulent purposes, such as altering property titles or modifying business\n\nregistration data, leading to legal and financial complications.\n\n2.2.3. Data Centres\n\n\uf0b7 Physical Security Threats: Data centres store vast amounts of sensitive\n\ninformation. Physical intrusions or sabotage attempts pose a risk of data theft,\n\ndamage, or complete service outage.",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 13
+  },
+  {
+    "chunk_id": "e74ca541ebbca75d6dd998e0d65cdddc1f7fed16740c6e9f96a12fa409540d98",
+    "text": "\uf0b7 Insider Threats: Employees or contractors with privileged access might\n\nmisuse their roles to exfiltrate sensitive data, alter configurations, or insert\n\nmalicious software to compromise system integrity.\n\n\uf0b7 Unpatched Systems: Servers and workstations with outdated software are\n\nsusceptible to exploitation through known vulnerabilities, leading to\n\nunauthorized access, data exfiltration, ransomware or data manipulation.\n\n\uf0b7 Targeted Cyberattacks (APT): Data centres may be targeted by Advanced\n\nPersistent Threats (APTs) involving sophisticated and sustained attacks,\n\naimed at gaining unauthorized long-term access to extract valuable\n\ninformation.\n\n2.3. Malware and Vulnerable Systems analysis\n\nCERT-In carried out an analysis of 20 smart cities located in different parts of the\n\ncountry to understand the types of malware and vulnerable systems for the year\n\n2024.\n\nIn Western India, Central India and Northern India the majority of the malware\n\nwas trojans (a malicious digital pest whose sole aim is to wreak havoc on its\n\nvictims' computers unnoticed. It does this by reading passwords, recording\n\nkeyboard strokes or opening the door for further malware that can even take the\n\nentire computer hostage \u2013 as defined by Kaspersky). The top trojans were\n\navalanche-andromeda (the main functionality of this malware family is\n\ndownloading of other malware, which is most often used to electronically spy on\n\nusers) and gamarue (a malware family that is used as a botnet and modular",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 13
+  },
+  {
+    "chunk_id": "8c51ad93ec5b46cf0bff1930c0352399e0d8dc5f1d1958422a1a0932d1a4f25d",
+    "text": "backdoor. It can spread through malicious email attachments, external drives, and\n\nother malware. It can steal information, download and execute other malware,\n\nand create a backdoor for remote access). The most prevalent vulnerability\n\nobserved was allowing remote connections to unauthorized computers.\n\nIn Southern India the majority of the malware was botnets (networks of hijacked\n\ncomputer devices used to carry out various scams and cyberattacks. They serve\n\nas a tool to automate mass attacks, such as data theft, server crashing, and\n\nmalware distribution \u2013 as defined by Kaspersky), the widely found botnet was\n\nSocks5Systemz, that allows the infected system to be used as a proxy thus causing\n\nthe infected systems to unwittingly become participants in criminal activities and\n\nthe most prevalent vulnerability observed was misconfiguration of Simple\n\nNetwork Management Protocol (SNMP) which is at the core of the network\n\ndevices leading to unauthorized access or execution of malicious commands or\n\ninterception of network traffic or a denial of service attack.\n\n3. Cybersecurity Standards and Frameworks for Smart Cities\n\nSmart Cities Mission (SCM), under Ministry of Housing and Urban Affairs\n\n(MoHUA), Government of India has undertaken several initiatives including,\n\ninter alia projects that use digital technologies extensively for various facets of\n\nurban governance. One such initiative is establishment of Integrated Command",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 14
+  },
+  {
+    "chunk_id": "febdc12b6379aeda8be2c04f4936f373139ecebcd6b4b4f021704af8e646b99b",
+    "text": "and Control Centres (ICCCs), being set up in many smart cities to act as decision\n\nsupport systems in day-to-day and emergent situations. Many other ICT\n\ninitiatives are being rolled out in different sectors like mobility, water etc.  In\n\norder to facilitate procurement of these ICCCs / ICT solutions, a Model ICCC\n\nRFP document was developed in year 2016. Model RFP 2.0 was released in 2021.\n\nAs per the Advisory on Standard Operating Procedure for cyber security of smart\n\ncity infrastructure (Advisory no.22) released by Smart Cities Mission (SCM),\n\nunder Ministry of Housing and Urban Affairs (MoHUA), ICCCs were advised to\n\nadopt an end-to-end security model that protects data and the infrastructure from\n\nmalicious attacks, theft, natural disasters etc. The advisory also provides the Base\n\nline Security Measures that need to be taken at Sensor layer, communication\n\nlayer, Data and Application layer. The advisory on Strengthening Cybersecurity\n\nof ICCC Infrastructure in Smart Cities (Advisory no. 24) focusses on the\n\nVulnerability Assessment and Penetration Testing, End point security, Trusted\n\nElectronics value Chain, and Process Audit. The Advisory on Essential Cyber-\n\nsecurity Protocols for ICCC Infrastructure in Smart Cities (Advisory No: 25)\n\nfocusses on the General Cyber Security Protocols, Malware Defense, Password\n\npolicies, Incident Prevention and detection, Securing conference cameras and\n\nemail security best practices.\n\n4. Smart City Cybersecurity Architecture",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 15
+  },
+  {
+    "chunk_id": "c7c916ab19ce7a179105ebaeb9b822c516fb05418ee56ac3dbaf3e208422aed1",
+    "text": "A secure Smart City architecture is critical in ensuring the resilience and\n\nprotection of interconnected urban services. This principles of security-by-\n\ndesign, resilience, scalability, and interoperability not only help to secure the\n\nsmart city systems but also make them adaptable to future requirements and\n\nevolving threats.\n\n4.1. Security by design\n\nSecurity must be embedded into the architecture and development of Smart City\n\nsystems from the outset, rather than being added later as an afterthought. This\n\nincludes:\n\n\uf0b7 Threat modelling during design to identify potential vulnerabilities and\n\nattack vectors early in development.\n\n\uf0b7 Zero Trust Architecture (ZTA) to ensure strict identity verification and\n\nleast privilege access across networks.\n\n\uf0b7 Secure coding practices to minimize software vulnerabilities and prevent\n\ncommon threats such as injection attacks and buffer overflows.\n\n\uf0b7 Multi-layered defense mechanisms, such as firewalls, endpoint protection,\n\nand intrusion detection/prevention systems (IDS/IPS), to provide in-depth\n\nsecurity.\n\n\uf0b7 Privacy-by-Design principles to ensure that personal data is protected,\n\nanonymized where necessary, and processed in compliance with regulatory\n\nrequirements.\n\n4.2. Resilience and continuity\n\nSmart Cities must be designed to withstand, adapt to, and recover from cyber\n\nincidents, natural disasters, or technical failures. This includes:\n\n\uf0b7 Redundant and distributed architectures to ensure continuous operation,",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 16
+  },
+  {
+    "chunk_id": "dbe39411a274162240b865b74c67a20c81e3737eada807b6591d2f21c9fb8a19",
+    "text": "even if a key component is compromised.\n\n\uf0b7 Automated failover mechanisms to switch to backup systems seamlessly\n\nin the event of an attack or failure.\n\n\uf0b7 Cyber-physical resilience planning, ensuring that both digital and physical\n\ninfrastructure (e.g., power grids, traffic systems) remain operational during\n\ncrises.\n\n\uf0b7 Real-time anomaly detection and automated incident response to detect\n\ncyber threats early and mitigate them swiftly.\n\n\uf0b7 Regular penetration testing and disaster recovery drills to test preparedness\n\nand improve response strategies.\n\n\uf0b7 Scalability: Smart Cities must accommodate growing populations,\n\nemerging technologies, and evolving cyber threats. This requires:\n\n\uf0b7 Modular architecture to support new technologies, services, and regulatory\n\nchanges without requiring a complete overhaul.\n\n\uf0b7 Cloud-native and edge computing to efficiently handle large-scale data\n\nprocessing with flexibility and redundancy.\n\n\uf0b7 Adoption of Software-Defined Networking (SDN) to dynamically manage\n\nand scale network security policies as infrastructure grows.\n\n\uf0b7 Use of AI-driven security analytics to continuously adapt defenses based\n\non emerging threats.\n\n\uf0b7 Interoperable and vendor-neutral frameworks to prevent vendor lock-in\n\nand allow seamless integration of new solutions.\n\n4.3 Interoperability and Standardization\n\nSmart Cities consist of diverse systems that must work together securely and\n\nefficiently. This requires the following.",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 17
+  },
+  {
+    "chunk_id": "fbdc5e23dc85fec4cce4834ce9a077179e9a6dd5473ace0806ef4239a802d1ac",
+    "text": "\uf0b7 Open standards and APIs to ensure seamless communication between IoT\n\ndevices, government services, and enterprise systems.\n\n\uf0b7 Common security protocols such as TLS, WPA3, and encrypted\n\ncommunication for all connected systems.\n\n\uf0b7 Identity and access management (IAM) frameworks that work across\n\ndifferent platforms and services.\n\n\uf0b7 Cross-agency and cross-sector collaboration, ensuring that cybersecurity\n\npolicies apply uniformly across transportation, healthcare, utilities, and\n\nother Smart City services.\n\n4.4 Network segmentation and isolation strategies\n\nThe core components of Smart City typically include several interconnected\n\nlayers: The Edge Computing and IoT Layer, Communication and Data\n\nTransmission Layer, Cloud and Data Storage Layer, and Command and Control\n\nCentres. Each layer requires specific security controls tailored to its unique role\n\nwithin the ecosystem. For instance, IoT devices at the edge layer are often more\n\nvulnerable due to limited processing power, making them potential entry points\n\nfor attackers.\n\nProper segmentation and isolation strategies can reduce the attack surface by\n\nisolating critical systems and sensitive data. Effective segmentation prevents\n\nunauthorized access and limits the lateral movement of threats within the\n\nnetwork. Implementing real-time monitoring, anomaly detection, and intrusion\n\nprevention by Smart City operators can significantly reduce the risk of attacks",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 18
+  },
+  {
+    "chunk_id": "72c4030bb98f565242b09521a8852b0271a1c5cd2e80b0c378f8d84c3efdf056",
+    "text": "compromising essential services or affecting citizen safety. Dedicated tools such\n\nas EDR, NDR, XDR and MDR needs to be deployed according to the\n\ninfrastructure to have a better proactive posture for IT and ICS environments.\n\nThe unique attributes of Smart Cities\u2014interconnected IoT sensors, integrated\n\nmobility systems, and centralized command centres \u2013 significantly amplify the\n\nneed for robust segmentation strategies. IoT devices deployed across traffic\n\nmanagement, public utilities, and environmental monitoring create vast networks\n\nof endpoints that are inherently vulnerable due to limited processing capabilities\n\nand insufficient security measures. Without appropriate segmentation, a single\n\ncompromised sensor could act as an entry point, enabling attackers to traverse\n\nnetworks and potentially access critical infrastructure.\n\nTo address these challenges, segmentation strategies must strike a balance\n\nbetween security and operational efficiency. Effective separation and network\n\nisolation are critical to reduce the attack surface in Smart City infrastructure by\n\nisolating critical systems and sensitive data. Physical segmentation, including\n\ndedicated hardware or air-gapped networks, offers the highest degree of\n\nseparation. This approach ensures that critical systems, like water treatment\n\nplants or energy grids, are entirely isolated from broader network ecosystems,\n\nmaking unauthorized access significantly more difficult. Logical isolation, on the",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 18
+  },
+  {
+    "chunk_id": "02a8e4ba128e9259cb2627621089554438e9f60fc818da9092dba3b42c99b2c7",
+    "text": "other hand, relies on methods such as virtual LANs (VLANs) and subnetting,\n\nwhich allow administrators to logically partition devices and functions within\n\nshared physical infrastructure. Communication within different VLANs should\n\nbe disabled by default and only be allowed on need basis with per port /\n\napplication basis. Intra-VLAN and inter-zone / Inter-VLAN Access Control Lists\n\n(ACLs) add an additional layer of filtering, controlling traffic between devices\n\nwithin a segment and across segments. Although these are highly scalable\n\nsolutions, their complexity in design and ongoing maintenance may lead to\n\nmisconfigurations that attackers may exploit.\n\nFirewalls play a central role in isolating functional areas by implementing\n\ngranular traffic controls between segmented zones. These strategies can be further\n\nbolstered by micro-segmentation, using network, host (agent-based) or\n\nhypervisor-layer controls to establish security boundaries even at the device level.\n\nModern technologies like Software-Defined Networking (SDN) can overlay\n\nautomated, dynamically adaptable segmentation, optimizing resource use while\n\nenhancing isolation. In scenarios where ultra-sensitive operations are involved \u2013\n\nsuch as Smart City command and control centres \u2013 air gaps or data diode-based\n\nunidirectional connections may provide higher level of defense.\n\nSegmentation and isolation are vital for Smart Cities due to their diverse systems",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 19
+  },
+  {
+    "chunk_id": "e0a4b08400b6fd6e75fef6ab0484ed0510b423ed6ca5ba458d0d863380481177",
+    "text": "\u2013 IoT devices, critical infrastructure, and citizen-facing services \u2013 all\n\ninterconnected in complex architectures. By designing robust networking\n\narchitectures from the get-go and implementing strong policies, Smart City\n\noperators can limit the potential impact of threats, contain lateral movement, and\n\nensure the resilience of urban infrastructure.\n\n5. Network Security in Smart City Environments\n\nNetwork security is fundamental to protecting the interconnected systems that\n\ncomprise a Smart City. Network segmentation and micro-segmentation are\n\ncrucial for containing threats and preventing lateral movement across the\n\nnetwork. By dividing networks into smaller, isolated segments, Smart City\n\noperators can limit the potential impact of an attack on a specific segment and\n\nreduce exposure to unauthorized access.\n\nThe use of secure communication protocols is vital, as it ensures data integrity\n\nand confidentiality during transmission. CCTV cameras should send video\n\nstreams to storage and analytics server over encrypted channel. Secure protocols,\n\nsuch as TLS and VPNs, provide robust encryption, preventing unauthorized\n\nentities from intercepting or tampering with data.  Vulnerability testing of Video\n\nManagement System (VMS) is very much essential for safeguarding against\n\npossible Man in The Middle (MiTM) attack. Firewalls, Intrusion Detection and\n\nPrevention Systems (IDPS) and Privilege Access Management (PAM) play a key",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "a84327639ae8b652f2915fc14c967aa96875fb43e0a20b53aa9b5c8dfca71ada",
+    "text": "role in protecting network perimeters and identifying malicious activities.\n\nRegular configuration and audit should be performed for network and security\n\ndevices. Default factory settings of the devices must be changed and configured\n\nas per the business requirement of the smart city.\n\nImplementing Zero-Trust Model which is an approach based on the principle of\n\nnever trusting any device or user inside or outside the network without continuous\n\nverification is highly needed in Smart Cities due to diverse and dynamic\n\nenvironments where systems, devices, and users frequently interact. Additionally,\n\nencryption and data protection mechanisms ensure sensitive information remains\n\nsecure, irrespective of the data in transit or at rest. By implementing these\n\nstrategies, Smart Cities can maintain a robust network security posture that\n\nmitigates the risk of intrusions and data breaches. Kindly refer to CERT-In\u2019s\n\nGuidelines on Information Security Best Practices for Government Entities\n\n(Section 4 \u2013 Network and infrastructure security) for further details.\n\n6. Identity and Access Management (IAM)\n\nIdentity and Access Management (IAM) is essential for controlling access to\n\nSmart City systems and data, ensuring only authorized users and devices can\n\naccess critical resources. Continuous access monitoring by regularly reviewing\n\naccess logs and detecting anomalies that may indicate unauthorized access\n\nattempts is important in a smart city environment. IAM solutions can help Smart",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 20
+  },
+  {
+    "chunk_id": "5654ace1f5ea0c932f3dc15ce72811667d33b00be581d5a70c81753f4838f566",
+    "text": "City operators maintain robust access controls with geo-fencing and protect\n\nagainst unauthorized or malicious actions within their networks. By\n\nimplementing IAM best practices, Smart Cities can significantly reduce risks\n\nassociated with human error, insider threats, and compromised credentials. Some\n\nof the IAM best practices include:\n\n6.1. Implement Multi-Factor Authentication (MFA)\n\n\uf0b7 Require at least two authentication factors: passwords, biometrics, TOTP\n\n(time based OTP) or security tokens.\n\n\uf0b7 Use adaptive authentication to assess risk based on user behaviour and\n\nlocation.\n\n\uf0b7 Encourage passwordless authentication (FIDO2, hardware keys) for enhanced\n\nsecurity.\n\n6.2. Enforce Strong Password Policies\n\n\uf0b7 Require long (12+ characters), complex, and unique passwords with periodic\n\nupdates.\n\n\uf0b7 Prevent password reuse and implement account lockouts after multiple failed\n\nattempts.\n\n\uf0b7 Promote the use of password managers and passkeys to improve security.\n\n6.3. Use Secure Biometric Authentication\n\n\uf0b7 Implement liveness detection to prevent spoofing (e.g., fake fingerprints, deep\n\nfakes).\n\n\uf0b7 Encrypt biometric data and comply with privacy laws.\n\n\uf0b7 Combine biometrics with other authentication factors for higher accuracy.\n\n6.4. Deploy Digital Certificates and Public Key Infrastructure (PKI)\n\n\uf0b7 Issue digital certificates for all devices and users to verify authenticity.\n\n\uf0b7 Use mutual TLS (mTLS) authentication for secure system communication.",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 21
+  },
+  {
+    "chunk_id": "c3782091fdb5776899877f893445057c9ad1611d71029d1acabfb84e59db75a5",
+    "text": "\uf0b7 Automate certificate lifecycle management to prevent expired credentials.\n\n6.5. Secure IoT and Device Authentication\n\n\uf0b7 Assign unique cryptographic credentials to each device.\n\n\uf0b7 Enforce Zero Trust policies\u2014no device is trusted by default.\n\n\uf0b7 Use regular firmware updates and network segmentation to mitigate attacks.\n\n6.6. Implement Risk-Based & Adaptive Authentication\n\n\uf0b7 Detect unusual login behaviour (e.g., login from a new location) and require\n\nextra verification.\n\n\uf0b7 Continuously assess risk using AI-driven analytics and behavioural\n\nmonitoring.\n\n6.7. Enable Single Sign-On (SSO) & Federated Identity\n\n\uf0b7 Use SAML, OAuth 2.0, and OpenID Connect for seamless authentication.\n\n\uf0b7 Secure SSO sessions to prevent hijacking and enforce role-based access\n\ncontrol.\n\n\uf0b7 Role-Based Access Control (RBAC) is another key concept that can provide\n\noperators with a structured approach to assign permissions based on job roles.\n\nRBAC helps minimize the risk of privilege abuse by limiting user access to\n\nonly those systems or data required for their role.  Multi-Factor Authentication\n\n(MFA) is recommended for critical operations and accounts with elevated\n\nprivileges, adding an additional security layer to mitigate risks from\n\ncompromised credentials.\n\n\uf0b7 For Government services, it may be ensured that Websites and Applications\n\nare integrated with a common Single Sign On (SSO) for login purpose. It also\n\nneeds to ensure that passwords are encrypted while transmission and the",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 22
+  },
+  {
+    "chunk_id": "9ab0391c57c7ffc3091448e45c78ff8ed356573fbf9026f1290e11417392b7ec",
+    "text": "passwords are forced to change at regular intervals.\n\n\uf0b7 Care must be taken to ensure that default login credentials of devices such as\n\nrouters, firewall, storage equipment etc., are changed prior to the deployment\n\nof such devices in the operational environment.\n\n7. Data Security and Privacy\n\nProtecting data within Smart City systems is critical, as these digital\n\ninfrastructures collect vast amounts of personal and operational information. It is\n\nnecessary to have mechanisms for data classification and sensitivity management,\n\nwhere data is categorized based on its sensitivity level to determine appropriate\n\nsecurity measures. By distinguishing between public, internal, and confidential\n\ndata, Smart Cities can apply different security protocols that align with the risks\n\nassociated with each category.\n\nEncryption standards for data at rest and in transit are essential for preventing\n\nunauthorized access and ensuring data integrity. Encryption algorithms such as\n\nAES for data storage and TLS for data transmission help maintain the\n\nconfidentiality of data within Smart City networks.  Data minimization and\n\nretention policies are also addressed here, focusing on collecting only necessary\n\ninformation and limiting data retention periods to reduce the risk of unauthorized\n\nexposure over time. It is also necessary to have mechanisms to ensure that files\n\ndo not contain executable code that could potentially harm the system. Server",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 23
+  },
+  {
+    "chunk_id": "be3062e01bb38c08213fa6bbc5a67354a39214f7c1b322723278548ea5eec31e",
+    "text": "security is crucial to protect servers from unauthorized access, data breaches, and\n\nmalicious attacks. Care must be taken for hardening and configuring the servers\n\nand other devices.\n\nPrivacy-by-Design principles and compliance to Digital Personal Data Protection\n\nAct (DPDP Act) are critical considerations in Smart City development. Privacy-\n\nby-Design ensures that privacy measures are integrated into systems from the\n\nbeginning, rather than as an afterthought. This approach reduces the chances of\n\ndata breaches and aligns data protection best practices. Ensuring data security and\n\nprivacy builds public trust, as citizens are more likely to accept Smart City\n\ntechnologies when they perceive that their data is protected.\n\n8. Operational Security for Smart City Command and Control Centres\n\nNot only individual components of a Smart City present potential vulnerabilities,\n\nbut the emergent properties of such a complex, interconnected system can also\n\ngive rise to unforeseen and often unpredictable security challenges. Operational\n\nSecurity (OpSec) is crucial for the command and control centres that manage\n\nSmart City operations. These centres are responsible for monitoring, decision-\n\nmaking, and coordinating various urban services, so their security must be\n\nairtight.\n\n8.1 Legacy Technologies\n\nIntegrating outdated legacy systems with modern technologies often results in\n\nperformance bottlenecks and creates weak links in the overall security chain.",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 24
+  },
+  {
+    "chunk_id": "3dcd824e1b06495fef1b86834c1e4e439e1febecd14bbb8c936c730843886e35",
+    "text": "These legacy components may lack proper security updates, making them easy\n\ntargets for exploitation. Additionally, limited visibility into these older systems\n\nand inadequate architectural choices for integration can drag down the security\n\nposture of the entire Smart City ecosystem, effectively reducing it to the weakest\n\nand most neglected elements.\n\n8.2 New Technologies\n\nEmerging technologies can introduce risks, especially when they are developed\n\nand deployed without a robust security framework. If security is an\n\nafterthought\u2014due to a rush to market, poor planning, or prioritizing rapid\n\ndeployment \nover \ndurability\u2014new \ntechnologies \nintroduce \npotential\n\nvulnerabilities. Insufficient testing or a lack of resilience measures can leave these\n\ntechnologies susceptible to attacks, amplifying risk throughout the interconnected\n\ninfrastructure.\n\n8.3 Team Coordination\n\nThe involvement of multiple teams in Smart City projects, spanning integration,\n\ndeployment, \nand \nmaintenance, \noften \nhighlights \nserious \nmanagement\n\nshortcomings. Lack of well-defined responsibilities and coordination among\n\nthese teams can lead to fragmented efforts, duplicated tasks, and gaps in coverage.\n\nWithout a clear, unified vision, teams may inadvertently pursue disparate\n\nobjectives, reducing overall project cohesion and effectiveness. This disunity\n\nrisks creating blind spots and inconsistencies, both of which can significantly\n\nweaken the Smart City's defenses.",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 25
+  },
+  {
+    "chunk_id": "02ac0c0e82928c4e737e73117e1ac3380856a1fa998c3421e0f4b9bbb38a3912",
+    "text": "8.4 Incident Detection and Response\n\nPoor coordination in detecting, reporting, and responding to security incidents\n\ncan result in delayed or even entirely missed responses, significantly undermining\n\nthe city's security. The inability to respond swiftly and effectively can escalate\n\nminor issues into significant breaches. Inadequate documentation\u2014such as\n\nmissing or poorly defined policies, security guidelines, and communication\n\nplans\u2014exacerbates these issues by creating confusion during a crisis. Without a\n\nproperly tailored incident response plan, Smart City operators may struggle to\n\nminimize damage and restore services quickly, ultimately eroding public trust.\n\nIncident response and recovery plans are vital for maintaining operations during\n\nand after a cyber-incident. These plans outline procedures for isolating affected\n\nsystems, restoring services, and conducting post-incident analyses to improve\n\nresilience.  Supply chain security plays a critical role in Smart City operations, as\n\nthreat actors try to compromise through third-party vendors. Secure procurement\n\npractices and vendor audits help ensure that third-party products and services\n\nmeet strict security standards. Effective operational security protects the core\n\nfunctions of Smart Cities and minimizes the risk of service interruptions that\n\ncould impact public safety.\n\n8.5 Continuous monitoring and logging\n\nMonitoring and logging infrastructure is essential for operational security.",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 25
+  },
+  {
+    "chunk_id": "e85e46465603c9663c795b40b07000d466576a2f098309159ea48c5b6277c2ec",
+    "text": "Continuous monitoring of network traffic, system activities, and user access can\n\nreveal abnormal behaviour indicative of a potential security incident. Integrating\n\nreal-time threat intelligence provides command centres with insights into\n\nemerging threats, allowing them to adapt security protocols dynamically. All\n\nnetwork, security and applications shall forward logs to centralised server where\n\nanalytics, monitoring and correlation could be performed. The logs need to be\n\nmaintained as per CERT-In directions published on 28 April 2022.\n\n9. Internet of Things (IoT) Security in Smart Cities\n\nIoT devices are central to Smart City ecosystems, enabling services such as traffic\n\nmanagement, waste collection, and public safety monitoring. However, IoT\n\ndevices often have limited processing capabilities and are prone to vulnerabilities.\n\nIoT and industrial control systems (ICS) are integral to the smooth functioning of\n\nSmart City infrastructure, but they face vulnerabilities like unauthorized access,\n\ndata manipulation, and operational disruptions. It is crucial to implement stronger\n\nnetwork security, timely updates, and secure communication protocols to ensure\n\nthese systems operate safely and effectively, maintaining reliable city services.\n\n9.1 Internet of Things (IoT) Devices\n\n\uf0b7 Unauthorized Access: Weak authentication makes IoT devices vulnerable to\n\nremote takeover, compromising various systems, including those that manage",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 26
+  },
+  {
+    "chunk_id": "a5bc31e4ef9a255bda036dfc06ca110db4950ff600a600ebfceb8c3d8fdcbef0",
+    "text": "utilities like smart lighting, traffic controls, and resource meters.\n\n\uf0b7 Data Interception: Poor encryption could lead to the interception of sensitive\n\ninformation, such as data from sensors monitoring resource distribution,\n\ncompromising privacy and potentially revealing exploitable patterns.\n\n\uf0b7 Botnet Attacks: Infected devices can be recruited into botnets, capable of\n\nlaunching large-scale DDoS attacks that disrupt digital infrastructure.\n\n9.2 Industrial Control Systems (ICS)\n\n\uf0b7 Operational Disruption: ICS disruptions can lead to major service outages,\n\nparticularly in essential sectors like water distribution and power supply,\n\naffecting the city's ability to maintain smooth operations.\n\n\uf0b7 Manipulation of Control Logic: Attackers targeting programmable logic\n\ncontrollers (PLCs) can manipulate control settings, which can lead to\n\nmalicious operation of equipment such as pumps, valves, and electrical\n\nsystems \u2013 disrupting essential functions.\n\n\uf0b7 Ransomware: Targeting ICS with ransomware can lead to the shutdown of\n\ncrucial services, halting operations with potentially dire consequences for\n\nresidents.\n\n9.3 Communications Vulnerabilities:\n\n\uf0b7 Man-in-the-Middle (MITM) Attacks: Data manipulation between IoT devices\n\nand ICS could result in incorrect operational commands, impacting critical\n\nservices and leading to reduced efficiency or unsafe conditions.\n\n\uf0b7 Protocol Weaknesses: Weaknesses in commonly used ICS communication",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 27
+  },
+  {
+    "chunk_id": "368813a54d876fb747332fac65da52380fbed58f308ecc9aff0f1825f7deadf8",
+    "text": "protocols may allow unauthorized control over vital systems, potentially\n\nendangering public safety by affecting service reliability. The IoT, ICS, data\n\ncentre and cloud computing protocols also have vulnerabilities and care needs\n\nto be taken during implementation of these protocols. The best practices that\n\nneed to be followed while using these technologies are placed in Annexure I.\n\n9.4 Vulnerability management\n\nIoT vulnerability management is another critical component, as identifying and\n\nmitigating vulnerabilities in IoT devices reduces the risk of exploitation. It is\n\nrecommended to have network segmentation to isolate IoT devices from other\n\ncritical systems, limiting the potential impact of a compromised device. By\n\naddressing these aspects, Smart Cities can reduce the attack surface associated\n\nwith IoT devices and ensure that the benefits of IoT-driven services. The\n\ncommonly exploited vulnerabilities in different smart systems is provided in\n\nAnnexure-II.\n\nFirmware and patch management are essential for maintaining device security, as\n\noutdated firmware may contain vulnerabilities that attackers can exploit.\n\nEstablishing a regular patch management process, including automated updates\n\nwhere possible, ensures that devices are protected against known threats.  The\n\ndefault factory settings of the IoT devices must be changed before deployment\n\nand access to the device must be limited to authorised users / devices. Secure",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 28
+  },
+  {
+    "chunk_id": "6f55d565eb336423a29c90e73b50c94e8838a7197a5416cca6f6d3ae73110f6b",
+    "text": "device identity and credential management also play a significant role, ensuring\n\nthat only authenticated and authorized devices can connect to the network.\n\n10.  Artificial Intelligence (AI) and Machine Learning (ML) Security\n\nAI is used in Smart Cities to optimize traffic flow and reduce congestion by\n\nanalyzing real-time data from cameras, IoT sensors, and GPS devices. It also\n\nsupports autonomous vehicle navigation and enhances public transportation\n\nscheduling for smoother urban mobility. However, this brings certain risks.\n\nAttackers could manipulate traffic data, leading to incorrect AI predictions that\n\nresult in congestion or accidents. Additionally, adversarial inputs could confuse\n\nsensors used in autonomous vehicles, compromising their safety and reliability.\n\nIn the energy sector, AI-driven smart grids help optimize energy distribution and\n\nconsumption by predicting peak usage, managing demand response, and\n\neffectively integrating renewable energy sources. Yet, AI models in energy\n\nmanagement are not without vulnerabilities. A compromised model could lead to\n\nenergy imbalances or blackouts, particularly during periods of peak demand.\n\nSimilarly, incorrect demand response actions triggered by an attacker could\n\ndestabilize the power grid.\n\nAI is also used to enhance public safety through automated surveillance, anomaly\n\ndetection, and facial recognition, allowing for proactive crime prevention and",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 28
+  },
+  {
+    "chunk_id": "4fde20ba524be52bc78b49345037d9fe438652ba196aad35bbc15334f8e99f7c",
+    "text": "real-time alerting. However, attackers manipulating training data could cause the\n\nAI system to misclassify threats, leading to either ignoring real incidents or\n\nflagging normal behaviors as potential threats.\n\nAI-powered environmental monitoring analyzes data from sensors to assess air\n\nquality, water quality, and noise levels. Predictive models help implement timely\n\ninterventions to mitigate environmental issues. Nevertheless, attackers could alter\n\nsensor data, resulting in false alerts or missed opportunities to address pollution,\n\nultimately impacting public health. Misleading data fed to AI systems can also\n\nresult in poor decision-making.\n\nCitizen engagement is improved by AI-driven chatbots and virtual assistants,\n\nwhich provide quick responses to queries, manage service requests, and enhance\n\ncommunication between citizens and city administrations. However, these\n\nchatbots can be exploited to spread misinformation or provide unauthorized\n\naccess to services. In cases where AI systems are compromised, sensitive citizen\n\ndata may be exposed, eroding public trust.\n\nAI systems are also used to predict maintenance needs for essential public\n\ninfrastructure, such as bridges, roads, and utilities, by analyzing sensor data. This\n\nhelps prevent failures and optimizes resource allocation. But attackers could\n\nmanipulate sensor data, leading to false maintenance alerts that either trigger\n\nunnecessary interventions or miss genuine issues, resulting in increased",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 29
+  },
+  {
+    "chunk_id": "2f4404d0001189ce78e28dda389fe59d9fb4f32ae8eb07d9b9cdf4ac84ba62e4",
+    "text": "downtime. Additionally, compromised predictive maintenance systems could\n\nmake infrastructure vulnerable to deliberate failures or sabotage, disrupting key\n\nservices.\n\nAI plays a critical role in optimizing urban operations, enhancing public safety,\n\nimproving resource management, and streamlining citizen services in Smart\n\nCities. However, every AI application has inherent risks \u2013 such as data\n\nmanipulation, adversarial attacks, privacy concerns, and operational disruptions.\n\nThese must be addressed through robust security measures, including encryption,\n\ndata integrity verification, and proactive monitoring to ensure the resilience and\n\nreliability of city services.\n\nArtificial Intelligence (AI) and Machine Learning (ML) are increasingly used in\n\nSmart City applications for predictive analytics, anomaly detection, and\n\nautomated decision-making. However, these technologies introduce unique\n\nsecurity risks. Protecting ML models from adversarial attacks is crucial.\n\nTechniques such as input sanitization, model validation, and adversarial training\n\nhelp mitigate the risk of attacks that could cause AI-driven systems to\n\nmalfunction.  Monitoring and detecting AI anomalies in real-time is also\n\nemphasized, as AI systems may behave unpredictably under attack or if data\n\npatterns change unexpectedly.\n\n10.1 AI ethical considerations\n\nTo build ethical AI systems in Smart Cities, it is essential to address biases,",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 30
+  },
+  {
+    "chunk_id": "79537d0bd352ee3f47ef4f9d11f290d586a0c66497c17e0775d4220928892852",
+    "text": "maintain transparency, respect privacy, and emphasize human-centered design\n\nand accountability. When these principles are embedded throughout the\n\ndevelopment and deployment process, AI can enhance urban life equitably,\n\nmaintaining public trust and ensuring ethical decision-making at every stage.\n\nSmart Cities can enhance the security and resilience of AI-driven applications\n\nwhile mitigating risks associated with their use in urban environments by\n\nensuring the AI solutions are developed with transparency and ethical approach.\n\nThe accuracy and fairness of AI systems in Smart Cities depend heavily on the\n\nquality and representativeness of the data they process. If training datasets contain\n\nbiases, these biases easily manifest in the system\u2019s outputs, leading to unequal\n\ntreatment or opportunities. Addressing these risks involves incorporating fairness\n\nmetrics, auditing datasets for potential biases, and introducing diverse datasets\n\nthat reflect the varied realities of a city\u2019s population.\n\nAI systems deployed in Smart Cities must not only perform their tasks effectively\n\nbut also offer clear and understandable reasoning behind their decisions. A lack\n\nof clarity can foster mistrust and resistance to AI-powered services.\n\nExplainability ensures that both officials and the public have confidence in these\n\nsystems. Additionally, the ability to review AI decisions should be integrated into\n\nthe process to rectify errors and promoting a sense of trust. Clear communication",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 31
+  },
+  {
+    "chunk_id": "6ffea441adbb22f6aa8a444f227522978b53c877abc26a7f688292f003f6e2d7",
+    "text": "about how these systems work and their decision criteria is essential to\n\nmaintaining public support and ensuring ethical usage.\n\nSmart Cities generate vast amounts of data through IoT devices, surveillance\n\nsystems, and interconnected platforms, enabling administrators to gain valuable\n\ninsights for improving urban planning, safety, and resource management.\n\nHowever, these same data collection practices can infringe on privacy and human\n\nrights if not carefully controlled. The data collected often includes personal\n\ndetails such as movement patterns, behavioural tendencies, and interactions with\n\ncity infrastructure. Without proper safeguards, this sensitive information could be\n\nmisused for intrusive surveillance or fall victim to breaches, putting citizens at\n\nrisk. Addressing these concerns requires anonymization techniques, encryption\n\nprotocols, and strict data governance policies that minimize the risk of misuse.\n\nPolicies governing data retention periods and access permissions are also critical\n\nto ensure compliance with privacy standards. By focusing on these protective\n\nmeasures, Smart Cities can strike a balance between leveraging AI for collective\n\nbenefits and preserving the fundamental rights of their residents.\n\nAI systems in Smart Cities must prioritize the welfare and needs of the people\n\nthey are designed to serve. This means designing systems that are accessible,\n\ninclusive, and fair for all citizens. For example, public-facing systems should",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 31
+  },
+  {
+    "chunk_id": "ad7c645baa180a91236e52d7da27c86cda22df1404714e116f963eb00dc14f5a",
+    "text": "accommodate diverse user needs, including language support and accessibility\n\nfor individuals with special needs. While AI can automate decision-making at\n\nscale, final authority over critical decisions must remain with human operators.\n\nAutomated recommendations for resource allocation, public safety actions, or\n\npenalties should always be subject to review, enabling human discretion to\n\noverride machine-generated outputs when needed. Furthermore, accountability\n\nframeworks must clarify who is responsible for decisions made or supported by\n\nAI, particularly in cases where errors lead to harm. Transparent accountability\n\nmechanisms and robust oversight processes ensure that ethical principles guide\n\nboth the design and deployment of Smart City technologies.\n\n11. Disaster Recovery and Business Continuity Planning\n\nA Disaster Recovery and Business Continuity Plan (DR/BCP) is essential for\n\nensuring that Smart City services remain operational during emergencies. Smart\n\ncities need to develop resilience planning with a detailed approach to assess the\n\nresilience of each system component and develop contingency plans for various\n\nscenarios, including cyber incidents, natural disasters, and equipment failures.\n\nData backup and recovery processes are the foundational elements of disaster\n\nrecovery, ensuring that data can be restored quickly and accurately after an\n\nincident. The redundancy and failover strategies, such as using geographically",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 32
+  },
+  {
+    "chunk_id": "9ead798ab53c152ff7b211691717de2275730dcb83f14669e954310984d7d2e8",
+    "text": "distributed data centres and redundant network paths to prevent single points of\n\nfailure must also be made part of the recovery plan. Offline tape backups should\n\nalso be taken regularly in case the whole system needs to be restored from scratch.\n\nRegular testing of disaster recovery plans is emphasized to ensure that DR/BCP\n\nprocedures are effective and can be executed quickly when needed. Testing\n\nscenarios should simulate real-world conditions, helping Smart City operators\n\nidentify weaknesses and improve their response times. By establishing\n\ncomprehensive disaster recovery and continuity plans, Smart Cities can reduce\n\ndowntime, minimize service disruption, and maintain critical functions in times\n\nof crisis.\n\n12. Compliance and Legal Considerations\n\nCompliance with regulatory requirements is critical for Smart City operations to\n\nensure security, privacy, and accountability. Cybersecurity compliance and audits\n\nplay a key role in verifying that Smart City operators adhere to these regulations.\n\nRegular audits, both internal and external, help identify areas of non-compliance\n\nand provide a roadmap for addressing security gaps.\n\nAny service provider, intermediary, data centre, body corporate and Government\n\norganization shall mandatorily report cyber incidents to CERT-In within 6 hours\n\nof noticing such incidents or being brought to notice about such incidents. The\n\nincidents can be reported to CERT-In via email (incident@cert-in.org.in), Phone",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 33
+  },
+  {
+    "chunk_id": "3beb79c61219a75a2d57dacac7200b1b1c0a57ce43dcc284352a14f0d834d5f2",
+    "text": "(1800-11-4949) and Fax (1800-11-6969). The details regarding methods and\n\nformats of reporting cyber security incidents is also published on the website of\n\nCERT-In (www.cert-in.org.in) and will be updated from time to time. The service\n\nproviders, intermediaries, data centres, body corporate and Government\n\norganisations should designate a Point of Contact to interface with CERT-In. All\n\ncommunications from CERT-In seeking information and providing directions for\n\ncompliance shall be sent to the said Point of Contact.\n\nAll service providers, intermediaries, data centres, body corporate and\n\nGovernment organisations shall mandatorily enable logs of all their ICT systems\n\nand maintain them securely for a rolling period of 180 days and the same shall be\n\nmaintained within the Indian jurisdiction. These should be provided to CERT-In\n\nalong with reporting of any incident or when ordered / directed by CERT-In.\n\nData Centres, Virtual Private Server (VPS) providers, Cloud Service providers\n\nand Virtual Private Network Service (VPN Service) providers, shall be required\n\nto register accurate user information as notified in CERT-In\u2019s direction issued in\n\nApril 2022 and must be maintained by them for a period of 5 years or longer\n\nduration as mandated by the law after any cancellation or withdrawal of the\n\nregistration as the case may be.\n\n13. API security\n\nAPIs (Application Programming Interfaces) are the backbone of smart cities,",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 33
+  },
+  {
+    "chunk_id": "9d3c1cc34d59128a03674d1851687f0c6ddbd43e13f64df5531435ae48f5d1ad",
+    "text": "enabling seamless communication and data exchange between various systems,\n\ndevices, and stakeholders. They serve as the key enabler for integrating diverse\n\ntechnologies, fostering innovation, and ensuring efficient delivery of services in\n\na smart city ecosystem. APIs play a key role in Data Integration and\n\nInteroperability, Real-Time Data Exchange, Optimized Resource Management,\n\nE-Governance, Smart Infrastructure, Open Data Platforms, Security and Privacy.\n\nThis increasing dependence on API, in turn, is leading to API security becoming\n\na serious concern as it not only expands the attack surface but also introduces new\n\nsecurity risks. In addition, there could be severe consequences for consumers,\n\nbusinesses, and third-party providers in case of API breaches. Some of the\n\ncommon API security issues are listed below.\n\n\uf0b7 Broken Object Level Authorization: Exposing endpoints that handle object\n\nidentifiers can lead to access control issues.\n\n\uf0b7 Broken Authentication: Flaws in authentication mechanisms can allow\n\nattackers to compromise user identities.\n\n\uf0b7 Broken Object Property Level Authorization: Lack of proper authorization at\n\nthe object property level can lead to information exposure or manipulation.\n\n\uf0b7 Unrestricted Resource Consumption: API requests can overconsume\n\nresources, causing denial of service or increased operational costs.\n\n\uf0b7 Broken Function Level Authorization: Complex access control policies can",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 34
+  },
+  {
+    "chunk_id": "ed9f7c4c20d14d7986ee5362343155abeee4cd84009cc7509fb18b99aff85a82",
+    "text": "result in authorization flaws, enabling unauthorized access.\n\n\uf0b7 Unrestricted Access to Sensitive Business Flows: APIs exposing business\n\nflows without safeguards can be exploited for malicious purposes.\n\n\uf0b7 Server-Side Request Forgery (SSRF): APIs fetching remote resources without\n\nvalidation can be manipulated to send requests to unintended destinations.\n\n\uf0b7 Security Misconfiguration: Improper API configurations can open\n\nvulnerabilities, leading to potential exploitation.\n\n\uf0b7 Improper Inventory Management: Poor documentation and management of\n\nAPI endpoints and versions increase security risks.\n\n\uf0b7 Unsafe Consumption of APIs: Trusting third-party APIs without proper\n\nsecurity measures can lead to indirect compromises.\n\nThe API security best practices that smart cities needs to follow include\n\n\uf0b7 Implement strong authentication and authorization.\n\n\uf0b7 Use encryption for data in transit and at rest.\n\n\uf0b7 Validate and sanitize inputs to prevent injection attacks.\n\n\uf0b7 Limit data exposure with response filtering and access controls.\n\n\uf0b7 Throttle and rate-limit API requests.\n\n\uf0b7 Monitor and log API activities for auditing and threat detection.\n\n\uf0b7 Secure API endpoints using IP whitelisting and API gateways.\n\n\uf0b7 Keep APIs and dependencies up-to-date.\n\n\uf0b7 Use security tokens for session management.\n\n\uf0b7 Protect against unintended resource consumption with quotas and safeguards.\n\n\uf0b7 Adopt security-first development practices.\n\n\uf0b7 Educate and train stakeholders on API security.",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 35
+  },
+  {
+    "chunk_id": "d4d24563e540c247d579ab81fade4473f847dedd6e20c81bac51bd4deb37cded",
+    "text": "\uf0b7 Conduct regular risk assessments.\n\n\uf0b7 Implement security by design during the API development phase.\n\n\uf0b7 Leverage AI and machine learning for threat detection and response.\n\n14. Training and Awareness\n\nCybersecurity training and awareness are essential for equipping Smart City\n\npersonnel with the knowledge and skills needed to identify and respond to cyber\n\nthreats. It is necessary to organize cybersecurity awareness programs for\n\noperators and stakeholders, focusing on educating staff about common threats,\n\nsuch as phishing, social engineering, and malware.\n\nMost of the cyber incidents are caused by human error. Enterprises suffer\n\nfinancial losses from staff-related incidents. Human factor of breaches appears in\n\ndifferent ways. Most common are the download of malware, using weak\n\npasswords or not changing passwords often enough, visiting unsecured websites\n\nand using unauthorized systems to share data. Training is essential to raise\n\nawareness among employees \u2013 motivating them to pay attention to cyber threats\n\nand mitigating them. Accordingly, it is important to raise awareness among\n\nemployees supporting the functioning of Smart Cities.\n\nIn today\u2019s ever-changing threat landscape, it is essential to ensure that Smart City\n\nICT security specialists maintain up-to-date skills in threat hunting and incident\n\nresponse. Security experts must be trained to implement security monitoring\n\nprocesses and key security operations to effectively detect and investigate",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 36
+  },
+  {
+    "chunk_id": "e1e83b1aff463c499032d006f66ab6b27e0a14b650a1bba52bd1882cbfca8157",
+    "text": "malicious activity and threat hunting. It is also important to master the skills of\n\nincident analysis, evidence collection, log file analysis, network analysis, creating\n\nindicators of compromise (IoC) and memory forensics.\n\nBy investing in cybersecurity training and awareness, Smart Cities can strengthen\n\ntheir first line of defense against cyber threats, as well-trained employees are\n\nbetter equipped to prevent and respond to incidents. A culture of cybersecurity\n\nawareness fosters proactive security practices and reduces the likelihood of\n\nhuman error contributing to security incidents.\n\n15. Crisis Management & Incident Response\n\nA Cyber Crisis Management Plan (CCMP) is a structured framework designed to\n\nprepare organizations for responding effectively to cybersecurity incidents,\n\nminimizing their impact, and ensuring rapid recovery. It encompasses proactive\n\nmeasures, incident response protocols, and recovery strategies to mitigate the\n\nrisks associated with cyberattacks, data breaches, and other digital threats. CERT-\n\nIn, MeitY has formulated Cyber Crisis Management Plan (CCMP) for countering\n\ncyber-attacks \nand \ncyber \nterrorism \nfor \nimplementation \nby \nall\n\nMinistries/Departments of Central Government, State Governments/UTs and\n\norganizations under their administrative control. Along with the CCMP, CERT-\n\nIn has developed \u201cGuidance Framework for CCMP\u201d which may be used as a\n\ntemplate \nby \nvarious \nentities \nincluding \nCentral \nGovernment",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 37
+  },
+  {
+    "chunk_id": "bf623935c2cb8f90554fb9b6a78f01faee35a35fc4b5410f71a139174b5068e5",
+    "text": "Ministries/Departments/States/UTs and entities under their administrative control\n\nto prepare & implement their own CCMP.  CCMP outlines a framework for\n\ndealing with cyber related incidents for a coordinated, multi-disciplinary and\n\nbroad based approach for rapid identification, information exchange, swift\n\nresponse and remedial actions to mitigate and recover from malicious cyber\n\nincidents.  The CCMP needs to be developed in line with the National CCMP\n\ntemplate for effective crisis management.\n\nIncident response is a critical component of a robust cybersecurity strategy, as\n\nSmart Cities must be prepared to detect, contain, and mitigate cyber incidents to\n\nmaintain public safety and service continuity. A comprehensive incident response\n\nframework is required to guide operators through each stage of managing a cyber-\n\nincident. The framework should include preparation, detection, containment,\n\neradication, recovery, and post-incident review phases, each with detailed actions\n\nand responsibilities for team members.\n\nIncident Response (IR) framework should describe the following aspects:\n\n\uf0b7 IR Methodology\n\n\uf0b7 IR participants\n\n\uf0b7 Internal and External communication matrix\n\n\uf0b7 IR metrics and SLAs\n\n\uf0b7 Incident definition, severity levels, prioritization, and categorization\n\n\uf0b7 Guidelines for the analysts to prioritize incidents\n\n\uf0b7 Crisis management procedures covering triggers to involve internal and\n\nexternal parties\n\n\uf0b7 Corresponding IR procedures",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 37
+  },
+  {
+    "chunk_id": "aa400e0da5abd399d63e3698b27834b12763ec1d01f091400da6a54c401cec0d",
+    "text": "\uf0b7 Connection with relevant processes of organization\n\nIR Playbooks should be tailored for the chosen cyber threats and existing IR\n\nprocesses describe in detail all phases of incident handling, from initial\n\npreparation to post-incident activities. IR playbooks should define the Who,\n\nWhat, When, Where, and How to act in case of a cyber-security incident and\n\nwhich tools should be used.\n\nDetection and analysis involve identifying unusual activities or potential\n\nbreaches. This stage requires effective monitoring systems, threat intelligence,\n\nand log analysis to rapidly identify suspicious events. Once an incident is\n\ndetected, the containment phase focuses on isolating affected systems to prevent\n\nfurther spread. For example, in the case of a malware attack, operators might\n\ndisconnect compromised devices from the network.\n\nEradication and recovery are the next steps, where the source of the incident is\n\nremoved, systems are restored, and normal operations are resumed.  Post-incident\n\nanalysis plays a crucial role in identifying lessons learned and improving incident\n\nresponse procedures. Implementing these incident response best practices allows\n\nSmart City operators to minimize the impact of cyber incidents and continually\n\nimprove their response capabilities.\n\nTesting the readiness of Smart City to respond to a cyber-attack in terms of\n\nstakeholder communication and coordination is necessary to build confidence in",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 38
+  },
+  {
+    "chunk_id": "156637b1bd45e2633755548eaea7b919a7cfba8019971b001e547a736f2e29c2",
+    "text": "everyone\u2019s ability to respond swiftly and appropriately in a crisis situation. It\n\nallows to confirm the effectiveness of incident response plans and playbooks and\n\nmake sure, that in case of a breach all defined steps, roles and responsibilities of\n\nthe incident response team members are defined, known and the overall tasks\n\nmatch the desired output in response to a particular incident.\n\n16. Continuous Monitoring and Threat Intelligence\n\nContinuous monitoring is essential for maintaining situational awareness and\n\nidentifying threats before they can cause harm. Real-time system and network\n\nmonitoring, as well as behavioural analytics can help to detect unusual activities.\n\nThese tools help operators gain visibility into system health, network traffic, and\n\npotential anomalies that may indicate a cyber-threat.\n\nThreat intelligence integration enables Smart Cities to stay ahead of emerging\n\nthreats. Threat intelligence includes information on known vulnerabilities, attack\n\nvectors, and evolving tactics used by malicious actors. By subscribing to CERT-\n\nIn\u2019s threat intelligence feeds and other IT & OT feeds from relevant stakeholders,\n\noperators can keep their defenses up-to-date and prioritize high-risk threats.\n\nIntegrating Security Information and Event Management (SIEM) systems with\n\nthese feeds can effectively help to protect by aggregating and analysing data from\n\nmultiple sources to provide a centralized view of security activities.",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 39
+  },
+  {
+    "chunk_id": "0ca7d0f756388b1b0000c6755ccefc6beba7de0698556d407e626a81d922e612",
+    "text": "Furthermore, automated threat detection and response mechanisms, such as\n\nSecurity Orchestration, Automation, and Response (SOAR), can enhance the\n\nefficiency and accuracy of incident response by automating routine actions and\n\nalerting operators to high-priority threats. Continuous monitoring and threat\n\nintelligence integration ensure that Smart Cities remain vigilant, resilient, and\n\nresponsive to potential cyber threats, providing early warning signals that prevent\n\nsmall issues from escalating into major incidents.\n\nEntities in smart cities can also get onboarded onto CERT-In\u2019s services like\n\nCERT-In\u2019s Malware Threat eXchange (CMTX) \u2013 Cyber Threat Intelligence,\n\nCyber Swachhta Kendra (CSK), National Cyber Coordination Centre and Cyber\n\nsecurity alerts.\n\n17. Supply Chain Security, Vendor Management and SBOM\n\nAs Smart Cities rely on numerous third-party vendors for software, hardware, and\n\nservices, securing the supply chain is vital to avoid introducing vulnerabilities.\n\nEvaluating vendor security practices and ensuring that suppliers adhere to strong\n\ncybersecurity standards is one of the important aspects of ensuring supply chain\n\nsecurity. Smart City operators should conduct due diligence assessments for\n\nvendors, covering aspects such as data handling practices, access control, incident\n\nresponse capabilities, and adherence to relevant cybersecurity frameworks.\n\nSupply chain risk management practices, such as setting clear security",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 40
+  },
+  {
+    "chunk_id": "2ce0f47ad33495a0882c85cc2e42d51f5f17808b23f941b05558f81488f4c44d",
+    "text": "expectations in contracts, regular vendor audits, and continuous risk assessment,\n\nare recommended to monitor and enforce security compliance. In secure\n\nprocurement processes, cybersecurity is factored into purchasing decisions, and\n\nit helps to reduce the risk of integrating compromised or untested products into\n\nthe Smart City infrastructure.\n\nTo further mitigate risks, vendor access control policies must be developed to\n\nensure that third-party access to systems and data is restricted, monitored, and\n\nregularly reviewed. By implementing these supply chain security measures,\n\nSmart Cities can protect themselves from vulnerabilities or malicious actions\n\noriginating from their vendors, minimizing risks associated with external\n\ndependencies in urban infrastructure.\n\nIndian Computer Emergency Response Team (CERT-In) has released the\n\nTechnical Guidelines on Software Bill of Material (SBOM) for entities,\n\nparticularly those in the public sector, government, essential services,\n\norganizations involved in software export and software services industry.\n\nDepartments and organizations in smart cities are encouraged to make the\n\ncreation and provision of SBOM a mandatory standard practice as part of\n\nsoftware procurement and software development in order to enhance security and\n\nreduce the risk of cyber threats.\n\n18.  Penetration Testing and Vulnerability Management\n\nRegular penetration testing and vulnerability assessments are essential for",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 40
+  },
+  {
+    "chunk_id": "af7583d266a995e2370076b3c852a1aefd12518168062e2b297e1ef4a9a5d843",
+    "text": "identifying and addressing security weaknesses within Smart City systems.\n\nIndustry standard best practices for conducting penetration tests, including both\n\ninternal and external assessments must be carried out to uncover potential\n\nvulnerabilities. These tests should be tightly controlled and performed by\n\nqualified professionals who can provide an objective analysis of the system\u2019s\n\nsecurity posture.\n\nThese tests can reveal security shortcomings which could be exploited to gain\n\nunauthorized access to critical network components. Penetration testing provides\n\nunderstanding of security flaws in IT infrastructure, revealing vulnerabilities,\n\nanalyzing the possible consequences of different forms of attack, evaluating the\n\neffectiveness of current security measures and suggesting remedial actions and\n\nimprovements. These tests should be tightly controlled and performed by\n\nqualified professionals with full regard to Smart City systems\u2019 confidentiality,\n\nintegrity and availability.\n\nSmart City critical applications should be analyzed in more detail. Application\n\nsecurity assessment involves identifying and testing vulnerabilities and\n\nweaknesses of various risk levels that could potentially pose threats to the Smart\n\nCity\u2019s applications and data. Assessment should take into consideration not just\n\ntechnological and functional capabilities of the application, but also should dive\n\ndeeper into business logic of the application to identify issues that may be missed",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 41
+  },
+  {
+    "chunk_id": "cc5b837ee9b8405f23929c75f5f6f172b3d3f187cf5904c9ab98e265987f325c",
+    "text": "when using conventional vulnerability assessment approach.\n\nThe outcome of the analysis, which includes information about existing security\n\nflaws and corresponding recommendations for their elimination, allows to\n\neliminate vulnerabilities in a timely manner and thus avoid possible negative\n\nconsequences for the application from external attackers or insider actions.\n\nVulnerability management involves systematically identifying, classifying, and\n\nremediating security weaknesses in hardware, software, and network\n\ncomponents. Smart City operators should implement a vulnerability assessment\n\nschedule to ensure that new vulnerabilities are detected and addressed promptly.\n\nPatch management is also critical in this process, as timely application of patches\n\nminimizes the risk of exploitation by attackers. Utilizing automated vulnerability\n\nscanning tools can enhance efficiency by providing continuous assessments and\n\nalerts for emerging risks. Regular penetration testing and vulnerability\n\nmanagement efforts enable Smart Cities to maintain a proactive security stance,\n\ncontinuously improving defenses and reducing the likelihood of successful\n\ncyberattacks.\n\n19. Security Audits and Compliance Checks\n\nCyber Security audits and compliance checks are essential for verifying that\n\nSmart City infrastructures adhere to regulatory requirements and internal\n\ncybersecurity policies. It is necessary to conduct regular, thorough security audits,",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 42
+  },
+  {
+    "chunk_id": "555786e47850f60725822dcd29efc740e9528439c17168c16dd113be37a4d4c7",
+    "text": "focusing on evaluating policies, procedures, technical configurations, and user\n\npractices. These audits help identify non-compliance areas and gaps that may\n\nintroduce security risks.\n\nInternal and external audit processes are both recommended for a comprehensive\n\nassessment, with external audits providing an impartial evaluation from third-\n\nparty experts. Smart City operators should also implement continuous\n\ncompliance monitoring to ensure that systems remain in alignment with relevant\n\nregulations, such as data protection laws, industry standards, and critical\n\ninfrastructure security requirements. The scope of audit should be comprehensive\n\nso as to cover entire ICT infrastructure. Internal information security audit should\n\nbe performed at least once in six months. Third party security audits must be\n\nconducted periodically at least once a year to ensure compliance with security\n\npolicy, guidelines, and procedures, and to determine the minimum set of controls\n\nrequired to address the Smart city security. Security audit should be performed\n\nprior to and after implementation or installation or major enhancements in the\n\nICT infrastructure.\n\nCorrective action plans should follow each audit to address identified gaps, with\n\nclear timelines and responsibilities for remediation. By performing regular\n\nsecurity audits and compliance checks, Smart Cities demonstrate accountability,\n\nmaintain a high standard of security, and adapt their practices to comply with",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 43
+  },
+  {
+    "chunk_id": "60e3f7a33d2e956eb3bfa7cccb03d5aed452d71dcaf9e5183d1db5d3623735e3",
+    "text": "evolving regulations and industry standards.\n\n20.   Conclusion\n\nThe document aims to provide a comprehensive, forward-looking approach to\n\nsupport the secure growth of Smart Cities by enhancing their ability to serve\n\ncitizens in an increasingly digital world. It also emphasises the importance of a\n\nproactive, layered, and adaptable cybersecurity strategy for Smart Cities. As\n\nurban areas become increasingly dependent on digital infrastructure,\n\ncybersecurity must be integrated into every aspect of Smart City development,\n\nfrom the design phase to daily operations. The document reiterates that Smart\n\nCities are not just technological innovations but essential services that support\n\ncitizens' well-being and safety.\n\nWe need to understand the importance of collaborative efforts among various\n\nstakeholders namely - CERT-In, smart city operators, technology providers, and\n\nGovernment bodies. By working together, all the stakeholders can ensure that\n\nSmart City systems are not only innovative but also secure, resilient, and\n\ncompliant with regulatory standards.\n\nReferences\n\n1. \nhttps://mohua.gov.in/cms/smart-cities.php\n\n2. \nhttps://smartcities.gov.in/advisory\n\n3. \nwww.iiconsortium.org\n\n4. \nwww.nist.gov\n\nUseful Guidelines and Materials\n\na) CERT-In Directions.\n\nhttps://www.cert-in.org.in/PDF/CERT-In_Directions_70B_28.04.2022.pdf\n\nb) Technical Guidelines on SBOM\n\nhttps://www.cert-in.org.in/PDF/SBOM_Guidelines.pdf\n\nc) Information Security Best Practices for Government entities",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 43
+  },
+  {
+    "chunk_id": "9b00a6eaf87f0e2bc33180386781ecf9ccc9024f37c1ee27cf0c5b9051af109c",
+    "text": "https://www.cert-in.org.in/PDF/guidelinesgovtentities.pdf\n\nd) Cyber Security Awareness Booklets\n\nhttps://www.cert-in.org.in/AwarenessBooklets.jsp\n\ne) Free Botnet removal tools\n\nhttps://www.csk.gov.in/security-tools.html\n\nf) Guidelines for Secure Application Design, Development, Implementation &\n\nOperations\n\nhttps://www.cert-in.org.in/PDF/Application_Security_Guidelines.pdf",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "Smart City Infrastructure",
+    "page_number": 46
+  },
+  {
+    "chunk_id": "068176c35bc61ff4edd83c007d2046cc089134fb3713382ec9ec35ae105e3bcf",
+    "text": "CERT-In\u2019s 24/7 Cyber security Incident Response Help Desk\n\nTel: 1800-11-4949 (Toll free)\n\nFax: 1800-11-6969 (Toll free)",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "CERT-In\u2019s 24/7 Cyber security Incident Response Help Desk",
+    "page_number": 46
+  },
+  {
+    "chunk_id": "5c448824f4d2641a9b72d079467af08258b4baab9fdc491a6602ac577129cff7",
+    "text": "E-mail: incident@cert-in.org.in\n\nAnnexure I\n\na) ICS protocols\n\nS.No\nICS Protocol \nPurpose of Use \nCommon \nExploitation of \nVulnerabilities\n\nBest Practices for\n\nImplementation\n\n1 \nModbus \nCommunication \nbetween master \nand slave \ndevices in \nindustrial \nsystems.\n\nLack of \nauthentication \nand encryption; \ndata interception \nor tampering.\n\nUse Modbus TCP \nwith TLS; encrypt \ntraffic using \nVPNs; isolate \nModbus devices in \nsecure network \nzones. \n2 \nDNP3 \nCommunication \nin utilities like \npower and water \ndistribution.\n\nReplay attacks, \nlack of \nencryption; \nunauthorized \ncommand \nexecution.\n\nImplement DNP3 \nSecure \nAuthentication; \nsegment networks; \nencrypt \ncommunication. \n3 \nProfibus/Profinet\nAutomation in \nfactory \nenvironments.\n\nPacket injection, \ndenial-of-service \nattacks.\n\nUse Profinet with \nsecure network \nconfigurations; \nenforce access \ncontrols. \n4 \nOPC/OPC UA \nInteroperability \nbetween devices \nand systems in \nindustrial \nenvironments.\n\nLack of secure \nconfiguration; \nexploitation of \nlegacy OPC \nvulnerabilities.\n\nUse OPC UA for \nenhanced security; \nenforce secure-by-\ndefault \nconfigurations. \n5 \nBACnet \nBuilding \nautomation for \nHVAC, lighting, \nand security \nsystems.\n\nExploitation of \nopen ports; \nunauthorized \ndevice access.\n\nUse secure \nnetwork \nsegmentation; \napply strong \naccess controls. \n6 \nIEC 61850 \nSubstation \nautomation and \ncommunication \nin smart grids.\n\nSpoofing and \nunauthorized \naccess due to \nunencrypted \ncommunication.",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "E-mail: incident@cert-in.org.in",
+    "page_number": 46
+  },
+  {
+    "chunk_id": "372a026eb2bcef06ab79e50a3c3064f125633ee31218570efaef1ecf1c30c495",
+    "text": "Implement TLS \nfor \ncommunication; \nuse strong \nauthentication \nmechanisms. \n7 \nHART \nCommunication \nwith field \ninstruments like \nsensors and \nactuators.\n\nMan-in-the-\nmiddle attacks \non analog/digital \ndata.\n\nEncrypt HART \ntraffic using \nsecure tunneling; \nuse strong device \nauthentication.\n\n8 \nCAN Bus \nReal-time \ncommunication \nin automotive \nand industrial \nsystems.\n\nInjection of \nmalicious CAN \nframes; lack of \nauthentication.\n\nImplement \nmessage \nauthentication \ncodes (MACs); \nmonitor CAN \ntraffic for \nanomalies. \n9 \nEtherCAT \nHigh-speed \ncommunication \nfor real-time \nautomation.\n\nDenial-of-\nservice and \npacket \nmanipulation \nattacks.\n\nUse firewalls to \nrestrict EtherCAT \ntraffic; implement \nsecure firmware \nupdates. \n10 \nMMS \nSupervisory \ncontrol \ncommunication \nin power \nsystems.\n\nData tampering \ndue to lack of \nencryption.\n\nUse TLS for \nsecure \ncommunication; \nenforce strict \naccess controls.\n\nb) IoT Protocols\n\nS.No\nIoT Protocol \nPurpose of Use \nCommon \nExploitation of \nVulnerabilities\n\nBest Practices for\n\nImplementation\n\n1 \nMQTT \n(Message \nQueuing \nTelemetry \nTransport)\n\nLightweight \nmessaging \nprotocol for IoT \ndevices.\n\nLack of \nencryption; \nunauthorized \naccess; spoofed \nmessages.\n\nUse MQTT over \nTLS; implement \nauthentication and \naccess control.\n\n2 \nCoAP \n(Constrained \nApplication \nProtocol)\n\nCommunication \nfor constrained \ndevices in IoT \nnetworks.\n\nReplay attacks; \nlack of \nencryption; \ndenial-of-service \nattacks.",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "E-mail: incident@cert-in.org.in",
+    "page_number": 47
+  },
+  {
+    "chunk_id": "6c9d708cda965026f5c168b54ebb12320788397490f1852de7b5115131cecdc9",
+    "text": "Use DTLS for \nsecure \ncommunication; \nrestrict access to \ntrusted sources. \n3 \nAMQP \n(Advanced \nMessage \nQueuing \nProtocol)\n\nMiddleware for \nreliable message \nqueuing and \nrouting.\n\nExploitation of \nmisconfigured \nbrokers; \ninterception of \nmessages.\n\nUse AMQP over \nTLS; enforce strict \naccess control and \nmonitoring.\n\n4 \nHTTP/HTTPS \nCommunication \nbetween IoT \ndevices and \ncloud servers.\n\nInterception of \nunencrypted \nHTTP traffic; \nsession hijacking.\n\nAlways use \nHTTPS; \nimplement strong \nauthentication and \ntoken-based \naccess.\n\n5 \nXMPP \n(Extensible \nMessaging and \nPresence \nProtocol)\n\nMessaging and \npresence \nnotifications in \nIoT systems.\n\nUnauthorized \naccess; spoofing \nattacks.\n\nUse TLS for \nencryption; deploy \nserver-to-server \nauthentication.\n\n6 \nZigbee \nWireless \ncommunication \nfor smart home \ndevices.\n\nWeak encryption \nkeys; jamming \nattacks; device \nspoofing.\n\nUse strong \nencryption keys; \nimplement \nnetwork key \nrotation. \n7 \nZ-Wave \nWireless \ncommunication \nfor home \nautomation \ndevices.\n\nExploitation of \ndefault keys; \ndevice \nimpersonation.\n\nUse secure mode \n(S2); replace \ndefault keys with \nunique ones.\n\n8 \nLoRaWAN \nLow-power \nwide-area \nnetwork \ncommunication.\n\nReplay attacks; \nweak device \nauthentication.\n\nUse LoRaWAN \n1.1+ for enhanced \nsecurity; ensure \nunique device \ncredentials. \n9 \nBLE (Bluetooth \nLow Energy)\n\nShort-range \ncommunication \nfor IoT devices.\n\nSniffing attacks; \npairing \nvulnerabilities.",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "E-mail: incident@cert-in.org.in",
+    "page_number": 48
+  },
+  {
+    "chunk_id": "f1027461e43556acd339196f12e42f1f1492a94b44df22d9bd53c32466dd6709",
+    "text": "Use secure pairing \nmodes; enforce \nstrong encryption \n(AES-CCM). \n10 \nNB-IoT \n(Narrowband \nIoT)\n\nCellular-based \nIoT \ncommunication \nfor wide \ncoverage.\n\nSIM-based \nattacks; \ninterception of \nunencrypted data.\n\nEncrypt data at the \napplication layer; \nuse device-based \nauthentication.\n\n11 \nLWM2M \n(Lightweight \nMachine-to-\nMachine)\n\nDevice \nmanagement for \nIoT systems.\n\nMan-in-the-\nmiddle attacks; \nlack of \nauthentication.\n\nUse DTLS for \ncommunication; \nimplement client-\nserver \nauthentication. \n12 \nDDS (Data \nDistribution \nService)\n\nReal-time data \nsharing in IoT \nand edge \nsystems.\n\nUnauthorized \naccess; denial-of-\nservice attacks.\n\nApply encryption \n(TLS/DTLS); \nenforce role-based \naccess control.\n\nc) Data Centre Protocols\n\nS.No\nData Centre\n\nProtocol\n\nPurpose of Use  \nCommon \nExploitation of \nVulnerabilities\n\nBest Practices for\n\nImplementation\n\n1 \nTCP \n(Transmission\n\nReliable, \nconnection-\n\nPacket injection, \nsession\n\nUse firewalls to \nlimit SYN\n\nControl \nProtocol)\n\noriented data \ntransport.\n\nhijacking, SYN \nflooding attacks.\n\nflooding; \nimplement TLS \nfor encryption. \n2 \nUDP (User \nDatagram \nProtocol)\n\nLow-latency, \nconnectionless \ncommunication.\n\nAmplification \nattacks, packet \nspoofing.\n\nUse rate limiting \nand access control; \nmonitor for \nanomalous traffic. \n3 \nHTTP/HTTPS \nCommunication \nfor web services \nand APIs.\n\nMan-in-the-\nmiddle (MITM) \nattacks, insecure \ncookies, cross-\nsite scripting.",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "E-mail: incident@cert-in.org.in",
+    "page_number": 49
+  },
+  {
+    "chunk_id": "7707738cba3b5105762f86a5ff21b48cc5dc965e40426114dcb652698a3fd661",
+    "text": "Enforce HTTPS \nwith TLS; \nimplement secure \nheaders; use web \napplication \nfirewalls (WAFs). \n4 \nBGP (Border \nGateway \nProtocol)\n\nRouting between \ndata centers and \nexternal \nnetworks.\n\nRoute hijacking, \nprefix leaking, \ndenial-of-service \nattacks.\n\nUse BGP route \nfiltering, prefix \nvalidation, and \nmonitoring. \n5 \nVXLAN \n(Virtual \nExtensible \nLAN)\n\nNetwork \nvirtualization for \nLayer 2 over \nLayer 3.\n\nUnauthorized \naccess to \nVLANs, \nspoofing.\n\nIsolate VXLANs; \nuse strong \nauthentication and \nnetwork \nsegmentation. \n6 \niSCSI (Internet \nSmall Computer \nSystems \nInterface)\n\nStorage access \nover IP networks.\n\nData \ninterception, \nweak \nauthentication.\n\nEncrypt traffic \nwith IPsec; \nenforce mutual \nauthentication. \n7 \nFibre Channel \nHigh-speed data \ntransport in \nSANs.\n\nUnauthorized \naccess, traffic \ninterception.\n\nUse Fibre Channel \nzoning and LUN \nmasking for access \ncontrol. \n8 \nNFS (Network \nFile System)\n\nFile sharing \nbetween servers \nand clients.\n\nExploitation of \ninsecure exports, \nman-in-the-\nmiddle attacks.\n\nRestrict access to \ntrusted hosts; \nenable Kerberos \nauthentication. \n9 \nSNMP (Simple \nNetwork \nManagement \nProtocol)\n\nDevice \nmonitoring and \nmanagement.\n\nExploitation of \ndefault \ncommunity \nstrings, data \ninterception.\n\nUse SNMPv3 with \nstrong credentials; \nrestrict access by \nIP.\n\n10 \nLACP (Link \nAggregation \nControl \nProtocol)\n\nAggregates \nmultiple links for \nredundancy and \nhigher \nthroughput.\n\nExploitation of \nmisconfigured \nLACP; traffic \ndisruption.",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "E-mail: incident@cert-in.org.in",
+    "page_number": 50
+  },
+  {
+    "chunk_id": "bab9ffb02c48246b69ee91a43e6a24d462749fc3236c2e8a236c882d2ed6e369",
+    "text": "Configure LACP \nsecurely; monitor \nfor anomalous \nbehavior.\n\n11 \nTLS (Transport \nLayer Security)\n\nEncryption for \nsecure \ncommunication.\n\nExploitation of \nweak ciphers, \noutdated \nversions.\n\nUse strong cipher \nsuites; enforce \nTLS 1.2 or 1.3.\n\n12 \nSSH (Secure \nShell)\n\nSecure remote \naccess and \ncommand-line \noperations.\n\nExploitation of \nweak credentials, \nbrute-force \nattacks.\n\nUse key-based \nauthentication; \ndisable root login; \nuse strong \npasswords. \n13 \nNVMe-oF \n(NVMe over \nFabrics)\n\nHigh-\nperformance \nstorage access \nover RDMA, \nEthernet, or Fibre \nChannel.\n\nData \ninterception, \nunauthorized \naccess.\n\nImplement \nencryption and \nsecure zoning; \nenforce strong \nauthentication.\n\n14 \nOpenFlow \nSDN control for \nforwarding plane \nmanagement.\n\nUnauthorized \ncontroller access, \npacket \nmanipulation.\n\nSecure OpenFlow \ncontrollers with \nauthentication and \nencryption. \n15 \nZigbee \nCommunication \nin low-power \nenvironments \n(e.g., IoT in data \ncenters).\n\nExploitation of \ndefault keys, \njamming attacks.\n\nUse strong \nencryption keys; \nimplement \nfrequent key \nrotations. \n16 \nNetFlow/sFlow \nNetwork traffic \nmonitoring and \nanalysis.\n\nSpoofing attacks, \nexploitation of \nunprotected \ntraffic data.\n\nEncrypt exported \ndata; limit \nNetFlow access to \ntrusted systems. \n17 \nICMP (Internet \nControl \nMessage \nProtocol)\n\nDiagnosing \nnetwork issues \n(e.g., ping).\n\nSmurf attacks, \nICMP tunneling.",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "E-mail: incident@cert-in.org.in",
+    "page_number": 50
+  },
+  {
+    "chunk_id": "bfb5a80adcfa6cffa64099da852975a987fdbd4913655c1e428a763c2972f720",
+    "text": "Limit ICMP \ntraffic; block \nunnecessary ICMP \ntypes. \n18 \nLoRaWAN \nLow-power, \nwide-area \ncommunication \nfor IoT.\n\nReplay attacks, \nweak device \nauthentication.\n\nUse LoRaWAN \n1.1+; ensure \nunique device \ncredentials. \n19 \nHTTP/3 (QUIC)\nWeb content \ndelivery with \nreduced latency.\n\nExploitation of \nunencrypted \nfallback \nmechanisms, \ninjection attacks.\n\nEnforce \nencryption; \nimplement strict \ntransport security \npolicies. \n20 \nRESTful APIs \nManaging cloud \nand data center \nresources.\n\nExploitation of \ninsecure \nendpoints, \nimproper \nauthentication.\n\nUse API gateways; \nsecure endpoints \nwith OAuth2 and \nHTTPS.\n\nd) Cloud Protocols\n\nS.N\n\no\n\nCloud Protocol \nPurpose of Use\nCommon \nExploitation\n\nof \nVulnerabilitie\n\ns\n\nBest Practices\n\nfor \nImplementatio\n\nn\n\n1 \nHTTP/HTTPS \nCommunicatio\nn for web \napplications \nand APIs.\n\nMan-in-the-\nmiddle \n(MITM) \nattacks, \ninsecure \ncookies, cross-\nsite scripting.\n\nEnforce HTTPS \nwith TLS, \nimplement \nsecure headers, \nand use WAFs.\n\n2 \nREST \n(Representational \nState Transfer)\n\nAPI \ncommunication \nfor cloud \nservices and \napplications.\n\nExploitation of \ninsecure \nendpoints, lack \nof \nauthentication.\n\nUse HTTPS for \ntransport, \nimplement \nOAuth2, and \nvalidate API \ninputs. \n3 \nSOAP (Simple Object \nAccess Protocol)\n\nMessaging \nprotocol for \ncloud-based \nweb services.\n\nExploitation of \ninsecure XML \nparsing, MITM \nattacks.\n\nUse WS-\nSecurity \nstandards; \nvalidate XML \ninputs; enforce \nencryption. \n4 \nAMQP (Advanced \nMessage Queuing \nProtocol)",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "E-mail: incident@cert-in.org.in",
+    "page_number": 51
+  },
+  {
+    "chunk_id": "cc6d3075b71e1d48b3495daeff6589c66ca46474b985f658cc073340a09261bd",
+    "text": "Messaging for \ndistributed \ncloud \napplications.\n\nMessage \ninterception, \nunauthorized \nmessage \ninjection.\n\nUse TLS for \nencryption; \nimplement \nauthentication \nmechanisms. \n5 \nMQTT (Message \nQueuing Telemetry \nTransport)\n\nLightweight \nprotocol for \nIoT and cloud \ncommunication\n.\n\nUnauthorized \naccess, weak \nauthentication.\n\nImplement TLS \nand mutual \nauthentication; \nenforce access \ncontrol. \n6 \nDNS (Domain Name \nSystem)\n\nResolving \ndomain names \nto IP addresses \nin cloud \nservices.\n\nDNS spoofing, \nDNS \namplification \nattacks.\n\nUse DNSSEC; \nimplement rate \nlimiting and \nmonitor for \nanomalies. \n7 \nIPsec (Internet \nProtocol Security)\n\nSecure \ncommunication \nover IP \nnetworks in\n\nWeak key \nmanagement, \nimproper \nconfiguration.\n\nUse strong \nencryption \nalgorithms and \nmanage keys \nsecurely.\n\ncloud \nenvironments. \n8 \nTLS (Transport Layer \nSecurity)\n\nEncrypting \ncommunication \nfor secure \ncloud data \ntransfers.\n\nExploitation of \nweak ciphers, \noutdated \nversions.\n\nUse strong \ncipher suites and \nTLS 1.2 or 1.3; \navoid \ndeprecated \nversions. \n9 \nSSH (Secure Shell) \nSecure remote \naccess to cloud \ninfrastructure.\n\nBrute-force \nattacks, \nexploitation of \nweak \ncredentials.\n\nUse key-based \nauthentication; \nenforce strong \npasswords; \ndisable root \nlogin. \n10 \nS3 API (Amazon \nSimple Storage \nService API)\n\nInterfacing \nwith AWS S3 \nfor object \nstorage.\n\nExploitation of \nopen buckets, \nunauthorized \naccess.",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "E-mail: incident@cert-in.org.in",
+    "page_number": 52
+  },
+  {
+    "chunk_id": "b46582d78157ead716b841e3ba4a6778e10f0e9624ede72f8108b3ccd98a2250",
+    "text": "Use access \ncontrol policies; \nenable bucket \nencryption and \nversioning. \n11 \nOpenStack APIs \nManaging \nOpenStack \ncloud \nresources.\n\nExploitation of \ninsecure \nendpoints, \nimproper \naccess control.\n\nUse role-based \naccess control \n(RBAC); secure \nAPI endpoints \nwith HTTPS. \n12 \nCloudFormation/AR\nM Templates\n\nInfrastructure-\nas-Code (IaC) \nfor cloud \nresource \nprovisioning.\n\nMisconfigured \ntemplates \nleading to \ninsecure \ndeployments.\n\nReview and \nvalidate \ntemplates; \nenforce least \nprivilege \npolicies. \n13 \nIAM (Identity and \nAccess Management)\n\nAccess control \nand \nauthentication \nfor cloud \nresources.\n\nPrivilege \nescalation, \nweak role \ndefinitions.\n\nEnforce least \nprivilege, enable \nMFA, and \nmonitor access \nlogs. \n14 \nKerberos \nAuthentication \nfor secure \ncloud resource \naccess.\n\nTicket replay \nattacks, \ncredential \ntheft.\n\nUse strong \nencryption; \nensure \nsynchronized \ntime between \nservers. \n15 \nRDP (Remote \nDesktop Protocol)\n\nRemote access \nto cloud virtual \nmachines.\n\nBrute-force \nattacks, \nexploitation of \nweak \ncredentials.\n\nUse strong \npasswords; \nenable network-\nlevel \nauthentication\n\n(NLA); restrict \nRDP access. \n16 \nVDI (Virtual Desktop \nInfrastructure)\n\nDelivering \ndesktop \nenvironments \nvia the cloud.\n\nExploitation of \ninsecure \nconnections, \nsession \nhijacking.\n\nUse TLS to \nsecure \nconnections; \nenforce user \nsession \ntimeouts. \n17 \nOAuth2 \nAuthorization \nfor cloud \nservices and \nAPIs.\n\nToken theft, \ntoken reuse \nattacks.",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "E-mail: incident@cert-in.org.in",
+    "page_number": 53
+  },
+  {
+    "chunk_id": "8900f80190708346107931e75e2259c952b2108c5afe127e7bad678f18daec95",
+    "text": "Use short-lived \ntokens; \nimplement \nsecure storage \nfor tokens. \n18 \nOIDC (OpenID \nConnect)\n\nAuthentication \nfor cloud \napplications.\n\nExploitation of \nmisconfigured \nredirect URIs.\n\nValidate redirect \nURIs; enforce \nstrong \nauthentication \npolicies. \n19 \nNetFlow/sFlow/IPFIX\nMonitoring \ncloud network \ntraffic and \nanalyzing \nperformance.\n\nExploitation of \nunencrypted \ntraffic data.\n\nEncrypt \nmonitoring data; \nrestrict access to \ntrusted systems.\n\n20 \nIAM Federation \n(SAML/OIDC)\n\nFederated \nidentity for \nsingle sign-on \nin cloud \nenvironments.\n\nExploitation of \nweak trust \nrelationships \nbetween \nidentity \nproviders.\n\nMonitor SAML \nassertions; \nenforce secure \ntoken \nexchanges.\n\nAnnexure-II\n\nIoT Device threats\n\nS.No\nIoT Device \nPurpose \nSecurity Threat \nBest Practices \n1 \nSmart Traffic \nLights\n\nManage traffic \nflow by adjusting \nlight timings \nbased on real-\ntime data.\n\nTraffic \nmanipulation, \nunauthorized \naccess to control \nsystems.\n\nUse encrypted \ncommunication, \nsecure access \ncontrol, and \nimplement regular \nsoftware updates. \n2 \nTraffic \nCameras\n\nMonitor traffic \nconditions, \ncapture incidents, \nand detect \nviolations.\n\nPrivacy \nviolations, data \ntampering, and \nunauthorized \naccess.\n\nEncrypt video data, \nsecure storage, and \nensure compliance \nwith privacy laws.\n\n3 \nParking \nSensors\n\nDetect \navailability of \nparking spaces \nand guide \ndrivers.\n\nData interception, \nspoofing sensor \ndata.",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "E-mail: incident@cert-in.org.in",
+    "page_number": 54
+  },
+  {
+    "chunk_id": "26faa32cab1526aa907fb4ffa95a33b78cf0f1843d81c6ff6285fb0343718991",
+    "text": "Use encrypted \ncommunication, \nensure device \nintegrity, and regular \nfirmware updates. \n4 \nAir Quality \nSensors\n\nMonitor air \npollution levels \nand provide real-\ntime data on air \nquality.\n\nData spoofing or \nmanipulation, \ndenial of service \nattacks.\n\nUse secure data \ntransmission, \nmonitor sensor \nintegrity, and \nimplement access \ncontrol for data. \n5 \nWater \nQuality \nSensors\n\nMonitor \nparameters like \npH, turbidity, \nand temperature \nin water systems.\n\nTampering with \nsensor data, \nphysical \nsabotage.\n\nEnsure physical \nsecurity, use \nencryption for data \ntransmission, and \nimplement regular \nmaintenance. \n6 \nSmart Street \nLighting\n\nAdjust lighting \nbased on \nenvironmental \nconditions and \nmotion.\n\nHacking light \ncontrol systems, \nphysical attacks \non devices.\n\nSecure the \ncommunication \nnetworks, use \nresilient devices, and \ninstall physical \ntamper-proof \nenclosures. \n7 \nSmart Water \nMeters\n\nMonitor water \nconsumption and \ndetect leaks or \ninefficiencies.\n\nUnauthorized \naccess, data \nmanipulation.\n\nEncrypt \ncommunication, \nimplement user \nauthentication, and \nmaintain firmware \nupdates.\n\n8 \nSmart Grids \nOptimize energy \ndistribution, \ndetect faults, and \nbalance loads.\n\nCyberattacks on \ngrid control \nsystems, data \nmanipulation.\n\nApply strong \nencryption, use \nmulti-factor \nauthentication, and \nmonitor systems \ncontinuously. \n9 \nSurveillance \nCameras \n(CCTV)\n\nProvide real-time \nmonitoring of \npublic spaces and \ncritical \ninfrastructure.",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "E-mail: incident@cert-in.org.in",
+    "page_number": 55
+  },
+  {
+    "chunk_id": "520044709b91ad9191bd8ee4266edb0573dd4d6003c6d76ea01d5892aee06aa9",
+    "text": "Privacy \nviolations, \nunauthorized \naccess to footage, \ndata breaches.\n\nUse encrypted video \nfeeds, restrict access, \nand ensure \ncompliance with data \nprotection laws. \n10 \nSmart Fire \nDetection \nSystems\n\nDetect fires early \nby monitoring \nsmoke, heat, or \ngas levels.\n\nFalse alarms, \nhacking of alert \nsystems.\n\nRegularly test \nsystems, use \nencrypted \ncommunication, and \nensure proper alarm \nprotocols. \n11 \nEmergency \nAlert \nSystems\n\nNotify citizens of \nemergencies such \nas natural \ndisasters or \naccidents.\n\nHacking of alert \nmessages, denial \nof service attacks.\n\nImplement \nredundancy, use \nencryption, and \nregularly audit \nsystem security. \n12 \nWearable \nHealth \nDevices\n\nTrack health \nmetrics such as \nheart rate, blood \npressure, and \nactivity levels.\n\nData privacy \nbreaches, device \ntampering, \nunauthorized \naccess to health \ndata.\n\nUse end-to-end \nencryption, enforce \nstrict access control, \nand ensure secure \ncloud storage.\n\n13 \nPublic \nTransit \nTracking\n\nTrack public \ntransport vehicles \nfor real-time \nlocation data.\n\nGPS spoofing, \nunauthorized data \naccess.\n\nEncrypt GPS data, \nimplement real-time \nmonitoring, and \nsecure network \ncommunication. \n14 \nSmart Waste \nBins\n\nMonitor waste \nlevels and \noptimize waste \ncollection.\n\nData \nmanipulation, \nhacking of bin \ndata.\n\nEnsure secure \ncommunication, use \nencrypted data \ntransmission, and \nmaintain regular \nsystem checks. \n15 \nSmart Solar \nPanels\n\nMonitor energy \nproduction and \noptimize \nperformance.",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "E-mail: incident@cert-in.org.in",
+    "page_number": 56
+  },
+  {
+    "chunk_id": "0844d4d61bda490ee630768adf02fd60ab5a01379797056ea01dc0f9a60b301f",
+    "text": "Data interception, \nunauthorized \naccess to control \nsystems.\n\nUse secure \ncommunication \nprotocols, monitor \nsystem integrity, and \nregularly update \nfirmware.\n\n16 \nElectric \nVehicle \nCharging \nStations\n\nProvide data on \nusage, \navailability, and \nenergy \nconsumption of \nEVs.\n\nHacking of \ncharging station \ncontrols, payment \nsystem \nvulnerabilities.\n\nUse secure payment \nprotocols, encrypt \ndata, and maintain \nregular software \nupdates.\n\n17 \nSmart Kiosks\nProvide public \ninformation such \nas maps, \nschedules, and \ngovernment \nservices.\n\nPhysical \ntampering, \nunauthorized \naccess to system.\n\nSecure physical \nlocations, use \nencrypted \ncommunications, and \nregularly update \nsoftware. \n18 \nCitizen \nFeedback \nSystems\n\nAllow citizens to \nreport issues \nsuch as \ninfrastructure \nproblems.\n\nData tampering, \nunauthorized \naccess to \nfeedback data.\n\nEncrypt feedback \ndata, limit access to \nauthorized personnel, \nand ensure system \nintegrity. \n19 \nSmart Bikes \nand Scooters\n\nTrack and \nmanage shared \nbike/scooter \nrentals in cities.\n\nGPS spoofing, \nunauthorized \naccess to rental \nsystem.\n\nUse encrypted GPS \ntracking, secure \nrental system data, \nand implement \nauthentication for \nusers.",
+    "metadata": {
+      "category": "india",
+      "source": "CERT-In",
+      "document_name": "CIGU-2025-0001",
+      "document_type": "pdf",
+      "document_hash": "bc67218ad2ad45b73bb98597e3398c5358b2acc905e7f20d455fbed0e7d6e532",
+      "extra": {}
+    },
+    "section": "E-mail: incident@cert-in.org.in",
+    "page_number": 56
+  }
+]

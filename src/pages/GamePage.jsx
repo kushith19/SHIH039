@@ -254,12 +254,12 @@ export default function GamePage() {
         <div className="flex min-w-0 items-center gap-3">
           <img
             src={trustNetLogo}
-            alt="TrustNetAI"
+            alt="CityNet AI"
             className="h-6 w-6 shrink-0 object-contain"
           />
           <div className="min-w-0">
             <div className="flex items-baseline gap-2">
-              <span className="text-[15px] font-medium tracking-tight">TrustNetAI</span>
+              <span className="text-[15px] font-medium tracking-tight">CityNet AI</span>
               {role ? (
                 <span className="hidden capitalize text-sm text-[var(--tn-muted)] sm:inline">
                   {role}
