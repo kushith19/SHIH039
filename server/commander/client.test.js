@@ -3,7 +3,6 @@ import test from 'node:test'
 import {
   fingerprintIncident,
   fallbackExplanation,
-  fallbackStoryExplanation,
   mapDetectionType,
   ollamaFallbackEnabled,
   toDetectionInput,
@@ -94,16 +93,6 @@ test('toDetectionInput maps a JS incident to Commander DetectionInput', () => {
   const fallback = fallbackExplanation(incident)
   assert.match(fallback, /Water PLC/)
   assert.match(fallback, /packetsPerSecond/)
-})
-
-test('fallbackStoryExplanation is origin-only', () => {
-  const text = fallbackStoryExplanation({
-    origin: 'Citizen Payment Gateway',
-    next: 'Identity Service',
-    tail: 'Municipal Finance API',
-  })
-  assert.match(text, /Citizen Payment Gateway/)
-  assert.doesNotMatch(text, /Identity Service|Municipal Finance API/)
 })
 
 test('fingerprint stays stable for the same incident id when only live metrics drift', () => {
@@ -379,7 +368,7 @@ test('campaign analyze is invoked only after a correlator match', async () => {
     await new Promise((r) => setTimeout(r, 80))
     assert.ok(calls.some((c) => c.url.includes('/commander/analyze')))
     assert.equal(calls.filter((c) => c.url.includes('/commander/explain')).length, 0)
-    assert.match(fallbackCampaignAssessment(campaign), /Pattern match/)
+    assert.match(fallbackCampaignAssessment(campaign), /Correlated campaign/)
     const payload = toCampaignInput(room, campaign)
     assert.equal(payload.campaignId, 'cmp-x')
     assert.equal(payload.incidents.length, 1)

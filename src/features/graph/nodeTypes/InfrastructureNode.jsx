@@ -39,6 +39,13 @@ const HACK_DRIFT = {
   bg: 'color-mix(in srgb, #f59e0b 18%, transparent)',
 }
 
+// Highest-risk next target based on peer trust + propagation risk
+const HACK_NEXT_TARGET = {
+  base: '#a855f7',
+  border: '#9333ea',
+  bg: 'color-mix(in srgb, #a855f7 18%, transparent)',
+}
+
 const ppsFormatter = new Intl.NumberFormat(undefined, {
   maximumFractionDigits: 0,
 })
@@ -98,6 +105,7 @@ function InfrastructureNode({ id, data, selected }) {
 
   const flaggedByScan = attackOn && (hack?.anomalyNodeIds ?? []).includes(id)
   const peerExposed = attackOn && !flaggedByScan && (hack?.atRiskNodeIds ?? []).includes(id)
+  const isPrimarySpread = attackOn && !flaggedByScan && hack?.primarySpreadNodeId === id
   const anomaly = {
     isAnomaly: flaggedByScan,
     trustAnomaly: flaggedByScan,
@@ -130,9 +138,11 @@ function InfrastructureNode({ id, data, selected }) {
     ? NORMAL_NODE_STYLE
     : isCriticalRed
       ? HACK_TAMPERED
-      : peerExposed || drift
-        ? HACK_DRIFT
-        : HACK_MUTED
+      : isPrimarySpread
+        ? HACK_NEXT_TARGET
+        : peerExposed || drift
+          ? HACK_DRIFT
+          : HACK_MUTED
 
   const ppsLabel = ppsFormatter.format(displayPps)
   const trustLabel = trustFormatter.format(trustScore)
@@ -156,10 +166,16 @@ function InfrastructureNode({ id, data, selected }) {
         boxShadow: `inset 3px 0 0 ${border}`,
       }}
     >
-      {showAnomalyDetectedBadge || peerExposed || isInjected ? (
+      {showAnomalyDetectedBadge || isPrimarySpread || peerExposed || isInjected ? (
         <div className="pointer-events-none absolute -top-2 left-1 right-1 z-10 text-center text-[11px] font-medium leading-tight">
           <span className="inline-block rounded bg-[var(--tn-surface)] px-1.5 py-0.5 text-[var(--tn-text)] shadow-[var(--tn-shadow-sm)]">
-            {showAnomalyDetectedBadge ? 'Anomaly' : peerExposed ? 'Peer exposed' : 'Unknown node'}
+            {showAnomalyDetectedBadge
+              ? 'Anomaly'
+              : isPrimarySpread
+                ? 'Next target'
+                : peerExposed
+                  ? 'Peer exposed'
+                  : 'Unknown node'}
           </span>
         </div>
       ) : null}

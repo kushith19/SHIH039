@@ -1,8 +1,6 @@
 import { detectionTypeLabel, formatEvidenceItem } from '../../shared/incidents.js'
-import { chapterOf, fallbackStoryExplanation } from '../../shared/attackStory.js'
-import { storyExplainPayload } from '../campaign/story.js'
 import { isGameMetricKey } from '../../shared/telemetryKeys.js'
-import { hopDistance } from '../detection/campaigns/correlator.js'
+import { hopDistance } from '../detection/campaigns/graphHops.js'
 import { fallbackBriefing } from '../../shared/commanderBriefing.js'
 
 const AI_COMMANDER_URL = process.env.AI_COMMANDER_URL ?? 'http://localhost:8000'
@@ -108,10 +106,7 @@ export function fallbackExplanation(incident) {
   return `${endpoint} was flagged as ${type} (${severity}) because ${lines.join('; ')}.`
 }
 
-export { fallbackStoryExplanation }
-
 function narrativeFallback(incident) {
-  if (incident?._story) return fallbackStoryExplanation(incident._story)
   return fallbackExplanation(incident)
 }
 
@@ -176,8 +171,8 @@ export function toDetectionInput(incident, room = null) {
 export function fallbackCampaignAssessment(campaign) {
   const n = (campaign?.endpointIds ?? []).length
   const score = Math.round((Number(campaign?.campaignMatchScore) || 0) * 100)
-  const title = campaign?.title || campaign?.campaignType || 'recognized pattern'
-  return `Pattern match: ${title}. ${n} endpoint${n === 1 ? '' : 's'} correlated with catalog score ${score}%. This is a deterministic graph and time match, not a confirmed attacker campaign.`
+  const title = campaign?.title || campaign?.campaignType || 'correlated campaign'
+  return `Correlated campaign: ${title}. ${n} endpoint${n === 1 ? '' : 's'} with catalog score ${score}%. This is a deterministic graph and time match, not a confirmed attacker campaign.`
 }
 
 export function toCampaignInput(room, campaign) {
@@ -364,34 +359,6 @@ function mergeExplanation(room, incidentId, _fp, { status, summary }) {
   }
 }
 
-function mergeStoryExplanation(room, incidentId, { status, summary }) {
-  const ch = chapterOf(room?.attackStory, 'commander')
-  if (!ch) return
-  const expected = `story-${room.attackStory?.campaignId || 'ungrouped'}`
-  if (incidentId !== expected) return
-  ch.text = summary
-  ch.status = status
-}
-
-export function attachStoryExplanation(room) {
-  const payload = storyExplainPayload(room)
-  const commander = chapterOf(room?.attackStory, 'commander')
-  if (!payload || !commander) return
-  const cache = cacheFor(room.id)
-  const fp = payload._story.pathFingerprint
-  const row = cache.get(payload.id)
-  if (row && row.fingerprint === fp && row.summary) {
-    commander.text = row.summary
-    commander.status = explanationStatusOf(row.status)
-    return
-  }
-  commander.text = fallbackStoryExplanation(payload._story)
-  if (row?.fingerprint === fp) {
-    commander.status = explanationStatusOf(row.status, 'pending')
-    if (row.summary) commander.text = row.summary
-  }
-}
-
 function applyFallback(room, incident, fingerprint, { status = 'fallback' } = {}) {
   const summary = narrativeFallback(incident)
   cacheFor(room.id).set(incident.id, {
@@ -401,7 +368,6 @@ function applyFallback(room, incident, fingerprint, { status = 'fallback' } = {}
     lastAttempt: Date.now(),
   })
   mergeExplanation(room, incident.id, fingerprint, { status, summary })
-  mergeStoryExplanation(room, incident.id, { status, summary })
   incident.explanation = summary
   incident.explanationStatus = status
 }
@@ -645,7 +611,6 @@ function pump() {
         status,
         summary,
       })
-      mergeStoryExplanation(job.room, job.incident.id, { status, summary })
       job.onAfter?.(job.room)
     })
     .catch((err) => {
@@ -691,42 +656,6 @@ export function enqueueIncidentExplanations(room, onAfter) {
     inc.explanationStatus = 'pending'
     queue.push({ room, incident: inc, fingerprint: fp, onAfter })
   }
-  trimQueue()
-  pump()
-}
-
-export function enqueueStoryExplanation(room, onAfter) {
-  const payload = storyExplainPayload(room)
-  if (!room?.id || !payload) return
-  const cache = cacheFor(room.id)
-  const fp = payload._story.pathFingerprint
-  const row = cache.get(payload.id)
-  const now = Date.now()
-  if (row?.status === 'ready' && row.fingerprint === fp) return
-  if (row?.status === 'pending' && row.fingerprint === fp) return
-  if (
-    (row?.status === 'error' || row?.status === 'fallback') &&
-    row.fingerprint === fp &&
-    now - (row.lastAttempt || 0) < ERROR_RETRY_MS
-  ) {
-    return
-  }
-  const open = circuitIsOpen()
-  if (open && !ollamaFallbackEnabled()) {
-    applyFallback(room, payload, fp, { status: 'fallback' })
-    return
-  }
-  const seed = fallbackStoryExplanation(payload._story)
-  cache.set(payload.id, {
-    fingerprint: fp,
-    status: 'pending',
-    summary: seed,
-    lastAttempt: now,
-  })
-  mergeStoryExplanation(room, payload.id, { status: 'pending', summary: seed })
-  payload.explanation = seed
-  payload.explanationStatus = 'pending'
-  queue.push({ room, incident: payload, fingerprint: fp, onAfter })
   trimQueue()
   pump()
 }

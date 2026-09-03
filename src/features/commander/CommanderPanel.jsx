@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import ThreatSummary from './ThreatSummary'
 import RiskBreakdown from './RiskBreakdown'
 import EvidenceCards from './EvidenceCards'
@@ -8,8 +8,13 @@ import ResponsePlan from './ResponsePlan'
 import KnowledgeCitation from './KnowledgeCitation'
 import InvestigationQueue from './InvestigationQueue'
 import CommanderInput from './CommanderInput'
+import IncidentCommanderAgent from './IncidentCommanderAgent'
 import { FilterChip } from '../../ui/Toolbar'
 import { normalizeBriefing } from './commanderBriefing.js'
+import {
+  COMMANDER_MODES,
+  buildIncidentIntel,
+} from '@shared/commanderIncidentIntel.js'
 
 const SECTIONS = [
   { id: 'evidence', label: 'Evidence' },
@@ -23,14 +28,104 @@ export default function CommanderPanel({
   briefing: briefingProp,
   posture,
   incidents = [],
-  campaigns = [],
+  focusIncidentId = null,
 }) {
   const briefing = normalizeBriefing(briefingProp)
-  const live = (campaigns ?? []).filter((c) => c.status && c.status !== 'expired')
-  const mitre = briefing?.mitreCandidates || live[0]?.mitreCandidates || []
+  const mitre = briefing?.mitreCandidates || []
   const plan = briefing?.responsePlan || []
   const citations = briefing?.citations?.length ? briefing.citations : briefing?.evidence || []
   const [section, setSection] = useState('evidence')
+  const [incidentContext, setIncidentContext] = useState(null)
+  const [mode, setMode] = useState(COMMANDER_MODES.INVESTIGATE)
+  const [intel, setIntel] = useState(null)
+
+  useEffect(() => {
+    if (focusIncidentId) setMode(COMMANDER_MODES.INVESTIGATE)
+  }, [focusIncidentId])
+
+  useEffect(() => {
+    if (!roomId || !focusIncidentId) {
+      setIncidentContext(null)
+      setIntel(null)
+      return undefined
+    }
+    let cancelled = false
+    const load = async () => {
+      try {
+        const res = await fetch(
+          `/rooms/${encodeURIComponent(roomId)}/commander/incident-intel`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ incidentId: focusIncidentId, mode }),
+          }
+        )
+        const json = await res.json()
+        if (cancelled) return
+        if (!res.ok || json.ok === false) {
+          // Fall back to GET commander-context + local intel builder
+          try {
+            const ctxRes = await fetch(
+              `/rooms/${encodeURIComponent(roomId)}/incidents/${encodeURIComponent(focusIncidentId)}/commander-context`
+            )
+            const ctxJson = await ctxRes.json()
+            if (cancelled) return
+            if (ctxRes.ok && ctxJson.context) {
+              setIncidentContext(ctxJson.context)
+              setIntel(buildIncidentIntel(ctxJson.context, mode))
+              return
+            }
+          } catch {
+            /* ignore */
+          }
+          setIncidentContext(null)
+          setIntel(null)
+          return
+        }
+        setIncidentContext(json.context ?? null)
+        setIntel(json.intel ?? (json.context ? buildIncidentIntel(json.context, mode) : null))
+      } catch {
+        if (!cancelled) {
+          setIncidentContext(null)
+          setIntel(null)
+        }
+      }
+    }
+    void load()
+    return () => {
+      cancelled = true
+    }
+  }, [roomId, focusIncidentId, mode])
+
+  if (focusIncidentId) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="min-h-0 flex-1 space-y-6 overflow-auto pr-1">
+          {incidentContext ? (
+            <IncidentCommanderAgent
+              context={incidentContext}
+              mode={mode}
+              onModeChange={setMode}
+              intel={intel}
+            />
+          ) : (
+            <section className="tn-surface px-5 py-5">
+              <div className="tn-label">AI Commander</div>
+              <p className="mt-3 text-sm">Loading structured incident context…</p>
+            </section>
+          )}
+        </div>
+        <div className="sticky bottom-0 mt-4 shrink-0 border-t border-[var(--tn-line)] bg-[var(--tn-canvas)] pt-4">
+          <CommanderInput
+            roomId={roomId}
+            incidentId={focusIncidentId}
+            focused
+            mode={mode}
+          />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">

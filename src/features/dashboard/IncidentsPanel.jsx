@@ -1,25 +1,18 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   DETECTION_TYPES,
   detectionTypeLabel,
-  formatEvidenceItem,
 } from '@shared/incidents.js'
-import { campaignTitle } from '@shared/campaigns.js'
-import { TIMELINE_CAPTION, timelineEventsFromIncident } from '@shared/incidentTimeline.js'
-import IncidentTimeline from './IncidentTimeline'
+import IncidentCard from './IncidentCard'
+import CampaignIntelligence from './CampaignIntelligence'
+import HistoryIncidentTimeline from './HistoryIncidentTimeline'
 import Toolbar, { FilterChip } from '../../ui/Toolbar'
 import StatusBadge from '../../ui/StatusBadge'
 import EmptyState from '../../ui/EmptyState'
-
-function pct(n) {
-  if (n == null || !Number.isFinite(Number(n))) return '—'
-  return `${Math.round(Number(n) * 100)}%`
-}
-
-function trustFmt(n) {
-  if (n == null || !Number.isFinite(Number(n))) return '—'
-  return String(Math.round(Number(n)))
-}
+import {
+  liveIncidentMatchesTimelineEvent,
+  timelineSelectionKey,
+} from './historyTimelineView.js'
 
 function railColor(severity) {
   switch (severity) {
@@ -52,41 +45,47 @@ function streamKey(inc) {
   return String(inc.endpointId || inc.id || '')
 }
 
+function severityRank(severity) {
+  switch (String(severity ?? '').toLowerCase()) {
+    case 'critical':
+      return 0
+    case 'high':
+      return 1
+    case 'medium':
+      return 2
+    default:
+      return 3
+  }
+}
+
+function compareBySeverity(a, b) {
+  const d = severityRank(a.severity) - severityRank(b.severity)
+  if (d !== 0) return d
+  const la = String(a.endpointLabel || a.endpointId || '')
+  const lb = String(b.endpointLabel || b.endpointId || '')
+  return la.localeCompare(lb)
+}
+
 export default function IncidentsPanel({
+  roomId = '',
   incidents = [],
-  campaigns = [],
+  nodes = [],
+  primarySpreadNodeId = null,
   onSelectEndpoint,
-  demoted = false,
   hideHeader = false,
 }) {
   const [typeFilter, setTypeFilter] = useState(null)
   const [selectedKey, setSelectedKey] = useState(null)
-  const orderRef = useRef({ seq: 0, byKey: new Map() })
+  const [historyCampaigns, setHistoryCampaigns] = useState([])
+  const [historyIncidents, setHistoryIncidents] = useState([])
+  const [historyOrder, setHistoryOrder] = useState('newest-first')
+  const [timelineFocusId, setTimelineFocusId] = useState(null)
+
+  const nextTargetKey = primarySpreadNodeId ? String(primarySpreadNodeId) : null
 
   const orderedIncidents = useMemo(() => {
     const list = Array.isArray(incidents) ? incidents : []
-    const { byKey } = orderRef.current
-    const live = new Set()
-    const newcomers = []
-    for (const inc of list) {
-      const key = streamKey(inc)
-      if (!key) continue
-      live.add(key)
-      if (!byKey.has(key)) newcomers.push(key)
-    }
-    for (let i = newcomers.length - 1; i >= 0; i -= 1) {
-      orderRef.current.seq += 1
-      byKey.set(newcomers[i], orderRef.current.seq)
-    }
-    for (const key of [...byKey.keys()]) {
-      if (!live.has(key)) byKey.delete(key)
-    }
-    return [...list].sort((a, b) => {
-      const ka = byKey.get(streamKey(a)) ?? 0
-      const kb = byKey.get(streamKey(b)) ?? 0
-      if (kb !== ka) return kb - ka
-      return streamKey(a).localeCompare(streamKey(b))
-    })
+    return [...list].sort(compareBySeverity)
   }, [incidents])
 
   const rows = useMemo(() => {
@@ -97,6 +96,50 @@ export default function IncidentsPanel({
         (inc.detectionTypes ?? []).includes(typeFilter)
     )
   }, [orderedIncidents, typeFilter])
+
+  useEffect(() => {
+    if (!roomId) {
+      setHistoryCampaigns([])
+      setHistoryIncidents([])
+      return undefined
+    }
+    let cancelled = false
+    const load = async () => {
+      try {
+        const [campRes, histRes] = await Promise.all([
+          fetch(`/rooms/${encodeURIComponent(roomId)}/incidents/campaigns`),
+          fetch(
+            `/rooms/${encodeURIComponent(roomId)}/incidents/history?order=${encodeURIComponent(historyOrder)}`
+          ),
+        ])
+        const campJson = await campRes.json()
+        const histJson = await histRes.json()
+        if (cancelled) return
+        setHistoryCampaigns(
+          campRes.ok && campJson.ok !== false && Array.isArray(campJson.campaigns)
+            ? campJson.campaigns
+            : []
+        )
+        if (histRes.ok && histJson.ok !== false) {
+          setHistoryIncidents(Array.isArray(histJson.incidents) ? histJson.incidents : [])
+          if (histJson.order) setHistoryOrder(histJson.order)
+        } else {
+          setHistoryIncidents([])
+        }
+      } catch {
+        if (!cancelled) {
+          setHistoryCampaigns([])
+          setHistoryIncidents([])
+        }
+      }
+    }
+    void load()
+    const id = window.setInterval(() => void load(), 2000)
+    return () => {
+      cancelled = true
+      window.clearInterval(id)
+    }
+  }, [roomId, incidents.length, historyOrder])
 
   useEffect(() => {
     if (!rows.length) {
@@ -119,37 +162,24 @@ export default function IncidentsPanel({
 
   const chipTypes = presentTypes.length > 0 ? presentTypes : DETECTION_TYPES
 
-  const groups = useMemo(() => {
-    const byId = new Map((campaigns ?? []).map((c) => [c.id, c]))
-    const grouped = new Map()
-    const ungrouped = []
-    for (const inc of rows) {
-      const cid = inc.campaignId
-      if (!cid) {
-        ungrouped.push(inc)
-        continue
-      }
-      if (!grouped.has(cid)) grouped.set(cid, [])
-      grouped.get(cid).push(inc)
-    }
-    const campaignGroups = [...grouped.entries()].map(([id, list]) => {
-      const meta = byId.get(id)
-      return {
-        id,
-        title: meta?.title || campaignTitle(meta) || 'Pattern match',
-        status: meta?.status,
-        progress: `${list.length} endpoints`,
-        incidents: list,
-      }
-    })
-    return { campaignGroups, ungrouped }
-  }, [rows, campaigns])
-
   const selected = rows.find((inc) => streamKey(inc) === selectedKey) ?? null
 
+  function selectFromTimeline(event) {
+    setTimelineFocusId(event?.incidentId ?? null)
+    const match = (incidents ?? []).find((inc) => liveIncidentMatchesTimelineEvent(inc, event))
+    if (match) setSelectedKey(streamKey(match))
+  }
+
+  const timelineSelectedKey =
+    timelineFocusId != null
+      ? timelineSelectionKey(
+          historyIncidents.find((row) => String(row.incidentId) === String(timelineFocusId))
+        ) || selectedKey
+      : selectedKey
+
   return (
-    <section className="overflow-hidden">
-      <div className="mb-5">
+    <section className="flex min-h-0 flex-col gap-5 overflow-hidden">
+      <div>
         <Toolbar
           trailing={
             <span className="font-mono text-lg tabular-nums">{incidents.length}</span>
@@ -169,75 +199,84 @@ export default function IncidentsPanel({
           ))}
         </Toolbar>
         {hideHeader ? (
-          <p className="tn-meta mt-3">
-            {demoted
-              ? 'Raw detections behind the story. Live flags this tick, not a ticket queue.'
-              : 'Grouped by recognized pattern when correlated. Live flags this tick.'}
-          </p>
+          <p className="tn-meta mt-3">Live promoted detections this tick.</p>
         ) : null}
       </div>
 
-      {rows.length === 0 ? (
-        <div className="tn-surface">
+      {/* PRIMARY — live SOC stream */}
+      <div className="tn-surface overflow-hidden">
+        <div className="flex items-baseline justify-between gap-2 border-b border-[var(--tn-line)] px-4 py-3">
+          <div>
+            <div className="text-sm font-medium">Live incident stream</div>
+            <p className="tn-meta mt-0.5">Promoted detections this tick</p>
+          </div>
+          <span className="font-mono text-sm tabular-nums text-[var(--tn-muted)]">
+            {rows.length}
+          </span>
+        </div>
+        {rows.length === 0 ? (
           <EmptyState
             title="No promoted detections this tick"
             body="No detections have passed criteria."
           />
-        </div>
-      ) : (
-        <div className="grid min-h-[22rem] gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
-          <div className="tn-surface overflow-hidden">
-            {groups.campaignGroups.map((group) => (
-              <div key={group.id}>
-                <div className="px-4 py-2.5">
-                  <div className="text-sm font-medium">{group.title}</div>
-                  <p className="tn-meta mt-0.5">
-                    {group.status ? `${group.status} · ` : ''}
-                    {group.progress}
-                  </p>
-                </div>
-                <ul>
-                  {group.incidents.map((inc) => (
-                    <QueueRow
-                      key={streamKey(inc)}
-                      inc={inc}
-                      selected={selectedKey === streamKey(inc)}
-                      onSelect={() => setSelectedKey(streamKey(inc))}
-                    />
-                  ))}
-                </ul>
-              </div>
-            ))}
-            {groups.ungrouped.length > 0 ? (
-              <div>
-                {groups.campaignGroups.length > 0 ? (
-                  <div className="px-4 py-2.5 text-sm text-[var(--tn-muted)]">Ungrouped</div>
-                ) : null}
-                <ul>
-                  {groups.ungrouped.map((inc) => (
-                    <QueueRow
-                      key={streamKey(inc)}
-                      inc={inc}
-                      selected={selectedKey === streamKey(inc)}
-                      onSelect={() => setSelectedKey(streamKey(inc))}
-                    />
-                  ))}
-                </ul>
-              </div>
-            ) : null}
+        ) : (
+          <div className="max-h-[22rem] overflow-y-auto">
+            <ul>
+              {rows.map((inc) => (
+                <QueueRow
+                  key={streamKey(inc)}
+                  inc={inc}
+                  selected={selectedKey === streamKey(inc)}
+                  onSelect={() => setSelectedKey(streamKey(inc))}
+                  isNextTarget={nextTargetKey != null && streamKey(inc) === nextTargetKey}
+                />
+              ))}
+            </ul>
           </div>
-          <div className="tn-surface min-w-0 p-5">
-            {selected ? (
-              <IncidentDetail inc={selected} onSelectEndpoint={onSelectEndpoint} />
-            ) : null}
-          </div>
+        )}
+      </div>
+
+      {/* DETAIL — selected live incident */}
+      <div className="tn-surface min-w-0 overflow-hidden">
+        <div className="border-b border-[var(--tn-line)] px-4 py-3">
+          <div className="text-sm font-medium">Selected incident</div>
+          <p className="tn-meta mt-0.5">Detail for the live stream selection</p>
         </div>
-      )}
+        <div className="p-5">
+          {selected ? (
+            <IncidentCard
+              inc={selected}
+              nodes={nodes}
+              primarySpreadNodeId={primarySpreadNodeId}
+              onSelectEndpoint={onSelectEndpoint}
+            />
+          ) : (
+            <p className="tn-meta">Select an incident from the live stream to inspect evidence.</p>
+          )}
+        </div>
+      </div>
+
+      {/* SECONDARY — timeline + campaign intelligence */}
+      <div className="grid min-h-0 grid-cols-1 gap-4 lg:grid-cols-2 lg:items-stretch">
+        <div className="min-h-[16rem] max-h-[22rem] min-w-0 lg:min-h-[18rem]">
+          <HistoryIncidentTimeline
+            incidents={historyIncidents}
+            campaigns={historyCampaigns}
+            order={historyOrder}
+            selectedKey={timelineSelectedKey}
+            selectedIncidentId={timelineFocusId}
+            onSelectEvent={selectFromTimeline}
+          />
+        </div>
+        <div className="min-h-[16rem] max-h-[22rem] min-w-0 lg:min-h-[18rem]">
+          <CampaignIntelligence campaigns={historyCampaigns} />
+        </div>
+      </div>
     </section>
   )
 }
 
-function QueueRow({ inc, selected, onSelect }) {
+function QueueRow({ inc, selected, onSelect, isNextTarget = false }) {
   return (
     <li>
       <button
@@ -246,10 +285,23 @@ function QueueRow({ inc, selected, onSelect }) {
         style={selected ? { background: 'var(--tn-select-bg)' } : undefined}
         onClick={onSelect}
       >
-        <div className="w-0.5 shrink-0" style={{ background: railColor(inc.severity) }} />
+        <div
+          className="w-0.5 shrink-0"
+          style={{ background: isNextTarget ? '#a855f7' : railColor(inc.severity) }}
+        />
         <div className="min-w-0 flex-1 px-4 py-3">
-          <div className="truncate text-sm font-medium">
-            {inc.endpointLabel || inc.endpointId}
+          <div className="flex items-center gap-2">
+            <span className="truncate text-sm font-medium">
+              {inc.endpointLabel || inc.endpointId}
+            </span>
+            {isNextTarget ? (
+              <span
+                className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold leading-tight"
+                style={{ background: 'color-mix(in srgb,#a855f7 18%,transparent)', color: '#a855f7' }}
+              >
+                Next target
+              </span>
+            ) : null}
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <StatusBadge tone={severityTone(inc.severity)}>{inc.severity || 'low'}</StatusBadge>
@@ -261,112 +313,5 @@ function QueueRow({ inc, selected, onSelect }) {
         </div>
       </button>
     </li>
-  )
-}
-
-function IncidentDetail({ inc, onSelectEndpoint }) {
-  const evidence = Array.isArray(inc.evidence) ? inc.evidence : []
-  const deps = Array.isArray(inc.affectedDependencies) ? inc.affectedDependencies : []
-  return (
-    <div>
-      <button
-        type="button"
-        className="text-left text-lg font-medium hover:underline"
-        onClick={() => onSelectEndpoint?.(inc.endpointId)}
-      >
-        {inc.endpointLabel || inc.endpointId}
-      </button>
-      <p className="tn-meta mt-1">
-        Click the name to chart this endpoint · conf {pct(inc.confidence)}
-      </p>
-      <div className="mt-5 grid grid-cols-3 gap-4 font-mono tabular-nums">
-        <div>
-          <div className="tn-label">Anomaly</div>
-          <div className="mt-1 text-base">{pct(inc.anomalyScore)}</div>
-        </div>
-        <div>
-          <div className="tn-label">Trust</div>
-          <div className="mt-1 text-base">{trustFmt(inc.trustScore)}</div>
-        </div>
-        <div>
-          <div className="tn-label">Deps</div>
-          <div className="mt-1 text-base">{deps.length}</div>
-        </div>
-      </div>
-      <div className="mt-6">
-        <IncidentTimeline
-          events={timelineEventsFromIncident(inc)}
-          caption={TIMELINE_CAPTION}
-          pulseCurrent={inc.explanationStatus === 'pending'}
-        />
-      </div>
-      <div className="mt-6">
-        <h3 className="tn-section-title">Explanation</h3>
-        {inc.explanationStatus === 'pending' ? (
-          <p className="tn-meta mt-2">Generating explanation…</p>
-        ) : inc.explanationStatus === 'fallback' ? (
-          <>
-            <p className="tn-meta mt-2">Template · no RAG. Deterministic template — Commander offline.</p>
-            {inc.explanation ? <p className="mt-2 text-sm leading-relaxed">{inc.explanation}</p> : null}
-          </>
-        ) : inc.explanationStatus === 'error' ? (
-          <p className="tn-meta mt-2">
-            Commander could not explain this detection. Numeric facts are below.
-          </p>
-        ) : inc.explanation ? (
-          <>
-            <p className="tn-meta mt-2">
-              {inc.explanationSource === 'llm-explain'
-                ? 'Ungrounded LLM restatement · no RAG'
-                : 'Template · no RAG'}
-            </p>
-            <p className="mt-2 text-sm leading-relaxed">{inc.explanation}</p>
-          </>
-        ) : (
-          <p className="tn-meta mt-2">No explanation yet.</p>
-        )}
-      </div>
-      {inc.illustrativeImpact?.kind === 'illustrative' ? (
-        <p className="tn-meta mt-4">
-          {inc.illustrativeImpact.label}: {inc.illustrativeImpact.value}
-        </p>
-      ) : null}
-      <div className="mt-6">
-        <h3 className="tn-section-title">Facts</h3>
-        {evidence.length === 0 ? (
-          <p className="tn-meta mt-2">None</p>
-        ) : (
-          <ul className="tn-meta mt-2 space-y-1.5">
-            {evidence.map((ev, i) => (
-              <li key={`${ev.code}-${ev.detail ?? i}`}>{formatEvidenceItem(ev)}</li>
-            ))}
-          </ul>
-        )}
-      </div>
-      <div className="mt-6">
-        <h3 className="tn-section-title">Affected dependencies</h3>
-        {deps.length === 0 ? (
-          <p className="tn-meta mt-2">None on the spread path</p>
-        ) : (
-          <ul className="tn-meta mt-2 space-y-1.5">
-            {deps.map((d) => (
-              <li key={d.id}>
-                {d.source} → {d.target}
-                {d.role ? ` · ${d.role}` : ''}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-      {Array.isArray(inc.detectionTypes) && inc.detectionTypes.length > 1 ? (
-        <p className="tn-meta mt-4">
-          Also:{' '}
-          {inc.detectionTypes
-            .filter((t) => t !== inc.detectionType)
-            .map(detectionTypeLabel)
-            .join(', ')}
-        </p>
-      ) : null}
-    </div>
   )
 }

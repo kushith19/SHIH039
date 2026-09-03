@@ -47,6 +47,7 @@ test('trajectory classifier: rising, escalating, critical, stable falling', () =
   assert.equal(classifyTrajectory({ score: 50, delta: 5, exposedDelta: 0 }), TRAJECTORY.RISING)
   assert.equal(classifyTrajectory({ score: 50, delta: 15, exposedDelta: 0 }), TRAJECTORY.ESCALATING)
   assert.equal(classifyTrajectory({ score: 80, delta: 12, exposedDelta: 0 }), TRAJECTORY.CRITICAL)
+  assert.equal(classifyTrajectory({ score: 80, delta: 0, exposedDelta: 0 }), TRAJECTORY.CRITICAL)
   assert.equal(classifyTrajectory({ score: 75, delta: 3, exposedDelta: 2 }), TRAJECTORY.CRITICAL)
   assert.equal(classifyTrajectory({ score: 78, delta: -15, exposedDelta: 0 }), TRAJECTORY.STABLE)
   assert.equal(classifyTrajectory({ score: 80, delta: null }), TRAJECTORY.STABLE)
@@ -95,6 +96,14 @@ test('10-tick delta and CRITICAL via exposure growth', () => {
   history[history.length - 1].exposedCount = 4
   const snap = momentumFromHistory(history)
   assert.equal(snap.delta, 3)
+  assert.equal(snap.trajectory, TRAJECTORY.CRITICAL)
+})
+
+test('high residual plateau stays critical when the 10-tick delta flattens', () => {
+  const history = scoredHistory(1, RISK_WINDOW_TICKS + 1, () => 80)
+  const snap = momentumFromHistory(history)
+  assert.equal(snap.score, 80)
+  assert.equal(snap.delta, 0)
   assert.equal(snap.trajectory, TRAJECTORY.CRITICAL)
 })
 

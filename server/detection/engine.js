@@ -65,8 +65,31 @@ export function runDetection(input) {
     // Maintain atRiskNodeIds as a backwards-compatible union for frontend visual state
     atRiskNodeIds: [...new Set([...exposure.atRiskNodeIds, ...propagation.propagatedNodeIds])].sort(),
     atRiskEdgeIds: exposure.atRiskEdgeIds,
-    primarySpreadNodeId: null,
-    primarySpreadEdgeId: null,
+    primarySpreadNodeId: (() => {
+      const seedSet = new Set(tgnnResult.anomalyNodeIds)
+      let best = null
+      let bestRisk = -Infinity
+      for (const [nodeId, risk] of Object.entries(propagation.propagationRiskByNode ?? {})) {
+        if (seedSet.has(nodeId)) continue
+        if (risk > bestRisk) { bestRisk = risk; best = nodeId }
+      }
+      return best
+    })(),
+    primarySpreadEdgeId: (() => {
+      const seedSet = new Set(tgnnResult.anomalyNodeIds)
+      let best = null
+      let bestRisk = -Infinity
+      for (const [nodeId, risk] of Object.entries(propagation.propagationRiskByNode ?? {})) {
+        if (seedSet.has(nodeId)) continue
+        if (risk > bestRisk) { bestRisk = risk; best = nodeId }
+      }
+      if (!best) return null
+      const edge = (input.dependencies ?? []).find(
+        (e) => (seedSet.has(String(e.source ?? '')) && String(e.target ?? '') === best) ||
+                (seedSet.has(String(e.target ?? '')) && String(e.source ?? '') === best)
+      )
+      return edge?.id ?? null
+    })(),
     isolationScoresByNodeId: tgnnResult.isolationScoresByNodeId,
     reasonsByNodeId,
     detectionMode: DETECTION_MODE_TGNN,

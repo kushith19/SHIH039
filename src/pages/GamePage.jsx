@@ -117,10 +117,6 @@ export default function GamePage() {
       simulationTick: room.simulationTick ?? 0,
       cityContext: room.cityContext,
       liveTelemetryByNodeId: room.liveTelemetryByNodeId ?? {},
-      campaignSeedNodeIds: (room.campaigns ?? [])
-        .filter((c) => c.status === 'active' || c.status === 'contained')
-        .map((c) => c.seedNodeId)
-        .filter(Boolean),
     }),
     [
       activeHackSimulator,
@@ -128,7 +124,6 @@ export default function GamePage() {
       room.simulationTick,
       room.cityContext,
       room.liveTelemetryByNodeId,
-      room.campaigns,
     ]
   )
 
@@ -148,7 +143,6 @@ export default function GamePage() {
       hackSimulator: room.hackSimulator,
       viewport: room.viewport,
       detection: room.detection ?? null,
-      campaigns: room.campaigns ?? [],
       simulationTick: room.simulationTick ?? 0,
       cityContext: room.cityContext,
       liveTelemetryByNodeId: room.liveTelemetryByNodeId ?? {},
@@ -162,7 +156,6 @@ export default function GamePage() {
       room.hackSimulator,
       room.viewport,
       room.detection,
-      room.campaigns,
       room.simulationTick,
       room.cityContext,
       room.liveTelemetryByNodeId,
@@ -478,8 +471,6 @@ export default function GamePage() {
           connected={connected}
           ingestionStatus={room.ingestionStatus}
           hackSimulator={room.hackSimulator}
-          campaigns={room.campaigns ?? []}
-          attackStory={room.attackStory ?? null}
           commanderBriefing={room.commanderBriefing ?? null}
           cityPosture={room.cityPosture ?? null}
         />

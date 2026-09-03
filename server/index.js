@@ -44,17 +44,28 @@ import {
   stopTelemetryLoop,
   teardownRoomTelemetry,
 } from './telemetry/generator.js'
-import { getLatestDetection, listAttackPatterns, listCampaigns } from './metrics/store.js'
+import { getLatestDetection } from './metrics/store.js'
+import {
+  commanderContextFor,
+  getIncident,
+  listIncidentHistory,
+  listHistoryCampaigns,
+  listIncidents,
+  normalizeHistoryOrder,
+  updateIncidentStatus,
+} from './metrics/incidents.js'
 import { deleteTgnnCalibrator, resetTgnnCalibrator } from './detection/calibrator.js'
 import { emptyDetectionResult } from './detection/types.js'
-import { emptyAttackStory } from '../shared/attackStory.js'
 import {
   abortAndClearAttacks,
   applyManualPreset,
   attachOverrideNodes,
-  publicCampaigns,
 } from './campaign/engine.js'
 import { answerCommanderQuestion } from '../shared/commanderAsk.js'
+import {
+  COMMANDER_MODES,
+  buildIncidentIntel,
+} from '../shared/commanderIncidentIntel.js'
 import {
   getRecentTelemetry,
   nodeIdsByCityEndpoint,
@@ -63,6 +74,47 @@ import {
 
 const PORT = Number(process.env.PORT) || 3001
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN ?? 'http://localhost:5173'
+
+/** Live-detection fallback when SQLite has no persistent row yet. */
+function liveCommanderContext(room, incidentId) {
+  const live = (room?.detection?.incidents ?? []).find(
+    (inc) => inc.id === incidentId || inc.persistentId === incidentId
+  )
+  if (!live) return null
+  return {
+    incidentId: live.persistentId || live.id,
+    liveIncidentId: live.id,
+    incidentType: live.detectionType,
+    severity: live.severity,
+    status: live.status ?? 'open',
+    affectedAsset: { id: live.endpointId, summary: live.endpointLabel || live.endpointId },
+    riskScore: live.anomalyScore,
+    trustScore: live.trustScore,
+    anomalyEvidence: live.evidence ?? [],
+    peerExposure: live.peerExposedNodeIds ?? [],
+    propagatedNodeIds: live.propagatedNodeIds ?? [],
+    propagationPaths: live.propagationPaths ?? {},
+    primaryPath: live.graphContext?.primaryPath ?? [],
+    primaryPathLabels: live.graphContext?.primaryPathLabels ?? [],
+    blastRadius: live.graphContext?.blastRadius ?? null,
+    hopDistance: live.graphContext?.hopDistance ?? null,
+    financialExposure: live.financialContext ?? null,
+    relatedIncidents: live.relatedIncidents ?? [],
+    campaignId: live.campaignId ?? null,
+    currentStatus: live.status ?? 'open',
+    actionsAlreadyTaken: live.actionsTaken ?? [],
+  }
+}
+
+function resolveCommanderContext(room, roomId, incidentId) {
+  let context = null
+  try {
+    context = commanderContextFor(roomId, incidentId)
+  } catch (err) {
+    console.error('[incidents] commander-context failed', err)
+  }
+  return context || liveCommanderContext(room, incidentId)
+}
 
 const cityModel = loadCityModelFromDisk()
 if (cityModel && applyCityModelOverlay(cityModel)) {
@@ -142,31 +194,147 @@ app.get('/rooms/:id/detection', (req, res) => {
   })
 })
 
-app.get('/rooms/:id/campaigns', (req, res) => {
+app.get('/rooms/:id/incidents', (req, res) => {
   const id = String(req.params.id ?? '').toUpperCase()
   const room = getRoom(id)
   if (!room) {
     return res.status(404).json({ ok: false, message: 'Room not found' })
   }
-  const stored = listCampaigns(id)
+  let stored = []
+  try {
+    stored = listIncidents(id)
+  } catch (err) {
+    console.error('[incidents] list failed', err)
+  }
   res.json({
     ok: true,
     roomId: id,
-    campaigns: (room.campaigns?.length ? room.campaigns : stored) ?? [],
+    incidents: stored,
+    live: room.detection?.incidents ?? [],
   })
 })
 
-app.get('/rooms/:id/patterns', (req, res) => {
+app.get('/rooms/:id/incidents/history', (req, res) => {
   const id = String(req.params.id ?? '').toUpperCase()
   const room = getRoom(id)
   if (!room) {
     return res.status(404).json({ ok: false, message: 'Room not found' })
   }
+  const order = String(req.query.order ?? 'desc')
+  const limitRaw = req.query.limit
+  const limit = limitRaw == null || limitRaw === '' ? undefined : Number(limitRaw)
+  let incidents = []
+  try {
+    incidents = listIncidentHistory(id, { order, limit })
+  } catch (err) {
+    console.error('[incidents] history failed', err)
+    return res.status(500).json({ ok: false, message: 'History query failed' })
+  }
   res.json({
     ok: true,
     roomId: id,
-    patterns: listAttackPatterns(),
+    order: normalizeHistoryOrder(order),
+    incidents,
   })
+})
+
+app.get('/rooms/:id/incidents/campaigns', (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  const room = getRoom(id)
+  if (!room) {
+    return res.status(404).json({ ok: false, message: 'Room not found' })
+  }
+  let campaigns = []
+  try {
+    campaigns = listHistoryCampaigns(room)
+  } catch (err) {
+    console.error('[incidents] history campaigns failed', err)
+    return res.status(500).json({ ok: false, message: 'Campaign query failed' })
+  }
+  res.json({ ok: true, roomId: id, campaigns })
+})
+
+app.get('/rooms/:id/incidents/:incidentId', (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  const room = getRoom(id)
+  if (!room) {
+    return res.status(404).json({ ok: false, message: 'Room not found' })
+  }
+  const incidentId = String(req.params.incidentId ?? '')
+  let stored = null
+  try {
+    stored = getIncident(id, incidentId)
+  } catch (err) {
+    console.error('[incidents] get failed', err)
+  }
+  const live = (room.detection?.incidents ?? []).find(
+    (inc) => inc.id === incidentId || inc.persistentId === incidentId
+  )
+  if (!stored && !live) {
+    return res.status(404).json({ ok: false, message: 'Incident not found' })
+  }
+  res.json({ ok: true, roomId: id, incident: stored, live: live ?? null })
+})
+
+app.get('/rooms/:id/incidents/:incidentId/commander-context', (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  const room = getRoom(id)
+  if (!room) {
+    return res.status(404).json({ ok: false, message: 'Room not found' })
+  }
+  const incidentId = String(req.params.incidentId ?? '')
+  const context = resolveCommanderContext(room, id, incidentId)
+  if (!context) {
+    return res.status(404).json({ ok: false, message: 'Incident not found' })
+  }
+  res.json({ ok: true, roomId: id, context })
+})
+
+app.post('/rooms/:id/commander/incident-intel', (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  const room = getRoom(id)
+  if (!room) {
+    return res.status(404).json({ ok: false, message: 'Room not found' })
+  }
+  const focusId = String(req.body?.incidentId ?? '')
+  if (!focusId) {
+    return res.status(400).json({ ok: false, message: 'incidentId required' })
+  }
+  const context = resolveCommanderContext(room, id, focusId)
+  if (!context) {
+    return res.status(404).json({ ok: false, message: 'Incident not found' })
+  }
+  const mode = String(req.body?.mode ?? COMMANDER_MODES.INVESTIGATE).toLowerCase()
+  const intel = buildIncidentIntel(context, mode)
+  res.json({
+    ok: true,
+    roomId: id,
+    mode: intel?.mode ?? mode,
+    context,
+    intel,
+  })
+})
+
+app.patch('/rooms/:id/incidents/:incidentId', (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  const room = getRoom(id)
+  if (!room) {
+    return res.status(404).json({ ok: false, message: 'Room not found' })
+  }
+  const incidentId = String(req.params.incidentId ?? '')
+  try {
+    const updated = updateIncidentStatus(id, incidentId, {
+      status: req.body?.status,
+      actionsTaken: req.body?.actionsTaken,
+    })
+    if (!updated) {
+      return res.status(404).json({ ok: false, message: 'Incident not found' })
+    }
+    res.json({ ok: true, roomId: id, incident: updated })
+  } catch (err) {
+    console.error('[incidents] patch failed', err)
+    res.status(500).json({ ok: false, message: 'Update failed' })
+  }
 })
 
 app.post('/rooms/:id/commander/ask', (req, res) => {
@@ -175,11 +343,14 @@ app.post('/rooms/:id/commander/ask', (req, res) => {
   if (!room) {
     return res.status(404).json({ ok: false, message: 'Room not found' })
   }
+  const focusId = req.body?.incidentId ? String(req.body.incidentId) : ''
+  const incidentContext = focusId ? resolveCommanderContext(room, id, focusId) : null
   const snapshot = {
     briefing: room.commanderBriefing,
     incidents: room.detection?.incidents ?? [],
-    campaigns: publicCampaigns(room),
+    campaigns: [],
     posture: publicRoomState(room).cityPosture,
+    incidentContext,
   }
   const result = answerCommanderQuestion(req.body?.question, snapshot)
   res.json({ ok: true, ...result })
@@ -225,7 +396,7 @@ function resolveAck(args) {
   for (let i = args.length - 1; i >= 0; i--) {
     if (typeof args[i] === 'function') return args[i]
   }
-  return () => {}
+  return () => { }
 }
 
 function startMatch(room) {
@@ -250,7 +421,6 @@ function resetMatch(room) {
   room.detection = emptyDetectionResult()
   room.campaigns = []
   room.incidentLedger = []
-  room.attackStory = emptyAttackStory()
   room.commanderBriefing = null
   resetTgnnCalibrator(room.id)
   startMatch(room)
@@ -488,9 +658,9 @@ io.on('connection', (socket) => {
             : {}),
           ...(patch.provenance !== undefined
             ? {
-                provenance:
-                  patch.provenance === 'injected' ? 'injected' : 'legitimate',
-              }
+              provenance:
+                patch.provenance === 'injected' ? 'injected' : 'legitimate',
+            }
             : {}),
         }
         delete data.quarantined

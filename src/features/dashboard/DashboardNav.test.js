@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import {
+  dashboardCommanderIncidentHref,
   dashboardPanelHref,
   dashboardPanelMeta,
   resolveDashboardPanel,
@@ -26,5 +27,22 @@ describe('dashboard panel routing', () => {
     const next = new URLSearchParams(href.replace(/^\?/, ''))
     assert.equal(next.get('panel'), 'commander')
     assert.equal(dashboardPanelMeta('commander').label, 'Commander')
+  })
+
+  it('clears focused incident when leaving commander', () => {
+    const href = dashboardPanelHref(
+      new URLSearchParams('view=dashboard&panel=commander&incident=inc-pay:1'),
+      'incidents'
+    )
+    const next = new URLSearchParams(href.replace(/^\?/, ''))
+    assert.equal(next.get('panel'), 'incidents')
+    assert.equal(next.get('incident'), null)
+  })
+
+  it('opens commander with structured incident id', () => {
+    const href = dashboardCommanderIncidentHref(new URLSearchParams('view=dashboard'), 'inc-pay:1')
+    const next = new URLSearchParams(href.replace(/^\?/, ''))
+    assert.equal(next.get('panel'), 'commander')
+    assert.equal(next.get('incident'), 'inc-pay:1')
   })
 })

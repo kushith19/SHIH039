@@ -1,10 +1,8 @@
 import { Link, useSearchParams } from 'react-router-dom'
 import {
-  Activity,
   AlertTriangle,
   LayoutDashboard,
   Server,
-  Sparkles,
   Shield,
 } from 'lucide-react'
 import {
@@ -16,21 +14,17 @@ import {
 const ICONS = {
   overview: LayoutDashboard,
   commander: Shield,
-  story: Sparkles,
   fleet: Server,
   incidents: AlertTriangle,
-  patterns: Activity,
 }
 
 export default function DashboardNav({
   panel = 'overview',
   incidentCount = 0,
-  patternCount = 0,
 }) {
   const [searchParams] = useSearchParams()
   const counts = {
     incidents: incidentCount,
-    patterns: patternCount,
   }
 
   return (

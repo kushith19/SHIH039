@@ -65,7 +65,10 @@ export function classifyTrajectory({ score, delta, exposedDelta } = {}) {
   const grew = Number(exposedDelta) >= 2
   const escalating = d >= 12
   const rising = d >= 4
-  if (s >= 70 && (escalating || grew)) return TRAJECTORY.CRITICAL
+  if (s >= 70) {
+    if (d <= -12) return TRAJECTORY.STABLE
+    if (escalating || grew || d > -12) return TRAJECTORY.CRITICAL
+  }
   if (escalating) return TRAJECTORY.ESCALATING
   if (rising) return TRAJECTORY.RISING
   return TRAJECTORY.STABLE

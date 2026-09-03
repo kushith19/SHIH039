@@ -88,7 +88,8 @@ export default function RiskMomentumCard({ riskMomentum = null }) {
           <h2 className="tn-section-title">Why this score</h2>
           <p className="mt-3 text-sm leading-relaxed text-[var(--tn-text)]">
             Peak graph residual × 100. Momentum is the 10-tick (~10 s) change — falling can be
-            manageable; rapidly rising is urgent. Assessment, not a confirmed kill-chain.
+            manageable; rapidly rising is urgent; a high residual plateau still stays critical.
+            Assessment, not a confirmed kill-chain.
             {isPlateauAtCeiling(rm) ? ' Score is plateaued at the residual ceiling.' : ''}
           </p>
           <dl className="mt-5 grid grid-cols-3 gap-4">

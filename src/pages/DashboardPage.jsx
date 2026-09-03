@@ -12,8 +12,6 @@ import {
 } from '../features/dashboard/dashboardPanels.js'
 import EndpointTable from '../features/dashboard/EndpointTable'
 import IncidentsPanel from '../features/dashboard/IncidentsPanel'
-import PatternsPanel from '../features/dashboard/PatternsPanel'
-import AttackStoryPanel from '../features/story/AttackStoryPanel'
 import KpiStrip from '../features/dashboard/KpiStrip'
 import RiskMomentumCard from '../features/dashboard/RiskMomentumCard'
 import FinancialExposureCard from '../features/dashboard/FinancialExposureCard'
@@ -47,8 +45,6 @@ export default function DashboardPage({
   connected = false,
   ingestionStatus = null,
   hackSimulator = null,
-  campaigns = [],
-  attackStory = null,
   commanderBriefing = null,
   cityPosture = null,
 }) {
@@ -229,9 +225,6 @@ export default function DashboardPage({
     setFilterId((cur) => (cur === id ? null : id))
   }
 
-  const livePatterns = (campaigns ?? []).filter((c) => c.status && c.status !== 'expired')
-  const patternCount = livePatterns.length || (campaigns ?? []).length
-
   const kpiStrip = (
     <KpiStrip
       posture={posture}
@@ -303,18 +296,6 @@ export default function DashboardPage({
         <RiskMomentumCard riskMomentum={detection?.riskMomentum ?? null} />
       </div>
     )
-  } else if (panel === 'story') {
-    pageBody = (
-      <AttackStoryPanel
-        hideHeader
-        story={attackStory}
-        nodes={nodes}
-        edges={edges}
-        detection={detection}
-        commanderBriefing={commanderBriefing}
-        onSelectEndpoint={setFilterId}
-      />
-    )
   } else if (panel === 'fleet') {
     pageBody = (
       <EndpointTable
@@ -329,10 +310,11 @@ export default function DashboardPage({
     pageBody = (
       <IncidentsPanel
         hideHeader
+        roomId={roomId}
         incidents={incidents}
-        campaigns={campaigns}
+        nodes={nodes}
+        primarySpreadNodeId={detection?.primarySpreadNodeId ?? null}
         onSelectEndpoint={setFilterId}
-        demoted={Array.isArray(attackStory?.chapters) && attackStory.chapters.length > 0}
       />
     )
   } else if (panel === 'commander') {
@@ -342,11 +324,17 @@ export default function DashboardPage({
         briefing={commanderBriefing}
         posture={cityPosture}
         incidents={incidents}
-        campaigns={campaigns}
+        focusIncidentId={searchParams.get('incident')}
       />
     )
   } else {
-    pageBody = <PatternsPanel hideHeader campaigns={campaigns} />
+    pageBody = (
+      <div className="space-y-6">
+        {kpiStrip}
+        <FinancialExposureCard detection={detection} nodes={nodes} edges={edges} />
+        <RiskMomentumCard riskMomentum={detection?.riskMomentum ?? null} />
+      </div>
+    )
   }
 
   return (
@@ -354,14 +342,13 @@ export default function DashboardPage({
       <DashboardNav
         panel={panel}
         incidentCount={incidents.length}
-        patternCount={patternCount}
       />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <PageHeader
           title={panelMeta.label}
           subtitle={panelMeta.blurb}
           actions={
-            panel === 'story' ? null : filterId ? (
+            filterId ? (
               <button type="button" className="tn-btn" onClick={() => setFilterId(null)}>
                 <Crosshair className="h-4 w-4" />
                 {filterLabel}
@@ -376,14 +363,14 @@ export default function DashboardPage({
         />
         <main
           className={
-            panel === 'commander' || panel === 'story'
+            panel === 'commander'
               ? 'flex min-h-0 flex-1 flex-col overflow-hidden p-5 md:px-8 md:py-6'
               : 'min-h-0 flex-1 overflow-auto p-5 md:px-8 md:py-6'
           }
         >
           <div
             className={
-              panel === 'commander' || panel === 'story'
+              panel === 'commander'
                 ? 'flex min-h-0 flex-1 flex-col gap-6'
                 : 'mx-auto w-full max-w-6xl space-y-6'
             }

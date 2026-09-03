@@ -50,13 +50,13 @@ export function fallbackBriefing({ campaign = null, incidents = [], detection = 
     evidence: live.flatMap((i) => i.evidence ?? []),
   })
   const summary = campaign
-    ? `Pattern match: ${campaignTitle(campaign)}. ${live.length} promoted detection(s) on catalog edges. Assessment, not a confirmed attacker campaign.`
+    ? `History-linked campaign: ${campaignTitle(campaign)}. ${live.length} promoted detection(s). Assessment, not a confirmed attacker campaign.`
     : live[0]
       ? `${live[0].endpointLabel || live[0].endpointId} was flagged by the residual detector. Numeric evidence remains Level-1.`
       : 'No promoted detections this tick.'
   const mitre = (campaign?.mitreCandidates ?? []).map((id) => ({
     techniqueId: String(id),
-    reason: 'Catalog candidate from correlated pattern — not proof of execution',
+    reason: 'Catalog candidate from correlated incidents — not proof of execution',
     confidence: null,
   }))
   const sev = risk.overall >= 75 ? 'high' : risk.overall >= 45 ? 'medium' : 'low'

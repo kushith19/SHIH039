@@ -1,10 +1,8 @@
 export const DASHBOARD_PANEL_IDS = [
   'overview',
   'commander',
-  'story',
   'fleet',
   'incidents',
-  'patterns',
 ]
 
 export const DASHBOARD_PANEL_COPY = {
@@ -16,10 +14,6 @@ export const DASHBOARD_PANEL_COPY = {
     label: 'Commander',
     blurb: 'Evidence-grounded assessment and safety-checked response plan. Not the detector.',
   },
-  story: {
-    label: 'Attack story',
-    blurb: 'Assessment chapters from detections and correlation. Hypothesis, not proof.',
-  },
   fleet: {
     label: 'Fleet',
     blurb: 'Per-endpoint telemetry vs expected load. Catalog baseline is not live PPS.',
@@ -27,10 +21,6 @@ export const DASHBOARD_PANEL_COPY = {
   incidents: {
     label: 'Incidents',
     blurb: 'Promoted detections this tick. Evidence tags, not extra models.',
-  },
-  patterns: {
-    label: 'Patterns',
-    blurb: 'Catalog correlation after incidents exist — not a confirmed campaign.',
   },
 }
 
@@ -46,8 +36,18 @@ export function dashboardPanelHref(searchParams, panelId) {
   next.set('view', 'dashboard')
   if (panelId === 'overview') next.delete('panel')
   else next.set('panel', panelId)
+  if (panelId !== 'commander') next.delete('incident')
   const qs = next.toString()
   return qs ? `?${qs}` : '?'
+}
+
+export function dashboardCommanderIncidentHref(searchParams, incidentId) {
+  const next = new URLSearchParams(searchParams)
+  next.set('view', 'dashboard')
+  next.set('panel', 'commander')
+  if (incidentId) next.set('incident', String(incidentId))
+  else next.delete('incident')
+  return `?${next.toString()}`
 }
 
 export function dashboardPanelMeta(panelId) {

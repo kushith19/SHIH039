@@ -4,7 +4,7 @@ export default function CommanderHeader({ briefing, posture }) {
     <div>
       <div className="tn-label">AI Commander</div>
       <p className="tn-meta mt-1">
-        {camp ? `Active pattern: ${camp}` : 'No correlated pattern yet'}
+        {camp ? `History campaign: ${camp}` : 'No history campaign link'}
         {posture?.overallRisk ? ` · city ${posture.overallRisk}` : ''}
       </p>
     </div>

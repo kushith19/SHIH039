@@ -168,7 +168,7 @@ export default function SidebarAssets({
         : role === 'attacker' && !inLobby
           ? tgnnCalibrating
             ? 'Wait for the 15-tick idle window before injecting. Clear attacks if collection is paused.'
-            : 'Apply a preset on a selected node. Hit two connected nodes within ~12 seconds for a defender pattern match.'
+            : 'Apply a preset on a selected node to inject telemetry anomalies.'
           : null
 
   const canUsePresets =
@@ -198,7 +198,7 @@ export default function SidebarAssets({
             (showAttackTools
               ? tgnnCalibrating
                 ? 'Wait for the 15-tick idle window before injecting an anomaly.'
-                : 'Select a node, then apply a preset. Two connected nodes in ~12s can form a pattern.'
+                : 'Select a node, then apply a preset to inject telemetry anomalies.'
               : 'Drag a sector onto the map.')}
         </p>
 
@@ -228,7 +228,7 @@ export default function SidebarAssets({
               <p className="text-sm text-[var(--tn-muted)]">Select a node to apply a metric override.</p>
             ) : (
               <p className="text-sm text-[var(--tn-muted)]">
-                Presets only change telemetry on the selected node. Patterns are recognized on the defender side after incidents exist.
+                Presets only change telemetry on the selected node.
               </p>
             )}
             <div className="grid grid-cols-1 gap-1">

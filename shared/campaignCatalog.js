@@ -75,7 +75,7 @@ export function catalogTitle(id) {
 }
 
 export function patternMatchCopy(title) {
-  return `Pattern match: ${title}`
+  return `Correlated campaign: ${title}`
 }
 
 /** Higher = more constrained catalog entry. Used to keep one match per overlapping cluster. */

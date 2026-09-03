@@ -10,10 +10,10 @@ export default function ThreatSummary({ assessment, knowledgeStatus, campaignId 
         <span className="text-sm text-[var(--tn-muted)]">Confidence {confPct}</span>
       </div>
       <p className="mt-3 text-sm leading-relaxed">
-        {assessment?.summary || 'Waiting for a promoted detection or correlated pattern.'}
+        {assessment?.summary || 'Waiting for a promoted detection.'}
       </p>
       <p className="tn-meta mt-3">
-        {campaignId ? `Active pattern: ${campaignId}` : 'No correlated pattern yet'}
+        {campaignId ? `History campaign: ${campaignId}` : 'No history campaign link'}
         {' · '}
         {String(knowledgeStatus ?? 'unavailable') === 'success'
           ? 'Knowledge retrieval: available'
