@@ -1,13 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Crosshair, Radio } from 'lucide-react'
-import trustNetLogo from '../../logo/logo.png'
-import { cityContextAt, cityContextLabel, expectedTelemetry } from '@shared/cityContext.js'
+import PageHeader from '../ui/PageHeader'
+import Banner from '../ui/Banner'
+import EmptyState from '../ui/EmptyState'
+import { cityContextAt, expectedTelemetry } from '@shared/cityContext.js'
+import DashboardNav from '../features/dashboard/DashboardNav'
+import {
+  dashboardPanelMeta,
+  resolveDashboardPanel,
+} from '../features/dashboard/dashboardPanels.js'
 import EndpointTable from '../features/dashboard/EndpointTable'
 import IncidentsPanel from '../features/dashboard/IncidentsPanel'
 import PatternsPanel from '../features/dashboard/PatternsPanel'
 import AttackStoryPanel from '../features/story/AttackStoryPanel'
 import KpiStrip from '../features/dashboard/KpiStrip'
+import RiskMomentumCard from '../features/dashboard/RiskMomentumCard'
+import CommanderPanel from '../features/commander/CommanderPanel'
 import {
   derivePosture,
   holdAlignedPct,
@@ -29,6 +38,7 @@ export default function DashboardPage({
   phase = 'lobby',
   tick = 0,
   nodes = [],
+  edges = [],
   detection = null,
   cityContext = null,
   cityContextLocked = false,
@@ -38,12 +48,16 @@ export default function DashboardPage({
   hackSimulator = null,
   campaigns = [],
   attackStory = null,
+  commanderBriefing = null,
+  cityPosture = null,
 }) {
+  const [searchParams] = useSearchParams()
+  const panel = resolveDashboardPanel(searchParams.get('panel'))
+  const panelMeta = dashboardPanelMeta(panel)
   const [samples, setSamples] = useState([])
   const [fetchError, setFetchError] = useState(null)
   const [feedStatus, setFeedStatus] = useState(ingestionStatus)
   const [filterId, setFilterId] = useState(null)
-  const [patterns, setPatterns] = useState([])
   const heldPctRef = useRef(new Map())
   const tickRef = useRef(tick)
   tickRef.current = tick
@@ -68,15 +82,6 @@ export default function DashboardPage({
         setFeedStatus(json.ingestionStatus ?? ingestionStatus)
         const raw = Array.isArray(json.samples) ? json.samples : []
         setSamples(samplesForMatch(raw, tickRef.current))
-        try {
-          const pRes = await fetch(`/rooms/${encodeURIComponent(roomId)}/patterns`)
-          const pJson = await pRes.json()
-          if (!cancelled && pRes.ok && pJson.ok !== false) {
-            setPatterns(Array.isArray(pJson.patterns) ? pJson.patterns : [])
-          }
-        } catch {
-          // patterns are optional for the live feed
-        }
       } catch (err) {
         if (!cancelled) setFetchError(err?.message ?? 'Fetch failed')
       }
@@ -123,10 +128,12 @@ export default function DashboardPage({
     const seen = new Set()
     const nextRows = (nodes ?? []).map((n) => {
       const baseline = getNodeBaselineMetrics(n, sim)
-      const pps = lastPpsMap.get(n.id)?.value ?? baseline.packetsPerSecond
-      const http = lastHttpMap.get(n.id)?.value ?? baseline.httpRequestsPerMin
-      const files = lastFilesMap.get(n.id)?.value ?? baseline.filesDownloaded
-      const logins = lastLoginsMap.get(n.id)?.value ?? baseline.failedLoginsPerMin
+      const hasLivePps = lastPpsMap.has(n.id)
+      const pps = hasLivePps ? lastPpsMap.get(n.id)?.value : null
+      const http = lastHttpMap.has(n.id) ? lastHttpMap.get(n.id)?.value : null
+      const files = lastFilesMap.has(n.id) ? lastFilesMap.get(n.id)?.value : null
+      const logins = lastLoginsMap.has(n.id) ? lastLoginsMap.get(n.id)?.value : null
+      const catalogBaseline = !hasLivePps
       const quarantined = n.data?.runtimeState?.quarantined === true || n.data?.quarantined === true
       const meta = {
         id: n.id,
@@ -169,10 +176,11 @@ export default function DashboardPage({
         id: n.id,
         label: n.data?.label ?? n.id,
         type: n.data?.type ?? n.data?.assetType ?? '—',
-        pps,
-        http,
-        files,
-        logins,
+        pps: pps ?? baseline.packetsPerSecond,
+        http: http ?? baseline.httpRequestsPerMin,
+        files: files ?? baseline.filesDownloaded,
+        logins: logins ?? baseline.failedLoginsPerMin,
+        catalogBaseline,
         spark,
         ppsVsExpected,
         anomaly: anomalyIds.has(n.id),
@@ -205,9 +213,6 @@ export default function DashboardPage({
   )
 
   const filterLabel = rows.find((r) => r.id === filterId)?.label
-  const hourLabel =
-    simHour != null ? `${String(Math.floor(Number(simHour))).padStart(2, '0')}:00` : null
-  const cityLabel = cityContextLabel(cityContext)
   const quarantinedCount = rows.filter((r) => r.quarantined).length
   const posture = derivePosture(
     incidents,
@@ -215,106 +220,176 @@ export default function DashboardPage({
     detection?.tgnnCalibrating === true
   )
 
+  const onToggleFilter = (id) => {
+    if (id == null) {
+      setFilterId(null)
+      return
+    }
+    setFilterId((cur) => (cur === id ? null : id))
+  }
+
+  const livePatterns = (campaigns ?? []).filter((c) => c.status && c.status !== 'expired')
+  const patternCount = livePatterns.length || (campaigns ?? []).length
+
+  const kpiStrip = (
+    <KpiStrip
+      posture={posture}
+      tick={tick}
+      sampleTicks={sampleTicks}
+      pps={lastValue(ppsSeries)}
+      ppsSeries={ppsSeries}
+      incidentCount={incidents.length}
+      anomalyCount={anomalyIds.size}
+      quarantinedCount={quarantinedCount}
+      tgnnCalibrating={detection?.tgnnCalibrating === true}
+      tgnnWarmupCollected={detection?.tgnnWarmupCollected ?? 0}
+      tgnnWarmupTicks={detection?.tgnnWarmupTicks ?? 15}
+      riskMomentum={detection?.riskMomentum ?? null}
+    />
+  )
+
+  const statusBanners = (
+    <div className="space-y-3">
+      {fetchError ? <Banner tone="crit">{fetchError}</Banner> : null}
+      {phase === 'playing' && (feedStatus === 'down' || feedStatus === 'empty') ? (
+        <Banner tone={feedStatus === 'down' ? 'warn' : 'info'}>
+          {feedStatus === 'down'
+            ? 'Waiting for tele-ingestion. Start the Timescale service on port 3000 (see README).'
+            : 'tele-ingestion is up but has no recent snapshots. Run the telemetry generator against POST /ingest/snapshot.'}
+        </Banner>
+      ) : null}
+      {phase === 'playing' && feedStatus === 'ok' && sampleTicks === 0 && !fetchError ? (
+        <Banner>
+          Ingest is up but this match has no tick-aligned Timescale samples. Fleet rows show
+          catalog baseline, not live PPS.
+        </Banner>
+      ) : null}
+      {phase !== 'playing' ? (
+        <Banner>
+          Time-series samples start when both players are in and the match is live.
+        </Banner>
+      ) : null}
+    </div>
+  )
+
   if (!roomId) {
     return (
       <div className="soc-dashboard flex min-h-[100svh] flex-col">
-        <header className="flex h-14 items-center justify-between border-b border-[var(--tn-line)] bg-[var(--tn-surface)] px-4">
-          <div className="flex items-center gap-2">
-            <img src={trustNetLogo} alt="" className="h-5 w-5 object-contain" />
-            <div className="tn-label">City telemetry</div>
-          </div>
-          <Link to="/" className="tn-btn">
-            Back to session
-          </Link>
-        </header>
-        <main className="mx-auto flex max-w-md flex-1 flex-col items-center justify-center p-8 text-center">
-          <Radio className="h-8 w-8 text-[var(--tn-muted)]" strokeWidth={1.4} />
-          <p className="mt-4 text-sm text-[var(--tn-muted)]">
-            Telemetry is per match. Open as defender, then switch to{' '}
-            <span className="font-medium text-[var(--tn-text)]">Dashboard</span> in
-            the header for the live city feed.
-          </p>
-        </main>
+        <PageHeader
+          title="City telemetry"
+          subtitle="Telemetry is scoped to a live match."
+          actions={
+            <Link to="/" className="tn-btn">
+              Back to session
+            </Link>
+          }
+        />
+        <EmptyState
+          icon={<Radio className="h-8 w-8" strokeWidth={1.4} />}
+          title="Open as defender"
+          body="Open a session as defender, then switch to Dashboard in the header for the live city feed."
+        />
       </div>
     )
   }
 
+  let pageBody = null
+  if (panel === 'overview') {
+    pageBody = (
+      <div className="space-y-6">
+        {kpiStrip}
+        <RiskMomentumCard riskMomentum={detection?.riskMomentum ?? null} />
+      </div>
+    )
+  } else if (panel === 'story') {
+    pageBody = (
+      <AttackStoryPanel
+        hideHeader
+        story={attackStory}
+        nodes={nodes}
+        edges={edges}
+        detection={detection}
+        commanderBriefing={commanderBriefing}
+        onSelectEndpoint={setFilterId}
+      />
+    )
+  } else if (panel === 'fleet') {
+    pageBody = (
+      <EndpointTable
+        hideHeader
+        rows={rows}
+        sparkDomain={sparkDomain}
+        filterId={filterId}
+        onSelect={onToggleFilter}
+      />
+    )
+  } else if (panel === 'incidents') {
+    pageBody = (
+      <IncidentsPanel
+        hideHeader
+        incidents={incidents}
+        campaigns={campaigns}
+        onSelectEndpoint={setFilterId}
+        demoted={Array.isArray(attackStory?.chapters) && attackStory.chapters.length > 0}
+      />
+    )
+  } else if (panel === 'commander') {
+    pageBody = (
+      <CommanderPanel
+        roomId={roomId}
+        briefing={commanderBriefing}
+        posture={cityPosture}
+        incidents={incidents}
+        campaigns={campaigns}
+      />
+    )
+  } else {
+    pageBody = <PatternsPanel hideHeader campaigns={campaigns} />
+  }
+
   return (
-    <div className="soc-dashboard min-h-0 flex-1 overflow-auto p-4 md:p-6">
-      <div className="mx-auto max-w-[96rem] space-y-6">
-        <header className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <div className="tn-label">TrustNetAI · SOC</div>
-            <div className="mt-0.5 text-xl font-medium tracking-tight">City mesh telemetry</div>
-            <p className="mt-0.5 font-mono text-xs text-[var(--tn-muted)]">
-              {phase === 'playing' ? `tick ${tick}` : 'waiting'}
-              {cityLabel ? ` · ${cityLabel}` : ''}
-              {hourLabel ? ` · ${hourLabel}` : ''}
-              {' · TGNN'}
-              {detection?.tgnnCalibrating ? ' · calibrating live baseline' : ''}
-            </p>
-          </div>
-          {filterId ? (
-            <button type="button" className="tn-btn font-mono text-xs" onClick={() => setFilterId(null)}>
-              <Crosshair className="h-3.5 w-3.5" />
-              Scoped · {filterLabel}
-              <span className="text-[var(--tn-muted)]">clear</span>
-            </button>
-          ) : (
-            <p className="text-sm text-[var(--tn-muted)]">Select a fleet row or incident to isolate a node</p>
-          )}
-        </header>
-
-        {fetchError ? (
-          <div className="tn-surface px-3 py-2 font-mono text-sm text-[var(--tn-crit)]">{fetchError}</div>
-        ) : null}
-
-        {phase === 'playing' && (feedStatus === 'down' || feedStatus === 'empty') ? (
-          <div className="tn-surface px-4 py-2.5 text-sm">
-            {feedStatus === 'down'
-              ? 'Waiting for tele-ingestion. Start the Timescale service on port 3000 (see README).'
-              : 'tele-ingestion is up but has no recent snapshots. Run the telemetry generator against POST /ingest/snapshot.'}
-          </div>
-        ) : null}
-
-        {phase !== 'playing' ? (
-          <div className="tn-surface px-4 py-2.5 text-sm">
-            Time-series samples start when both players are in and the match is live.
-          </div>
-        ) : null}
-
-        <KpiStrip
-          posture={posture}
-          tick={tick}
-          sampleTicks={sampleTicks}
-          pps={lastValue(ppsSeries)}
-          ppsSeries={ppsSeries}
-          incidentCount={incidents.length}
-          anomalyCount={anomalyIds.size}
-          quarantinedCount={quarantinedCount}
-          connected={connected}
-          tgnnCalibrating={detection?.tgnnCalibrating === true}
-          tgnnWarmupCollected={detection?.tgnnWarmupCollected ?? 0}
-          tgnnWarmupTicks={detection?.tgnnWarmupTicks ?? 15}
+    <div className="soc-dashboard flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
+      <DashboardNav
+        panel={panel}
+        incidentCount={incidents.length}
+        patternCount={patternCount}
+      />
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <PageHeader
+          title={panelMeta.label}
+          subtitle={panelMeta.blurb}
+          actions={
+            panel === 'story' ? null : filterId ? (
+              <button type="button" className="tn-btn" onClick={() => setFilterId(null)}>
+                <Crosshair className="h-4 w-4" />
+                {filterLabel}
+                <span className="text-[var(--tn-muted)]">Clear</span>
+              </button>
+            ) : (
+              <p className="hidden max-w-xs text-right text-sm text-[var(--tn-muted)] lg:block">
+                Select a fleet row or incident to isolate a node
+              </p>
+            )
+          }
         />
-
-        <AttackStoryPanel story={attackStory} onSelectEndpoint={setFilterId} />
-
-        <EndpointTable
-          rows={rows}
-          sparkDomain={sparkDomain}
-          filterId={filterId}
-          onSelect={(id) => setFilterId((cur) => (cur === id ? null : id))}
-        />
-
-        <IncidentsPanel
-          incidents={incidents}
-          campaigns={campaigns}
-          onSelectEndpoint={setFilterId}
-          demoted={Array.isArray(attackStory?.chapters) && attackStory.chapters.length > 0}
-        />
-
-        <PatternsPanel patterns={patterns} />
+        <main
+          className={
+            panel === 'commander' || panel === 'story'
+              ? 'flex min-h-0 flex-1 flex-col overflow-hidden p-5 md:px-8 md:py-6'
+              : 'min-h-0 flex-1 overflow-auto p-5 md:px-8 md:py-6'
+          }
+        >
+          <div
+            className={
+              panel === 'commander' || panel === 'story'
+                ? 'flex min-h-0 flex-1 flex-col gap-6'
+                : 'mx-auto w-full max-w-6xl space-y-6'
+            }
+          >
+            {panel === 'overview' ? statusBanners : null}
+            {pageBody}
+          </div>
+        </main>
       </div>
     </div>
   )

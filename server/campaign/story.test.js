@@ -18,6 +18,9 @@ function baseRoom() {
       node('id', 'Identity Service', { sector: 'government', type: 'identity_access' }),
       node('fin', 'Municipal Finance API', { sector: 'finance', type: 'finance_api' }),
     ],
+    edges: [
+      { id: 'e-gw-id', source: 'gw', target: 'id' },
+    ],
     campaigns: [],
   }
 }
@@ -27,6 +30,7 @@ function detectionAt(tick, extra = {}) {
     simulationTick: tick,
     anomalyNodeIds: extra.anomalyNodeIds ?? ['gw'],
     isolationScoresByNodeId: extra.isolationScoresByNodeId ?? { gw: 0.81 },
+    riskMomentum: extra.riskMomentum,
     compromisedNodeIds: extra.compromisedNodeIds ?? ['gw'],
     atRiskNodeIds: extra.atRiskNodeIds ?? [],
     primarySpreadNodeId: extra.primarySpreadNodeId ?? null,
@@ -51,16 +55,16 @@ test('formatStoryClock uses city hour and tick-as-seconds', () => {
   assert.equal(formatStoryClock(65), '18:01:05')
 })
 
-test('origin then detect then lateral append; origin is not duplicated', () => {
+test('origin then detect append; origin is not duplicated', () => {
   const room = baseRoom()
   updateAttackStory(room, detectionAt(5))
   const origin = chapterOf(room.attackStory, 'origin')
   const detect = chapterOf(room.attackStory, 'detect')
-  assert.equal(origin.title, 'Attack begins')
+  assert.equal(origin.title, 'Observed origin')
   assert.equal(origin.clock, '10:00:05')
   assert.equal(origin.nodeLabel, 'Citizen Payment Gateway')
   assert.equal(origin.caption, 'abnormal API traffic')
-  assert.equal(detect.title, 'Graph detects it')
+  assert.equal(detect.title, 'Residual detector')
   assert.equal(detect.detectionLabel, 'Behavioural')
   assert.equal(detect.tgnn, 0.81)
   assert.equal(detect.trust, 63)
@@ -90,7 +94,7 @@ test('origin then detect then lateral append; origin is not duplicated', () => {
           id: 'inc-id',
           endpointId: 'id',
           endpointLabel: 'Identity Service',
-          detectionType: 'graph_propagation',
+          detectionType: 'behavioural_anomaly',
           severity: 'high',
           anomalyScore: 0.6,
           trustScore: 50,
@@ -99,33 +103,15 @@ test('origin then detect then lateral append; origin is not duplicated', () => {
       ],
     })
   )
-  const lateral = chapterOf(room.attackStory, 'lateral')
-  assert.ok(lateral)
-  assert.equal(lateral.title, 'Attack moves')
-  assert.equal(lateral.clock, '10:00:07')
-  assert.deepEqual(
-    lateral.path.map((p) => p.label),
-    ['Citizen Payment Gateway', 'Identity Service', 'Municipal Finance API']
-  )
-  assert.equal(room.attackStory.chapters.filter((c) => c.kind === 'lateral').length, 1)
-  updateAttackStory(
-    room,
-    detectionAt(8, {
-      primarySpreadNodeId: 'id',
-      compromisedNodeIds: ['gw', 'id'],
-      atRiskNodeIds: ['fin'],
-    })
-  )
-  assert.equal(chapterOf(room.attackStory, 'lateral').clock, '10:00:07')
+  assert.equal(chapterOf(room.attackStory, 'lateral'), null)
 })
 
-test('risk mutates in place as hops grow', () => {
+test('risk mutates in place with momentum', () => {
   const room = baseRoom()
   updateAttackStory(room, detectionAt(5))
   const first = chapterOf(room.attackStory, 'risk')
   assert.ok(first)
   assert.equal(first.clock, '10:00:05')
-  const hop1 = first.hopCount
 
   updateAttackStory(
     room,
@@ -133,6 +119,12 @@ test('risk mutates in place as hops grow', () => {
       primarySpreadNodeId: 'id',
       compromisedNodeIds: ['gw', 'id'],
       atRiskNodeIds: ['fin'],
+      riskMomentum: {
+        score: 90,
+        delta: 23,
+        trajectory: 'escalating',
+        windowTicks: 10,
+      },
       incidents: [
         {
           id: 'inc-gw',
@@ -148,10 +140,10 @@ test('risk mutates in place as hops grow', () => {
   )
   const risk = chapterOf(room.attackStory, 'risk')
   assert.equal(risk.clock, '10:00:05')
-  assert.ok(risk.hopCount > hop1)
   assert.equal(risk.impact, 'HIGH')
-  assert.equal(risk.financialExposed, 3)
-  assert.match(risk.momentum, /↑/)
+  assert.equal(risk.financialExposed, 1)
+  assert.equal(risk.trajectory, 'escalating')
+  assert.match(risk.momentum, /\+23/)
 })
 
 test('contained campaign sets story status', () => {
@@ -159,13 +151,11 @@ test('contained campaign sets story status', () => {
   room.campaigns = [
     {
       id: 'cmp-1',
-      playbookId: 'payments_disruption',
-      title: 'Payments disruption',
+      campaignType: 'financial-service-disruption',
+      title: 'Financial service disruption',
       status: 'contained',
-      seedNodeId: 'gw',
-      stages: [
-        { presetId: 'api_abuse', status: 'applied', targetNodeId: 'gw' },
-      ],
+      originEndpointId: 'gw',
+      endpointIds: ['gw'],
     },
   ]
   updateAttackStory(
@@ -189,22 +179,26 @@ test('contained campaign sets story status', () => {
   )
   assert.equal(room.attackStory.status, 'contained')
   assert.equal(room.attackStory.campaignId, 'cmp-1')
-  assert.equal(room.attackStory.title, 'Payments disruption')
+  assert.equal(room.attackStory.title, 'Financial service disruption')
 })
 
-test('fallback story narrative for a 3-node path', () => {
+test('fallback story narrative is origin-only', () => {
   const text = fallbackStoryExplanation({
     origin: 'Citizen Payment Gateway',
-    next: 'Identity Service',
-    tail: 'Municipal Finance API',
   })
-  assert.match(text, /originated at Citizen Payment Gateway/)
-  assert.match(text, /Identity Service/)
-  assert.match(text, /Municipal Finance API/)
-  assert.doesNotMatch(text, /malware|MITRE|confirmed compromise/i)
+  assert.match(text, /Observed traffic anomaly at Citizen Payment Gateway/)
+  assert.doesNotMatch(text, /Identity Service|Municipal Finance API|reachability|kill-chain/i)
+  assert.doesNotMatch(text, /malware|MITRE|confirmed compromise|Attack begins|altered communication/i)
 })
 
-test('storyExplainPayload describes the path not a single node', () => {
+test('story titles are assessment not confirmed attack', () => {
+  const room = baseRoom()
+  updateAttackStory(room, detectionAt(5))
+  const titles = room.attackStory.chapters.map((c) => c.title).join(' ')
+  assert.doesNotMatch(titles, /Attack begins|Attack moves|confirmed/i)
+})
+
+test('storyExplainPayload describes the origin endpoint', () => {
   const room = baseRoom()
   updateAttackStory(
     room,
@@ -216,6 +210,5 @@ test('storyExplainPayload describes the path not a single node', () => {
   const payload = storyExplainPayload(room)
   assert.ok(payload.id.startsWith('story-'))
   assert.equal(payload._story.origin, 'Citizen Payment Gateway')
-  assert.equal(payload._story.next, 'Identity Service')
-  assert.ok(payload.affectedDependencies.length >= 1)
+  assert.equal(payload.affectedDependencies.length, 0)
 })

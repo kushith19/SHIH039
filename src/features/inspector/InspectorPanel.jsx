@@ -1,14 +1,21 @@
 import { TRUST_CONFIG } from '@shared/trustConfig.js'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   computeDeviationMetrics,
   hasScenarioDrift,
   isAnomalyDetected,
   isScenarioCritical,
+  nodeIsAttackSeed,
 } from '../graph/peerTrust'
 import { maxMetricDeviation } from '@shared/trustModel.js'
 import { runtimeStateOf, telemetryOf } from '../graph/infrastructureNode'
 import { inspectorMetricKeys, isGameMetricKey } from '@shared/telemetryKeys.js'
+import {
+  appendRiskSample,
+  momentumFromHistory,
+  residualToScore,
+} from '@shared/riskMomentum.js'
+import { RiskMomentumReadout } from '../dashboard/RiskMomentumCard'
 
 const TGNN_FLAG_THRESHOLD = TRUST_CONFIG.tgnn.anomalyScoreThreshold
 
@@ -99,6 +106,34 @@ const METRIC_FIELDS = [
 const compactInputClass =
   'tn-input mt-0.5 px-2 py-1.5 text-sm disabled:opacity-60'
 
+function useNodeRiskMomentum(nodeId, isolationScore, tick, calibrating) {
+  const [samples, setSamples] = useState([])
+  const lastTickRef = useRef(null)
+
+  useEffect(() => {
+    setSamples([])
+    lastTickRef.current = null
+  }, [nodeId])
+
+  useEffect(() => {
+    if (!nodeId) return
+    const t = Number(tick)
+    if (!Number.isFinite(t)) return
+    if (lastTickRef.current === t) return
+    if (lastTickRef.current != null && t < lastTickRef.current) {
+      lastTickRef.current = t
+      const score = calibrating ? null : residualToScore(isolationScore)
+      setSamples([{ tick: t, score, exposedCount: 0 }])
+      return
+    }
+    lastTickRef.current = t
+    const score = calibrating ? null : residualToScore(isolationScore)
+    setSamples((prev) => appendRiskSample(prev, { tick: t, score, exposedCount: 0 }))
+  }, [nodeId, tick, isolationScore, calibrating])
+
+  return useMemo(() => momentumFromHistory(samples), [samples])
+}
+
 export default function InspectorPanel({
   hackModeActive = false,
   hackSimulator = null,
@@ -115,11 +150,13 @@ export default function InspectorPanel({
 }) {
   const sim = hackSimulator ?? { active: false }
   const isAttackerPlaying = gameRole === 'attacker' && gamePhase === 'playing'
-  const canEditAttackMetrics = isAttackerPlaying && !readOnly
+  const calibrating = sim.tgnnCalibrating === true
+  const lockAttackTelemetry = isAttackerPlaying && calibrating
+  const canEditAttackMetrics = isAttackerPlaying && !readOnly && !lockAttackTelemetry
   const canEditScenarioMetrics =
     Boolean(onUpdateNodeData) &&
     ((gameRole === 'defender' && (gamePhase === 'lobby' || gamePhase === 'playing')) ||
-      (hackModeActive && gamePhase === 'playing'))
+      (hackModeActive && gamePhase === 'playing' && !lockAttackTelemetry))
 
   const baselineMetrics = useMemo(() => {
     if (!selectedNode) return null
@@ -146,12 +183,9 @@ export default function InspectorPanel({
       isolationScore: sim.isolationScoresByNodeId?.[selectedNode.id] ?? 0,
       isAnomaly: flagged,
       trustAnomaly: flagged,
-      attackOrigin: flagged,
-      spreadReached: sim.primarySpreadNodeId === selectedNode.id,
-      atRisk:
-        (sim.atRiskNodeIds ?? []).includes(selectedNode.id) &&
-        !flagged &&
-        sim.primarySpreadNodeId !== selectedNode.id,
+      attackOrigin: nodeIsAttackSeed(selectedNode.id, [selectedNode], sim),
+      spreadReached: false,
+      atRisk: false,
     }
   }, [selectedNode, sim, baselineMetrics])
 
@@ -171,13 +205,13 @@ export default function InspectorPanel({
 
   const threatLabel = useMemo(() => {
     if (!hackModeActive || !nodeTrust) return null
-    if (nodeTrust.attackOrigin) return 'Attack origin'
-    if (nodeTrust.spreadReached) return 'Spread target'
-    if (nodeTrust.atRisk) return 'At risk'
-    if (nodeScenarioUi?.anomalyDetected) return 'Anomaly'
-    if (nodeScenarioUi?.drift && !nodeScenarioUi?.critical) return 'Drift'
+    if (nodeTrust.attackOrigin) return 'Attack seed'
+    if (nodeScenarioUi?.anomalyDetected) return 'Flagged'
+    if (nodeScenarioUi?.drift && !nodeScenarioUi?.critical) {
+      return calibrating ? 'Drift · idle window' : 'Drift'
+    }
     return null
-  }, [hackModeActive, nodeTrust, nodeScenarioUi])
+  }, [hackModeActive, nodeTrust, nodeScenarioUi, calibrating])
 
   const tgnnUi = useMemo(() => {
     if (!hackModeActive || !selectedNode?.id) return null
@@ -197,6 +231,12 @@ export default function InspectorPanel({
     sim.tgnnWarmupCollected,
     sim.tgnnWarmupTicks,
   ])
+  const nodeRiskMomentum = useNodeRiskMomentum(
+    selectedNode?.id,
+    tgnnUi?.isolation,
+    sim.simulationTick ?? 0,
+    tgnnUi?.calibrating === true
+  )
   const compactLayout = gameRole === 'attacker' || gameRole === 'defender'
   const isDefender = gameRole === 'defender'
 
@@ -207,7 +247,7 @@ export default function InspectorPanel({
       </div>
 
       {!selectedNode && !selectedEdge ? (
-        <div className="tn-surface mt-3 shrink-0 p-3 text-sm leading-snug text-[var(--tn-muted)]">
+        <div className="tn-surface mt-4 shrink-0 p-4 text-sm leading-relaxed text-[var(--tn-muted)]">
           {isAttackerPlaying
             ? 'Select a node to edit attack telemetry. Use the left panel for rogue devices and presets.'
             : isDefender && gamePhase === 'lobby'
@@ -219,7 +259,7 @@ export default function InspectorPanel({
       ) : null}
 
       {selectedNode ? (
-        <div className="mt-3 min-h-0 flex-1 overflow-y-auto">
+        <div className="mt-4 min-h-0 flex-1 overflow-y-auto">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <div className="truncate text-sm font-medium">
@@ -232,10 +272,19 @@ export default function InspectorPanel({
                     .join(' · ')}
                 </p>
               ) : null}
+              {(String(selectedNode.data?.sector ?? '').toLowerCase().includes('finance') ||
+                String(selectedNode.data?.type ?? '').toLowerCase().includes('bank') ||
+                String(selectedNode.data?.type ?? '').toLowerCase().includes('payment')) ? (
+                <p className="mt-0.5 text-xs text-[var(--tn-muted)]">
+                  Failed logins and HTTP are simulated auth / API-abuse proxies, not live payment YAML metrics.
+                </p>
+              ) : null}
               {compactLayout ? (
                 <p className="mt-0.5 text-xs text-[var(--tn-muted)]">
                   {isAttackerPlaying
-                    ? 'vs defender baseline · Enter to apply'
+                    ? lockAttackTelemetry
+                      ? 'Idle window — wait 15/15 or clear attacks to edit telemetry'
+                      : 'vs defender baseline · Enter to apply'
                     : gamePhase === 'lobby'
                       ? 'Lobby baseline · Enter to save'
                       : readOnly
@@ -272,8 +321,8 @@ export default function InspectorPanel({
 
           <div
             className={[
-              'tn-surface mt-2 space-y-3',
-              compactLayout ? 'p-3' : 'p-4',
+              'tn-surface mt-3 space-y-4',
+              compactLayout ? 'p-4' : 'p-5',
             ].join(' ')}
           >
             <div className={compactLayout ? 'space-y-2' : 'space-y-3'}>
@@ -324,7 +373,7 @@ export default function InspectorPanel({
                         defaultValue={value}
                         step={field.step}
                         readOnly={false}
-                        disabled={false}
+                        disabled={lockAttackTelemetry}
                         compact={compactLayout}
                         onCommit={(n) =>
                           onUpdateNodeData?.(selectedNode.id, { [field.key]: n })
@@ -414,27 +463,36 @@ export default function InspectorPanel({
             ) : null}
 
             {tgnnUi ? (
-              <div className="flex flex-wrap items-center gap-1.5 border border-[var(--tn-line)] px-2 py-1.5 text-xs">
-                <span className="font-medium">TGNN</span>
-                {tgnnUi.calibrating ? (
-                  <span className="text-[var(--tn-muted)]">
-                    calibrating live baseline {tgnnUi.collected}/{tgnnUi.warmupTicks}
-                  </span>
-                ) : (
-                  <>
-                    <span className="tabular-nums">
-                      {tgnnUi.isolation == null
-                        ? '—'
-                        : `${Math.round(tgnnUi.isolation * 100)}%`}
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                  <span className="font-medium">Residual score</span>
+                  {tgnnUi.calibrating ? (
+                    <span className="text-[var(--tn-muted)]">
+                      idle window {tgnnUi.collected}/{tgnnUi.warmupTicks}
                     </span>
-                <span className="text-[var(--tn-muted)]">
-                  vs live baseline · {Math.round(TGNN_FLAG_THRESHOLD * 100)}% to flag
-                </span>
-                <span className="basis-full text-[10px] text-[var(--tn-muted)]">
-                  encoder checkpoint + live baseline
-                </span>
-                  </>
-                )}
+                  ) : (
+                    <>
+                      <span className="tabular-nums">
+                        {tgnnUi.isolation == null
+                          ? '—'
+                          : `${Math.round(tgnnUi.isolation * 100)}%`}
+                      </span>
+                      <span className="text-[var(--tn-muted)]">
+                        vs idle embeddings · {Math.round(TGNN_FLAG_THRESHOLD * 100)}% to flag
+                      </span>
+                      <span className="tn-meta">
+                        Directed GNN residual, not Isolation Forest. Node residual below is not city risk.
+                      </span>
+                    </>
+                  )}
+                </div>
+                {!tgnnUi.calibrating ? (
+                  <RiskMomentumReadout
+                    compact
+                    riskMomentum={nodeRiskMomentum}
+                    scoreCaption="This node's residual × 100, not city mesh risk."
+                  />
+                ) : null}
               </div>
             ) : null}
 
@@ -450,15 +508,27 @@ export default function InspectorPanel({
             !runtimeStateOf(selectedNode.data).quarantined ? (
               <button
                 type="button"
-                onClick={() => onQuarantine(selectedNode.id)}
-                className="tn-btn-primary w-full py-2 text-xs"
+                onClick={() => onQuarantine(selectedNode.id, true)}
+                className="tn-btn-primary w-full py-2 text-sm"
               >
                 Quarantine node
               </button>
             ) : null}
+            {onQuarantine &&
+            gameRole === 'defender' &&
+            gamePhase === 'playing' &&
+            runtimeStateOf(selectedNode.data).quarantined ? (
+              <button
+                type="button"
+                onClick={() => onQuarantine(selectedNode.id, false)}
+                className="tn-btn w-full py-2 text-sm"
+              >
+                Unquarantine
+              </button>
+            ) : null}
             {runtimeStateOf(selectedNode.data).quarantined ? (
               <div className="text-xs font-medium text-[var(--tn-muted)]">
-                This node is quarantined.
+                Segmented from spread (trust cutoff). Not a physical shutdown.
               </div>
             ) : null}
             {onDeleteNodeById ? (
@@ -468,8 +538,8 @@ export default function InspectorPanel({
                 className={
                   compactLayout
                     ? isDefender
-                    ? 'tn-btn w-full py-1.5 text-xs'
-                      : 'tn-btn w-full py-1.5 text-xs text-[var(--tn-crit)]'
+                    ? 'tn-btn w-full py-2 text-sm'
+                      : 'tn-btn w-full py-2 text-sm text-[var(--tn-crit)]'
                     : 'tn-btn w-full py-2 text-sm text-[var(--tn-crit)]'
                 }
               >
@@ -481,7 +551,7 @@ export default function InspectorPanel({
       ) : null}
 
       {selectedEdge ? (
-        <div className="mt-3 min-h-0 flex-1 overflow-y-auto">
+        <div className="mt-4 min-h-0 flex-1 overflow-y-auto">
           <div className="truncate text-sm font-medium">
             {selectedEdge.data?.label ?? 'Edge'}
           </div>
@@ -491,8 +561,8 @@ export default function InspectorPanel({
 
           <div
             className={[
-              'tn-surface mt-2 space-y-2',
-              compactLayout ? 'p-3' : 'p-4 space-y-3',
+              'tn-surface mt-3 space-y-3',
+              compactLayout ? 'p-4' : 'p-5 space-y-4',
             ].join(' ')}
           >
             <div>
@@ -532,21 +602,7 @@ export default function InspectorPanel({
             {hackModeActive ? (
               <div className="flex flex-wrap items-center gap-1.5 text-xs">
                 <span className="text-[var(--tn-muted)]">Role</span>
-                <span
-                  className={
-                    hackSimulator?.primarySpreadEdgeId === selectedEdge.id
-                      ? 'font-medium text-[var(--tn-crit)]'
-                      : (hackSimulator?.atRiskEdgeIds ?? []).includes(selectedEdge.id)
-                        ? 'font-medium text-[var(--tn-warn)]'
-                        : ''
-                  }
-                >
-                  {hackSimulator?.primarySpreadEdgeId === selectedEdge.id
-                    ? 'Propagation'
-                    : (hackSimulator?.atRiskEdgeIds ?? []).includes(selectedEdge.id)
-                      ? 'Spread path'
-                      : 'Normal'}
-                </span>
+                <span>Normal</span>
               </div>
             ) : null}
 

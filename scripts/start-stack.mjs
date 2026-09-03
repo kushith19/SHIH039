@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
- * Bring up the local TrustNet stack: Ollama, Qdrant, Timescale, tele-ingestion, Commander, API, UI.
+ * Bring up the local TrustNet stack: Ollama, Commander, API, UI.
  * Usage: npm start
  * Skip ingest: npm start -- --no-ingest
+ * Start Qdrant for lab RAG: npm start -- --with-rag
  */
 import { spawn, spawnSync } from 'node:child_process'
 import { copyFileSync, existsSync, readFileSync } from 'node:fs'
@@ -14,6 +15,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const aiCom = join(root, 'ai-com-v1')
 const teleIng = join(root, 'tele-ingestion')
 const withIngest = !process.argv.includes('--no-ingest')
+const withRag = process.argv.includes('--with-rag')
 const DEFAULT_MODEL = 'qwen2.5:7b-instruct'
 const children = []
 let shuttingDown = false
@@ -301,17 +303,23 @@ async function main() {
   ensureEnv('server/.env.example', 'server/.env')
   ensureEnv('ai-com-v1/.env.example', 'ai-com-v1/.env')
 
-  if (!which('docker')) fail('Docker is not on PATH. Install Docker Desktop, then retry.')
+  if ((withIngest || withRag) && !which('docker')) {
+    fail('Docker is not on PATH. Install Docker Desktop, then retry.')
+  }
 
   ensureNodeModules()
   await ensureOllama(resolveModel())
 
-  log('starting Qdrant (docker compose)')
-  dockerCompose(['up', '-d', 'qdrant'], aiCom)
-  await waitForHttp('http://127.0.0.1:6333/readyz', {
-    timeoutMs: 60_000,
-    label: 'Qdrant',
-  })
+  if (withRag) {
+    log('starting Qdrant (docker compose)')
+    dockerCompose(['up', '-d', 'qdrant'], aiCom)
+    await waitForHttp('http://127.0.0.1:6333/readyz', {
+      timeoutMs: 60_000,
+      label: 'Qdrant',
+    })
+  } else {
+    log('skipping Qdrant (pass --with-rag to start it; live /explain does not use RAG)')
+  }
 
   if (withIngest) await ensureIngest()
 
@@ -341,7 +349,7 @@ async function main() {
   log('starting web UI (:5173) and game API (:3001)')
   log('')
   log('  Ollama     http://localhost:11434')
-  log('  Qdrant     http://localhost:6333/dashboard')
+  if (withRag) log('  Qdrant     http://localhost:6333/dashboard')
   if (withIngest) {
     log('  Timescale  localhost:5432')
     log('  Ingest     http://localhost:3000/health')

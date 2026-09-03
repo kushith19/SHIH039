@@ -10,6 +10,9 @@ import {
   toOllamaExplainPayload,
   attachExplanations,
   enqueueIncidentExplanations,
+  enqueueCampaignAnalyses,
+  fallbackCampaignAssessment,
+  toCampaignInput,
   clearExplanationCache,
   _openCommanderCircuitForTests,
   _resetCommanderCircuitForTests,
@@ -32,6 +35,7 @@ test('toDetectionInput maps a JS incident to Commander DetectionInput', () => {
     severity: 'high',
     confidence: 0.82,
     anomalyScore: 0.77,
+    trustScore: 44,
     detectionType: 'behavioural_anomaly',
     cityContext: 'rush_hour',
     criticality: 'high',
@@ -60,6 +64,8 @@ test('toDetectionInput maps a JS incident to Commander DetectionInput', () => {
   assert.ok(body.affectedEndpoints.includes('ep-telecom_gateway'))
   assert.equal(body.metadata.cityContext, 'rush_hour')
   assert.equal(body.metadata.sector, 'Water')
+  assert.equal(body.metadata.trustScore, 44)
+  assert.equal(body.metadata.anomalyScore, 0.77)
   assert.equal(body.metadata.affectedDependencies.length, 1)
   assert.equal(body.evidence.length, 1)
   assert.equal(body.evidence[0].deviationPct, 63)
@@ -90,15 +96,14 @@ test('toDetectionInput maps a JS incident to Commander DetectionInput', () => {
   assert.match(fallback, /packetsPerSecond/)
 })
 
-test('fallbackStoryExplanation narrates a three-node path', () => {
+test('fallbackStoryExplanation is origin-only', () => {
   const text = fallbackStoryExplanation({
     origin: 'Citizen Payment Gateway',
     next: 'Identity Service',
     tail: 'Municipal Finance API',
   })
   assert.match(text, /Citizen Payment Gateway/)
-  assert.match(text, /Identity Service/)
-  assert.match(text, /Municipal Finance API/)
+  assert.doesNotMatch(text, /Identity Service|Municipal Finance API/)
 })
 
 test('fingerprint stays stable for the same incident id when only live metrics drift', () => {
@@ -176,6 +181,8 @@ test('fallbackExplanation dedupes repeated metrics and keeps top signals', () =>
   assert.match(text, /critical infrastructure/)
   assert.equal(text.split('packetsPerSecond').length - 1, 1)
   assert.equal(text.includes('frequency'), false)
+  assert.equal(text.includes('cpu_usage'), false)
+  assert.equal(text.includes('voltage'), false)
 })
 
 test('circuit-open path does not mark ready', () => {
@@ -305,4 +312,103 @@ test('attachExplanations uses fallback status when cache is empty', () => {
   assert.equal(incidents[0].explanationStatus, 'fallback')
   assert.match(incidents[0].explanation, /Water PLC/)
   clearExplanationCache('room-empty')
+})
+
+test('campaign analyze is invoked only after a correlator match', async () => {
+  const calls = []
+  const orig = globalThis.fetch
+  globalThis.fetch = async (url, opts) => {
+    const href = String(url)
+    calls.push({ url: href, body: opts?.body })
+    if (href.includes('/health')) {
+      return { ok: true, text: async () => JSON.stringify({ status: 'ok' }) }
+    }
+    if (href.includes('/commander/analyze')) {
+      return {
+        ok: true,
+        text: async () =>
+          JSON.stringify({
+            analysis_mode: 'campaign',
+            campaignId: 'cmp-x',
+            assessment: { summary: 'Pattern match assessment', severity: 'high', confidence: 0.8 },
+            impact: { affectedEndpoints: ['a', 'b'] },
+            evidence: [],
+            recommendations: [],
+          }),
+      }
+    }
+    if (href.includes('/commander/explain')) {
+      return { ok: true, text: async () => JSON.stringify({ summary: 'single incident restatement' }) }
+    }
+    return { ok: false, text: async () => 'unexpected' }
+  }
+  try {
+    _resetCommanderCircuitForTests()
+    clearExplanationCache('DEMO-camp')
+    const room = {
+      id: 'DEMO-camp',
+      campaigns: [],
+      detection: { incidents: [] },
+    }
+    enqueueCampaignAnalyses(room)
+    assert.equal(calls.filter((c) => c.url.includes('/analyze')).length, 0)
+
+    const campaign = {
+      id: 'cmp-x',
+      campaignType: 'financial-service-disruption',
+      title: 'Financial service disruption',
+      campaignMatchScore: 0.85,
+      endpointIds: ['a', 'b'],
+      signals: [{ id: 'topology', ok: true }],
+    }
+    room.campaigns = [campaign]
+    room.detection.incidents = [
+      {
+        id: 'inc-a',
+        campaignId: 'cmp-x',
+        endpointId: 'a',
+        detectionType: 'behavioural_anomaly',
+        confidence: 0.8,
+        anomalyScore: 0.7,
+        timestamp: '2026-01-01T00:00:00.000Z',
+        evidence: [],
+      },
+    ]
+    room._pendingCampaignAnalyze = [campaign]
+    enqueueCampaignAnalyses(room)
+    await new Promise((r) => setTimeout(r, 80))
+    assert.ok(calls.some((c) => c.url.includes('/commander/analyze')))
+    assert.equal(calls.filter((c) => c.url.includes('/commander/explain')).length, 0)
+    assert.match(fallbackCampaignAssessment(campaign), /Pattern match/)
+    const payload = toCampaignInput(room, campaign)
+    assert.equal(payload.campaignId, 'cmp-x')
+    assert.equal(payload.incidents.length, 1)
+
+    const single = {
+      id: 'DEMO-explain',
+      detection: {
+        incidents: [
+          {
+            id: 'inc-solo',
+            endpointId: 'solo',
+            detectionType: 'behavioural_anomaly',
+            confidence: 0.5,
+            anomalyScore: 0.5,
+            timestamp: '2026-01-01T00:00:00.000Z',
+            evidence: [{ code: 'metric_deviation', metric: 'packetsPerSecond' }],
+          },
+        ],
+      },
+    }
+    clearExplanationCache('DEMO-explain')
+    _resetCommanderCircuitForTests()
+    enqueueIncidentExplanations(single)
+    await new Promise((r) => setTimeout(r, 80))
+    assert.ok(calls.some((c) => c.url.includes('/commander/explain')))
+  } finally {
+    globalThis.fetch = orig
+    _resetCommanderCircuitForTests()
+    clearExplanationCache('DEMO-camp')
+    clearExplanationCache('DEMO-explain')
+  }
 })

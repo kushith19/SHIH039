@@ -73,6 +73,7 @@ describe('Query API Layer (/api)', () => {
       const metric = res.body.data.find(d => d.endpointId === 'query-ep-1' && d.metricName === 'test_metric');
       expect(metric).toBeDefined();
       expect(metric.value).toBe(42.5);
+      expect(metric.simulationTick).toBe(999);
     });
 
     it('should allow custom minutes parameter', async () => {

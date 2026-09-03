@@ -28,12 +28,10 @@ import { dataFromAsset, INFRASTRUCTURE_NODE_TYPE, telemetryOf } from './infrastr
 import { HackSimulatorContext } from './hackSimulatorContext'
 import {
   buildAttackLayerFromGraph,
-  buildCanvasPersistPayload,
   DEFAULT_HACK_SIMULATOR,
   getDefaultCanvasState,
-  parseGraphJson,
 } from './graphIO'
-import { buildTrustByNodeId, collectActiveAnomalies, getEdgeExpectedPps, getNodeBaselineMetrics, getNodeEffectiveMetrics, getNodeExpectedMetrics } from './peerTrust'
+import { buildTrustByNodeId, getEdgeExpectedPps, getNodeBaselineMetrics, getNodeEffectiveMetrics, getNodeExpectedMetrics } from './peerTrust'
 import {
   NODE_METRIC_KEYS,
   clampNonNegative,
@@ -122,11 +120,6 @@ function GraphCanvasInner({
 
   const [snapToGrid] = useState(false)
   const gridSize = 24
-
-  const [exportOpen, setExportOpen] = useState(false)
-  const [exportText, setExportText] = useState('')
-  const [importOpen, setImportOpen] = useState(false)
-  const [importError, setImportError] = useState('')
 
   const [optimisticHackSim, setOptimisticHackSim] = useState(null)
 
@@ -230,6 +223,29 @@ function GraphCanvasInner({
         reasonsByNodeId: {},
         detectionMode: 'tgnn',
         tgnnCalibrating: false,
+        tgnnWarmupCollected: 0,
+        tgnnWarmupTicks: 15,
+        tgnnSkippedAttackTicks: 0,
+      }
+    }
+    if (mpPhase !== 'playing' || serverDetection == null) {
+      return {
+        nodes: [],
+        edges: [],
+        anomalyNodeIds: [],
+        spreadEdgeIds: [],
+        compromisedNodeIds: [],
+        atRiskNodeIds: [],
+        atRiskEdgeIds: [],
+        primarySpreadNodeId: null,
+        primarySpreadEdgeId: null,
+        isolationScoresByNodeId: {},
+        reasonsByNodeId: {},
+        detectionMode: 'tgnn',
+        tgnnCalibrating: serverDetection?.tgnnCalibrating === true,
+        tgnnWarmupCollected: serverDetection?.tgnnWarmupCollected ?? 0,
+        tgnnWarmupTicks: serverDetection?.tgnnWarmupTicks ?? 15,
+        tgnnSkippedAttackTicks: serverDetection?.tgnnSkippedAttackTicks ?? 0,
       }
     }
     if (serverDetection != null) {
@@ -237,22 +253,40 @@ function GraphCanvasInner({
         nodes: serverDetection.nodes ?? [],
         edges: serverDetection.edges ?? [],
         anomalyNodeIds: serverDetection.anomalyNodeIds ?? [],
-        spreadEdgeIds: serverDetection.spreadEdgeIds ?? [],
-        compromisedNodeIds: serverDetection.compromisedNodeIds ?? [],
-        atRiskNodeIds: serverDetection.atRiskNodeIds ?? [],
-        atRiskEdgeIds: serverDetection.atRiskEdgeIds ?? [],
-        primarySpreadNodeId: serverDetection.primarySpreadNodeId ?? null,
-        primarySpreadEdgeId: serverDetection.primarySpreadEdgeId ?? null,
+        spreadEdgeIds: [],
+        compromisedNodeIds: serverDetection.anomalyNodeIds ?? [],
+        atRiskNodeIds: [],
+        atRiskEdgeIds: [],
+        primarySpreadNodeId: null,
+        primarySpreadEdgeId: null,
         isolationScoresByNodeId: serverDetection.isolationScoresByNodeId ?? {},
         reasonsByNodeId: serverDetection.reasonsByNodeId ?? {},
         detectionMode: 'tgnn',
         tgnnCalibrating: serverDetection.tgnnCalibrating === true,
         tgnnWarmupCollected: serverDetection.tgnnWarmupCollected ?? 0,
         tgnnWarmupTicks: serverDetection.tgnnWarmupTicks ?? 15,
+        tgnnSkippedAttackTicks: serverDetection.tgnnSkippedAttackTicks ?? 0,
       }
     }
-    return collectActiveAnomalies(nodes, edges, hackSimulator)
-  }, [paused, serverDetection, nodes, edges, hackSimulator])
+    return {
+      nodes: [],
+      edges: [],
+      anomalyNodeIds: [],
+      spreadEdgeIds: [],
+      compromisedNodeIds: [],
+      atRiskNodeIds: [],
+      atRiskEdgeIds: [],
+      primarySpreadNodeId: null,
+      primarySpreadEdgeId: null,
+      isolationScoresByNodeId: {},
+      reasonsByNodeId: {},
+      detectionMode: 'tgnn',
+      tgnnCalibrating: false,
+      tgnnWarmupCollected: 0,
+      tgnnWarmupTicks: 15,
+      tgnnSkippedAttackTicks: 0,
+    }
+  }, [paused, serverDetection, mpPhase])
 
   const trustByNodeId = useMemo(() => {
     if (paused) return EMPTY_TRUST
@@ -263,7 +297,12 @@ function GraphCanvasInner({
   const anomalySigRef = useRef('')
 
   useEffect(() => {
-    if (!hackSimulator.active || securityScan.tgnnCalibrating) {
+    if (!hackSimulator.active) {
+      anomalySigRef.current = ''
+      setAnomalyToast(null)
+      return
+    }
+    if (securityScan.tgnnCalibrating && (securityScan.anomalyNodeIds ?? []).length === 0) {
       anomalySigRef.current = ''
       setAnomalyToast(null)
       return
@@ -282,18 +321,11 @@ function GraphCanvasInner({
     if (sig !== anomalySigRef.current) {
       anomalySigRef.current = sig
       const nodeNames = securityScan.nodes.map((n) => n.label).filter(Boolean)
-      const spreadSuffix = securityScan.primarySpreadNodeId
-        ? ' — spread to highest-risk neighbor'
-        : ''
       setAnomalyToast({
         detail:
           nodeNames.length > 0
-            ? nodeNames.slice(0, 6).join(', ') +
-              (nodeNames.length > 6 ? '…' : '') +
-              spreadSuffix
-            : spreadSuffix
-              ? spreadSuffix.trim().replace(/^—\s*/, '')
-              : undefined,
+            ? nodeNames.slice(0, 6).join(', ') + (nodeNames.length > 6 ? '…' : '')
+            : undefined,
       })
     }
   }, [hackSimulator.active, securityScan])
@@ -316,6 +348,7 @@ function GraphCanvasInner({
       tgnnCalibrating: securityScan.tgnnCalibrating === true,
       tgnnWarmupCollected: securityScan.tgnnWarmupCollected ?? 0,
       tgnnWarmupTicks: securityScan.tgnnWarmupTicks ?? 15,
+      tgnnSkippedAttackTicks: securityScan.tgnnSkippedAttackTicks ?? 0,
       anomalyNodeIds: securityScan.anomalyNodeIds ?? [],
       spreadEdgeIds: securityScan.spreadEdgeIds ?? [],
       compromisedNodeIds: securityScan.compromisedNodeIds ?? [],
@@ -343,6 +376,7 @@ function GraphCanvasInner({
       securityScan.tgnnCalibrating,
       securityScan.tgnnWarmupCollected,
       securityScan.tgnnWarmupTicks,
+      securityScan.tgnnSkippedAttackTicks,
       securityScan.anomalyNodeIds,
       securityScan.spreadEdgeIds,
       securityScan.compromisedNodeIds,
@@ -426,16 +460,19 @@ function GraphCanvasInner({
 
   useEffect(() => {
     if (paused) return
-    if (!forceDefaultOnMount || !mpActions?.loadTopology) return
-    if (forceDefaultAppliedRef.current) return
+    if (!mpActions?.loadTopology) return
     if (nodes.length > 0) {
       forceDefaultAppliedRef.current = true
       return
     }
+    const shouldLoad = forceDefaultOnMount || mpRole === 'defender'
+    if (!shouldLoad) return
+    if (forceDefaultAppliedRef.current) return
     forceDefaultAppliedRef.current = true
     applyDefaultArchitectureState()
   }, [
     forceDefaultOnMount,
+    mpRole,
     nodes.length,
     mpActions,
     applyDefaultArchitectureState,
@@ -512,46 +549,6 @@ function GraphCanvasInner({
       }
     },
     [mpRole, mpPhase, mpActions]
-  )
-
-  const _exportGraph = useCallback(() => {
-    const instance = reactFlowInstanceRef.current
-    if (!instance) return
-
-    const obj = instance.toObject()
-    const payload = buildCanvasPersistPayload({
-      nodes,
-      edges,
-      viewport: obj.viewport,
-      hackSimulator,
-    })
-
-    setExportText(JSON.stringify(payload, null, 2))
-    setExportOpen(true)
-  }, [edges, nodes, hackSimulator])
-
-  const downloadExportGraph = useCallback(() => {
-    if (!exportText) return
-
-    const blob = new Blob([exportText], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `city-topology-${Date.now()}.json`
-    a.click()
-    URL.revokeObjectURL(url)
-  }, [exportText])
-
-  const importGraph = useCallback(
-    (jsonText) => {
-      const { nodes: nextNodes, edges: nextEdges, viewport } =
-        parseGraphJson(jsonText)
-
-      if (mpActions?.loadTopology) {
-        void mpActions.loadTopology({ nodes: nextNodes, edges: nextEdges, viewport })
-      }
-    },
-    [mpActions]
   )
 
   const emitSelection = useCallback(() => {
@@ -708,8 +705,6 @@ function GraphCanvasInner({
   }, [mpActions])
 
   const canClearAttacks = mpRole === 'attacker' && mpPhase === 'playing'
-  const mpCampaigns = multiplayer?.campaigns ?? []
-  const hasActiveCampaign = mpCampaigns.some((c) => c.status === 'active')
 
   const clearAttacks = useCallback(() => {
     if (!canClearAttacks) return
@@ -759,28 +754,6 @@ function GraphCanvasInner({
     },
   })
 
-  const _onImportClick = useCallback(() => {
-    setImportError('')
-    setImportOpen(true)
-  }, [])
-
-  const onImportFileChange = useCallback(
-    async (e) => {
-      const file = e.target.files?.[0]
-      if (!file) return
-      const text = await file.text()
-      try {
-        importGraph(text)
-        setImportOpen(false)
-      } catch (err) {
-        setImportError(err?.message ?? 'Failed to import graph')
-      } finally {
-        e.target.value = ''
-      }
-    },
-    [importGraph]
-  )
-
   const { fitView, zoomIn, zoomOut } = useReactFlow()
 
   const loadDefaultArchitecture = useCallback(() => {
@@ -801,34 +774,22 @@ function GraphCanvasInner({
 
   return (
     <div className="h-full w-full relative">
-      {securityScan.tgnnCalibrating ? (
-        <div
-          role="status"
-          className="pointer-events-none fixed top-16 left-1/2 z-[110] w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 border border-[var(--tn-line)] bg-[var(--tn-surface)] px-3 py-2 text-center text-sm shadow-sm"
-        >
-          <div className="font-medium">TGNN calibrating live baseline</div>
-          <div className="mt-0.5 font-mono text-xs text-[var(--tn-muted)]">
-            {securityScan.tgnnWarmupCollected ?? 0}/{securityScan.tgnnWarmupTicks ?? 15}
-            {mpRole === 'attacker' ? ' · wait before attacking' : ' · then flags appear on the map'}
-          </div>
-        </div>
-      ) : null}
       {anomalyToast ? (
         <div
           role="alert"
-          className="pointer-events-auto fixed top-4 right-4 z-[120] flex max-w-sm overflow-hidden border border-[var(--tn-line)] bg-[var(--tn-surface)]"
+          className="tn-surface pointer-events-auto fixed top-4 right-4 z-[120] flex max-w-sm overflow-hidden shadow-[var(--tn-shadow-sm)]"
         >
           <div className="w-0.5 shrink-0 bg-[var(--tn-crit)]" />
-          <div className="flex min-w-0 flex-1 items-start justify-between gap-2 px-3 py-2.5">
+          <div className="flex min-w-0 flex-1 items-start justify-between gap-2 px-4 py-3">
             <div className="min-w-0">
               <div className="text-sm font-medium">Anomaly detected</div>
               {anomalyToast.detail ? (
-                <div className="mt-1 break-words text-xs text-[var(--tn-muted)]">
+                <div className="tn-meta mt-1 break-words">
                   {anomalyToast.detail}
                 </div>
               ) : (
-                <div className="mt-1 text-xs text-[var(--tn-muted)]">
-                  TGNN flagged unusual behavior vs the live match baseline.
+                <div className="tn-meta mt-1">
+                  Residual detector flagged unusual behavior vs the idle-window baseline.
                 </div>
               )}
             </div>
@@ -845,19 +806,19 @@ function GraphCanvasInner({
       ) : null}
       <Panel
         position="top-left"
-        className="pointer-events-none !m-2 flex flex-wrap items-center gap-1.5 border border-[var(--tn-line)] bg-[var(--tn-surface)] p-1.5 sm:!m-3 sm:!max-w-[calc(100vw-1.5rem)] sm:gap-2 !max-w-[calc(100vw-1rem)]"
+        className="tn-surface pointer-events-none !m-3 flex flex-wrap items-center gap-2 p-2 sm:!max-w-[calc(100vw-1.5rem)] !max-w-[calc(100vw-1rem)] shadow-[var(--tn-shadow-sm)]"
       >
         <button
           type="button"
           onClick={() => zoomOut()}
-          className="tn-btn pointer-events-auto h-8 w-8 p-0"
+          className="tn-btn pointer-events-auto h-9 w-9 p-0"
         >
           -
         </button>
         <button
           type="button"
           onClick={() => zoomIn()}
-          className="tn-btn pointer-events-auto h-8 w-8 p-0"
+          className="tn-btn pointer-events-auto h-9 w-9 p-0"
         >
           +
         </button>
@@ -865,7 +826,7 @@ function GraphCanvasInner({
         <button
           type="button"
           onClick={() => fitView({ duration: 700, padding: 0.2 })}
-          className="tn-btn-primary pointer-events-auto h-8"
+          className="tn-btn-primary pointer-events-auto"
         >
           Fit
         </button>
@@ -875,7 +836,7 @@ function GraphCanvasInner({
             type="button"
             onClick={loadDefaultArchitecture}
             title="Reset the map to the City Model dependency graph"
-            className="tn-btn-primary pointer-events-auto h-8 px-2 sm:px-3"
+            className="tn-btn-primary pointer-events-auto px-3"
           >
             <span className="sm:hidden">Default</span>
             <span className="hidden sm:inline">Default architecture</span>
@@ -888,10 +849,9 @@ function GraphCanvasInner({
             onClick={clearAttacks}
             disabled={
               Object.keys(hackSimulator.nodeOverrides).length === 0 &&
-              Object.keys(hackSimulator.edgeOverrides).length === 0 &&
-              !hasActiveCampaign
+              Object.keys(hackSimulator.edgeOverrides).length === 0
             }
-            className="tn-btn pointer-events-auto h-8"
+            className="tn-btn pointer-events-auto"
             title="Clear attack overrides (match-start baseline unchanged)"
           >
             <span className="sm:hidden">Clear</span>
@@ -899,98 +859,6 @@ function GraphCanvasInner({
           </button>
         ) : null}
       </Panel>
-
-      {exportOpen ? (
-        <div className="absolute inset-0 z-50 flex items-start justify-center bg-black/40 p-4">
-          <div className="tn-surface mt-16 w-full max-w-3xl">
-            <div className="flex items-center justify-between border-b border-[var(--tn-line)] px-4 py-3">
-              <div className="font-medium">Export graph JSON</div>
-              <button
-                type="button"
-                onClick={() => setExportOpen(false)}
-                className="tn-btn h-8"
-              >
-                Close
-              </button>
-            </div>
-
-            <textarea
-              className="h-64 w-full bg-[var(--tn-elevated)] px-4 py-3 font-mono text-xs outline-none"
-              value={exportText}
-              readOnly
-            />
-
-            <div className="flex items-center justify-end gap-2 border-t border-[var(--tn-line)] px-4 py-3">
-              <button
-                type="button"
-                onClick={downloadExportGraph}
-                className="tn-btn-primary h-9 px-4 text-sm"
-              >
-                Download JSON
-              </button>
-              <button
-                type="button"
-                onClick={() => setExportOpen(false)}
-                className="tn-btn h-9 px-4 text-sm"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {importOpen ? (
-        <div className="absolute inset-0 z-50 flex items-start justify-center bg-black/40 p-4">
-          <div className="tn-surface mt-16 w-full max-w-2xl">
-            <div className="flex items-center justify-between border-b border-[var(--tn-line)] px-4 py-3">
-              <div className="font-medium">Import graph JSON</div>
-              <button
-                type="button"
-                onClick={() => {
-                  setImportOpen(false)
-                  setImportError('')
-                }}
-                className="tn-btn h-8"
-              >
-                Close
-              </button>
-            </div>
-
-            <div className="space-y-3 px-4 py-4">
-              <div className="text-sm text-[var(--tn-muted)]">
-                Choose a JSON file exported from this app.
-              </div>
-
-              <input
-                type="file"
-                accept="application/json"
-                className="block w-full text-sm"
-                onChange={onImportFileChange}
-              />
-
-              {importError ? (
-                <div className="text-sm text-[var(--tn-crit)]">
-                  {importError}
-                </div>
-              ) : null}
-
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setImportOpen(false)
-                    setImportError('')
-                  }}
-                  className="tn-btn h-9 px-4 text-sm"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
 
       <HackSimulatorContext.Provider value={hackContextValue}>
         <div ref={reactFlowWrapper} className="h-full w-full">

@@ -97,7 +97,7 @@ export class TelemetryRepository {
   static async getRecentTelemetry(minutes: number) {
     const pool = getPool();
     const result = await pool.query(`
-      SELECT endpoint_id as "endpointId", metric_name as "metricName", value, unit, time
+      SELECT endpoint_id as "endpointId", metric_name as "metricName", value, unit, time, simulation_tick as "simulationTick"
       FROM telemetry
       WHERE time >= NOW() - INTERVAL '1 minute' * $1
       ORDER BY time ASC

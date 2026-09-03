@@ -86,6 +86,24 @@ test('samplesFromIngestedRows remap city endpoint ids onto graph node ids', () =
   assert.ok(samples.every((s) => s.endpointId !== 'hospital-api-gateway'))
 })
 
+test('samplesFromIngestedRows keep simulationTick so match filters do not drop live rows', () => {
+  const nodes = [
+    {
+      id: 'ep-hospital_gateway',
+      data: { type: 'hospital_gateway', cityEndpointId: 'hospital-api-gateway' },
+    },
+  ]
+  const withTick = samplesFromIngestedRows(rows, nodeIdsByCityEndpoint(nodes))
+  assert.ok(withTick.every((s) => s.tick === 1 || s.tick === 2))
+
+  const missingTick = samplesFromIngestedRows(
+    rows.map(({ simulationTick, ...rest }) => rest),
+    nodeIdsByCityEndpoint(nodes)
+  )
+  assert.ok(missingTick.length > 0)
+  assert.ok(missingTick.every((s) => s.tick > 1e12))
+})
+
 test('liveTelemetryByNodeId indexes ingested metrics by graph node id', () => {
   const nodes = [
     {

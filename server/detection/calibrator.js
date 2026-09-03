@@ -66,20 +66,27 @@ function nodeSigma(stats) {
 
 /**
  * Ingest one tick of embeddings. Skips the whole tick if any attack override is active.
- * @returns {{ calibrating: boolean, collected: number, warmupTicks: number }}
+ * @returns {{ calibrating: boolean, collected: number, warmupTicks: number, skippedAttackTicks: number }}
  */
 export function ingestCalibrationTick(calibrator, nodeIds, embeddings, { attackActive = false } = {}) {
   const warmupTicks = WARMUP()
+  const skippedAttackTicks = calibrator?.skippedAttackTicks ?? 0
   if (!calibrator || calibrator.ready) {
     return {
       calibrating: !calibrator?.ready,
       collected: calibrator?.collected ?? 0,
       warmupTicks,
+      skippedAttackTicks,
     }
   }
   if (attackActive) {
     calibrator.skippedAttackTicks += 1
-    return { calibrating: true, collected: calibrator.collected, warmupTicks }
+    return {
+      calibrating: true,
+      collected: calibrator.collected,
+      warmupTicks,
+      skippedAttackTicks: calibrator.skippedAttackTicks,
+    }
   }
   const dim = embeddings[0]?.length ?? TRUST_CONFIG.tgnn.embedDim ?? 8
   for (let i = 0; i < nodeIds.length; i++) {
@@ -93,6 +100,7 @@ export function ingestCalibrationTick(calibrator, nodeIds, embeddings, { attackA
     calibrating: !calibrator.ready,
     collected: calibrator.collected,
     warmupTicks,
+    skippedAttackTicks: calibrator.skippedAttackTicks,
   }
 }
 

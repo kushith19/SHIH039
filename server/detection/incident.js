@@ -8,7 +8,7 @@ import {
   primaryDetectionType,
   severityFromScore,
 } from '../../shared/incidents.js'
-import { getTelemetryKeys, metricPresent } from '../../shared/telemetryKeys.js'
+import { GAME_METRIC_KEYS, metricPresent } from '../../shared/telemetryKeys.js'
 import { computeDeviationMetrics, computePeerTrustMetrics, expectedTelemetryOf, hasTelemetryDrift } from './features.js'
 
 export const METRIC_DEVIATION_MIN_PCT = 5
@@ -62,7 +62,7 @@ function metricFactsOf(ep) {
   const expectedTel = expectedTelemetryOf(ep)
   /** @type {Record<string, { observed: number, expected: number, deviationPct: number }>} */
   const facts = {}
-  for (const key of getTelemetryKeys()) {
+  for (const key of GAME_METRIC_KEYS) {
     if (!metricPresent(ep.telemetry, key) || !metricPresent(expectedTel, key)) continue
     const observed = Number(ep.telemetry[key])
     const expected = Number(expectedTel[key])
@@ -238,25 +238,29 @@ function dependencyEvidence(ep, peerMetrics, config) {
   }
 }
 
-function affectedDependenciesFor(epId, input, result) {
-  const spread = new Set([
-    ...(result.spreadEdgeIds ?? []),
-    ...(result.atRiskEdgeIds ?? []),
-  ])
-  const out = []
-  for (const d of input.dependencies ?? []) {
-    if (d.source !== epId && d.target !== epId) continue
-    if (spread.size > 0 && !spread.has(d.id)) continue
-    if (spread.size === 0) continue
-    out.push({
-      id: d.id,
-      source: d.source,
-      target: d.target,
-      role: d.target === epId ? 'upstream' : 'downstream',
-    })
-  }
-  if (out.length > 0 || spread.size > 0) return out
+function affectedDependenciesFor(_epId, _input, _result) {
   return []
+}
+
+function illustrativeImpactOf(ep, metricFacts) {
+  const sector = String(ep.sector ?? '').toLowerCase()
+  const type = String(ep.type ?? ep.assetType ?? '').toLowerCase()
+  const finance =
+    sector.includes('finance') ||
+    type.includes('bank') ||
+    type.includes('payment')
+  if (!finance) return null
+  const maxDev = Math.max(
+    0,
+    ...metricFacts.map((f) => Math.abs(Number(f.deviationPct) || 0))
+  )
+  const crit =
+    ep.criticality === 'critical' ? 1.4 : ep.criticality === 'high' ? 1.2 : 1
+  return {
+    kind: 'illustrative',
+    label: 'Simulated disruption index (not a loss estimate)',
+    value: Math.round(maxDev * crit),
+  }
 }
 
 function buildIncident({
@@ -268,26 +272,19 @@ function buildIncident({
   reasons,
   extraEvidence,
   extraTypes,
-  isPropagationOnly,
 }) {
   const timestamp = result.timestamp ?? input.timestamp ?? null
   const isolationScore = clamp01(result.isolationScoresByNodeId?.[ep.id] ?? 0)
-  const score = isPropagationOnly
-    ? Math.max(anomalyScoreOf(ep.id, result), isolationScore)
-    : anomalyScoreOf(ep.id, result)
+  const score = anomalyScoreOf(ep.id, result)
   const expected = expectedTelemetryOf(ep)
   const drift = hasTelemetryDrift(expected, ep.telemetry)
   const metricFacts = metricFactsOf(ep)
 
   const typesFromReasons = reasons.map(mapReasonToType).filter(Boolean)
-  const detectionTypes = [
-    ...new Set([...typesFromReasons, ...extraTypes, ...(isPropagationOnly ? ['graph_propagation'] : [])]),
-  ]
-  const detectionType = isPropagationOnly
-    ? 'graph_propagation'
-    : primaryDetectionType(
-        detectionTypes.length ? detectionTypes : ['behavioural_anomaly']
-      )
+  const detectionTypes = [...new Set([...typesFromReasons, ...extraTypes])]
+  const detectionType = primaryDetectionType(
+    detectionTypes.length ? detectionTypes : ['behavioural_anomaly']
+  )
   const mappedReasonCount = reasons.filter((tag) => mapReasonToType(tag) != null).length
   const extraReasonCount = Math.max(0, reasons.length - mappedReasonCount) + extraEvidence.length
 
@@ -333,6 +330,7 @@ function buildIncident({
     sector: ep.sector,
     cityEndpointId: ep.cityEndpointId,
     campaignId: null,
+    illustrativeImpact: illustrativeImpactOf(ep, metricFacts),
   }
 }
 
@@ -350,48 +348,21 @@ export function promoteIncidents(result, input) {
   const peerMetrics = computePeerTrustMetrics(input)
   const baselinePeerMetrics = computePeerTrustMetrics(input, 'baseline')
   const anomalyIds = new Set(result.anomalyNodeIds ?? [])
-  const propagationIds = new Set([
-    ...(result.compromisedNodeIds ?? []),
-    ...(result.atRiskNodeIds ?? []),
-  ])
-  if (result.primarySpreadNodeId) propagationIds.add(result.primarySpreadNodeId)
 
   const incidents = []
   const seen = new Set()
 
-  const consider = (epId, isPropagationOnly) => {
+  const consider = (epId) => {
     const ep = endpoints.get(epId)
     if (!ep) return
-    if (ep.runtimeState?.quarantined === true && isPropagationOnly) return
-    const key = epId
-    if (seen.has(key)) return
-    seen.add(key)
+    if (seen.has(epId)) return
+    seen.add(epId)
 
-    const reasons = isPropagationOnly ? [] : (result.reasonsByNodeId?.[epId] ?? [])
+    const reasons = result.reasonsByNodeId?.[epId] ?? []
     const comm = communicationEvidence(ep, input, config)
     const dep = dependencyEvidence(ep, peerMetrics, config)
     const extraEvidence = [...comm.items, ...dep.items]
     const extraTypes = [...comm.types, ...dep.types]
-    const onSpreadPath =
-      (result.spreadEdgeIds ?? []).length > 0 ||
-      (result.atRiskEdgeIds ?? []).length > 0 ||
-      result.primarySpreadNodeId === epId
-    if (!isPropagationOnly && onSpreadPath) {
-      extraTypes.push('graph_propagation')
-      extraEvidence.push({
-        code: 'graph_propagation',
-        kind: 'graph_propagation',
-        detail: 'origin_spread',
-      })
-    }
-    if (isPropagationOnly) {
-      extraTypes.push('graph_propagation')
-      extraEvidence.push({
-        code: 'graph_propagation',
-        kind: 'graph_propagation',
-        detail: result.primarySpreadNodeId === epId ? 'primary_spread' : 'at_risk',
-      })
-    }
 
     incidents.push(
       buildIncident({
@@ -403,16 +374,11 @@ export function promoteIncidents(result, input) {
         reasons,
         extraEvidence,
         extraTypes,
-        isPropagationOnly,
       })
     )
   }
 
-  for (const id of anomalyIds) consider(id, false)
-  for (const id of propagationIds) {
-    if (anomalyIds.has(id)) continue
-    consider(id, true)
-  }
+  for (const id of anomalyIds) consider(id)
 
   incidents.sort((a, b) => String(a.endpointId).localeCompare(String(b.endpointId)))
   return incidents

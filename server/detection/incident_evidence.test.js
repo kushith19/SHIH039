@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { formatEvidenceItem } from '../../shared/incidents.js'
+import { setYamlMetricNames } from '../../shared/telemetryKeys.js'
 import { emptyLookback } from './types.js'
 import { promoteIncidents } from './incident.js'
 
@@ -157,4 +158,54 @@ test('promoteIncidents attaches numeric Level-1 evidence', () => {
     formatEvidenceItem(metric),
     'packetsPerSecond deviation: +63%'
   )
+})
+
+test('metric_deviation evidence is limited to live encoder game keys', () => {
+  setYamlMetricNames(['cpu_usage', 'active_power', 'controller_response_latency'])
+  const input = {
+    roomId: 'TEST',
+    timestamp: '2026-08-29T00:00:00.000Z',
+    tsMs: Date.parse('2026-08-29T00:00:00.000Z'),
+    simulationTick: 10,
+    cityContext: 'normal_day',
+    simHour: 10,
+    matchActive: false,
+    endpoints: [
+      ep('node-a', {
+        telemetry: {
+          ...tel(163, 10, 1, 1),
+          cpu_usage: 90,
+          active_power: 400,
+          controller_response_latency: 80,
+        },
+        expectedTelemetry: {
+          ...tel(100, 10, 1, 1),
+          cpu_usage: 40,
+          active_power: 200,
+          controller_response_latency: 10,
+        },
+      }),
+    ],
+    dependencies: [],
+  }
+  const result = {
+    anomalyNodeIds: ['node-a'],
+    reasonsByNodeId: { 'node-a': ['telemetry_spike:packetsPerSecond'] },
+    isolationScoresByNodeId: { 'node-a': 0.6 },
+    spreadEdgeIds: [],
+    atRiskEdgeIds: [],
+    compromisedNodeIds: [],
+    atRiskNodeIds: [],
+    primarySpreadNodeId: null,
+    timestamp: input.timestamp,
+  }
+  const incidents = promoteIncidents(result, input)
+  const metrics = (incidents[0]?.evidence ?? [])
+    .filter((e) => e.code === 'metric_deviation')
+    .map((e) => e.metric)
+  assert.ok(metrics.includes('packetsPerSecond'))
+  assert.equal(metrics.includes('cpu_usage'), false)
+  assert.equal(metrics.includes('active_power'), false)
+  assert.equal(metrics.includes('controller_response_latency'), false)
+  setYamlMetricNames([])
 })

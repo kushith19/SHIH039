@@ -17,13 +17,12 @@ The central thesis is:
 
 The system therefore combines:
 
-Telemetry + Graph Representation + TGNN Anomaly Detection + Peer Trust + Attack Propagation + AI Decision Support.
+Telemetry + Graph Representation + graph residual detection (directed GNN encoder + idle-window calibrator) + Peer Trust + AI Decision Support.
 
 The goal is to provide security teams with a real-time visual understanding of:
 - what is behaving abnormally,
 - where the anomaly originated,
-- how risk may propagate,
-- which infrastructure is becoming exposed,
+- which infrastructure is flagged,
 - why the system considers it risky,
 - and what safe response should be considered.
 
@@ -66,7 +65,7 @@ Infrastructure may include:
 - communication endpoints,
 - and other logical or physical infrastructure nodes.
 
-The current city model contains 246 infrastructure endpoints represented as a directed graph.
+The YAML reference city model contains **46 infrastructure endpoints** (`overfit/city_model/`, folder typo `infrastructue`). The live demo canvas is a **catalog type-graph (~69 nodes)**: one node per sector type in `src/features/graph/assetCatalog.js`. Do not claim 246 live endpoints. YAML also lists many metric *names* (including payments); the live encoder does not ingest those extra channels.
 
 ---
 
@@ -99,10 +98,11 @@ Examples:
 - node degree,
 - structural relationships,
 - communication paths,
-- dependency relationships,
-- downstream propagation.
+- dependency relationships.
 
-The TGNN is therefore important because an endpoint's risk is evaluated in the context of the graph rather than only from its own telemetry.
+The graph residual detector is therefore important because an endpoint's risk is evaluated in the context of the graph rather than only from its own telemetry.
+
+Internal code may keep `tgnn*` filenames. User-facing copy must not imply a literature Temporal Graph Network or Isolation Forest. The score is a logistic residual vs an idle embedding baseline, then hard gates.
 
 ---
 
@@ -137,9 +137,8 @@ The intended conceptual flow is:
 Telemetry
 → Feature Extraction
 → Graph Representation
-→ TGNN Anomaly Scoring
+→ Graph residual scoring (GNN encoder + gates)
 → Trust Evaluation
-→ Risk Propagation
 → Incident Generation
 → AI Explanation / Decision Support
 
@@ -165,7 +164,7 @@ The system should not merely say:
 
 It should help answer:
 
-"Why is Node X anomalous, what is connected to it, how could the risk propagate, how severe could the impact become, and what should the security operator investigate or contain?"
+"Why is Node X anomalous, what is connected to it, how severe could the impact become, and what should the security operator investigate or contain?"
 
 ---
 
@@ -220,7 +219,7 @@ The existing system includes:
 - FastAPI
 - LangGraph
 - Qdrant
-- TGNN-based graph anomaly scoring
+- Graph residual anomaly scoring (shared GNN encoder; live path uses server detection)
 - Peer trust model
 - Groq / Ollama LLM providers
 

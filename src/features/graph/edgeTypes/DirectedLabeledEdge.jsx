@@ -27,26 +27,13 @@ function DirectedLabeledEdge(edgeProps) {
     displayPps > 0 ? `${displayPps.toLocaleString()} pkt/s` : null
 
   const drift = hasScenarioDrift({ baselinePps: expected, effectivePps: displayPps })
-  const onPrimarySpreadPath =
-    attackOn && hack?.primarySpreadEdgeId != null && hack.primarySpreadEdgeId === id
-  const onAtRiskPath =
-    attackOn && !onPrimarySpreadPath && (hack?.atRiskEdgeIds ?? []).includes(id)
+  const chipClass = attackOn
+    ? !drift
+      ? 'border-[var(--tn-line)] text-[var(--tn-muted)]'
+      : 'border-[var(--tn-warn)] text-[var(--tn-warn)]'
+    : 'border-[var(--tn-line)]'
 
-  const chipClass = onPrimarySpreadPath
-    ? 'border-[var(--tn-crit)] text-[var(--tn-crit)]'
-    : onAtRiskPath
-      ? 'border-[var(--tn-warn)] text-[var(--tn-warn)]'
-      : attackOn
-        ? !drift
-          ? 'border-[var(--tn-line)] text-[var(--tn-muted)]'
-          : 'border-[var(--tn-warn)] text-[var(--tn-warn)]'
-        : 'border-[var(--tn-line)]'
-
-  const edgeStyle = onPrimarySpreadPath
-    ? { stroke: '#dc2626', strokeWidth: 2.5 }
-    : onAtRiskPath
-      ? { stroke: '#d97706', strokeWidth: 2.5 }
-      : undefined
+  const edgeStyle = undefined
 
   return (
     <>

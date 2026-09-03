@@ -1,5 +1,5 @@
 import { TRUST_CONFIG } from '../../shared/trustConfig.js'
-import { l2Distance, residualToScore, tgnnForwardWindow } from '../../shared/tgnnCore.js'
+import { TGNN_PARAMS, l2Distance, residualToScore, tgnnForwardWindow } from '../../shared/tgnnCore.js'
 import { directedAdjacency, extractCityFeatureFrame } from '../../shared/tgnnFeatures.js'
 import { getTelemetryKeys, metricPresent } from '../../shared/telemetryKeys.js'
 import {
@@ -28,6 +28,13 @@ const MIN_NODES_FOR_FULL_CLASSIFY = TRUST_CONFIG.tgnn.minNodesForFullClassify
 
 function framesFromStates(states) {
   return states.map((state) => extractCityFeatureFrame(state).X)
+}
+
+function repeatLastFrame(frames, k) {
+  const last = frames[frames.length - 1]
+  if (!last) return []
+  const n = Number.isFinite(k) && k > 0 ? Math.floor(k) : 3
+  return Array.from({ length: n }, () => last)
 }
 
 export function classifyTgnnScores(scores, hasScenarioDrift, deviationRatios, hasMetricSpike = []) {
@@ -100,6 +107,7 @@ function emptyTgnnResult(extra = {}) {
     tgnnCalibrating: extra.tgnnCalibrating ?? false,
     tgnnWarmupCollected: extra.tgnnWarmupCollected ?? 0,
     tgnnWarmupTicks: extra.tgnnWarmupTicks ?? warmupTicks,
+    tgnnSkippedAttackTicks: extra.tgnnSkippedAttackTicks ?? 0,
   }
 }
 
@@ -116,28 +124,38 @@ export function runTgnnAnomaly(input, opts = {}) {
   const nodeIds = input.endpoints.map((ep) => ep.id)
   const { adjIn, adjOut } = directedAdjacency(nodeIds, input.dependencies)
 
-  const currentEmb = tgnnForwardWindow(framesFromStates(observed), adjIn, adjOut)
-  const baselineEmb = tgnnForwardWindow(framesFromStates(baseline), adjIn, adjOut)
+  const observedFrames = framesFromStates(observed)
+  const baselineFrames = framesFromStates(baseline)
+  const currentEmb = tgnnForwardWindow(observedFrames, adjIn, adjOut)
+  const baselineEmb = tgnnForwardWindow(baselineFrames, adjIn, adjOut)
+  const k = TGNN_PARAMS.temporalWindow ?? TRUST_CONFIG.tgnn.temporalWindow ?? 3
+  const spikeEmb = tgnnForwardWindow(repeatLastFrame(observedFrames, k), adjIn, adjOut)
+  const spikeBaseEmb = tgnnForwardWindow(repeatLastFrame(baselineFrames, k), adjIn, adjOut)
 
   const calibrator = opts.calibrator ?? (input.roomId ? getTgnnCalibrator(input.roomId) : createCalibrator())
   const attackActive = input.endpoints.some((ep) => ep.behaviour?.attackOverrideActive === true)
   const calStatus = ingestCalibrationTick(calibrator, nodeIds, currentEmb, { attackActive })
 
   const minSigma = TRUST_CONFIG.tgnn.calibratorMinSigma ?? 0.05
+  const pauseTwinScore = calStatus.calibrating && attackActive
+  const { hasScenarioDrift, deviationRatios, hasMetricSpike } = collectDriftSignals(input)
   const scoreList = input.endpoints.map((ep, i) => {
-    if (calStatus.calibrating) return 0
+    let score = 0
     if (calibrator.ready) {
       const live = calibratedResidual(calibrator, ep.id, currentEmb[i])
-      return residualToScore(live.dist, live.sigma)
+      score = residualToScore(live.dist, live.sigma)
+    } else if (pauseTwinScore) {
+      score = residualToScore(l2Distance(currentEmb[i], baselineEmb[i]), minSigma)
     }
-    const twinDist = l2Distance(currentEmb[i], baselineEmb[i])
-    return residualToScore(twinDist, minSigma)
+    if (hasMetricSpike[i] === true) {
+      const twin = residualToScore(l2Distance(spikeEmb[i], spikeBaseEmb[i]), minSigma)
+      score = Math.max(score, twin)
+    }
+    return score
   })
 
-  const { hasScenarioDrift, deviationRatios, hasMetricSpike } = collectDriftSignals(input)
-  const anomalyFlags = calStatus.calibrating
-    ? scoreList.map(() => false)
-    : input.endpoints.length < MIN_NODES_FOR_FULL_CLASSIFY
+  const anomalyFlags =
+    input.endpoints.length < MIN_NODES_FOR_FULL_CLASSIFY
       ? classifySmallGraphFallback(scoreList, hasScenarioDrift, deviationRatios, hasMetricSpike)
       : classifyTgnnScores(scoreList, hasScenarioDrift, deviationRatios, hasMetricSpike)
 
@@ -164,5 +182,6 @@ export function runTgnnAnomaly(input, opts = {}) {
     tgnnCalibrating: calStatus.calibrating,
     tgnnWarmupCollected: calStatus.collected,
     tgnnWarmupTicks: calStatus.warmupTicks,
+    tgnnSkippedAttackTicks: calStatus.skippedAttackTicks ?? 0,
   }
 }

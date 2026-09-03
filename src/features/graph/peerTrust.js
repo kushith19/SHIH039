@@ -15,8 +15,7 @@ import {
   peerFromNeighborLocal,
   undirectedNeighbors,
 } from '@shared/trustModel.js'
-import { getNodeIntrinsicTrust } from './infrastructureNode'
-import { computeAttackSpread } from './attackSpread'
+import { getNodeIntrinsicTrust, runtimeStateOf } from './infrastructureNode'
 import { getNodeTgnnResult, runTgnnAnomaly } from './tgnnAnomaly'
 import { getTelemetryKeys, ingestedTelemetryPatch, mergeTelemetryBags } from '@shared/telemetryKeys.js'
 import {
@@ -27,8 +26,16 @@ import {
   normalizeMetricSnapshot,
 } from './nodeMetrics'
 
+export function nodeIsAttackSeed(nodeId, nodes = [], sim = {}) {
+  const ov = sim?.nodeOverrides?.[nodeId]
+  if (ov && typeof ov === 'object' && Object.keys(ov).length > 0) return true
+  const node = nodes.find((n) => n.id === nodeId)
+  if (runtimeStateOf(node?.data).provenance === 'injected') return true
+  const seeds = sim?.campaignSeedNodeIds
+  return Array.isArray(seeds) && seeds.includes(nodeId)
+}
+
 /**
- * Live match attack layer (matches GraphCanvas / HackSimulatorContext shape).
  * @typedef {{
  *   active?: boolean
  *   nodeOverrides?: Record<string, Partial<Record<import('./nodeMetrics').NodeMetricKey, number>>>
@@ -411,14 +418,6 @@ export function collectActiveAnomalies(nodes, edges, sim) {
   }
 
   const tgnnResult = runTgnnAnomaly(nodes, edges, sim)
-  const spread = computeAttackSpread({
-    nodes,
-    edges,
-    anomalyNodeIds: tgnnResult.anomalyNodeIds,
-    sim,
-  })
-
-  const spreadSet = new Set(spread.spreadEdgeIds)
   const nodeHits = tgnnResult.nodeResults
     .filter((r) => r.isAnomaly)
     .map((r) => ({
@@ -428,24 +427,16 @@ export function collectActiveAnomalies(nodes, edges, sim) {
       isAnomaly: true,
     }))
 
-  const edgeHits = edges
-    .filter((e) => spreadSet.has(e.id))
-    .map((e) => ({
-      id: e.id,
-      label: String(e.data?.label ?? e.id),
-      onSpreadPath: true,
-    }))
-
   return {
     nodes: nodeHits,
-    edges: edgeHits,
+    edges: [],
     anomalyNodeIds: tgnnResult.anomalyNodeIds,
-    spreadEdgeIds: spread.spreadEdgeIds,
-    compromisedNodeIds: spread.compromisedNodeIds,
-    atRiskNodeIds: spread.atRiskNodeIds ?? [],
-    atRiskEdgeIds: spread.atRiskEdgeIds ?? [],
-    primarySpreadNodeId: spread.primarySpreadNodeId ?? null,
-    primarySpreadEdgeId: spread.primarySpreadEdgeId ?? null,
+    spreadEdgeIds: [],
+    compromisedNodeIds: [...tgnnResult.anomalyNodeIds],
+    atRiskNodeIds: [],
+    atRiskEdgeIds: [],
+    primarySpreadNodeId: null,
+    primarySpreadEdgeId: null,
     isolationScoresByNodeId: tgnnResult.isolationScoresByNodeId,
   }
 }
@@ -497,24 +488,6 @@ export function getNodeTrustInsights({
     : sim?.active === true
       ? runTgnnAnomaly(nodes, edges, sim)
       : null
-  const spread = hasServerScan
-    ? {
-        primarySpreadNodeId: sim.primarySpreadNodeId ?? null,
-        primarySpreadEdgeId: sim.primarySpreadEdgeId ?? null,
-        atRiskNodeIds: sim.atRiskNodeIds ?? [],
-        atRiskEdgeIds: sim.atRiskEdgeIds ?? [],
-        compromisedNodeIds: sim.compromisedNodeIds ?? [],
-        spreadEdgeIds: sim.spreadEdgeIds ?? [],
-      }
-    : sim?.active === true && tgnnResult
-      ? computeAttackSpread({
-          nodes,
-          edges,
-          anomalyNodeIds: tgnnResult.anomalyNodeIds,
-          sim,
-        })
-      : null
-
   const anomaly = evaluateTrustAnomaly({
     nodeId,
     nodes,
@@ -532,10 +505,6 @@ export function getNodeTrustInsights({
   }
 
   const trustModel = computeTrustScore(nodeId, nodes, edges, sim ?? { active: false })
-  const anomalyNodeIds =
-    sim?.active === true && Array.isArray(sim.anomalyNodeIds)
-      ? sim.anomalyNodeIds
-      : tgnnResult?.anomalyNodeIds ?? []
 
   return {
     intrinsicTrust,
@@ -547,22 +516,9 @@ export function getNodeTrustInsights({
     expectedActivity: trustModel.expectedActivity,
     observedActivity: trustModel.observedActivity,
     ...anomaly,
-    attackOrigin: anomalyNodeIds.includes(nodeId),
-    spreadReached: spread?.primarySpreadNodeId === nodeId,
-    atRisk: (() => {
-      const atRiskIds =
-        sim?.active === true && Array.isArray(sim.atRiskNodeIds)
-          ? sim.atRiskNodeIds
-          : spread?.atRiskNodeIds ?? []
-      return (
-        atRiskIds.includes(nodeId) &&
-        !anomalyNodeIds.includes(nodeId) &&
-        spread?.primarySpreadNodeId !== nodeId
-      )
-    })(),
-    onSpreadPath: spread?.primarySpreadEdgeId != null && (() => {
-      const edge = edges.find((e) => e.id === spread.primarySpreadEdgeId)
-      return edge != null && (edge.source === nodeId || edge.target === nodeId)
-    })(),
+    attackOrigin: nodeIsAttackSeed(nodeId, nodes, sim),
+    spreadReached: false,
+    atRisk: false,
+    onSpreadPath: false,
   }
 }

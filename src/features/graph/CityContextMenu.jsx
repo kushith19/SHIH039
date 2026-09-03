@@ -38,7 +38,7 @@ export default function CityContextMenu({
       <button
         type="button"
         disabled={disabled}
-        className="tn-btn max-w-[10rem] truncate disabled:opacity-50"
+        className="tn-btn max-w-[11rem] truncate text-sm disabled:opacity-50"
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="City context"
@@ -50,7 +50,7 @@ export default function CityContextMenu({
       {open ? (
         <div
           role="menu"
-          className="absolute right-0 z-50 mt-1 min-w-[11rem] border border-[var(--tn-line)] bg-[var(--tn-surface)] py-1"
+          className="tn-surface-outlined absolute right-0 z-50 mt-1.5 min-w-[12rem] py-1 shadow-[var(--tn-shadow-sm)]"
         >
           <button
             type="button"

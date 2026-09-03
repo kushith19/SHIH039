@@ -33,8 +33,9 @@ export function collectWindowTicks(input) {
   return slice
 }
 
-function sampleLookback(ep, tick) {
+function sampleLookback(ep, tick, currentTick) {
   const fallback = ep.telemetry && typeof ep.telemetry === 'object' ? ep.telemetry : {}
+  if (Number(tick) === Number(currentTick)) return { ...fallback }
   const out = { ...fallback }
   for (const [key, series] of Object.entries(ep.lookback ?? {})) {
     if (!Array.isArray(series) || series.length === 0) continue
@@ -52,11 +53,11 @@ function sampleLookback(ep, tick) {
   return out
 }
 
-function endpointToFeatureNode(ep, tick, mode) {
+function endpointToFeatureNode(ep, tick, mode, currentTick) {
   const meta = { sector: ep.sector, type: ep.type, id: ep.id, tick }
   const context = cityContextAt(tick)
   const expected = expectedTelemetry(ep.baselineTelemetry, context, meta)
-  const telemetry = mode === 'baseline' ? expected : sampleLookback(ep, tick)
+  const telemetry = mode === 'baseline' ? expected : sampleLookback(ep, tick, currentTick)
   return {
     id: ep.id,
     telemetry,
@@ -87,8 +88,9 @@ function dependencyToFeatureEdge(d, tick, mode) {
 }
 
 function graphStateAt(input, tick, mode) {
+  const currentTick = Number(input.simulationTick) || 0
   return {
-    endpoints: (input.endpoints ?? []).map((ep) => endpointToFeatureNode(ep, tick, mode)),
+    endpoints: (input.endpoints ?? []).map((ep) => endpointToFeatureNode(ep, tick, mode, currentTick)),
     dependencies: (input.dependencies ?? []).map((d) => dependencyToFeatureEdge(d, tick, mode)),
   }
 }

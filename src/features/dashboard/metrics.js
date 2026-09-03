@@ -2,7 +2,7 @@ export const METRIC_KEYS = [
   { key: 'packetsPerSecond', label: 'Packets / s', short: 'PPS', color: '#22d3ee' },
   { key: 'httpRequestsPerMin', label: 'HTTP / min', short: 'HTTP', color: '#a78bfa' },
   { key: 'filesDownloaded', label: 'Files', short: 'Files', color: '#fbbf24' },
-  { key: 'failedLoginsPerMin', label: 'Failed logins / min', short: 'Logins', color: '#fb7185' },
+  { key: 'failedLoginsPerMin', label: 'Failed logins / min (auth-abuse proxy on finance nodes)', short: 'Logins', color: '#fb7185' },
 ]
 
 export const CITY_CONTEXT_LABELS = {
@@ -22,7 +22,7 @@ export function derivePosture(incidents = [], anomalyCount = 0, tgnnCalibrating 
     return {
       key: 'calm',
       label: 'Calibrating',
-      blurb: 'TGNN is learning this match’s live baseline. Wait before attacking.',
+      blurb: 'Idle-window calibrator (15 ticks). Not online learning. Wait before attacking.',
     }
   }
   if (high > 0) {
@@ -43,7 +43,7 @@ export function derivePosture(incidents = [], anomalyCount = 0, tgnnCalibrating 
     return {
       key: 'watch',
       label: 'Watch',
-      blurb: `${anomalyCount} node${anomalyCount === 1 ? '' : 's'} flagged by TGNN.`,
+      blurb: `${anomalyCount} node${anomalyCount === 1 ? '' : 's'} flagged by the residual detector.`,
     }
   }
   return {
@@ -105,8 +105,9 @@ export function fmt(n) {
 }
 
 export function lastValue(series) {
-  if (!series?.length) return 0
-  return Number(series[series.length - 1].value) || 0
+  if (!series?.length) return null
+  const n = Number(series[series.length - 1].value)
+  return Number.isFinite(n) ? n : null
 }
 
 /**

@@ -1,6 +1,10 @@
 # TrustNet
 
-Smart-city cyber-resilience demo: live topology and attack simulation in the browser, a Node API for rooms/telemetry, and an AI Commander service that turns detections into grounded incident assessments.
+Smart-city cyber-resilience demo: live topology and attack simulation in the browser, a Node API for rooms/telemetry, and an AI Commander that restates detector evidence (`/commander/explain` on incident lists) and composes a safety-checked briefing for correlated patterns (`/commander/analyze` → `commanderBriefing`). Live Q&A does not invent telemetry. RAG is optional; empty Qdrant is labeled **DEGRADED**.
+
+Current architecture in one page: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+The detector is a **graph residual encoder** (directed GNN, 14 features, 3-frame window, idle-window calibrator, hard gates). It is not a literature Temporal Graph Network and not Isolation Forest. Trust is a four-component posture score (25/30/25/20), not the anomaly score.
 
 ## What you need
 
@@ -56,9 +60,9 @@ The Node server’s local Ollama explain path is **off** by default (`OLLAMA_FAL
 
 | Path | Role | Default URL |
 |---|---|---|
-| `/` (Vite + React) | Dashboard UI | http://localhost:5173 |
-| `server/` | Rooms, sockets, detection, optional Commander client | http://localhost:3001 |
-| `ai-com-v1/` | FastAPI AI Commander + RAG (Qdrant) | http://localhost:8000 |
+| `/` (Vite + React) | Two-role session UI (map + defender dashboard) | http://localhost:5173 |
+| `server/` | Demo room, sockets, detection, Commander `/explain` client | http://localhost:3001 |
+| `ai-com-v1/` | FastAPI Commander. Live: `/explain`. Lab: `/analyze` + RAG | http://localhost:8000 |
 | `tele-ingestion/` | Optional CitySnapshot → TimescaleDB | http://localhost:3000 |
 
 ## 1. Clone and env files
@@ -84,7 +88,9 @@ In `server/.env`, leave `AI_COMMANDER_URL=http://localhost:8000` so the UI/API c
 
 Never commit `.env` files or API keys.
 
-## 2. Qdrant (required for Commander RAG)
+## 2. Qdrant (optional — Commander `/analyze` only)
+
+The live SOC does **not** use RAG. Skip this unless you will ingest corpora and call `/analyze` with a real detection body (not `INC-001` mocks).
 
 ```bash
 cd ai-com-v1
@@ -117,7 +123,7 @@ Health:
 curl http://localhost:8000/health
 ```
 
-Analyze a mock incident:
+Analyze a **mock** incident (lab only — not live match detections):
 
 ```bash
 curl -X POST http://localhost:8000/commander/analyze \
@@ -132,7 +138,7 @@ From the **repo root**:
 ```bash
 npm install
 npm install --prefix server
-npm start                 # full stack (Ollama, Qdrant, Commander, UI, API)
+npm start                 # UI + API + Commander; Qdrant only with --with-rag
 # or just the browser app + game server:
 npm run dev:all
 ```
@@ -172,30 +178,30 @@ That one command:
 
 1. Copies missing `.env` files from the examples  
 2. Starts Ollama if it is not already on port 11434, and pulls `qwen2.5:7b-instruct` if needed  
-3. Starts Qdrant via `ai-com-v1/docker-compose.yml`  
-4. Starts TimescaleDB, initializes the schema, and runs tele-ingestion on port 3000  
+3. Starts Qdrant only if you pass `--with-rag`  
+4. Starts TimescaleDB + tele-ingestion unless you pass `--no-ingest`  
 5. Creates `ai-com-v1/venv` and installs Python deps if needed, then runs Commander on port 8000  
 6. Starts the Vite UI (`5173`) and Node API (`3001`)
 
-Open http://localhost:5173
+Open http://localhost:5173 as two tabs (defender + attacker). Wait for the 15-tick idle window before attacking.
 
-Ctrl+C stops Commander, the UI, and the API. Qdrant (and Ollama if it was already running) stay up.
-
-Skip Timescale + tele-ingestion:
+Ctrl+C stops Commander, the UI, and the API.
 
 ```bash
 npm start -- --no-ingest
+npm start -- --with-rag
 ```
-
-First-time RAG ingest is still manual (`python -m src.rag.ingest` in `ai-com-v1`). Incident explanations do not need it.
 
 To run only the UI + API (Commander already up): `npm run dev:all`.  
 
 ## Tests
 
 ```bash
+# From repo root (Node detection, story, commander client)
+npm test
+
 # Commander (from ai-com-v1, venv on)
-pytest tests/test_agent.py tests/test_phase_6b.py tests/test_phase_6c_1.py tests/test_phase_6c_2.py tests/rag/
+pytest tests/test_agent.py tests/test_phase_6b.py tests/test_phase_6c_1.py tests/test_phase_6c_2.py tests/test_risk_compose.py tests/rag/
 
 # Ingestion
 cd tele-ingestion && npm test

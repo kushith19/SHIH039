@@ -100,6 +100,8 @@ If information is unavailable, represent it as unavailable.
 
 Do not invent realistic-looking values merely to make the UI appear more complete.
 
+LIVE / connected means Socket.IO is up, not that Timescale ingest or detection is live. Catalog PPS fallbacks must be labeled. Attack-story chapters are assessment, not confirmed kill-chain. Do not draw hop paths that are not real graph edges.
+
 ---
 
 # 4. MITRE ATT&CK Grounding
@@ -195,7 +197,6 @@ Normal telemetry
 → measurable deviation
 → TGNN / detection response
 → trust change
-→ propagation
 → incident
 → explanation.
 
@@ -207,7 +208,7 @@ The chain must remain technically traceable.
 
 The city graph is a representation of infrastructure relationships.
 
-Do not fabricate graph edges merely to make attack propagation visually impressive.
+Do not fabricate graph edges merely to make the topology visually impressive.
 
 Any dynamically introduced relationship should have a clear semantic explanation, such as:
 
@@ -237,8 +238,6 @@ When possible, derive risk from existing measurable components such as:
 - trust score;
 - criticality;
 - affected assets;
-- graph reach;
-- propagation potential;
 - observed telemetry deviation.
 
 If a new composite score is introduced, document its meaning and inputs.
@@ -354,11 +353,10 @@ The hackathon demonstration should show a reproducible chain:
 3. Show telemetry deviation.
 4. Show anomaly detection.
 5. Show trust degradation.
-6. Show graph-aware propagation.
-7. Show incident prioritization.
-8. Show AI explanation.
-9. Show safe response guidance.
-10. Show potential operational/economic impact where applicable.
+6. Show incident prioritization.
+7. Show AI explanation.
+8. Show safe response guidance.
+9. Show potential operational/economic impact where applicable.
 
 Do not rely on unexplained prerecorded results if the same result can be generated live.
 

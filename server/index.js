@@ -1,3 +1,4 @@
+import './loadEnv.js'
 import express from 'express'
 import { createServer } from 'http'
 import { Server } from 'socket.io'
@@ -40,17 +41,20 @@ import { CITY_MODEL_DIR, loadCityModelFromDisk } from './loadCityModel.js'
 import {
   emitTelemetryNow,
   startTelemetryLoop,
+  stopTelemetryLoop,
   teardownRoomTelemetry,
 } from './telemetry/generator.js'
 import { getLatestDetection, listAttackPatterns, listCampaigns } from './metrics/store.js'
-import { resetTgnnCalibrator } from './detection/calibrator.js'
+import { deleteTgnnCalibrator, resetTgnnCalibrator } from './detection/calibrator.js'
+import { emptyDetectionResult } from './detection/types.js'
+import { emptyAttackStory } from '../shared/attackStory.js'
 import {
   abortAndClearAttacks,
   applyManualPreset,
   attachOverrideNodes,
-  startPlaybookCampaign,
+  publicCampaigns,
 } from './campaign/engine.js'
-import { getPlaybook } from '../shared/campaigns.js'
+import { answerCommanderQuestion } from '../shared/commanderAsk.js'
 import {
   getRecentTelemetry,
   nodeIdsByCityEndpoint,
@@ -69,7 +73,34 @@ if (cityModel && applyCityModelOverlay(cityModel)) {
 
 const app = express()
 app.use(cors({ origin: [CLIENT_ORIGIN, 'http://127.0.0.1:5173'], credentials: true }))
-app.get('/health', (_req, res) => res.json({ ok: true }))
+app.use(express.json({ limit: '512kb' }))
+async function probeUrl(url, timeoutMs = 800) {
+  const ac = new AbortController()
+  const t = setTimeout(() => ac.abort(), timeoutMs)
+  try {
+    const res = await fetch(url, { signal: ac.signal })
+    return res.ok
+  } catch {
+    return false
+  } finally {
+    clearTimeout(t)
+  }
+}
+
+app.get('/health', async (_req, res) => {
+  const ingestUrl = process.env.TELE_INGESTION_URL ?? 'http://127.0.0.1:3000'
+  const commanderUrl = process.env.AI_COMMANDER_URL ?? 'http://localhost:8000'
+  const [ingest, commander] = await Promise.all([
+    probeUrl(`${ingestUrl.replace(/\/$/, '')}/health`),
+    probeUrl(`${commanderUrl.replace(/\/$/, '')}/health`),
+  ])
+  res.json({
+    ok: true,
+    process: 'up',
+    ingest: ingest ? 'up' : 'down',
+    commander: commander ? 'up' : 'down',
+  })
+})
 
 app.get('/rooms/:id/metrics', async (req, res) => {
   const id = String(req.params.id ?? '').toUpperCase()
@@ -89,7 +120,7 @@ app.get('/rooms/:id/metrics', async (req, res) => {
   res.json({
     ok: true,
     roomId: id,
-    source: 'ingestion',
+    source: 'ingestion-global',
     ingestionStatus: result.status,
     samples,
   })
@@ -138,6 +169,22 @@ app.get('/rooms/:id/patterns', (req, res) => {
   })
 })
 
+app.post('/rooms/:id/commander/ask', (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  const room = getRoom(id)
+  if (!room) {
+    return res.status(404).json({ ok: false, message: 'Room not found' })
+  }
+  const snapshot = {
+    briefing: room.commanderBriefing,
+    incidents: room.detection?.incidents ?? [],
+    campaigns: publicCampaigns(room),
+    posture: publicRoomState(room).cityPosture,
+  }
+  const result = answerCommanderQuestion(req.body?.question, snapshot)
+  res.json({ ok: true, ...result })
+})
+
 const httpServer = createServer(app)
 const io = new Server(httpServer, {
   cors: {
@@ -184,12 +231,29 @@ function resolveAck(args) {
 function startMatch(room) {
   if (room.phase !== 'lobby') return false
   if (!room.players.defender || !room.players.attacker) return false
+  if (!Array.isArray(room.nodes) || room.nodes.length === 0) return false
   room.phase = 'playing'
   room.matchNodeIds = room.nodes.map((n) => n.id)
   room.matchEdgeIds = room.edges.map((e) => e.id)
   room.hackSimulator = buildAttackLayerFromGraph(room.nodes, room.edges)
   resetTgnnCalibrator(room.id)
   startTelemetryLoop(room, broadcastState)
+  return true
+}
+
+function resetMatch(room) {
+  stopTelemetryLoop(room.id)
+  abortAndClearAttacks(room)
+  room.phase = 'lobby'
+  room.hackSimulator = buildAttackLayerFromGraph(room.nodes, room.edges)
+  room.simulationTick = 0
+  room.detection = emptyDetectionResult()
+  room.campaigns = []
+  room.incidentLedger = []
+  room.attackStory = emptyAttackStory()
+  room.commanderBriefing = null
+  resetTgnnCalibrator(room.id)
+  startMatch(room)
   return true
 }
 
@@ -274,9 +338,24 @@ io.on('connection', (socket) => {
       if (room.phase !== 'lobby') {
         return emitError(socket, 'Match already started')
       }
+      if (!room.nodes.length) {
+        return emitError(socket, 'Load the default city before starting')
+      }
       return emitError(socket, 'Waiting for attacker to join')
     }
     ack({ ok: true })
+    broadcastState(room)
+  })
+
+  socket.on('game:reset', (...args) => {
+    const ack = resolveAck(args)
+    const room = getSocketRoom(socket)
+    if (!room) return emitError(socket, 'Not in a room')
+    if (!isDefender(socket.id, room)) {
+      return emitError(socket, 'Only defender can reset the match')
+    }
+    resetMatch(room)
+    if (typeof ack === 'function') ack({ ok: true, phase: room.phase })
     broadcastState(room)
   })
 
@@ -307,6 +386,7 @@ io.on('connection', (socket) => {
       }
     }
     if (typeof ack === 'function') ack({ ok: true })
+    tryAutoStartMatch(room)
     syncWithTelemetry(room)
   })
 
@@ -382,7 +462,16 @@ io.on('connection', (socket) => {
     }
     if (patch && typeof patch === 'object') {
       const prev = room.nodes[idx].data ?? {}
-      let data = { ...prev, ...patch }
+      const incoming = { ...patch }
+      delete incoming.intrinsicTrust
+      if (incoming.behaviour && typeof incoming.behaviour === 'object') {
+        const { intrinsicTrust: _drop, ...restBehaviour } = incoming.behaviour
+        incoming.behaviour = restBehaviour
+      }
+      let data = { ...prev, ...incoming }
+      if (incoming.behaviour && typeof incoming.behaviour === 'object') {
+        data.behaviour = { ...(prev.behaviour ?? {}), ...incoming.behaviour }
+      }
       const metricPatch = normalizeMetricPatch(patch)
       if (Object.keys(metricPatch).length > 0) {
         data.telemetry = { ...telemetryOf(prev), ...metricPatch }
@@ -572,26 +661,6 @@ io.on('connection', (socket) => {
     syncWithTelemetry(room)
   })
 
-  socket.on('campaign:start', (...args) => {
-    const ack = resolveAck(args)
-    const payload =
-      typeof args[0] === 'object' && args[0] !== null && typeof args[0] !== 'function'
-        ? args[0]
-        : {}
-    const room = getSocketRoom(socket)
-    if (!room) return emitError(socket, 'Not in a room')
-    if (!isAttacker(socket.id, room) || room.phase !== 'playing') {
-      return emitError(socket, 'Only the attacker can start a campaign during play')
-    }
-    if (!getPlaybook(payload.playbookId)) {
-      return emitError(socket, 'Unknown playbook')
-    }
-    const result = startPlaybookCampaign(room, payload.playbookId, String(payload.seedNodeId ?? ''))
-    if (!result.ok) return emitError(socket, result.message)
-    ack({ ok: true, campaignId: result.campaign.id })
-    syncWithTelemetry(room)
-  })
-
   socket.on('campaign:manual', (...args) => {
     const ack = resolveAck(args)
     const payload =
@@ -605,7 +674,7 @@ io.on('connection', (socket) => {
     }
     const result = applyManualPreset(room, String(payload.nodeId ?? ''), payload.presetId)
     if (!result.ok) return emitError(socket, result.message)
-    ack({ ok: true, campaignId: result.campaign.id })
+    ack({ ok: true })
     syncWithTelemetry(room)
   })
 
@@ -614,14 +683,14 @@ io.on('connection', (socket) => {
     const room = getSocketRoom(socket)
     if (!room) return emitError(socket, 'Not in a room')
     if (!isAttacker(socket.id, room) || room.phase !== 'playing') {
-      return emitError(socket, 'Only the attacker can abort a campaign during play')
+      return emitError(socket, 'Only the attacker can clear attack overrides during play')
     }
     abortAndClearAttacks(room)
     ack({ ok: true })
     syncWithTelemetry(room)
   })
 
-  socket.on('defender:quarantine', ({ nodeId }, ack) => {
+  socket.on('defender:quarantine', ({ nodeId, quarantined }, ack) => {
     const room = getSocketRoom(socket)
     if (!room) return emitError(socket, 'Not in a room')
     if (!canQuarantine(socket.id, room)) {
@@ -630,11 +699,12 @@ io.on('connection', (socket) => {
     const idx = room.nodes.findIndex((n) => n.id === nodeId)
     if (idx < 0) return emitError(socket, 'Node not found')
     const prev = room.nodes[idx].data ?? {}
+    const next = quarantined !== false
     room.nodes[idx] = {
       ...room.nodes[idx],
       data: {
         ...prev,
-        runtimeState: { ...runtimeStateOf(prev), quarantined: true },
+        runtimeState: { ...runtimeStateOf(prev), quarantined: next },
       },
     }
     if (typeof ack === 'function') ack({ ok: true })
@@ -652,6 +722,7 @@ io.on('connection', (socket) => {
     const deleted = deleteRoomIfEmpty(roomId)
     if (deleted) {
       teardownRoomTelemetry(roomId)
+      deleteTgnnCalibrator(roomId)
       return
     }
     broadcastState(room)

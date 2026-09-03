@@ -20,6 +20,8 @@ const emptyRoom = {
   detection: null,
   campaigns: [],
   attackStory: null,
+  commanderBriefing: null,
+  cityPosture: null,
   ingestionStatus: 'empty',
   liveTelemetryByNodeId: {},
 }
@@ -43,6 +45,8 @@ function roomFromState(state) {
     detection: state.detection ?? null,
     campaigns: Array.isArray(state.campaigns) ? state.campaigns : [],
     attackStory: state.attackStory ?? null,
+    commanderBriefing: state.commanderBriefing ?? null,
+    cityPosture: state.cityPosture ?? null,
     ingestionStatus: state.ingestionStatus ?? 'empty',
     liveTelemetryByNodeId: state.liveTelemetryByNodeId ?? {},
   }
@@ -183,15 +187,21 @@ export function useGameRoom() {
       nodeChanges: (changes) => emitAck('graph:nodeChanges', { changes }),
       setViewport: (viewport) => emitAck('graph:setViewport', { viewport }),
       patchSim: (hackSimulator) => emitAck('sim:patch', { hackSimulator }),
-      quarantine: (nodeId) => emitAck('defender:quarantine', { nodeId }),
-      startCampaign: (playbookId, seedNodeId) =>
-        emitAck('campaign:start', { playbookId, seedNodeId }),
+      quarantine: (nodeId, quarantined = true) =>
+        emitAck('defender:quarantine', { nodeId, quarantined }),
+      resetMatch: () => emitAck('game:reset'),
       applyCampaignPreset: (nodeId, presetId) =>
         emitAck('campaign:manual', { nodeId, presetId }),
       abortCampaigns: () => emitAck('campaign:abort'),
     }),
     [emitAck]
   )
+
+  const resetMatch = useCallback(async () => {
+    const res = await emitAck('game:reset')
+    if (!res.ok) setError(res.message ?? 'Cannot reset match')
+    return res.ok
+  }, [emitAck])
 
   return {
     room,
@@ -202,6 +212,7 @@ export function useGameRoom() {
     setError,
     joinRoom,
     startGame,
+    resetMatch,
     setCityContext,
     actions,
   }

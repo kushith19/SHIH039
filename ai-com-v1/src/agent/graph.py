@@ -8,7 +8,16 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from pydantic import ValidationError
 
 from src.models.detection import DetectionInput, CampaignInput
-from src.models.commander import CommanderResponse
+from src.models.commander import (
+    CommanderResponse,
+    GraphContext,
+    MitreCandidate,
+    Recommendation,
+    ResponseStep,
+    RiskBreakdown,
+)
+from src.agent.risk_compose import compose_risk, knowledge_status_from_retrieval
+from src.agent.epistemic import EPISTEMIC_RULES
 from src.agent.models import RetrievalPlan, RetrievedEvidence, RetrievalQuery, RetrievalPriority, EvidenceSufficiency
 from src.agent.llm_provider import get_llm_provider
 from src.agent.prompts import COMMANDER_SYSTEM_PROMPT, QUERY_PLANNER_PROMPT, EVIDENCE_SUFFICIENCY_PROMPT
@@ -623,9 +632,11 @@ def generate_assessment(state: AgentState) -> AgentState:
             HumanMessage(content=f"Analysis Mode: {mode.upper()}\n"
                                  f"Event Details:\n{input_dump}{aggregated_stats}\n\n"
                                  f"Retrieved Authoritative Evidence:\n{evidence_text}\n\n"
+                                 f"{EPISTEMIC_RULES}\n"
                                  f"You MUST provide your assessment as a JSON object matching this exact JSON Schema:\n"
                                  f"{json.dumps(CommanderResponse.model_json_schema(), indent=2)}\n\n"
-                                 f"Do not include markdown wrapping or extraneous text.")
+                                 f"Do not include markdown wrapping or extraneous text."
+                                 f" Fill recommendations as safe OT-aware actions. MITRE goes in mitreCandidates as candidates only.")
         ]
         
         if hasattr(llm, "bind"):
@@ -772,29 +783,159 @@ def correct_assessment(state: AgentState) -> AgentState:
             "correction_attempts": state.get("correction_attempts", 0) + 1
         }
 
+UNSAFE_ACTION_KEYWORDS = ["shut down", "power off", "disable", "disconnect", "stop", "immediately shut down"]
+SAFE_ACTION_KEYWORDS = ["isolate affected network", "segment", "restrict", "preserve monitoring"]
+
+
+def action_is_unsafe(action: str) -> bool:
+    action_lower = str(action or "").lower()
+    for uk in UNSAFE_ACTION_KEYWORDS:
+        if uk in action_lower:
+            for sk in SAFE_ACTION_KEYWORDS:
+                if sk in action_lower:
+                    return False
+            return True
+    return False
+
+
+def _compose_args_from_state(state: AgentState) -> dict:
+    if state.get("analysis_mode") == "campaign":
+        camp = state.get("campaign_input")
+        meta = camp.metadata if camp and isinstance(camp.metadata, dict) else {}
+        evidence = []
+        trust_scores = []
+        anomaly_scores = []
+        crit = meta.get("criticality")
+        for inc in camp.incidents if camp else []:
+            evidence.extend(inc.evidence or [])
+            im = inc.metadata if isinstance(inc.metadata, dict) else {}
+            if im.get("trustScore") is not None:
+                trust_scores.append(im.get("trustScore"))
+            anomaly_scores.append(inc.risk_score)
+            if not crit:
+                crit = im.get("criticality")
+        path = []
+        return {
+            "anomaly_score": max(anomaly_scores) if anomaly_scores else meta.get("anomalyScore"),
+            "trust_score": min(trust_scores) if trust_scores else meta.get("trustScore"),
+            "criticality": crit,
+            "exposed_count": 0,
+            "hop_count": 0,
+            "evidence": evidence,
+            "path": [],
+            "mitre": meta.get("mitreCandidates") or [],
+            "nodes": meta.get("endpointIds") or [],
+        }
+    det = state.get("incident_input")
+    meta = det.metadata if det and isinstance(det.metadata, dict) else {}
+    path = []
+    return {
+        "anomaly_score": meta.get("anomalyScore", det.risk_score if det else None),
+        "trust_score": meta.get("trustScore"),
+        "criticality": meta.get("criticality"),
+        "exposed_count": 0,
+        "hop_count": 0,
+        "evidence": det.evidence if det else [],
+        "path": path,
+        "mitre": meta.get("mitreCandidates") or [],
+        "nodes": det.affected_endpoints if det else [],
+    }
+
+
+def _priority_to_phase(priority: str) -> tuple[str, str]:
+    p = str(priority or "").upper()
+    if p in ("P0", "CRITICAL", "HIGH"):
+        return "contain", "P0"
+    if p in ("P1", "MEDIUM"):
+        return "investigate", "P1"
+    return "recover", "P2"
+
+
+def finalize_briefing(state: AgentState) -> AgentState:
+    if state.get("error") or not state.get("commander_response"):
+        return state
+    resp = state["commander_response"]
+    args = _compose_args_from_state(state)
+    risk = compose_risk(
+        anomaly_score=args["anomaly_score"],
+        trust_score=args["trust_score"],
+        criticality=args["criticality"],
+        exposed_count=args["exposed_count"],
+        hop_count=args["hop_count"],
+        evidence=args["evidence"],
+    )
+    resp.risk = RiskBreakdown(**risk)
+    chunks = state.get("retrieved_evidence") or []
+    status = state.get("retrieval_status") or "unavailable"
+    resp.knowledge_status = knowledge_status_from_retrieval(
+        chunk_count=len(chunks), retrieval_status=status
+    )
+    path = [str(x) for x in (args["path"] or []) if x]
+    nodes = [str(x) for x in (args["nodes"] or []) if x]
+    resp.graph_context = GraphContext(
+        affectedNodes=nodes,
+        propagationPath=path,
+        hopCount=0,
+        exposedCount=0,
+    )
+    catalog_mitre = args["mitre"] if isinstance(args["mitre"], list) else []
+    if catalog_mitre and not resp.mitre_candidates:
+        resp.mitre_candidates = [
+            MitreCandidate(
+                techniqueId=str(item if not isinstance(item, dict) else item.get("techniqueId") or item.get("id") or item),
+                reason="Catalog candidate from correlated pattern — not proof of execution",
+            )
+            for item in catalog_mitre
+            if item
+        ]
+    for cand in resp.mitre_candidates:
+        if cand.reason and "executed" in cand.reason.lower():
+            cand.reason = "Candidate technique — requires verification"
+    if not resp.response_plan:
+        for rec in resp.recommendations:
+            if not rec.action or rec.action == "DROPPED_UNSAFE":
+                continue
+            phase, pri = _priority_to_phase(rec.priority)
+            resp.response_plan.append(
+                ResponseStep(
+                    phase=phase,
+                    priority=pri,
+                    action=rec.action,
+                    safetyStatus="approved",
+                )
+            )
+    for step in resp.response_plan:
+        if action_is_unsafe(step.action) or step.action == "DROPPED_UNSAFE":
+            step.action = "DROPPED_UNSAFE"
+            step.safety_status = "dropped"
+        elif step.safety_status not in ("approved", "corrected", "dropped"):
+            step.safety_status = "approved"
+    resp.response_plan = [s for s in resp.response_plan if s.action != "DROPPED_UNSAFE"]
+    if resp.knowledge_status != "success":
+        resp.citations = []
+        if not resp.uncertainties:
+            resp.uncertainties = ["Knowledge retrieval degraded or unavailable — assessment uses observed telemetry and graph evidence only."]
+    return {"commander_response": resp}
+
+
 def validate_safety(state: AgentState) -> AgentState:
     if state.get("error") or not state.get("commander_response"):
         return state
         
     t0 = time.perf_counter()
     resp = state["commander_response"]
-    unsafe_keywords = ["shut down", "power off", "disable", "disconnect", "stop", "immediately shut down"]
-    safe_keywords = ["isolate affected network", "segment", "restrict", "preserve monitoring"]
     
     unsafe_recs = []
     for i, rec in enumerate(resp.recommendations):
-        action_lower = rec.action.lower()
-        is_unsafe = False
-        for uk in unsafe_keywords:
-            if uk in action_lower:
-                is_unsafe = True
-                for sk in safe_keywords:
-                    if sk in action_lower:
-                        is_unsafe = False
-                        break
-                if is_unsafe:
-                    unsafe_recs.append(i)
-                    break
+        if action_is_unsafe(rec.action):
+            unsafe_recs.append(i)
+    for j, step in enumerate(resp.response_plan or []):
+        if action_is_unsafe(step.action):
+            if not resp.recommendations:
+                resp.recommendations.append(Recommendation(action=step.action, priority=step.priority))
+                unsafe_recs.append(len(resp.recommendations) - 1)
+            else:
+                unsafe_recs.append(j)
                     
     lat = (time.perf_counter()-t0)*1000
     if not unsafe_recs:
@@ -892,7 +1033,7 @@ def route_safety(state: AgentState) -> str:
     val = state.get("validation_errors")
     if val and val.startswith("unsafe_recs:"):
         return "correct_safety"
-    return END
+    return "finalize_briefing"
 
 def route_sufficiency(state: AgentState) -> str:
     suff = state.get("evidence_sufficiency")
@@ -943,14 +1084,17 @@ def create_commander_graph(retriever) -> StateGraph:
     )
     workflow.add_edge("correct_assessment", "validate_structured_output")
     
+    workflow.add_node("finalize_briefing", finalize_briefing)
     workflow.add_conditional_edges(
         "validate_safety",
         route_safety,
         {
             "correct_safety": "correct_safety",
-            END: END
+            "finalize_briefing": "finalize_briefing",
+            END: END,
         }
     )
-    workflow.add_edge("correct_safety", END)
+    workflow.add_edge("correct_safety", "finalize_briefing")
+    workflow.add_edge("finalize_briefing", END)
     
     return workflow.compile()

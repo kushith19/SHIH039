@@ -6,7 +6,6 @@ import {
   pushNeighborSnapshot,
 } from '../detection/adapter.js'
 import { runDetection } from '../detection/engine.js'
-import { tickCampaigns } from '../campaign/engine.js'
 import { correlateCampaigns } from '../campaign/correlate.js'
 import { updateAttackStory } from '../campaign/story.js'
 import { emptyAttackStory } from '../../shared/attackStory.js'
@@ -18,11 +17,14 @@ import {
   saveDetectionRun,
 } from '../metrics/store.js'
 import { emptyDetectionResult } from '../detection/types.js'
+import { advanceRiskMomentum, resetRiskHistory } from '../detection/riskMomentum.js'
+import { deleteTgnnCalibrator } from '../detection/calibrator.js'
 import {
   attachExplanations,
   enqueueIncidentExplanations,
   attachStoryExplanation,
   enqueueStoryExplanation,
+  enqueueCampaignAnalyses,
   clearExplanationCache,
 } from '../commander/client.js'
 import {
@@ -57,11 +59,6 @@ async function forwardSnapshot(room, produced) {
  * @returns {object} detection result
  */
 export async function ingestCitySnapshot(room, onAfter) {
-  try {
-    tickCampaigns(room)
-  } catch (err) {
-    console.error('[campaign] tick failed', err)
-  }
   const produced = buildCitySnapshot(room)
   const posted = await forwardSnapshot(room, produced)
   const refreshed = await refreshRoomIngestion(room)
@@ -85,6 +82,7 @@ export async function ingestCitySnapshot(room, onAfter) {
   } catch (err) {
     console.error('[campaign] correlate failed', err)
   }
+  detection = advanceRiskMomentum(room, detection)
   room.neighborHistory = pushNeighborSnapshot(room.neighborHistory, withWindow, LOOKBACK_TICKS)
   updateAttackStory(room, detection)
   attachExplanations(room, detection.incidents)
@@ -93,6 +91,7 @@ export async function ingestCitySnapshot(room, onAfter) {
   room.detection = detection
   enqueueIncidentExplanations(room, onAfter)
   enqueueStoryExplanation(room, onAfter)
+  enqueueCampaignAnalyses(room, onAfter)
   return detection
 }
 
@@ -131,7 +130,9 @@ export function startTelemetryLoop(room, onTick) {
   room.simulationTick = 0
   room.detection = emptyDetectionResult()
   room.campaigns = []
+  room.incidentLedger = []
   room.attackStory = emptyAttackStory()
+  resetRiskHistory(room)
   room.neighborHistory = []
   room.ingestionStatus = room.ingestionStatus ?? 'empty'
   room.ingestedByEndpoint = room.ingestedByEndpoint ?? {}
@@ -156,6 +157,7 @@ export function stopTelemetryLoop(roomId) {
 export function teardownRoomTelemetry(roomId) {
   stopTelemetryLoop(roomId)
   clearExplanationCache(roomId)
+  deleteTgnnCalibrator(roomId)
   try {
     deleteRoomMetrics(roomId)
   } catch {

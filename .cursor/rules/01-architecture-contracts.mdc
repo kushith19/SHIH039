@@ -32,9 +32,8 @@ Telemetry Generation
 → Telemetry Ingestion
 → TimescaleDB
 → Detection Engine
-→ TGNN / Detection Fusion
+→ Graph residual detection (GNN encoder + gates)
 → Peer Trust
-→ Attack Spread
 → Incident Promotion
 → AI Commander
 → WebSocket State Synchronization
@@ -61,7 +60,7 @@ Do not reduce the architecture to independent per-node anomaly detection.
 
 When implementing detection or risk features, consider whether graph relationships and neighboring context are relevant.
 
-The existing city model contains 246 endpoints.
+The YAML city model contains 46 endpoints. The live match graph is the catalog type-graph (~69 nodes) plus directed dependency edges. Campaign/story layers must not invent topology edges.
 
 ---
 
@@ -90,8 +89,7 @@ Contains:
 - provenance,
 - trust score,
 - anomaly score,
-- incidents,
-- attack spread state.
+- incidents.
 
 Do not silently convert authoritative static topology into uncontrolled runtime state.
 
@@ -121,31 +119,34 @@ Telemetry records contain:
 
 Existing telemetry ingestion and validation should be reused.
 
-Do not create a second telemetry storage mechanism unless there is a clear architectural requirement.
+Live game telemetry uses four keys (`packetsPerSecond`, `httpRequestsPerMin`, `filesDownloaded`, `failedLoginsPerMin`). YAML payment metrics are catalog names, not encoder inputs.
+
+TimescaleDB is the ingest time-series store. `server/data/metrics.sqlite` is an operational lookback/campaign store (calibrator windows, campaign fingerprints). Do not add a third database. Do not treat SQLite as the city digital twin.
 
 ---
 
-# 6. TGNN Contract
+# 6. Graph residual detector contract
 
-The TGNN is a core project differentiator.
+The graph residual detector (internal `tgnn*` modules) is a core differentiator.
 
 The existing architecture uses:
 
-- normalized node features;
-- baseline and effective states;
-- graph adjacency;
-- directed message passing;
-- multiple graph-convolution rounds;
-- embedding comparison;
-- anomaly scoring.
+- 14 frozen normalized feature channels (`shared/tgnnFeatures.js`);
+- 8-d embeddings;
+- directed in/out mean pooling (2 hops);
+- concat of the last K=3 spatial vectors (`W_TEMP` is 24-d);
+- L2 residual vs idle-window calibrator (15 ticks, Welford; not online learning);
+- logistic score plus hard gates in `TRUST_CONFIG.tgnn`.
 
-The current feature architecture uses 11 normalized features per node and a 22-dimensional baseline/effective representation.
+`setCityYamlFeatureKeys` must not resize the checkpoint.
 
-Do not replace the TGNN with a simpler detector merely because it is easier to implement.
+Do not replace this encoder with a simpler per-node detector merely because it is easier.
 
-Do not silently change TGNN weights, mathematical operations, architecture, or thresholds.
+Do not silently change weights, mathematical operations, architecture, or thresholds.
 
-If a change to the TGNN is explicitly requested, preserve compatibility with the existing detection and trust pipeline.
+User-facing copy: “graph residual detector” / “anomaly score.” JSON may keep `isolationScore` as a residual alias. Do not say Isolation Forest or literature TGN.
+
+If a change to the encoder is explicitly requested, preserve compatibility with the existing detection and trust pipeline.
 
 ---
 
@@ -174,12 +175,11 @@ New risk visualizations may derive from the existing trust score.
 
 Detection may combine:
 
-- TGNN anomaly scoring;
+- graph residual (GNN encoder) anomaly scoring;
 - temporal deviations;
 - metric deviations;
 - trust information;
-- graph context;
-- propagation analysis.
+- graph context.
 
 The existing detection thresholds and qualification logic are part of the V1 behavior.
 
@@ -236,14 +236,11 @@ The AI Commander is a downstream decision-support layer.
 
 It must not become the primary anomaly detector.
 
-The Commander receives structured evidence from upstream detection and can:
+The Commander receives structured evidence from upstream detection.
 
-- explain observations;
-- retrieve relevant cybersecurity knowledge;
-- assess impact;
-- identify candidate techniques;
-- provide recommendations;
-- generate structured decision support.
+**Live match path:** `POST /commander/explain` restates detector evidence. No RAG. Do not label this as grounded retrieval.
+
+**Lab path:** `POST /commander/analyze` uses LangGraph + Qdrant. Calling analyze with only `incident_id` hits `MockDetectionAdapter` — do not demo that as live detection.
 
 The Commander must not invent telemetry or override upstream observed facts.
 
@@ -251,9 +248,9 @@ The Commander must not invent telemetry or override upstream observed facts.
 
 # 12. RAG Contract
 
-The AI Commander uses authoritative knowledge through Qdrant retrieval.
+RAG exists on the Commander **analyze** sidecar (Qdrant), not on the live SOC `/explain` path.
 
-Current knowledge sources include:
+Knowledge sources when ingest has been run:
 
 - NIST SP 800-82r3;
 - MITRE ATT&CK Enterprise / ICS;
@@ -265,6 +262,8 @@ Retrieved knowledge provides contextual guidance.
 It must not be presented as evidence that an attack actually occurred.
 
 Observed telemetry and retrieved guidance must remain conceptually separate.
+
+Do not start Qdrant for the default demo unless `/analyze` with ingested corpora will be shown.
 
 ---
 
@@ -299,7 +298,11 @@ The primary state synchronization event is:
 
 state:sync
 
+The live session is a single in-memory `DEMO` two-role room (defender + attacker). Do not pitch multi-room SaaS. `/play/:roomId` is not a real room product.
+
 Frontend features should preferably consume existing synchronized state rather than creating unnecessary independent polling mechanisms.
+
+Campaigns and attack-story chapters are analytical overlays on presets + promoted incidents. They must not create incidents, telemetry, or synthetic graph edges. Story copy is assessment/hypothesis, not a confirmed kill-chain.
 
 If new runtime fields are required:
 
@@ -314,11 +317,13 @@ If new runtime fields are required:
 TimescaleDB is the authoritative persistence layer for:
 
 - infrastructure metadata;
-- telemetry time-series data.
+- ingested telemetry time-series.
 
-Current incident state, active room state, spread state, and similar runtime information may remain in memory unless a persistence feature is explicitly added.
+SQLite (`server/data/metrics.sqlite`) stores detection lookback windows and campaign/pattern fingerprints. It is not a second city telemetry twin.
 
-Do not introduce a second database for convenience.
+Current incident state and active room state may remain in memory.
+
+Do not introduce a third database for convenience.
 
 ---
 
@@ -333,7 +338,7 @@ Simulation, rooms, detection, state, Socket.IO.
 Telemetry validation, persistence, historical telemetry queries.
 
 ### AI Commander
-RAG, reasoning, structured assessment, safety validation.
+Live: evidence restatement (`/explain`). Lab: RAG/LangGraph (`/analyze`) plus OT/ICS safety validation.
 
 ### Frontend
 Operator visualization and interaction.
@@ -358,7 +363,6 @@ The UI should preserve the ability to visually communicate:
 - trust;
 - anomalies;
 - incidents;
-- attack propagation;
 - critical infrastructure;
 - risk state.
 
@@ -411,7 +415,7 @@ Avoid creating parallel architecture unless the existing architecture genuinely 
 Unless explicitly instructed otherwise, treat these as frozen foundations:
 
 - shared trust model mathematics;
-- TGNN core architecture and weights;
+- graph residual encoder architecture and checkpoint weights;
 - telemetry generation pipeline;
 - telemetry ingestion pipeline;
 - TimescaleDB schema;

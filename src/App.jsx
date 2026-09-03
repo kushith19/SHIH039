@@ -1,5 +1,4 @@
 import { Navigate, Routes, Route } from 'react-router-dom'
-import DashboardPage from './pages/DashboardPage'
 import GamePage from './pages/GamePage'
 
 export default function App() {
@@ -12,7 +11,7 @@ export default function App() {
         path="/default"
         element={<Navigate to={{ pathname: '/', search: '?loadDefault=1' }} replace />}
       />
-      <Route path="/dashboard" element={<DashboardPage />} />
+      <Route path="/dashboard" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }

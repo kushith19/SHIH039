@@ -13,6 +13,7 @@ import { createContext, useContext } from 'react'
  *   tgnnCalibrating?: boolean
  *   tgnnWarmupCollected?: number
  *   tgnnWarmupTicks?: number
+ *   tgnnSkippedAttackTicks?: number
  *   anomalyNodeIds?: string[] — TGNN anomaly seeds (red nodes)
  *   spreadEdgeIds?: string[] — primary propagation link; kept for compatibility
  *   compromisedNodeIds?: string[] — anomaly seeds + primary spread target

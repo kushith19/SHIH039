@@ -1,41 +1,38 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   assetCatalog,
   attackCatalog,
   getAssetsGroupedByDomain,
 } from '../graph/assetCatalog'
 import { ATTACK_PRESETS } from '../graph/attackPresets'
-import { attackPresetTitle } from '@shared/attackPresets.js'
-import {
-  CAMPAIGN_PLAYBOOKS,
-  activeCampaign,
-  playbookTitle,
-  stageProgressLabel,
-} from '@shared/campaigns.js'
 
 const DOMAIN_SHORT = {
-  'Energy & Utilities': 'Energy',
-  'Water & Waste': 'Water',
+  Energy: 'Energy',
+  Water: 'Water',
   Transportation: 'Transport',
-  'Telecommunications & Digital': 'Telecom',
-  'Government & Civic Services': 'Civic',
+  Telecommunications: 'Telecom',
+  Government: 'Civic',
+  Education: 'Education',
   Healthcare: 'Health',
-  'Public Safety & Emergency': 'Safety',
+  'Emergency Services': 'Emergency',
+  'Public Safety': 'Safety',
   Environment: 'Environment',
-  'Financial & Commercial': 'Finance',
+  Finance: 'Finance',
   'Urban Infrastructure': 'Urban',
 }
 
 const DOMAIN_ACCENT = {
-  'Energy & Utilities': 'bg-amber-500',
-  'Water & Waste': 'bg-sky-500',
+  Energy: 'bg-amber-500',
+  Water: 'bg-sky-500',
   Transportation: 'bg-slate-500',
-  'Telecommunications & Digital': 'bg-violet-500',
-  'Government & Civic Services': 'bg-indigo-500',
+  Telecommunications: 'bg-violet-500',
+  Government: 'bg-indigo-500',
+  Education: 'bg-lime-500',
   Healthcare: 'bg-rose-500',
-  'Public Safety & Emergency': 'bg-red-500',
+  'Emergency Services': 'bg-orange-500',
+  'Public Safety': 'bg-red-500',
   Environment: 'bg-emerald-500',
-  'Financial & Commercial': 'bg-teal-500',
+  Finance: 'bg-teal-500',
   'Urban Infrastructure': 'bg-stone-500',
 }
 
@@ -46,9 +43,9 @@ function AssetRow({ asset, onDragStart }) {
       onDragStart={(e) => onDragStart(e, asset)}
       title={asset.title}
       aria-label={`Add ${asset.title}`}
-      className="group flex cursor-grab items-center gap-2 rounded px-1.5 py-1 hover:bg-[var(--tn-elevated)] active:cursor-grabbing"
+      className="group flex cursor-grab items-center gap-2.5 rounded-md px-2 py-1.5 hover:bg-[var(--tn-elevated)] active:cursor-grabbing"
     >
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded border border-[var(--tn-line)] bg-[var(--tn-surface)]">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[var(--tn-elevated)]">
         <asset.Icon size={13} className="text-[var(--tn-muted)]" />
       </span>
       <span className="min-w-0 flex-1 truncate text-sm font-medium leading-tight">
@@ -79,13 +76,13 @@ function DomainAssetList({ assets, onDragStart }) {
   }, [grouped, q])
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-1.5">
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
       <input
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder={`Search ${assets.length} sectors`}
-        className="tn-input px-2 py-1.5 text-sm placeholder:text-[var(--tn-muted)]"
+        className="tn-input px-3 text-sm placeholder:text-[var(--tn-muted)]"
       />
       <div className="min-h-0 flex-1 space-y-1 overflow-y-auto pr-0.5">
         {visibleGroups.map((group) => {
@@ -93,26 +90,23 @@ function DomainAssetList({ assets, onDragStart }) {
           const short = DOMAIN_SHORT[group.domain] ?? group.domain
           const accent = DOMAIN_ACCENT[group.domain] ?? 'bg-slate-400'
           return (
-            <div
-              key={group.domain}
-              className="overflow-hidden border border-[var(--tn-line)]"
-            >
+            <div key={group.domain}>
               <button
                 type="button"
                 onClick={() =>
                   setOpenDomain((prev) => (prev === group.domain ? null : group.domain))
                 }
-                className="flex w-full items-center gap-1.5 px-2 py-1.5 text-left"
+                className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left hover:bg-[var(--tn-elevated)]"
                 aria-expanded={open}
               >
                 <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${accent}`} />
                 <span className="min-w-0 flex-1 truncate text-sm font-medium">{short}</span>
-                <span className="tabular-nums text-xs text-[var(--tn-muted)]">
+                <span className="tabular-nums text-sm text-[var(--tn-muted)]">
                   {group.assets.length}
                 </span>
               </button>
               {open ? (
-                <div className="border-t border-[var(--tn-line)] px-0.5 pb-1 pt-0.5">
+                <div className="pb-1 pl-1">
                   {group.assets.map((asset) => (
                     <AssetRow
                       key={asset.type}
@@ -153,10 +147,8 @@ export default function SidebarAssets({
   showDevices = true,
   showAttackTools = false,
   selectedNodeId = null,
-  campaigns = [],
-  simulationTick = 0,
+  tgnnCalibrating = false,
   onApplyAttackPreset,
-  onStartCampaign,
   onAbortCampaigns,
 }) {
   function handleDragStart(event, assetType, provenance = 'legitimate') {
@@ -168,65 +160,57 @@ export default function SidebarAssets({
   }
 
   const inLobby = phase === 'lobby'
-  const liveCampaign = activeCampaign(campaigns)
   const hint =
     role === 'defender' && inLobby
       ? 'Drag a sector onto Bengaluru.'
       : role === 'defender' && !inLobby
         ? 'Add sectors or quarantine a node.'
         : role === 'attacker' && !inLobby
-          ? 'Start a playbook or add a preset stage to the active campaign.'
+          ? tgnnCalibrating
+            ? 'Wait for the 15-tick idle window before injecting. Clear attacks if collection is paused.'
+            : 'Apply a preset on a selected node. Hit two connected nodes within ~12 seconds for a defender pattern match.'
           : null
 
   const canUsePresets =
-    showAttackTools && selectedNodeId && onApplyAttackPreset
-  const canStartPlaybook = showAttackTools && selectedNodeId && onStartCampaign
+    showAttackTools && selectedNodeId && onApplyAttackPreset && !tgnnCalibrating
 
-  const [sideTab, setSideTab] = useState(showAttackTools ? 'campaigns' : 'devices')
+  const [sideTab, setSideTab] = useState(showAttackTools ? 'inject' : 'devices')
+
+  useEffect(() => {
+    if (showAttackTools) setSideTab('inject')
+  }, [showAttackTools])
 
   const tabs = showAttackTools
     ? [
         { id: 'inject', label: 'Rogue' },
-        { id: 'campaigns', label: 'Campaigns' },
+        { id: 'presets', label: 'Presets' },
       ]
     : [{ id: 'devices', label: 'Sectors' }]
 
-  const nextStage = liveCampaign?.stages?.find((s) => s.status === 'pending')
-  const lastApplied = [...(liveCampaign?.stages ?? [])]
-    .reverse()
-    .find((s) => s.status === 'applied' || s.status === 'skipped')
-  const ticksUntilNext =
-    liveCampaign && nextStage
-      ? Math.max(
-          0,
-          (Number(lastApplied?.appliedTick ?? liveCampaign.startedTick) || 0) +
-            (Number(nextStage.delayTicks) || 0) -
-            (Number(simulationTick) || 0)
-        )
-      : null
-
   if (showDevices || showAttackTools) {
     return (
-      <div className="flex h-full min-h-0 flex-col gap-2">
-        <p className="flex items-center gap-1.5 text-xs leading-snug text-[var(--tn-muted)]">
+      <div className="flex h-full min-h-0 flex-col gap-3">
+        <p className="flex items-start gap-2 text-sm leading-snug text-[var(--tn-muted)]">
           {showAttackTools ? (
             <span className="tn-pip" style={{ background: 'var(--tn-crit)' }} />
           ) : null}
           {hint ??
             (showAttackTools
-              ? 'Select a node, then run a playbook or preset.'
+              ? tgnnCalibrating
+                ? 'Wait for the 15-tick idle window before injecting an anomaly.'
+                : 'Select a node, then apply a preset. Two connected nodes in ~12s can form a pattern.'
               : 'Drag a sector onto the map.')}
         </p>
 
         {tabs.length > 1 ? (
-          <div className="flex border border-[var(--tn-line)] p-0.5">
+          <div className="flex rounded-md bg-[var(--tn-elevated)] p-0.5">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setSideTab(tab.id)}
                 className={[
-                  'flex-1 rounded px-1.5 py-1 text-xs font-medium',
+                  'flex-1 rounded-md px-2 py-1.5 text-sm font-medium',
                   sideTab === tab.id
                     ? 'bg-[var(--tn-ink)] text-[var(--tn-ink-fg)]'
                     : 'text-[var(--tn-muted)] hover:text-[var(--tn-text)]',
@@ -238,94 +222,41 @@ export default function SidebarAssets({
           </div>
         ) : null}
 
-        {showAttackTools && sideTab === 'campaigns' ? (
+        {showAttackTools && sideTab === 'presets' ? (
           <div className="min-h-0 flex-1 space-y-2 overflow-y-auto">
-            {liveCampaign ? (
-              <div className="border border-[var(--tn-line)] px-2 py-1.5">
-                <div className="text-xs font-medium">
-                  {liveCampaign.title || playbookTitle(liveCampaign.playbookId)}
-                </div>
-                <p className="mt-0.5 font-mono text-[11px] text-[var(--tn-muted)]">
-                  {liveCampaign.status} · {stageProgressLabel(liveCampaign)}
-                  {ticksUntilNext != null && nextStage
-                    ? ` · next in ${ticksUntilNext}t`
-                    : ''}
-                </p>
-                <ol className="mt-1 space-y-0.5 text-[11px] text-[var(--tn-muted)]">
-                  {(liveCampaign.stages ?? []).map((stage) => (
-                    <li key={stage.id}>
-                      {stage.status === 'applied' ? '●' : stage.status === 'skipped' ? '○' : '·'}{' '}
-                      {attackPresetTitle(stage.presetId)}
-                      {stage.targetNodeId ? ` @ ${stage.targetNodeId}` : ''}
-                    </li>
-                  ))}
-                </ol>
-                {onAbortCampaigns ? (
-                  <button
-                    type="button"
-                    className="tn-btn mt-1.5 w-full justify-start text-xs"
-                    onClick={() => onAbortCampaigns()}
-                  >
-                    Abort campaign
-                  </button>
-                ) : null}
-              </div>
+            {!selectedNodeId ? (
+              <p className="text-sm text-[var(--tn-muted)]">Select a node to apply a metric override.</p>
             ) : (
-              <p className="text-xs text-[var(--tn-muted)]">
-                {selectedNodeId
-                  ? 'No active campaign. Start a playbook or a preset.'
-                  : 'Select a target on the map.'}
+              <p className="text-sm text-[var(--tn-muted)]">
+                Presets only change telemetry on the selected node. Patterns are recognized on the defender side after incidents exist.
               </p>
             )}
-
-            <div>
-              <div className="tn-label mb-1">Playbooks</div>
-              <div className="grid grid-cols-1 gap-1">
-                {CAMPAIGN_PLAYBOOKS.map((book) => (
-                  <button
-                    key={book.id}
-                    type="button"
-                    disabled={!canStartPlaybook}
-                    title={book.description}
-                    onClick={() => {
-                      if (!canStartPlaybook) return
-                      onStartCampaign(book.id)
-                    }}
-                    className="tn-btn w-full justify-start text-xs disabled:opacity-35"
-                  >
-                    {book.title}
-                  </button>
-                ))}
-              </div>
+            <div className="grid grid-cols-1 gap-1">
+              {ATTACK_PRESETS.map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  disabled={!canUsePresets}
+                  title={preset.description}
+                  onClick={() => {
+                    if (!canUsePresets) return
+                    onApplyAttackPreset(preset.id)
+                  }}
+                  className="tn-btn w-full justify-start text-sm disabled:opacity-35"
+                >
+                  {preset.title}
+                </button>
+              ))}
             </div>
-
-            <div>
-              <div className="tn-label mb-1">Add stage</div>
-              {!selectedNodeId ? (
-                <p className="text-xs text-[var(--tn-muted)]">Select a node to attach a preset.</p>
-              ) : (
-                <p className="mb-1 text-xs text-[var(--tn-muted)]">
-                  Presets attach to the active campaign, or start a manual one.
-                </p>
-              )}
-              <div className="grid grid-cols-1 gap-1">
-                {ATTACK_PRESETS.map((preset) => (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    disabled={!canUsePresets}
-                    title={preset.description}
-                    onClick={() => {
-                      if (!canUsePresets) return
-                      onApplyAttackPreset(preset.id)
-                    }}
-                    className="tn-btn w-full justify-start text-xs disabled:opacity-35"
-                  >
-                    {preset.title}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {onAbortCampaigns ? (
+              <button
+                type="button"
+                className="tn-btn mt-1.5 w-full justify-start text-sm"
+                onClick={() => onAbortCampaigns()}
+              >
+                Clear attack overrides
+              </button>
+            ) : null}
           </div>
         ) : showAttackTools && sideTab === 'inject' ? (
           <CompactDeviceList

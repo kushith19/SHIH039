@@ -63,17 +63,9 @@ export function impactLabel(severity) {
   return 'LOW'
 }
 
-export function fallbackStoryExplanation({ origin, next, tail } = {}) {
+export function fallbackStoryExplanation({ origin } = {}) {
   const originLabel = String(origin || 'the flagged endpoint').trim() || 'the flagged endpoint'
-  const hop = String(next ?? '').trim()
-  const end = String(tail ?? '').trim()
-  if (!hop) {
-    return `The observed traffic anomaly originated at ${originLabel}. Graph topology around this node is being watched for dependency-path exposure.`
-  }
-  if (!end || end === hop) {
-    return `The observed traffic anomaly originated at ${originLabel} and subsequently altered communication behavior with ${hop}. The topology indicates a potentially dangerous dependency path.`
-  }
-  return `The observed traffic anomaly originated at ${originLabel} and subsequently altered communication behavior with ${hop}. The topology indicates a potentially dangerous dependency path toward ${end}.`
+  return `Observed traffic anomaly at ${originLabel}. Investigate residual, trust, and telemetry evidence on this endpoint. This is an assessment, not a confirmed attack.`
 }
 
 export function storyPathFingerprint(nodeIds) {

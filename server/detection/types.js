@@ -1,4 +1,5 @@
 import { getTelemetryKeys } from '../../shared/telemetryKeys.js'
+import { emptyRiskMomentum } from '../../shared/riskMomentum.js'
 
 export { NODE_METRIC_KEYS } from '../nodeMetrics.js'
 
@@ -96,9 +97,11 @@ export function emptyDetectionResult() {
     tgnnCalibrating: false,
     tgnnWarmupCollected: 0,
     tgnnWarmupTicks: 15,
+    tgnnSkippedAttackTicks: 0,
     simulationTick: 0,
     cityContext: 'normal_day',
     simHour: 10,
     timestamp: null,
+    riskMomentum: emptyRiskMomentum(),
   }
 }

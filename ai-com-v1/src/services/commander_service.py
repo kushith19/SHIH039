@@ -5,8 +5,8 @@ import re
 import time
 from fastapi import HTTPException
 
-from src.models.detection import DetectionInput
-from src.models.commander import CommanderResponse, ExplainResponse
+from src.models.detection import DetectionInput, CampaignInput
+from src.models.commander import CommanderResponse, ExplainResponse, AskResponse
 from src.agent.graph import create_commander_graph
 from src.agent.llm_provider import get_llm_provider
 from src.agent.prompts import EXPLAIN_EVIDENCE_PROMPT, COMMANDER_SYSTEM_PROMPT
@@ -180,3 +180,47 @@ class CommanderService:
         except Exception as e:
             logger.exception(f"Unexpected error during Commander analysis: {e}")
             raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+
+    async def analyze_campaign(self, campaign: CampaignInput) -> CommanderResponse:
+        logger.info(f"Starting Commander analysis for campaign: {campaign.campaign_id}")
+        self._ensure_graph()
+        initial_state = {
+            "analysis_mode": "campaign",
+            "campaign_input": campaign,
+            "raw_llm_output": None,
+            "commander_response": None,
+            "error": None,
+        }
+        try:
+            final_state = await self._graph.ainvoke(initial_state)
+            if final_state.get("error"):
+                logger.error(f"Commander campaign workflow failed: {final_state['error']}")
+                raise HTTPException(status_code=500, detail=final_state["error"])
+            if not final_state.get("commander_response"):
+                raise HTTPException(status_code=500, detail="Failed to generate Commander Response")
+            logger.info(f"Successfully generated CommanderResponse for campaign: {campaign.campaign_id}")
+            return final_state["commander_response"]
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.exception(f"Unexpected error during Commander campaign analysis: {e}")
+            raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+
+    async def ask_snapshot(self, question: str, snapshot: dict) -> AskResponse:
+        q = (question or "").strip().lower()
+        snap = snapshot or {}
+        if not q or not snap:
+            return AskResponse(answer="Insufficient observed evidence.", insufficient=True)
+        briefing = snap.get("briefing") or {}
+        incidents = snap.get("incidents") or []
+        if "evidence" in q:
+            if not incidents:
+                return AskResponse(answer="Insufficient observed evidence.", insufficient=True)
+            return AskResponse(
+                answer="Level-1 evidence is on promoted incidents in the snapshot. Commander will not invent telemetry.",
+                insufficient=False,
+            )
+        summary = (briefing.get("assessment") or {}).get("summary")
+        if summary and ("summary" in q or "assess" in q):
+            return AskResponse(answer=str(summary), insufficient=False)
+        return AskResponse(answer="Insufficient observed evidence.", insufficient=True)

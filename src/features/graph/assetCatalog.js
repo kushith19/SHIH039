@@ -605,7 +605,7 @@ export const assetCatalog = [
   sector({
     type: 'food_supply',
     title: 'Food Supply Infrastructure',
-    domain: 'Finance',
+    domain: 'Urban Infrastructure',
     Icon: UtensilsCrossed,
     pps: 9_400,
     http: 50,

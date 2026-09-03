@@ -1,52 +1,144 @@
-function timeAgo(ms) {
-  const t = Number(ms)
-  if (!Number.isFinite(t) || t <= 0) return '—'
-  const delta = Math.max(0, Date.now() - t)
-  const sec = Math.round(delta / 1000)
-  if (sec < 60) return `${sec}s ago`
-  const min = Math.round(sec / 60)
-  if (min < 60) return `${min}m ago`
-  const hr = Math.round(min / 60)
-  return `${hr}h ago`
+import { useEffect, useState } from 'react'
+import { campaignHeadline, campaignTitle } from '@shared/campaigns.js'
+import { formatStoryClock } from '@shared/cityContext.js'
+import EmptyState from '../../ui/EmptyState'
+import StatusBadge from '../../ui/StatusBadge'
+
+function pct(n) {
+  if (n == null || !Number.isFinite(Number(n))) return '—'
+  return `${Math.round(Number(n) * 100)}%`
 }
 
-export default function PatternsPanel({ patterns = [] }) {
+function riskLabel(exposure) {
+  const x = Number(exposure)
+  if (!Number.isFinite(x) || x <= 0) return 'No finance exposure in set'
+  if (x >= 0.7) return 'High qualitative finance exposure'
+  if (x >= 0.35) return 'Moderate qualitative finance exposure'
+  return 'Low qualitative finance exposure'
+}
+
+export default function PatternsPanel({ campaigns = [], hideHeader = false }) {
+  const live = (campaigns ?? []).filter((c) => c.status && c.status !== 'expired')
+  const rows = live.length ? live : campaigns ?? []
+  const [selectedId, setSelectedId] = useState(rows[0]?.id ?? null)
+
+  useEffect(() => {
+    if (!rows.length) {
+      setSelectedId(null)
+      return
+    }
+    if (!selectedId || !rows.some((c) => c.id === selectedId)) {
+      setSelectedId(rows[0].id)
+    }
+  }, [rows, selectedId])
+
+  const selected = rows.find((c) => c.id === selectedId) ?? null
+
   return (
-    <section className="tn-surface overflow-hidden">
-      <div className="border-b border-[var(--tn-line)] px-4 py-2.5">
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <div className="tn-label">Attack patterns</div>
-            <p className="mt-0.5 text-xs text-[var(--tn-muted)]">
-              Stored when a campaign repeats a signature
-            </p>
-          </div>
-          <span className="font-mono text-lg tabular-nums">{patterns.length}</span>
-        </div>
-      </div>
-      <div>
-        {patterns.length === 0 ? (
-          <p className="px-4 py-6 text-sm text-[var(--tn-muted)]">
-            No patterns in the database yet. Complete two campaign stages with detections.
+    <section>
+      <div className="mb-5 flex items-end justify-between gap-3">
+        {hideHeader ? (
+          <p className="tn-meta">
+            Catalog correlation after incidents exist — not a confirmed attacker campaign
           </p>
-        ) : (
-          <ul>
-            {patterns.map((p) => (
-              <li key={p.fingerprint} className="border-b border-[var(--tn-line)] px-4 py-3 last:border-b-0">
-                <div className="text-sm font-medium">{p.title || p.fingerprint}</div>
-                <p className="mt-0.5 font-mono text-xs text-[var(--tn-muted)]">
-                  hits {p.hitCount ?? 1} · {timeAgo(p.lastSeenMs)}
-                </p>
-                {Array.isArray(p.signature?.stages) && p.signature.stages.length > 0 ? (
-                  <p className="mt-0.5 text-sm text-[var(--tn-muted)]">
-                    {p.signature.stages.join(' → ')}
-                  </p>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        )}
+        ) : null}
+        <span className="ml-auto font-mono text-lg tabular-nums">{rows.length}</span>
       </div>
+      {rows.length === 0 ? (
+        <div className="tn-surface">
+          <EmptyState
+            title="No pattern match yet"
+            body="Two connected endpoints flagged inside the catalog window can form one."
+          />
+        </div>
+      ) : (
+        <div className="grid min-h-[22rem] gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
+          <ul className="tn-surface overflow-hidden">
+            {rows.map((c) => {
+              const active = c.id === selectedId
+              return (
+                <li key={c.id}>
+                  <button
+                    type="button"
+                    className="w-full px-4 py-3 text-left"
+                    style={active ? { background: 'var(--tn-select-bg)' } : undefined}
+                    onClick={() => setSelectedId(c.id)}
+                  >
+                    <div className="text-sm font-medium">{campaignTitle(c)}</div>
+                    <p className="tn-meta mt-1 line-clamp-2">{campaignHeadline(c)}</p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <StatusBadge>{c.status}</StatusBadge>
+                      <span className="font-mono text-sm tabular-nums text-[var(--tn-muted)]">
+                        {pct(c.campaignMatchScore)}
+                      </span>
+                    </div>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+          <div className="tn-surface min-w-0 p-5">
+            {selected ? <PatternDetail c={selected} /> : null}
+          </div>
+        </div>
+      )}
     </section>
+  )
+}
+
+function PatternDetail({ c }) {
+  const assessment = c.commanderAssessment
+  const rag = assessment?.rag === true
+  return (
+    <div>
+      <h2 className="text-lg font-medium">{campaignTitle(c)}</h2>
+      <p className="mt-2 text-sm leading-relaxed">{campaignHeadline(c)}</p>
+      <dl className="mt-5 grid grid-cols-2 gap-4 text-sm">
+        <div>
+          <dt className="tn-label">Confidence</dt>
+          <dd className="mt-1 font-mono tabular-nums">{pct(c.campaignMatchScore)}</dd>
+        </div>
+        <div>
+          <dt className="tn-label">Endpoints</dt>
+          <dd className="mt-1 font-mono tabular-nums">{(c.endpointIds ?? []).length}</dd>
+        </div>
+        <div>
+          <dt className="tn-label">Incidents</dt>
+          <dd className="mt-1 font-mono tabular-nums">{(c.incidentIds ?? []).length}</dd>
+        </div>
+        <div>
+          <dt className="tn-label">Window</dt>
+          <dd className="mt-1 font-mono text-sm">
+            {formatStoryClock(c.startedTick)} → {formatStoryClock(c.lastSeenTick ?? c.startedTick)}
+          </dd>
+        </div>
+      </dl>
+      <p className="tn-meta mt-4">{riskLabel(c.financialExposure)}</p>
+      {(c.sectors ?? []).length > 0 ? (
+        <p className="tn-meta mt-2">Sectors: {c.sectors.join(', ')}</p>
+      ) : null}
+      {Array.isArray(c.signals) && c.signals.length > 0 ? (
+        <ul className="mt-4 space-y-1.5 text-sm text-[var(--tn-muted)]">
+          {c.signals.map((s) => (
+            <li key={s.id}>
+              {s.ok ? '●' : '○'} {s.label}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {assessment?.summary ? (
+        <div className="mt-6">
+          <h3 className="tn-section-title">Commander note</h3>
+          <p className="tn-meta mt-2">
+            {assessment.status === 'ready'
+              ? rag
+                ? 'Commander · RAG'
+                : 'Commander · no RAG claimed'
+              : 'Deterministic template — Commander offline'}
+          </p>
+          <p className="mt-2 text-sm leading-relaxed">{assessment.summary}</p>
+        </div>
+      ) : null}
+    </div>
   )
 }

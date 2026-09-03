@@ -1,5 +1,5 @@
 {
-  "name": "smarthackathon",
+  "name": "trustnetai",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -12,7 +12,7 @@
     "dev:stack": "node scripts/start-stack.mjs",
     "train:tgnn": "node scripts/train-tgnn.mjs",
     "build": "vite build",
-    "lint": "eslint .",
+    "test": "node --test server/campaign/story.test.js server/commander/client.test.js server/detection/campaigns/correlator.test.js server/detection/campaigns/sidebar.absence.test.js server/detection/tgnn.calibrate.test.js server/detection/incident_evidence.test.js server/loadCityModel.test.js server/telemetry/ingestionClient.test.js shared/tgnn.checkpoint.test.js shared/tgnnKeys.test.js shared/cityModel/liveTelemetry.test.js shared/riskMomentum.test.js shared/incidentTimeline.test.js shared/commanderRisk.test.js shared/storyExperience.test.js src/features/dashboard/metrics.test.js src/features/dashboard/DashboardNav.test.js",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -33,12 +33,6 @@ const HACK_TAMPERED = {
   bg: 'color-mix(in srgb, #ef4444 22%, transparent)',
 }
 
-const HACK_ATTACK_ORIGIN = {
-  base: '#b45309',
-  border: '#92400e',
-  bg: 'color-mix(in srgb, #d97706 18%, transparent)',
-}
-
 const HACK_DRIFT = {
   base: '#d97706',
   border: '#b45309',
@@ -108,13 +102,8 @@ function InfrastructureNode({ id, data, selected }) {
     trustAnomaly: flaggedByScan,
   }
 
-  const isPrimarySpreadTarget =
-    attackOn && hack?.primarySpreadNodeId != null && hack.primarySpreadNodeId === id
   const isAnomalySeed = attackOn && anomaly.isAnomaly
-  const isCriticalRed = isPrimarySpreadTarget || isAnomalySeed
-  const atRiskNodeIds = hack?.atRiskNodeIds ?? []
-  const isAtRisk =
-    attackOn && !isCriticalRed && atRiskNodeIds.includes(id)
+  const isCriticalRed = isAnomalySeed
 
   const label = data.label ?? asset?.title ?? 'Untitled system'
   const Icon = asset?.Icon
@@ -140,17 +129,13 @@ function InfrastructureNode({ id, data, selected }) {
     ? NORMAL_NODE_STYLE
     : isCriticalRed
       ? HACK_TAMPERED
-      : isAtRisk
-        ? HACK_ATTACK_ORIGIN
-        : !drift
-          ? HACK_MUTED
-          : HACK_DRIFT
+      : !drift
+        ? HACK_MUTED
+        : HACK_DRIFT
 
   const ppsLabel = ppsFormatter.format(displayPps)
   const trustLabel = trustFormatter.format(trustScore)
   const showAnomalyDetectedBadge = attackOn && isAnomalyDetected(anomaly)
-  const showSpreadBadge = isPrimarySpreadTarget
-  const showAtRiskBadge = isAtRisk
   const runtime = runtimeStateOf(data)
   const isInjected = runtime.provenance === 'injected'
   const isQuarantined = runtime.quarantined
@@ -158,41 +143,28 @@ function InfrastructureNode({ id, data, selected }) {
   return (
     <div
       className={[
-        'relative w-[148px] rounded border transition',
+        'relative w-[148px] rounded-lg transition',
         selected ? 'ring-2 ring-[var(--tn-select)]' : '',
       ].join(' ')}
       style={{
         background: bg,
-        borderColor: border,
+        boxShadow: `inset 3px 0 0 ${border}`,
       }}
     >
-      {showAnomalyDetectedBadge ? (
-        <div className="pointer-events-none absolute -top-2 -right-2 z-10 max-w-[140px] border border-[var(--tn-warn)] bg-[var(--tn-surface)] px-2 py-1 text-center text-xs font-medium leading-tight">
-          Anomaly detected
-        </div>
-      ) : null}
-      {showSpreadBadge ? (
-        <div className="pointer-events-none absolute -top-2 left-2 z-10 max-w-[140px] border border-[var(--tn-crit)] bg-[var(--tn-surface)] px-2 py-1 text-center text-xs font-medium leading-tight text-[var(--tn-crit)]">
-          Highest spread risk
-        </div>
-      ) : null}
-      {showAtRiskBadge ? (
-        <div className="pointer-events-none absolute -top-2 left-2 z-10 max-w-[120px] border border-[var(--tn-warn)] bg-[var(--tn-surface)] px-2 py-1 text-center text-xs font-medium leading-tight">
-          May be attacked
-        </div>
-      ) : null}
-      {isInjected ? (
-        <div className="pointer-events-none absolute -bottom-2 left-1/2 z-10 -translate-x-1/2 border border-[var(--tn-crit)] bg-[var(--tn-surface)] px-2 py-0.5 text-xs font-medium text-[var(--tn-crit)]">
-          Unknown node
+      {showAnomalyDetectedBadge || isInjected ? (
+        <div className="pointer-events-none absolute -top-2 left-1 right-1 z-10 text-center text-[11px] font-medium leading-tight">
+          <span className="inline-block rounded bg-[var(--tn-surface)] px-1.5 py-0.5 text-[var(--tn-text)] shadow-[var(--tn-shadow-sm)]">
+            {showAnomalyDetectedBadge ? 'Anomaly' : 'Unknown node'}
+          </span>
         </div>
       ) : null}
       {isQuarantined ? (
-        <div className="pointer-events-none absolute inset-0 z-[5] bg-black/25" />
+        <div className="pointer-events-none absolute inset-0 z-[5] rounded-lg bg-black/25" />
       ) : null}
 
-      <div className="p-1.5 flex items-start gap-1.5">
+      <div className="flex items-start gap-2 p-2">
         <div
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded border border-[var(--tn-line)] bg-[var(--tn-surface)]"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[var(--tn-surface)]"
           style={{ color: base }}
           aria-hidden="true"
         >
@@ -200,7 +172,7 @@ function InfrastructureNode({ id, data, selected }) {
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="line-clamp-2 text-xs font-medium leading-tight">
+          <div className="line-clamp-2 text-[13px] font-medium leading-tight">
             {label}
           </div>
           {sector ? (
@@ -208,31 +180,13 @@ function InfrastructureNode({ id, data, selected }) {
               {sector}
             </div>
           ) : null}
-          <div className="mt-0.5 flex items-center justify-between gap-1">
-            <div className="text-[11px] text-[var(--tn-muted)]">pps</div>
-            <div
-              className="text-xs font-semibold px-1 py-px rounded border tabular-nums"
-              style={{
-                background: `color-mix(in srgb, ${base} 12%, transparent)`,
-                borderColor: `color-mix(in srgb, ${base} 35%, transparent)`,
-                color: base,
-              }}
-            >
-              {ppsLabel}
-            </div>
+          <div className="mt-1 flex items-center justify-between gap-1 text-[11px] tabular-nums">
+            <span className="text-[var(--tn-muted)]">pps</span>
+            <span style={{ color: base }}>{ppsLabel}</span>
           </div>
-          <div className="mt-px flex items-center justify-between gap-1">
-            <div className="text-[11px] text-[var(--tn-muted)]">trust</div>
-            <div
-              className="text-xs font-semibold px-1 py-px rounded border tabular-nums"
-              style={{
-                background: `color-mix(in srgb, ${base} 12%, transparent)`,
-                borderColor: `color-mix(in srgb, ${base} 35%, transparent)`,
-                color: base,
-              }}
-            >
-              {trustLabel}%
-            </div>
+          <div className="flex items-center justify-between gap-1 text-[11px] tabular-nums">
+            <span className="text-[var(--tn-muted)]">trust</span>
+            <span style={{ color: base }}>{trustLabel}%</span>
           </div>
           {metricDriftHint ? (
             <div className="mt-0.5 truncate text-[11px] font-medium text-[var(--tn-warn)]">

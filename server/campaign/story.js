@@ -6,11 +6,15 @@ import {
   impactLabel,
   isSensitiveExposure,
   originCaptionFromEvidence,
-  originCaptionFromPreset,
   storyPathFingerprint,
 } from '../../shared/attackStory.js'
-import { activeCampaign, appliedPresetSequence, playbookTitle } from '../../shared/campaigns.js'
+import { activeCampaign, campaignTitle } from '../../shared/campaigns.js'
 import { detectionTypeLabel, SEVERITY_LEVELS } from '../../shared/incidents.js'
+import {
+  formatMomentumLine,
+  formatScoreOver100,
+  trajectoryLabel,
+} from '../../shared/riskMomentum.js'
 
 function nodeById(room, id) {
   return (room?.nodes ?? []).find((n) => n.id === id) ?? null
@@ -42,18 +46,20 @@ function chooseCampaign(room, detection) {
   }
   const active = activeCampaign(campaigns)
   if (active) return active
-  return campaigns.find((c) => c.status === 'contained' || c.status === 'completed') ?? null
+  return (
+    campaigns.find((c) => c.status === 'contained' || c.status === 'completed' || c.status === 'expired') ??
+    null
+  )
 }
 
 function pickOriginId(room, detection, campaign) {
   const anomalies = Array.isArray(detection?.anomalyNodeIds) ? detection.anomalyNodeIds : []
   const incidents = Array.isArray(detection?.incidents) ? detection.incidents : []
-  if (campaign?.seedNodeId && anomalies.includes(campaign.seedNodeId)) return campaign.seedNodeId
+  const origin = campaign?.originEndpointId || campaign?.seedNodeId
+  if (origin && anomalies.includes(origin)) return origin
   if (anomalies[0]) return anomalies[0]
-  if (campaign?.seedNodeId && incidents.some((i) => i.endpointId === campaign.seedNodeId)) {
-    return campaign.seedNodeId
-  }
-  return incidents[0]?.endpointId ?? campaign?.seedNodeId ?? null
+  if (origin && incidents.some((i) => i.endpointId === origin)) return origin
+  return incidents[0]?.endpointId ?? origin ?? null
 }
 
 function incidentFor(detection, endpointId) {
@@ -73,53 +79,30 @@ function maxSeverity(incidents) {
   return best
 }
 
-function hopNodes(room, detection, originId, campaign) {
-  const ids = []
-  const seen = new Set()
-  function push(id) {
-    if (!id || seen.has(id)) return
-    seen.add(id)
-    ids.push(id)
-  }
-  push(originId)
-  push(detection?.primarySpreadNodeId)
-  for (const stage of campaign?.stages ?? []) {
-    if (stage.status === 'applied' && stage.targetNodeId && stage.targetNodeId !== originId) {
-      push(stage.targetNodeId)
-    }
-  }
-  const sensitive = []
-  for (const id of detection?.atRiskNodeIds ?? []) {
-    const meta = nodeMeta(room, id)
-    if (isSensitiveExposure(meta.sector, meta.type)) sensitive.push(id)
-  }
-  for (const id of sensitive) {
-    if (ids.length >= 4) break
-    push(id)
-  }
-  for (const id of detection?.atRiskNodeIds ?? []) {
-    if (ids.length >= 4) break
-    push(id)
-  }
-  return ids.slice(0, 4)
+function hopNodes(_room, _detection, originId, _campaign) {
+  return originId ? [originId] : []
 }
 
 function storyStatus(campaign) {
+  if (campaign?.status === 'expired' || campaign?.status === 'completed' || campaign?.status === 'aborted') {
+    return 'completed'
+  }
   if (campaign?.status === 'contained') return 'contained'
-  if (campaign?.status === 'completed') return 'completed'
-  if (campaign?.status === 'aborted') return 'completed'
   return 'live'
 }
 
-function momentumFromHops(prevCount, hopCount, first) {
-  if (first) {
-    if (hopCount >= 4) return '↑↑'
-    if (hopCount >= 3) return '↑'
-    return '→'
+function riskChapterFromDetection(detection) {
+  const rm = detection?.riskMomentum
+  const windowTicks = Number(rm?.windowTicks) || 10
+  return {
+    score: rm?.score ?? null,
+    delta: rm?.delta ?? null,
+    trajectory: rm?.trajectory ?? 'stable',
+    windowTicks,
+    momentum: formatMomentumLine(rm?.delta, windowTicks),
+    scoreLabel: formatScoreOver100(rm?.score),
+    trajectoryLabel: trajectoryLabel(rm?.trajectory),
   }
-  if (hopCount >= prevCount + 2) return '↑↑'
-  if (hopCount > prevCount) return '↑'
-  return '→'
 }
 
 function ensureStory(room, campaign) {
@@ -129,7 +112,7 @@ function ensureStory(room, campaign) {
     story = emptyAttackStory()
   }
   if (campaign?.id) story.campaignId = campaign.id
-  story.title = campaign?.title || playbookTitle(campaign?.playbookId) || 'Live detection'
+  story.title = campaign ? campaignTitle(campaign) : story.title || 'Live detection'
   if (!campaign) story.title = story.title || 'Live detection'
   if (!story.chapters) story.chapters = []
   room.attackStory = story
@@ -146,7 +129,7 @@ function clockAt(tick) {
 }
 
 /**
- * Append origin / detect / lateral; mutate risk + commander. Persists on the room.
+ * Append origin / detect; mutate risk + commander. Persists on the room.
  */
 export function updateAttackStory(room, detection) {
   if (!room) return emptyAttackStory()
@@ -175,15 +158,13 @@ export function updateAttackStory(room, detection) {
 
   if (!chapterOf(story, 'origin')) {
     const inc = incidentFor(detection, origin)
-    const preset = appliedPresetSequence(campaign)[0]
-    const caption =
-      originCaptionFromPreset(preset) || originCaptionFromEvidence(inc?.evidence) || 'abnormal traffic'
+    const caption = originCaptionFromEvidence(inc?.evidence) || 'abnormal traffic'
     appendChapter(story, {
       id: 'origin',
       kind: 'origin',
       tick,
       clock: clockAt(tick),
-      title: 'Attack begins',
+      title: 'Observed origin',
       nodeId: origin,
       nodeLabel: nodeLabel(room, origin),
       path: [{ id: origin, label: nodeLabel(room, origin) }],
@@ -199,7 +180,7 @@ export function updateAttackStory(room, detection) {
       kind: 'detect',
       tick,
       clock: clockAt(tick),
-      title: 'Graph detects it',
+      title: 'Residual detector',
       nodeId: origin,
       detectionType: originInc.detectionType,
       detectionLabel: detectionTypeLabel(originInc.detectionType),
@@ -209,49 +190,23 @@ export function updateAttackStory(room, detection) {
   }
 
   const pathIds = hopNodes(room, detection, origin, campaign)
-  const hop = detection?.primarySpreadNodeId
-  const stageHop = (campaign?.stages ?? []).find(
-    (s) => s.status === 'applied' && s.targetNodeId && s.targetNodeId !== origin
-  )
-  const shouldLateral = Boolean((hop && hop !== origin) || stageHop) && pathIds.length >= 2
-  if (shouldLateral && !chapterOf(story, 'lateral')) {
-    appendChapter(story, {
-      id: 'lateral',
-      kind: 'lateral',
-      tick,
-      clock: clockAt(tick),
-      title: 'Attack moves',
-      path: pathIds.map((id) => ({ id, label: nodeLabel(room, id) })),
-    })
-  }
-
-  const exposedIds = [
-    ...new Set(
-      [
-        origin,
-        ...(detection?.compromisedNodeIds ?? []),
-        ...(detection?.atRiskNodeIds ?? []),
-        detection?.primarySpreadNodeId,
-        ...pathIds,
-      ].filter(Boolean)
-    ),
-  ]
-  const hopCount = exposedIds.length
+  const exposedIds = [...new Set([origin].filter(Boolean))]
+  const hopCount = 1
   const financialIds = exposedIds.filter((id) => {
     const meta = nodeMeta(room, id)
     return isSensitiveExposure(meta.sector, meta.type)
   })
   const severity = maxSeverity(detection?.incidents)
   const firstRisk = !chapterOf(story, 'risk')
-  const momentum = momentumFromHops(story.lastHopCount || 0, hopCount, firstRisk)
   story.lastHopCount = hopCount
+  const fromRm = riskChapterFromDetection(detection)
   const riskPayload = {
     id: 'risk',
     kind: 'risk',
     tick,
     clock: firstRisk ? clockAt(tick) : chapterOf(story, 'risk')?.clock ?? clockAt(tick),
-    title: 'Risk grows',
-    momentum,
+    title: 'Severity assessment',
+    ...fromRm,
     impact: impactLabel(severity),
     financialExposed: financialIds.length,
     hopCount,
@@ -262,17 +217,11 @@ export function updateAttackStory(room, detection) {
 
   const detectCh = chapterOf(story, 'detect')
   if (detectCh) {
-    const path = (chapterOf(story, 'lateral')?.path ?? chapterOf(story, 'origin')?.path ?? []).map(
-      (p) => p.label
-    )
+    const path = (chapterOf(story, 'origin')?.path ?? []).map((p) => p.label)
     const fp = storyPathFingerprint(pathIds.length ? pathIds : [origin])
     const originLabel = nodeLabel(room, origin)
-    const nextLabel = path[1] || ''
-    const tailLabel = path.length > 2 ? path[path.length - 1] : nextLabel
     const text = fallbackStoryExplanation({
       origin: originLabel,
-      next: nextLabel,
-      tail: tailLabel,
     })
     const existing = chapterOf(story, 'commander')
     const pathChanged = story.pathFingerprint && story.pathFingerprint !== fp
@@ -283,7 +232,7 @@ export function updateAttackStory(room, detection) {
         kind: 'commander',
         tick,
         clock: clockAt(tick),
-        title: 'AI Commander',
+        title: 'Commander assessment',
         text,
         status: 'pending',
         pathFingerprint: fp,
@@ -304,54 +253,35 @@ export function storyExplainPayload(room) {
   const story = room?.attackStory
   const detect = chapterOf(story, 'detect')
   const origin = chapterOf(story, 'origin')
-  const lateral = chapterOf(story, 'lateral')
   const risk = chapterOf(story, 'risk')
   const commander = chapterOf(story, 'commander')
   if (!story || !detect || !origin || !commander) return null
-  const path = (lateral?.path ?? origin.path ?? []).map((p) => p.label)
   const originLabel = origin.nodeLabel
-  const nextLabel = path[1] || ''
-  const tailLabel = path.length > 2 ? path[path.length - 1] : nextLabel
-  const pathIds = (lateral?.path ?? origin.path ?? []).map((p) => p.id)
-  const deps = []
-  for (let i = 0; i < pathIds.length - 1; i += 1) {
-    deps.push({
-      id: `story-dep-${pathIds[i]}-${pathIds[i + 1]}`,
-      source: pathIds[i],
-      target: pathIds[i + 1],
-      role: 'spread',
-    })
-  }
+  const originInc = (room?.detection?.incidents ?? []).find((i) => i.endpointId === origin.nodeId)
   return {
     id: `story-${story.campaignId || 'ungrouped'}`,
     endpointId: origin.nodeId,
-    endpointLabel: originLabel,
+    endpointLabel: origin.nodeId,
     severity: risk?.impact === 'HIGH' ? 'high' : risk?.impact === 'MEDIUM' ? 'medium' : 'low',
     confidence: 0.8,
     anomalyScore: detect.tgnn,
     trustScore: detect.trust,
-    detectionType: detect.detectionType || 'graph_propagation',
-    evidence: [
-      {
-        code: 'origin_spread',
-        kind: 'graph_propagation',
-        detail: `path ${path.join(' → ') || originLabel}`,
-      },
-      {
-        code: 'tgnn_embed',
-        kind: 'structural_anomaly',
-        score: detect.tgnn,
-        detail: `TGNN ${detect.tgnn}`,
-      },
-    ],
-    affectedDependencies: deps,
+    detectionType: detect.detectionType || 'behavioural_anomaly',
+    evidence: Array.isArray(originInc?.evidence) && originInc.evidence.length
+      ? originInc.evidence
+      : [
+          {
+            code: 'origin_residual',
+            kind: 'behavioural_anomaly',
+            detail: origin.nodeId,
+          },
+        ],
+    affectedDependencies: [],
     campaignId: story.campaignId,
     explanation: commander.text,
     explanationStatus: commander.status,
     _story: {
       origin: originLabel,
-      next: nextLabel,
-      tail: tailLabel,
       pathFingerprint: story.pathFingerprint,
     },
   }

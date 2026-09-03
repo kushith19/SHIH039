@@ -1,6 +1,9 @@
 import { detectionTypeLabel, formatEvidenceItem } from '../../shared/incidents.js'
 import { chapterOf, fallbackStoryExplanation } from '../../shared/attackStory.js'
 import { storyExplainPayload } from '../campaign/story.js'
+import { isGameMetricKey } from '../../shared/telemetryKeys.js'
+import { hopDistance } from '../detection/campaigns/correlator.js'
+import { fallbackBriefing } from '../../shared/commanderBriefing.js'
 
 const AI_COMMANDER_URL = process.env.AI_COMMANDER_URL ?? 'http://localhost:8000'
 const OLLAMA_URL = process.env.OLLAMA_URL ?? 'http://localhost:11434'
@@ -33,7 +36,7 @@ const TYPE_MAP = {
 
 /** @type {Map<string, Map<string, { fingerprint: string, status: string, summary: string, lastAttempt: number }>>} */
 const caches = new Map()
-/** @type {Array<{ room: object, incident: object, fingerprint: string, onAfter?: Function }>} */
+/** @type {Array<{ kind?: string, room: object, incident?: object, campaign?: object, fingerprint: string, onAfter?: Function }>} */
 const queue = []
 let inFlight = 0
 
@@ -88,6 +91,7 @@ function pickFallbackLines(evidence) {
   for (const ev of ranked) {
     if (metricCount >= FALLBACK_TOP_N) break
     if (isAlwaysFallbackCode(ev?.code)) continue
+    if (ev?.code === 'metric_deviation' && ev?.metric && !isGameMetricKey(ev.metric)) continue
     if (add(ev)) metricCount += 1
   }
   return lines
@@ -111,7 +115,7 @@ function narrativeFallback(incident) {
   return fallbackExplanation(incident)
 }
 
-export function toDetectionInput(incident) {
+export function toDetectionInput(incident, room = null) {
   const ts = incident?.timestamp
   const timestamp =
     typeof ts === 'string' && ts
@@ -126,6 +130,20 @@ export function toDetectionInput(incident) {
       [incident?.endpointId, incident?.cityEndpointId, ...neighborIds].filter(Boolean).map(String)
     ),
   ]
+  const endpointId = incident?.endpointId ?? ''
+  const upstream = []
+  const downstream = []
+  for (const e of room?.edges ?? []) {
+    if (e?.target === endpointId && e?.source) upstream.push(String(e.source))
+    if (e?.source === endpointId && e?.target) downstream.push(String(e.target))
+  }
+  const path = Array.isArray(incident?.propagationPath) ? incident.propagationPath : []
+  const origin = room?.campaigns?.find((c) => c.id === incident?.campaignId)?.originEndpointId
+  let hops = path.length > 1 ? path.length - 1 : 0
+  if (!hops && origin && endpointId && room?.edges) {
+    const d = hopDistance(room.edges, origin, endpointId)
+    hops = Number.isFinite(d) && d !== Infinity ? d : 0
+  }
   return {
     incidentId: String(incident?.id ?? ''),
     timestamp,
@@ -137,13 +155,123 @@ export function toDetectionInput(incident) {
     evidence: Array.isArray(incident?.evidence) ? incident.evidence : [],
     metadata: {
       source: 'trustnet_detection',
-      endpointLabel: incident?.endpointLabel ?? incident?.endpointId ?? '',
+      endpointId,
       cityContext: incident?.cityContext ?? '',
       criticality: incident?.criticality ?? '',
       sector: incident?.sector ?? '',
       cityEndpointId: incident?.cityEndpointId ?? '',
       affectedDependencies: deps,
+      trustScore: incident?.trustScore ?? null,
+      anomalyScore: incident?.anomalyScore ?? null,
+      hopCount: hops,
+      exposedCount: (room?.detection?.atRiskNodeIds ?? []).length,
+      propagationPath: path,
+      upstream,
+      downstream,
+      mitreCandidates: incident?.mitreCandidates ?? [],
     },
+  }
+}
+
+export function fallbackCampaignAssessment(campaign) {
+  const n = (campaign?.endpointIds ?? []).length
+  const score = Math.round((Number(campaign?.campaignMatchScore) || 0) * 100)
+  const title = campaign?.title || campaign?.campaignType || 'recognized pattern'
+  return `Pattern match: ${title}. ${n} endpoint${n === 1 ? '' : 's'} correlated with catalog score ${score}%. This is a deterministic graph and time match, not a confirmed attacker campaign.`
+}
+
+export function toCampaignInput(room, campaign) {
+  const live = (room?.detection?.incidents ?? []).filter((i) => i.campaignId === campaign.id)
+  let incidents = live.map((inc) => toDetectionInput(inc, room))
+  if (incidents.length === 0) {
+    const ids = new Set(campaign?.endpointIds ?? [])
+    const fromLedger = (room?.incidentLedger ?? []).filter((r) => ids.has(r.endpointId))
+    const latest = new Map()
+    for (const row of fromLedger) latest.set(row.endpointId, row)
+    incidents = [...latest.values()].map((row) =>
+      toDetectionInput(
+        {
+          id: row.incidentId,
+          timestamp: row.timestamp,
+          endpointId: row.endpointId,
+          endpointLabel: row.endpointLabel,
+          detectionType: row.detectionType,
+          severity: row.severity || 'low',
+          confidence: row.confidence,
+          anomalyScore: row.anomalyScore,
+          trustScore: row.trustScore,
+          evidence: row.evidence,
+          sector: row.sector,
+          criticality: row.criticality,
+          cityEndpointId: row.cityEndpointId,
+          cityContext: row.cityContext,
+          affectedDependencies: row.affectedDependencies,
+        },
+        room
+      )
+    )
+  }
+  const path = campaign?.propagationPath ?? []
+  const trusts = live.map((i) => Number(i.trustScore)).filter((n) => Number.isFinite(n))
+  return {
+    campaignId: String(campaign?.id ?? ''),
+    campaignType: String(campaign?.campaignType ?? ''),
+    confidence: Math.max(0, Math.min(1, Number(campaign?.campaignMatchScore) || 0)),
+    incidents,
+    correlations: (campaign?.signals ?? []).filter((s) => s.ok).map((s) => s.id),
+    metadata: {
+      source: 'trustnet_campaign_correlator',
+      endpointIds: campaign?.endpointIds ?? [],
+      propagationPath: path,
+      hopCount: Math.max(0, path.length - 1),
+      exposedCount: (room?.detection?.atRiskNodeIds ?? []).length,
+      financialExposure: campaign?.financialExposure ?? 0,
+      scores: campaign?.scores ?? {},
+      mitreCandidates: campaign?.mitreCandidates ?? [],
+      trustScore: trusts.length ? Math.min(...trusts) : null,
+      criticality: live[0]?.criticality ?? '',
+    },
+  }
+}
+
+function applyCampaignAssessment(room, campaignId, { status, summary, rag = false, briefing = null }) {
+  const campaign = (room?.campaigns ?? []).find((c) => c.id === campaignId)
+  if (!campaign) return
+  campaign.commanderAssessment = {
+    summary,
+    status,
+    rag: rag === true,
+    source: status === 'ready' ? 'llm-analyze' : 'template',
+  }
+  if (briefing) {
+    room.commanderBriefing = briefing
+    campaign.commanderAssessment.knowledgeStatus = briefing.knowledgeStatus ?? 'unavailable'
+  }
+}
+
+async function analyzeViaCommander(room, campaign) {
+  if (!(await commanderAvailable())) throw new Error('commander circuit open')
+  const campaignInput = toCampaignInput(room, campaign)
+  if (!campaignInput.incidents.length) throw new Error('empty campaign incidents')
+  try {
+    const data = await fetchJson(`${AI_COMMANDER_URL}/commander/analyze`, {
+      timeoutMs: COMMANDER_TIMEOUT_MS,
+      body: {
+        analysisMode: 'campaign',
+        campaignInput,
+      },
+    })
+    const summary = String(data?.assessment?.summary ?? data?.summary ?? '').trim()
+    if (!summary) throw new Error('empty commander campaign summary')
+    markCommanderHealthy()
+    const rag =
+      data?.knowledgeStatus === 'success' ||
+      (Array.isArray(data?.citations) && data.citations.length > 0) ||
+      (Array.isArray(data?.evidence) && data.evidence.some((e) => e?.source || e?.document))
+    return { summary, rag, briefing: data }
+  } catch (err) {
+    openCircuit(err)
+    throw err
   }
 }
 
@@ -218,6 +346,9 @@ export function attachExplanations(room, incidents) {
       inc.explanation = fallback
       inc.explanationStatus = explanationStatusOf(row?.status)
     }
+    inc.rag = false
+    inc.explanationSource =
+      inc.explanationStatus === 'ready' ? 'llm-explain' : 'template'
   }
 }
 
@@ -228,6 +359,8 @@ function mergeExplanation(room, incidentId, _fp, { status, summary }) {
     if (inc.id !== incidentId) continue
     inc.explanation = summary ?? fallbackExplanation(inc)
     inc.explanationStatus = status
+    inc.rag = false
+    inc.explanationSource = status === 'ready' ? 'llm-explain' : 'template'
   }
 }
 
@@ -334,14 +467,14 @@ async function commanderAvailable() {
   }
 }
 
-async function explainViaCommander(incident) {
+async function explainViaCommander(incident, room = null) {
   if (!(await commanderAvailable())) throw new Error('commander circuit open')
   try {
     const data = await fetchJson(`${AI_COMMANDER_URL}/commander/explain`, {
       timeoutMs: COMMANDER_TIMEOUT_MS,
       body: {
         incidentId: incident.id,
-        detection: toDetectionInput(incident),
+        detection: toDetectionInput(incident, room),
       },
     })
     const summary = String(data?.summary ?? '').trim()
@@ -393,7 +526,7 @@ async function tryOllamaExplanation(incident) {
   }
 }
 
-async function explainIncident(incident) {
+async function explainIncident(incident, room = null) {
   if (circuitIsOpen()) {
     return (await tryOllamaExplanation(incident)) ?? {
       summary: narrativeFallback(incident),
@@ -401,7 +534,7 @@ async function explainIncident(incident) {
     }
   }
   try {
-    const summary = await explainViaCommander(incident)
+    const summary = await explainViaCommander(incident, room)
     return { summary, status: 'ready' }
   } catch {
     return (
@@ -414,6 +547,18 @@ async function explainIncident(incident) {
 }
 
 function settleDroppedJob(job) {
+  if (job.kind === 'campaign') {
+    applyCampaignAssessment(job.room, job.campaign.id, {
+      status: 'fallback',
+      summary: fallbackCampaignAssessment(job.campaign),
+      briefing: fallbackBriefing({
+        campaign: job.campaign,
+        incidents: job.room?.detection?.incidents ?? [],
+        detection: job.room?.detection,
+      }),
+    })
+    return
+  }
   const cache = cacheFor(job.room.id)
   const row = cache.get(job.incident.id)
   if (!row || row.status !== 'pending') return
@@ -430,6 +575,57 @@ function pump() {
   if (inFlight >= MAX_IN_FLIGHT || queue.length === 0) return
   const job = queue.shift()
   inFlight += 1
+  if (job.kind === 'campaign') {
+    const cache = cacheFor(job.room.id)
+    const row = cache.get(job.campaign.id)
+    if (!row || row.status !== 'pending') {
+      inFlight -= 1
+      pump()
+      return
+    }
+    analyzeViaCommander(job.room, job.campaign)
+      .then(({ summary, rag, briefing }) => {
+        cache.set(job.campaign.id, {
+          fingerprint: job.fingerprint,
+          status: 'ready',
+          summary,
+          lastAttempt: Date.now(),
+        })
+        applyCampaignAssessment(job.room, job.campaign.id, {
+          status: 'ready',
+          summary,
+          rag,
+          briefing,
+        })
+        job.onAfter?.(job.room)
+      })
+      .catch((err) => {
+        console.warn('[commander] campaign analyze failed:', err?.message ?? err)
+        const summary = fallbackCampaignAssessment(job.campaign)
+        const briefing = fallbackBriefing({
+          campaign: job.campaign,
+          incidents: job.room?.detection?.incidents ?? [],
+          detection: job.room?.detection,
+        })
+        cache.set(job.campaign.id, {
+          fingerprint: job.fingerprint,
+          status: 'fallback',
+          summary,
+          lastAttempt: Date.now(),
+        })
+        applyCampaignAssessment(job.room, job.campaign.id, {
+          status: 'fallback',
+          summary,
+          briefing,
+        })
+        job.onAfter?.(job.room)
+      })
+      .finally(() => {
+        inFlight -= 1
+        pump()
+      })
+    return
+  }
   const cache = cacheFor(job.room.id)
   const row = cache.get(job.incident.id)
   if (!row || row.status !== 'pending') {
@@ -437,7 +633,7 @@ function pump() {
     pump()
     return
   }
-  explainIncident(job.incident)
+  explainIncident(job.incident, job.room)
     .then(({ summary, status }) => {
       cache.set(job.incident.id, {
         fingerprint: job.fingerprint,
@@ -531,6 +727,57 @@ export function enqueueStoryExplanation(room, onAfter) {
   payload.explanation = seed
   payload.explanationStatus = 'pending'
   queue.push({ room, incident: payload, fingerprint: fp, onAfter })
+  trimQueue()
+  pump()
+}
+
+export function enqueueCampaignAnalyses(room, onAfter) {
+  const pending = Array.isArray(room?._pendingCampaignAnalyze) ? room._pendingCampaignAnalyze : []
+  if (!room?.id || pending.length === 0) {
+    if (room) room._pendingCampaignAnalyze = []
+    return
+  }
+  const cache = cacheFor(room.id)
+  const now = Date.now()
+  for (const campaign of pending) {
+    if (!campaign?.id) continue
+    const fp = `${campaign.id}:${[...(campaign.endpointIds ?? [])].sort().join(',')}`
+    const row = cache.get(campaign.id)
+    if (row?.status === 'ready' || row?.status === 'pending') continue
+    const seed = fallbackCampaignAssessment(campaign)
+    const seedBriefing = fallbackBriefing({
+      campaign,
+      incidents: room?.detection?.incidents ?? [],
+      detection: room?.detection,
+    })
+    if (circuitIsOpen()) {
+      applyCampaignAssessment(room, campaign.id, {
+        status: 'fallback',
+        summary: seed,
+        briefing: seedBriefing,
+      })
+      cache.set(campaign.id, {
+        fingerprint: fp,
+        status: 'fallback',
+        summary: seed,
+        lastAttempt: now,
+      })
+      continue
+    }
+    cache.set(campaign.id, {
+      fingerprint: fp,
+      status: 'pending',
+      summary: seed,
+      lastAttempt: now,
+    })
+    applyCampaignAssessment(room, campaign.id, {
+      status: 'pending',
+      summary: seed,
+      briefing: seedBriefing,
+    })
+    queue.push({ kind: 'campaign', room, campaign, fingerprint: fp, onAfter })
+  }
+  room._pendingCampaignAnalyze = []
   trimQueue()
   pump()
 }
