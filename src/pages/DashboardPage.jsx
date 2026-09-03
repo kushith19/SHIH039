@@ -12,12 +12,10 @@ import {
 } from '../features/dashboard/dashboardPanels.js'
 import EndpointTable from '../features/dashboard/EndpointTable'
 import IncidentsPanel from '../features/dashboard/IncidentsPanel'
-import KpiStrip from '../features/dashboard/KpiStrip'
-import RiskMomentumCard from '../features/dashboard/RiskMomentumCard'
-import FinancialExposureCard from '../features/dashboard/FinancialExposureCard'
+import OverviewPanel from '../features/dashboard/OverviewPanel'
 import CommanderPanel from '../features/commander/CommanderPanel'
+import ResponseConsolePanel from '../features/response/ResponseConsolePanel'
 import {
-  derivePosture,
   holdAlignedPct,
   lastValue,
   latestByEndpoint,
@@ -210,12 +208,6 @@ export default function DashboardPage({
   )
 
   const filterLabel = rows.find((r) => r.id === filterId)?.label
-  const quarantinedCount = rows.filter((r) => r.quarantined).length
-  const posture = derivePosture(
-    incidents,
-    anomalyIds.size,
-    detection?.tgnnCalibrating === true
-  )
 
   const onToggleFilter = (id) => {
     if (id == null) {
@@ -224,23 +216,6 @@ export default function DashboardPage({
     }
     setFilterId((cur) => (cur === id ? null : id))
   }
-
-  const kpiStrip = (
-    <KpiStrip
-      posture={posture}
-      tick={tick}
-      sampleTicks={sampleTicks}
-      pps={lastValue(ppsSeries)}
-      ppsSeries={ppsSeries}
-      incidentCount={incidents.length}
-      anomalyCount={anomalyIds.size}
-      quarantinedCount={quarantinedCount}
-      tgnnCalibrating={detection?.tgnnCalibrating === true}
-      tgnnWarmupCollected={detection?.tgnnWarmupCollected ?? 0}
-      tgnnWarmupTicks={detection?.tgnnWarmupTicks ?? 15}
-      riskMomentum={detection?.riskMomentum ?? null}
-    />
-  )
 
   const statusBanners = (
     <div className="space-y-3">
@@ -290,11 +265,19 @@ export default function DashboardPage({
   let pageBody = null
   if (panel === 'overview') {
     pageBody = (
-      <div className="space-y-6">
-        {kpiStrip}
-        <FinancialExposureCard detection={detection} nodes={nodes} edges={edges} />
-        <RiskMomentumCard riskMomentum={detection?.riskMomentum ?? null} />
-      </div>
+      <OverviewPanel
+        detection={detection}
+        nodes={nodes}
+        edges={edges}
+        incidents={incidents}
+        rows={rows}
+        feedStatus={feedStatus}
+        phase={phase}
+        sampleTicks={sampleTicks}
+        fetchError={fetchError}
+        pps={lastValue(ppsSeries)}
+        onSelectEndpoint={setFilterId}
+      />
     )
   } else if (panel === 'fleet') {
     pageBody = (
@@ -327,13 +310,28 @@ export default function DashboardPage({
         focusIncidentId={searchParams.get('incident')}
       />
     )
+  } else if (panel === 'response') {
+    pageBody = (
+      <ResponseConsolePanel
+        roomId={roomId}
+        focusIncidentId={searchParams.get('incident')}
+      />
+    )
   } else {
     pageBody = (
-      <div className="space-y-6">
-        {kpiStrip}
-        <FinancialExposureCard detection={detection} nodes={nodes} edges={edges} />
-        <RiskMomentumCard riskMomentum={detection?.riskMomentum ?? null} />
-      </div>
+      <OverviewPanel
+        detection={detection}
+        nodes={nodes}
+        edges={edges}
+        incidents={incidents}
+        rows={rows}
+        feedStatus={feedStatus}
+        phase={phase}
+        sampleTicks={sampleTicks}
+        fetchError={fetchError}
+        pps={lastValue(ppsSeries)}
+        onSelectEndpoint={setFilterId}
+      />
     )
   }
 
@@ -372,7 +370,9 @@ export default function DashboardPage({
             className={
               panel === 'commander'
                 ? 'flex min-h-0 flex-1 flex-col gap-6'
-                : 'mx-auto w-full max-w-6xl space-y-6'
+                : panel === 'overview'
+                  ? 'mx-auto w-full max-w-7xl space-y-5'
+                  : 'mx-auto w-full max-w-6xl space-y-6'
             }
           >
             {panel === 'overview' ? statusBanners : null}

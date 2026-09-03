@@ -94,11 +94,186 @@ describe('commander incident intel', () => {
     assert.equal(plan.priority, 'HIGH')
     assert.equal(plan.plan.length, 4)
     assert.match(plan.plan[0].action, /Payment Processing System/)
+    assert.match(plan.plan[0].action, /packet-rate|traffic-flood|Isolate Node/i)
     assert.match(plan.plan[0].rationale, /Do not automatically isolate/)
     assert.match(plan.plan[1].action, /Bank Gateway/)
     assert.match(plan.plan[1].action, /Core Banking/)
     assert.equal(plan.plan.every((s) => s.executable === false), true)
     assert.equal(plan.plan.every((s) => s.recommended === true), true)
+    assert.equal(plan.plan.every((s) => s.actionId == null), true)
+  })
+
+  it('produces profile-specific RESPOND plans for different incidents', () => {
+    const flood = buildIncidentResponsePlan(
+      payContext({
+        anomalyEvidence: [
+          {
+            code: 'metric_deviation',
+            metric: 'packetsPerSecond',
+            deviationPct: 400,
+          },
+        ],
+      })
+    )
+    const credential = buildIncidentResponsePlan(
+      payContext({
+        affectedAsset: {
+          id: 'id',
+          summary: 'Identity Access',
+          type: 'identity_access',
+        },
+        anomalyEvidence: [
+          {
+            code: 'metric_deviation',
+            metric: 'failedLoginsPerMin',
+            deviationPct: 300,
+          },
+        ],
+        financialExposure: null,
+        primaryPathLabels: ['Identity Access', 'Bank Gateway'],
+      })
+    )
+    const exfil = buildIncidentResponsePlan(
+      payContext({
+        anomalyEvidence: [
+          {
+            code: 'metric_deviation',
+            metric: 'filesDownloaded',
+            deviationPct: 280,
+          },
+        ],
+      })
+    )
+    const api = buildIncidentResponsePlan(
+      payContext({
+        anomalyEvidence: [
+          {
+            code: 'metric_deviation',
+            metric: 'httpRequestsPerMin',
+            deviationPct: 500,
+          },
+        ],
+        financialExposure: null,
+      })
+    )
+
+    assert.match(flood.plan[0].action, /traffic-flood|packet-rate/i)
+    assert.match(credential.plan[0].action, /failed-login|credential|identity/i)
+    assert.match(credential.plan[0].action, /not a network flood/i)
+    assert.match(exfil.plan[0].action, /file-transfer|filesDownloaded|bulk file/i)
+    assert.match(api.plan[0].action, /HTTP\/API|httpRequestsPerMin|request volume/i)
+
+    assert.notEqual(flood.plan[0].action, credential.plan[0].action)
+    assert.notEqual(credential.plan[0].action, exfil.plan[0].action)
+    assert.notEqual(exfil.plan[0].action, api.plan[0].action)
+  })
+
+  it('finance plan keeps simulated-exposure language; OT plan is safety-aware', () => {
+    const finance = buildIncidentResponsePlan(
+      payContext({
+        affectedAsset: {
+          id: 'pay',
+          summary: 'Payment Processing System',
+          type: 'payment_processing_system',
+          sector: 'Finance',
+        },
+        anomalyEvidence: [{ code: 'tgnn_embed', detail: 'tgnn_embed' }],
+      })
+    )
+    assert.match(finance.plan[0].action, /finance|simulated financial exposure/i)
+    assert.match(finance.plan[2].action, /simulated financial exposure|not actual loss/i)
+
+    const ot = buildIncidentResponsePlan(
+      payContext({
+        affectedAsset: {
+          id: 'pwr',
+          summary: 'Power Grid',
+          type: 'power_grid',
+          sector: 'Energy',
+        },
+        anomalyEvidence: [{ code: 'tgnn_embed' }],
+        financialExposure: null,
+        primaryPathLabels: ['Power Grid', 'Substation'],
+      })
+    )
+    assert.match(ot.plan[0].action, /OT\/ICS|operational safety/i)
+    assert.match(ot.plan[0].action, /Do not shut down the plant/i)
+  })
+
+  it('propagated exposure plan does not recommend isolating the exposed node', () => {
+    const plan = buildIncidentResponsePlan(
+      payContext({
+        isExposureIncident: true,
+        anomalyEvidence: [{ code: 'graph_propagation' }],
+        affectedAsset: { id: 'core', summary: 'Core Banking', type: 'banking_financial' },
+        financialExposure: null,
+      })
+    )
+    assert.equal(plan.plan.length, 4)
+    assert.match(plan.plan[0].action, /Do not isolate/i)
+    assert.doesNotMatch(plan.plan[0].action, /Recommended action: Isolate Node/i)
+    assert.match(plan.plan[2].action, /independent/i)
+    assert.equal(plan.plan.every((s) => s.executable === false), true)
+    assert.match(plan.sections.graphImpact.distinction, /Exposed|propagated/i)
+  })
+
+  it('general residual still yields a four-phase advisory plan', () => {
+    const plan = buildIncidentResponsePlan(
+      payContext({
+        affectedAsset: {
+          id: 'road',
+          summary: 'Road Infrastructure',
+          type: 'road_infrastructure',
+        },
+        anomalyEvidence: [{ code: 'tgnn_embed' }],
+        financialExposure: null,
+        primaryPathLabels: ['Road Infrastructure'],
+        peerExposure: [],
+        propagatedNodeIds: [],
+      })
+    )
+    assert.equal(plan.plan.length, 4)
+    assert.deepEqual(
+      plan.plan.map((p) => p.title),
+      ['CONTAIN', 'PROTECT', 'VERIFY', 'RECOVER']
+    )
+    assert.match(plan.plan[0].action, /general residual|Isolate Node/i)
+    assert.equal(plan.plan.every((s) => s.actionId == null), true)
+  })
+
+  it('changing responseClassification changes plan content', () => {
+    const base = payContext({
+      anomalyEvidence: [{ code: 'tgnn_embed' }],
+      financialExposure: null,
+      affectedAsset: { id: 'n1', summary: 'Node One', type: 'road_infrastructure' },
+    })
+    const a = buildIncidentResponsePlan({
+      ...base,
+      responseClassification: {
+        responseProfile: 'NETWORK_TRAFFIC_FLOOD',
+        classificationConfidence: 'high',
+        reasons: ['forced'],
+        dominantMetric: 'packetsPerSecond',
+        isSeed: true,
+        isExposureOnly: false,
+        otSafety: false,
+      },
+    })
+    const b = buildIncidentResponsePlan({
+      ...base,
+      responseClassification: {
+        responseProfile: 'IDENTITY_CREDENTIAL_ATTACK',
+        classificationConfidence: 'high',
+        reasons: ['forced'],
+        dominantMetric: 'failedLoginsPerMin',
+        isSeed: true,
+        isExposureOnly: false,
+        otSafety: false,
+      },
+    })
+    assert.notEqual(a.plan[0].action, b.plan[0].action)
+    assert.match(a.plan[0].action, /traffic-flood|packet-rate/i)
+    assert.match(b.plan[0].action, /failed-login|credential/i)
   })
 
   it('maps severity to priority without a new formula', () => {

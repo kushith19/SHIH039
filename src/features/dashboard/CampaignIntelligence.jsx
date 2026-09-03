@@ -41,7 +41,7 @@ export default function CampaignIntelligence({ campaigns = [] }) {
     <div className="tn-surface flex h-full min-h-0 flex-col overflow-hidden">
       <div className="shrink-0 border-b border-[var(--tn-line)] px-4 py-3">
         <div className="tn-label">Campaign intelligence</div>
-        <p className="tn-meta mt-1">Backend-correlated campaigns across persisted incidents</p>
+        <p className="tn-meta mt-1">Backend-correlated campaigns from this match’s detections</p>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto p-4">
         {rows.length === 0 ? (

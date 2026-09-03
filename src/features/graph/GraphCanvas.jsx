@@ -705,6 +705,12 @@ function GraphCanvasInner({
   }, [mpActions])
 
   const canClearAttacks = mpRole === 'attacker' && mpPhase === 'playing'
+  const anyQuarantined = nodes.some(
+    (n) => n?.data?.runtimeState?.quarantined === true || n?.data?.quarantined === true
+  )
+  const hasAttackOverrides =
+    Object.keys(hackSimulator.nodeOverrides).length > 0 ||
+    Object.keys(hackSimulator.edgeOverrides).length > 0
 
   const clearAttacks = useCallback(() => {
     if (!canClearAttacks) return
@@ -847,12 +853,9 @@ function GraphCanvasInner({
           <button
             type="button"
             onClick={clearAttacks}
-            disabled={
-              Object.keys(hackSimulator.nodeOverrides).length === 0 &&
-              Object.keys(hackSimulator.edgeOverrides).length === 0
-            }
+            disabled={!hasAttackOverrides && !anyQuarantined}
             className="tn-btn pointer-events-auto"
-            title="Clear attack overrides (match-start baseline unchanged)"
+            title="Clear attack overrides and quarantine (match-start baseline unchanged)"
           >
             <span className="sm:hidden">Clear</span>
             <span className="hidden sm:inline">Clear attacks</span>

@@ -13,23 +13,33 @@ function lookbackTicks(input) {
   for (const ep of input.endpoints ?? []) {
     for (const series of Object.values(ep.lookback ?? {})) {
       if (!Array.isArray(series)) continue
-      for (const s of series) ticks.add(Number(s.tick) || 0)
+      for (const s of series) {
+        const t = Number(s.tick) || 0
+        if (t > current) continue
+        ticks.add(t)
+      }
     }
   }
   return [...ticks].sort((a, b) => a - b)
 }
 
 /**
- * Last K ticks, left-padded by repeating the oldest available tick.
+ * Last K ticks at or before the current simulation tick, left-padded by repeating
+ * the oldest eligible tick. Never includes a sample from a future tick.
  * @param {import('./types.js').DetectionInput} input
  * @returns {number[]}
  */
 export function collectWindowTicks(input) {
   const K = windowSize()
+  const current = Number(input.simulationTick) || 0
   const all = lookbackTicks(input)
-  if (all.length === 0) return Array.from({ length: K }, () => 0)
+  if (all.length === 0) return Array.from({ length: K }, () => current)
   const slice = all.slice(-K)
-  while (slice.length < K) slice.unshift(slice[0])
+  if (slice[slice.length - 1] !== current) {
+    slice.push(current)
+    while (slice.length > K) slice.shift()
+  }
+  while (slice.length < K) slice.unshift(slice[0] ?? current)
   return slice
 }
 
@@ -42,6 +52,7 @@ function sampleLookback(ep, tick, currentTick) {
     let best = null
     for (const s of series) {
       const t = Number(s.tick) || 0
+      if (t > currentTick) continue
       if (t === tick) {
         best = s
         break

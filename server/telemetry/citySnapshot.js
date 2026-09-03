@@ -129,6 +129,9 @@ function nodeEffective(node, sim, context, tick, simHour, extra = {}) {
   const baseline = nodeBaseline(node, sim)
   const observed = observedTelemetry(baseline, context, nodeMeta(node, tick, simHour, extra))
   if (sim?.active !== true) return observed
+  // Containment wins: quarantined nodes do not re-apply attack metric overrides
+  // (stale sim:patch can otherwise restore floods and re-open incidents).
+  if (extra.quarantined === true) return observed
   return mergeMetrics(observed, normalizeMetricPatch(sim.nodeOverrides?.[node.id]))
 }
 
@@ -177,8 +180,9 @@ export function buildCitySnapshot(room) {
   const endpoints = (room.nodes ?? []).map((n) => {
     const baselineTelemetry = nodeBaseline(n, sim)
     const overridePatch = normalizeMetricPatch(sim.nodeOverrides?.[n.id])
-    const overrideActive = NODE_METRIC_KEYS.some((k) => overridePatch[k] !== undefined)
     const quarantined = runtimeStateOf(n.data).quarantined === true
+    const overrideActive =
+      !quarantined && NODE_METRIC_KEYS.some((k) => overridePatch[k] !== undefined)
     const liveMeta = { quarantined, attackOverrideActive: overrideActive }
     const expected = nodeExpected(n, sim, cityContext, tick, simHour)
     const telemetry = nodeEffective(n, sim, cityContext, tick, simHour, liveMeta)
@@ -279,7 +283,7 @@ export function emptyTelemetryRecord() {
   return emptyTelemetry()
 }
 
-function ingestedPatchForCityId(cityId, ingestedByEndpoint, simulationTick) {
+export function ingestedPatchForCityId(cityId, ingestedByEndpoint, simulationTick) {
   const raw = cityId ? ingestedByEndpoint?.[cityId] : null
   if (!raw || typeof raw !== 'object') return {}
   const tick = Number(simulationTick)

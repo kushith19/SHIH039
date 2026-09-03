@@ -4,6 +4,7 @@ import {
   dashboardCommanderIncidentHref,
   dashboardPanelHref,
   dashboardPanelMeta,
+  dashboardResponseIncidentHref,
   resolveDashboardPanel,
 } from './dashboardPanels.js'
 
@@ -12,6 +13,7 @@ describe('dashboard panel routing', () => {
     assert.equal(resolveDashboardPanel(null), 'overview')
     assert.equal(resolveDashboardPanel('nope'), 'overview')
     assert.equal(resolveDashboardPanel('incidents'), 'incidents')
+    assert.equal(resolveDashboardPanel('response'), 'response')
   })
 
   it('omits panel query for overview and keeps view=dashboard', () => {
@@ -27,22 +29,44 @@ describe('dashboard panel routing', () => {
     const next = new URLSearchParams(href.replace(/^\?/, ''))
     assert.equal(next.get('panel'), 'commander')
     assert.equal(dashboardPanelMeta('commander').label, 'Commander')
+    assert.equal(dashboardPanelMeta('response').label, 'Response')
   })
 
-  it('clears focused incident when leaving commander', () => {
-    const href = dashboardPanelHref(
+  it('clears focused incident when leaving commander or response', () => {
+    const fromCommander = dashboardPanelHref(
       new URLSearchParams('view=dashboard&panel=commander&incident=inc-pay:1'),
       'incidents'
     )
+    assert.equal(new URLSearchParams(fromCommander.replace(/^\?/, '')).get('incident'), null)
+
+    const fromResponse = dashboardPanelHref(
+      new URLSearchParams('view=dashboard&panel=response&incident=inc-pay:1'),
+      'fleet'
+    )
+    assert.equal(new URLSearchParams(fromResponse.replace(/^\?/, '')).get('incident'), null)
+  })
+
+  it('preserves incident when moving between commander and response', () => {
+    const href = dashboardPanelHref(
+      new URLSearchParams('view=dashboard&panel=commander&incident=inc-pay:1'),
+      'response'
+    )
     const next = new URLSearchParams(href.replace(/^\?/, ''))
-    assert.equal(next.get('panel'), 'incidents')
-    assert.equal(next.get('incident'), null)
+    assert.equal(next.get('panel'), 'response')
+    assert.equal(next.get('incident'), 'inc-pay:1')
   })
 
   it('opens commander with structured incident id', () => {
     const href = dashboardCommanderIncidentHref(new URLSearchParams('view=dashboard'), 'inc-pay:1')
     const next = new URLSearchParams(href.replace(/^\?/, ''))
     assert.equal(next.get('panel'), 'commander')
+    assert.equal(next.get('incident'), 'inc-pay:1')
+  })
+
+  it('opens response console with structured incident id', () => {
+    const href = dashboardResponseIncidentHref(new URLSearchParams('view=dashboard'), 'inc-pay:1')
+    const next = new URLSearchParams(href.replace(/^\?/, ''))
+    assert.equal(next.get('panel'), 'response')
     assert.equal(next.get('incident'), 'inc-pay:1')
   })
 })

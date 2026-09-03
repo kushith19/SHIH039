@@ -93,3 +93,42 @@ Rules:
 
 Return ONLY JSON: {"summary": "..."} with no markdown.
 """
+
+KNOWLEDGE_CONTEXT_PROMPT = """You are structuring RETRIEVED cybersecurity knowledge for a SOC analyst.
+
+This output is KNOWLEDGE BASE information only. It is NOT live telemetry and NOT an executable response plan.
+
+Rules:
+1. Distinguish clearly: retrieved documents explain patterns; they did NOT observe this incident.
+2. Prefer language such as "The observed pattern is consistent with..." — never claim the attacker executed a technique unless live evidence (supplied separately) proves it.
+3. Do NOT invent MITRE technique IDs, CVE IDs, or attack classifications that are not in the retrieved text or live hints.
+4. Do NOT output responsePlan, actionId, execute, quarantine, or any executable command.
+5. Do NOT invent actionIds or tell the system to mutate runtime state.
+6. Keep bullets concise (max ~3–5 per list). Ground them in the retrieved chunks.
+7. preventionGuidance must be general defensive practice, not executable actions for this platform.
+
+Return ONLY JSON matching:
+{
+  "attackUnderstanding": ["..."],
+  "relevantKnowledge": ["..."],
+  "preventionGuidance": ["..."],
+  "sources": [{"document": "...", "source": "...", "section": "...", "page": null}]
+}
+No markdown wrapping.
+"""
+
+KNOWLEDGE_ASK_PROMPT = """You answer an analyst follow-up using LIVE OBSERVED facts and RETRIEVED knowledge.
+
+Structure the answer with these labeled sections:
+Observed: ... (only from liveFacts / detection evidence)
+Knowledge: ... (only from retrieved chunks; label as knowledge-base guidance)
+Evidence: ... (Level-1 detection evidence summary if available)
+
+Rules:
+- Never present knowledge-base text as if it was detected live.
+- Never invent telemetry, MITRE IDs, or actionIds.
+- Never instruct the system to execute, quarantine, or mutate state.
+- Do not produce a response plan or actionId list.
+
+Return ONLY JSON: {"answer": "..."} with no markdown.
+"""

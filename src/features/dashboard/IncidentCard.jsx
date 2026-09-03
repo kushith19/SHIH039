@@ -11,7 +11,10 @@ import {
   whyItMatters,
 } from '@shared/incidentIntel.js'
 import StatusBadge from '../../ui/StatusBadge'
-import { dashboardCommanderIncidentHref } from './dashboardPanels.js'
+import {
+  dashboardCommanderIncidentHref,
+  dashboardResponseIncidentHref,
+} from './dashboardPanels.js'
 
 function severityTone(severity) {
   if (severity === 'critical' || severity === 'high') return 'crit'
@@ -188,13 +191,22 @@ export default function IncidentCard({ inc, nodes = [], primarySpreadNodeId = nu
         <p className="tn-meta mt-4">History campaign {inc.campaignId}</p>
       ) : null}
 
-      <Link
-        to={dashboardCommanderIncidentHref(searchParams, commanderId)}
-        replace
-        className="tn-btn-primary mt-6 inline-flex"
-      >
-        Open in AI Commander →
-      </Link>
+      <div className="mt-6 flex flex-wrap gap-3">
+        <Link
+          to={dashboardCommanderIncidentHref(searchParams, commanderId)}
+          replace
+          className="tn-btn-primary inline-flex"
+        >
+          Open in AI Commander →
+        </Link>
+        <Link
+          to={dashboardResponseIncidentHref(searchParams, commanderId)}
+          replace
+          className="tn-btn inline-flex"
+        >
+          Response Console →
+        </Link>
+      </div>
     </div>
   )
 }

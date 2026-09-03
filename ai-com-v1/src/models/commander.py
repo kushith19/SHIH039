@@ -153,3 +153,60 @@ class AskRequest(BaseModel):
 class AskResponse(BaseModel):
     answer: str
     insufficient: bool = False
+
+
+class KnowledgeSource(BaseModel):
+    document: Optional[str] = None
+    source: Optional[str] = None
+    section: Optional[str] = None
+    page: Optional[int] = None
+    score: Optional[float] = None
+    category: Optional[str] = None
+
+
+class KnowledgeContextBody(BaseModel):
+    """Informational knowledge only — never contains executable actions."""
+
+    retrieved: bool = False
+    reason: Optional[str] = None
+    knowledge_status: Literal["success", "degraded", "unavailable"] = Field(
+        alias="knowledgeStatus", default="unavailable"
+    )
+    attack_understanding: List[str] = Field(
+        alias="attackUnderstanding", default_factory=list
+    )
+    relevant_knowledge: List[str] = Field(
+        alias="relevantKnowledge", default_factory=list
+    )
+    prevention_guidance: List[str] = Field(
+        alias="preventionGuidance", default_factory=list
+    )
+    sources: List[KnowledgeSource] = Field(default_factory=list)
+    queries: List[str] = Field(default_factory=list)
+
+    class Config:
+        populate_by_name = True
+
+
+class KnowledgeRequest(BaseModel):
+    """Knowledge-only enrichment. Does not produce a response plan."""
+
+    detection: Optional[DetectionInput] = None
+    query: Optional[str] = None
+    incident_hints: Optional[dict] = Field(alias="incidentHints", default=None)
+    question: Optional[str] = None
+    live_facts: Optional[dict] = Field(alias="liveFacts", default=None)
+
+    class Config:
+        populate_by_name = True
+
+
+class KnowledgeAskResponse(BaseModel):
+    answer: str
+    insufficient: bool = False
+    knowledge_context: Optional[KnowledgeContextBody] = Field(
+        alias="knowledgeContext", default=None
+    )
+
+    class Config:
+        populate_by_name = True

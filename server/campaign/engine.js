@@ -1,6 +1,7 @@
 import { computePresetOverrides, isAttackPresetId } from '../../shared/attackPresets.js'
 import { isLiveCampaignStatus } from '../../shared/campaigns.js'
 import { runtimeStateOf } from '../infrastructureNode.js'
+import { clearPersistedIncidentHistory } from '../metrics/incidents.js'
 import { mergeMetrics, normalizeMetricPatch, normalizeMetricSnapshot } from '../nodeMetrics.js'
 
 function nodeById(room, nodeId) {
@@ -20,7 +21,9 @@ function nodeBaseline(room, nodeId) {
 function applyOverride(room, nodeId, presetId) {
   const baseline = nodeBaseline(room, nodeId)
   const patch = normalizeMetricPatch(computePresetOverrides(presetId, baseline))
-  if (Object.keys(patch).length === 0) return false
+  if (Object.keys(patch).length === 0) {
+    return false
+  }
   const sim = room.hackSimulator ?? { nodeOverrides: {}, edgeOverrides: {}, active: true }
   const prev = normalizeMetricPatch(sim.nodeOverrides?.[nodeId])
   sim.nodeOverrides = { ...(sim.nodeOverrides ?? {}) }
@@ -48,12 +51,44 @@ export function clearIncidentLedger(room) {
 export function abortAndClearAttacks(room) {
   expireRecognizedCampaigns(room)
   clearIncidentLedger(room)
+  try {
+    if (room?.id) clearPersistedIncidentHistory(room.id)
+  } catch {
+    // store may not be initialized yet
+  }
   const sim = room.hackSimulator ?? {}
   room.hackSimulator = {
     ...sim,
     nodeOverrides: {},
     edgeOverrides: {},
   }
+  if (!Array.isArray(room.nodes)) return
+  room.nodes = room.nodes.map((n) => {
+    const prev = n?.data ?? {}
+    if (runtimeStateOf(prev).quarantined !== true) return n
+    return {
+      ...n,
+      data: {
+        ...prev,
+        runtimeState: { ...runtimeStateOf(prev), quarantined: false },
+      },
+    }
+  })
+}
+
+/**
+ * Remove the active attack metric override for one node.
+ * Does not touch other nodes' overrides or edgeOverrides.
+ * @returns {boolean} true if an override entry was removed
+ */
+export function clearNodeAttackOverride(room, nodeId) {
+  const id = String(nodeId ?? '')
+  const sim = room?.hackSimulator
+  if (!id || !sim?.nodeOverrides || sim.nodeOverrides[id] == null) return false
+  const nodeOverrides = { ...sim.nodeOverrides }
+  delete nodeOverrides[id]
+  room.hackSimulator = { ...sim, nodeOverrides }
+  return true
 }
 
 /** @deprecated Overrides are not attached to attacker-declared campaigns. */

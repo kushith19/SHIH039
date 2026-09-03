@@ -7,6 +7,7 @@ import {
   getIncident,
   listHistoryCampaigns,
   listIncidents,
+  clearPersistedIncidentHistory,
   listIncidentHistory,
   persistDetectionIncidents,
   updateIncidentStatus,
@@ -137,6 +138,29 @@ test('retrieval, status update, commander context preserve graph and finance', (
   assert.equal(ctx.campaignId, 'cmp-1')
   assert.ok(ctx.financialExposure.simulated)
   assert.equal(ctx.hopDistance, 2)
+  assert.ok(Array.isArray(ctx.availableActions))
+  assert.equal(ctx.availableActions.length, 1)
+  assert.equal(ctx.availableActions[0].actionId, 'isolate-node')
+  assert.equal(ctx.availableActions[0].actionType, 'ISOLATE_NODE')
+  assert.equal(ctx.affectedAsset?.id, 'pay')
+})
+
+test('single confirmed seed still persists full financial blast radius', () => {
+  resetMetricsDbForTests()
+  const room = payRoom()
+  persistDetectionIncidents(room, payDetection())
+  const stored = getIncident('DEMO', 'inc-pay')
+  assert.equal(stored.affectedNodeId, 'pay')
+  assert.deepEqual(stored.graphContext.peerExposedNodeIds, ['gw'])
+  assert.deepEqual(stored.graphContext.propagatedNodeIds, ['gw', 'core'])
+  assert.deepEqual(stored.graphContext.primaryPath, ['pay', 'gw', 'core'])
+  const fin = stored.financialContext
+  assert.equal(fin.simulated, true)
+  assert.ok(fin.affectedServiceIds.includes('payment-processing-system'))
+  assert.ok(fin.affectedServiceIds.includes('core-banking-system'))
+  assert.ok(fin.affectedServiceIds.includes('bank-gateway'))
+  assert.equal(fin.lakhs, 80 + 120 + 30)
+  assert.equal(fin.exposureLabel, '₹2.3 Cr')
 })
 
 function requiredHistoryFields(row) {
@@ -196,6 +220,14 @@ test('history is chronological and supports newest/oldest plus limit', async () 
   const limited = listIncidentHistory('DEMO', { order: 'desc', limit: 1 })
   assert.equal(limited.length, 1)
   assert.equal(limited[0].incidentId, newestFirst[0].incidentId)
+})
+
+test('clearPersistedIncidentHistory wipes the room timeline', () => {
+  resetMetricsDbForTests()
+  persistDetectionIncidents(payRoom(), payDetection())
+  assert.equal(listIncidentHistory('DEMO').length, 1)
+  clearPersistedIncidentHistory('DEMO')
+  assert.equal(listIncidentHistory('DEMO').length, 0)
 })
 
 test('separate live incidents stay separate historical records', () => {
@@ -285,4 +317,60 @@ test('listHistoryCampaigns returns one campaign for graph-related incidents', ()
   assert.equal(campaigns[0].incidentCount, 2)
   const ids = campaigns[0].sequence.map((s) => s.affectedNodeId).sort()
   assert.deepEqual(ids, ['gw', 'pay'])
+})
+
+test('Stage 4B: detection upserts preserve Commander isolate-node actionsTaken', () => {
+  resetMetricsDbForTests()
+  const room = payRoom()
+  persistDetectionIncidents(room, payDetection())
+  const isolateRecord = {
+    actionId: 'isolate-node',
+    status: 'EXECUTED',
+    targetNodeId: 'pay',
+    executedAtMs: 1_700_000_000_000,
+  }
+  const afterIsolate = updateIncidentStatus('DEMO', 'inc-pay', {
+    actionsTaken: [isolateRecord],
+  })
+  assert.equal(afterIsolate.actionsTaken.length, 1)
+  assert.equal(afterIsolate.actionsTaken[0].actionId, 'isolate-node')
+  assert.equal(afterIsolate.actionsTaken[0].targetNodeId, 'pay')
+
+  // Detection payloads omit actionsTaken — must not wipe Commander history
+  persistDetectionIncidents(room, payDetection())
+  const afterOneTick = getIncident('DEMO', 'inc-pay')
+  assert.equal(afterOneTick.actionsTaken.length, 1)
+  assert.equal(afterOneTick.actionsTaken[0].actionId, 'isolate-node')
+  assert.equal(afterOneTick.actionsTaken[0].targetNodeId, 'pay')
+  assert.equal(afterOneTick.actionsTaken[0].status, 'EXECUTED')
+
+  for (let i = 0; i < 5; i += 1) {
+    persistDetectionIncidents(room, payDetection())
+  }
+  const afterMany = getIncident('DEMO', 'inc-pay')
+  assert.equal(afterMany.actionsTaken.length, 1)
+  assert.deepEqual(afterMany.actionsTaken[0], isolateRecord)
+
+  // open → cleared without losing actionsTaken
+  persistDetectionIncidents(room, { ...payDetection(), incidents: [], anomalyNodeIds: [] })
+  const cleared = getIncident('DEMO', afterMany.incidentId)
+  assert.equal(cleared.status, 'cleared')
+  assert.equal(cleared.actionsTaken.length, 1)
+  assert.equal(cleared.actionsTaken[0].actionId, 'isolate-node')
+
+  const ctx = commanderContextFor('DEMO', cleared.incidentId, { nodes: room.nodes })
+  assert.ok(Array.isArray(ctx.actionsAlreadyTaken))
+  assert.equal(ctx.actionsAlreadyTaken.length, 1)
+  assert.equal(ctx.actionsAlreadyTaken[0].actionId, 'isolate-node')
+  assert.equal(ctx.actionsAlreadyTaken[0].targetNodeId, 'pay')
+})
+
+test('Stage 4B: new incidents still start with empty actionsTaken', () => {
+  resetMetricsDbForTests()
+  const room = payRoom()
+  const first = persistDetectionIncidents(room, payDetection())
+  assert.equal(first.length, 1)
+  assert.deepEqual(first[0].actionsTaken, [])
+  const stored = getIncident('DEMO', 'inc-pay')
+  assert.deepEqual(stored.actionsTaken, [])
 })

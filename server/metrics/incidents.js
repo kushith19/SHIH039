@@ -6,7 +6,9 @@ import {
   nodeLabelFromRoom,
   primaryAttackPath,
 } from '../../shared/incidentIntel.js'
-import { getMetricsDb } from './store.js'
+import { attachAvailableResponseActions, isExposureIncidentContext } from '../../shared/responseActions.js'
+import { attachResponseClassification } from '../../shared/responsePolicy.js'
+import { deleteRoomIncidents, getMetricsDb } from './store.js'
 import { correlateIncidentCampaigns, HISTORY_CORRELATION } from '../detection/campaigns/historyCorrelation.js'
 
 const OPEN = INCIDENT_STATUS.OPEN
@@ -167,15 +169,34 @@ function updateIncidentRow(conn, incidentId, patch) {
     )
 }
 
+/** Non-empty Commander action history — detection payloads usually omit this. */
+function hasMeaningfulActionsTaken(actionsTaken) {
+  return Array.isArray(actionsTaken) && actionsTaken.length > 0
+}
+
+/**
+ * Detection upserts must not erase Commander actionsTaken.
+ * Prefer incoming history when present; otherwise keep persisted history.
+ */
+function resolveActionsTakenForUpsert(incoming, existingRow) {
+  if (hasMeaningfulActionsTaken(incoming)) return incoming
+  if (existingRow) {
+    const prior = parseJson(existingRow.actions_taken_json, [])
+    if (hasMeaningfulActionsTaken(prior)) return prior
+  }
+  return Array.isArray(incoming) ? incoming : []
+}
+
 function upsertOne(room, detection, incident, nowMs) {
   const conn = getMetricsDb()
   const roomId = String(room.id)
   const liveId = String(incident.id ?? '')
   if (!liveId) return null
+  const existing = findOpenByLiveId(conn, roomId, liveId)
   const graphContext = graphContextFor(incident, room, detection)
   const financialContext = financialContextFor(incident, room, detection)
   const summary = `${incident.endpointLabel || incident.endpointId}: ${detectionTypeLabel(incident.detectionType)}`
-  const payload = {
+  const basePayload = {
     liveIncidentId: liveId,
     roomId,
     incidentType: incident.detectionType ?? null,
@@ -189,22 +210,28 @@ function upsertOne(room, detection, incident, nowMs) {
     graphContext,
     financialContext,
     campaignId: incident.campaignId ?? null,
-    actionsTaken: incident.actionsTaken ?? [],
     updatedAtMs: nowMs,
   }
 
-  const applyExisting = (existing) => {
-    updateIncidentRow(conn, existing.incident_id, payload)
+  const applyExisting = (row) => {
+    const payload = {
+      ...basePayload,
+      actionsTaken: resolveActionsTakenForUpsert(incident.actionsTaken, row),
+    }
+    updateIncidentRow(conn, row.incident_id, payload)
     return {
       ...payload,
-      incidentId: existing.incident_id,
-      detectedAtMs: existing.detected_at_ms,
+      incidentId: row.incident_id,
+      detectedAtMs: row.detected_at_ms,
     }
   }
 
-  const existing = findOpenByLiveId(conn, roomId, liveId)
   if (existing) return applyExisting(existing)
 
+  const insertPayload = {
+    ...basePayload,
+    actionsTaken: resolveActionsTakenForUpsert(incident.actionsTaken, null),
+  }
   let incidentId = `${liveId}:${nowMs}`
   let suffix = 0
   while (conn.prepare(`SELECT 1 FROM incidents WHERE incident_id = ?`).get(incidentId)) {
@@ -212,13 +239,13 @@ function upsertOne(room, detection, incident, nowMs) {
     incidentId = `${liveId}:${nowMs}:${suffix}`
   }
   try {
-    insertIncident(conn, { ...payload, incidentId, detectedAtMs: nowMs })
+    insertIncident(conn, { ...insertPayload, incidentId, detectedAtMs: nowMs })
   } catch (err) {
     const raced = findOpenByLiveId(conn, roomId, liveId)
     if (raced) return applyExisting(raced)
     throw err
   }
-  return { ...payload, incidentId, detectedAtMs: nowMs }
+  return { ...insertPayload, incidentId, detectedAtMs: nowMs }
 }
 
 function closeStaleOpen(roomId, keepPersistentIds, nowMs) {
@@ -403,6 +430,13 @@ function historyOrderSql(order) {
 }
 
 /**
+ * Wipe SQLite incident history for this room so the timeline is match-scoped.
+ */
+export function clearPersistedIncidentHistory(roomId) {
+  deleteRoomIncidents(roomId)
+}
+
+/**
  * Chronological incident history for a room (all statuses).
  * order: newest-first (default) or oldest-first. Optional positive limit.
  */
@@ -536,11 +570,18 @@ export function createIncidentRelationship(sourceId, targetId, type, reason = ''
   return { sourceIncidentId: sourceId, targetIncidentId: targetId, relationshipType: type, reason }
 }
 
-export function commanderContextFor(roomId, incidentId) {
+/**
+ * Build Commander context for an incident.
+ * @param {string} roomId
+ * @param {string} incidentId
+ * @param {{ nodes?: object[] }} [options] - optional room nodes for asset type/sector enrichment
+ */
+export function commanderContextFor(roomId, incidentId, options = {}) {
   const incident = getIncident(roomId, incidentId)
   if (!incident) return null
   const related = relatedFor(incident.incidentId)
-  return {
+  const nodes = Array.isArray(options?.nodes) ? options.nodes : []
+  const base = {
     incidentId: incident.incidentId,
     liveIncidentId: incident.liveIncidentId,
     incidentType: incident.incidentType,
@@ -565,5 +606,9 @@ export function commanderContextFor(roomId, incidentId) {
     campaignId: incident.campaignId,
     currentStatus: incident.status,
     actionsAlreadyTaken: incident.actionsTaken ?? [],
+    isExposureIncident: isExposureIncidentContext({
+      anomalyEvidence: incident.evidence,
+    }),
   }
+  return attachAvailableResponseActions(attachResponseClassification(base, nodes))
 }

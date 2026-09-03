@@ -1,5 +1,6 @@
 import { TRUST_CONFIG } from '../../shared/trustConfig.js'
-import { blendTrust } from '../../shared/trustModel.js'
+import { blendTrust, peerExposureFromFlags } from '../../shared/trustModel.js'
+import { propagateGraphRisk } from '../../shared/graphPropagation.js'
 import {
   confidenceFromSignals,
   evidenceFromReason,
@@ -238,72 +239,6 @@ function dependencyEvidence(ep, peerMetrics, config) {
   }
 }
 
-/**
- * Highest anomaly score among all TGNN-confirmed seeds.
- */
-function maxSeedScore(result) {
-  const scores = result?.isolationScoresByNodeId ?? {}
-  const seeds = result?.anomalyNodeIds ?? []
-  let max = 0
-  for (const id of seeds) {
-    const s = clamp01(scores[id] ?? 0)
-    if (s > max) max = s
-  }
-  return max
-}
-
-/**
- * Build a secondary (exposure/propagation) incident for a node that is not a TGNN seed.
- * Score is attenuated from the seed score. Evidence is labelled as exposure risk, not a
- * confirmed anomaly, preserving safety-integrity rules.
- */
-function buildExposureIncident({ ep, result, input, peerMetrics, baselinePeerMetrics, kind, detectionType, attenuation }) {
-  const timestamp = result.timestamp ?? input.timestamp ?? null
-  const seedScore = maxSeedScore(result)
-  const score = clamp01(seedScore * attenuation)
-
-  // Hop distance from propagation paths
-  const path = result.propagationPaths?.[ep.id]
-  const hopDistance = Array.isArray(path) && path.length > 1 ? path.length - 1 : 1
-
-  const evidence = uniqueEvidence([
-    {
-      code: kind,
-      kind: detectionType,
-      hopDistance,
-      seedScore: Math.round(seedScore * 1000) / 1000,
-      attenuatedScore: Math.round(score * 1000) / 1000,
-      detail: `${kind}:hop${hopDistance}`,
-    },
-    ...criticalityEvidence(ep),
-  ])
-
-  return {
-    id: incidentId(ep.id),
-    timestamp,
-    endpointId: ep.id,
-    endpointLabel: ep.label ?? ep.id,
-    severity: severityFromScore(score, ep.criticality),
-    confidence: confidenceFromSignals({ isolationScore: score, hasDrift: false, extraReasonCount: 0 }),
-    anomalyScore: Math.round(score * 1000) / 1000,
-    trustScore: trustForEndpoint(ep, peerMetrics),
-    detectionType,
-    detectionTypes: [detectionType],
-    evidence,
-    affectedDependencies: affectedDependenciesFor(ep.id, input, result),
-    peerExposedNodeIds: result.peerExposedNodeIds || [],
-    propagatedNodeIds: result.propagatedNodeIds || [],
-    propagationPaths: result.propagationPaths || {},
-    cityContext: input.cityContext ?? ep.activeContexts?.cityContext,
-    criticality: ep.criticality,
-    sector: ep.sector,
-    cityEndpointId: ep.cityEndpointId,
-    campaignId: null,
-    illustrativeImpact: null,
-    isExposureIncident: true,
-  }
-}
-
 function affectedDependenciesFor(epId, _input, result) {
   // If the incident seed is the source, return the downstream path from propagation
   const paths = []
@@ -317,6 +252,70 @@ function affectedDependenciesFor(epId, _input, result) {
   return paths
 }
 
+/**
+ * Graph context for one confirmed seed. Detection-level union stays on `result`;
+ * each incident only carries blast from this seed's own edges.
+ */
+function seedScopedGraph(epId, result, input) {
+  const seed = String(epId)
+  const knownIds = new Set((input?.endpoints ?? []).map((e) => String(e.id)))
+  const otherSeeds = new Set((result?.anomalyNodeIds ?? []).map(String))
+  otherSeeds.delete(seed)
+
+  const exposure = peerExposureFromFlags(input?.dependencies, [seed], knownIds)
+  const propagation = propagateGraphRisk({
+    edges: input?.dependencies,
+    seedNodeIds: [seed],
+    validNodeIds: knownIds,
+    maxHops: 3,
+    decayFactor: 0.5,
+  })
+
+  const propagatedNodeIds = (propagation.propagatedNodeIds ?? []).filter(
+    (id) => !otherSeeds.has(String(id))
+  )
+  const propagationPaths = {}
+  for (const [id, path] of Object.entries(propagation.propagationPaths ?? {})) {
+    if (otherSeeds.has(String(id))) continue
+    propagationPaths[id] = path
+  }
+  const propagationRiskByNode = {}
+  for (const [id, risk] of Object.entries(propagation.propagationRiskByNode ?? {})) {
+    if (otherSeeds.has(String(id))) continue
+    propagationRiskByNode[id] = risk
+  }
+
+  let primarySpreadNodeId = null
+  let bestRisk = -Infinity
+  for (const [nodeId, risk] of Object.entries(propagationRiskByNode)) {
+    if (risk > bestRisk) {
+      bestRisk = risk
+      primarySpreadNodeId = nodeId
+    }
+  }
+  const hinted = result?.primarySpreadNodeId
+  if (hinted && propagationRiskByNode[String(hinted)] != null) {
+    primarySpreadNodeId = String(hinted)
+  }
+  let primarySpreadEdgeId = null
+  if (primarySpreadNodeId) {
+    const edge = (input?.dependencies ?? []).find(
+      (e) =>
+        (String(e.source ?? '') === seed && String(e.target ?? '') === primarySpreadNodeId) ||
+        (String(e.target ?? '') === seed && String(e.source ?? '') === primarySpreadNodeId)
+    )
+    primarySpreadEdgeId = edge?.id ?? result?.primarySpreadEdgeId ?? null
+  }
+
+  return {
+    peerExposedNodeIds: exposure.atRiskNodeIds ?? [],
+    propagatedNodeIds,
+    propagationPaths,
+    primarySpreadNodeId,
+    primarySpreadEdgeId,
+  }
+}
+
 function illustrativeImpactOf(ep, metricFacts) {
   const sector = String(ep.sector ?? '').toLowerCase()
   const type = String(ep.type ?? ep.assetType ?? '').toLowerCase()
@@ -325,10 +324,10 @@ function illustrativeImpactOf(ep, metricFacts) {
     type.includes('bank') ||
     type.includes('payment')
   if (!finance) return null
-  const maxDev = Math.max(
-    0,
-    ...metricFacts.map((f) => Math.abs(Number(f.deviationPct) || 0))
+  const deviations = Object.values(metricFacts ?? {}).map((f) =>
+    Math.abs(Number(f?.deviationPct) || 0)
   )
+  const maxDev = Math.max(0, ...deviations)
   const crit =
     ep.criticality === 'critical' ? 1.4 : ep.criticality === 'high' ? 1.2 : 1
   return {
@@ -354,6 +353,7 @@ function buildIncident({
   const expected = expectedTelemetryOf(ep)
   const drift = hasTelemetryDrift(expected, ep.telemetry)
   const metricFacts = metricFactsOf(ep)
+  const scoped = seedScopedGraph(ep.id, result, input)
 
   const typesFromReasons = reasons.map(mapReasonToType).filter(Boolean)
   const detectionTypes = [...new Set([...typesFromReasons, ...extraTypes])]
@@ -399,16 +399,18 @@ function buildIncident({
     detectionType,
     detectionTypes,
     evidence,
-    affectedDependencies: affectedDependenciesFor(ep.id, input, result),
-    peerExposedNodeIds: result.peerExposedNodeIds || [],
-    propagatedNodeIds: result.propagatedNodeIds || [],
-    propagationPaths: result.propagationPaths || {},
+    affectedDependencies: affectedDependenciesFor(ep.id, input, scoped),
+    peerExposedNodeIds: scoped.peerExposedNodeIds,
+    propagatedNodeIds: scoped.propagatedNodeIds,
+    propagationPaths: scoped.propagationPaths,
     cityContext: input.cityContext ?? ep.activeContexts?.cityContext,
     criticality: ep.criticality,
     sector: ep.sector,
     cityEndpointId: ep.cityEndpointId,
     campaignId: null,
     illustrativeImpact: illustrativeImpactOf(ep, metricFacts),
+    primarySpreadNodeId: scoped.primarySpreadNodeId,
+    primarySpreadEdgeId: scoped.primarySpreadEdgeId,
   }
 }
 
@@ -453,57 +455,12 @@ export function promoteIncidents(result, input) {
       extraTypes,
     })
     // Attach the highest-risk next spread target so IncidentCard can surface it
-    incidents.push({
-      ...base,
-      primarySpreadNodeId: result.primarySpreadNodeId ?? null,
-      primarySpreadEdgeId: result.primarySpreadEdgeId ?? null,
-    })
+    incidents.push(base)
   }
 
+  // Standalone incidents are TGNN seeds only. Peer/propagated nodes stay on
+  // each confirmed incident as graph context (not executable episodes).
   for (const id of anomalyIds) consider(id)
-
-  // Peer-exposed: 1-hop neighbours of seeds via real edges.
-  // These are exposure risk, not confirmed anomalies.
-  for (const id of result.peerExposedNodeIds ?? []) {
-    if (anomalyIds.has(id) || seen.has(id)) continue
-    const ep = endpoints.get(id)
-    if (!ep) continue
-    seen.add(id)
-    incidents.push(
-      buildExposureIncident({
-        ep,
-        result,
-        input,
-        peerMetrics,
-        baselinePeerMetrics,
-        kind: 'peer_exposure',
-        detectionType: 'dependency_anomaly',
-        attenuation: 0.6,
-      })
-    )
-  }
-
-  // Graph-propagated: BFS nodes up to maxHops from seeds.
-  // Risk attenuated by propagationRiskByNode (0–100 scale).
-  for (const id of result.propagatedNodeIds ?? []) {
-    if (anomalyIds.has(id) || seen.has(id)) continue
-    const ep = endpoints.get(id)
-    if (!ep) continue
-    seen.add(id)
-    const risk = result.propagationRiskByNode?.[id] ?? 0
-    incidents.push(
-      buildExposureIncident({
-        ep,
-        result,
-        input,
-        peerMetrics,
-        baselinePeerMetrics,
-        kind: 'graph_propagation',
-        detectionType: 'graph_propagation',
-        attenuation: Math.min(risk / 100, 0.5),
-      })
-    )
-  }
 
   incidents.sort((a, b) => String(a.endpointId).localeCompare(String(b.endpointId)))
   return incidents

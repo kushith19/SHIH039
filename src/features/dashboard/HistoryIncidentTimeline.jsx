@@ -56,8 +56,8 @@ export default function HistoryIncidentTimeline({
       <div className="min-h-0 flex-1 overflow-y-auto p-4">
         {events.length === 0 ? (
           <EmptyState
-            title="No persisted incidents yet"
-            body="Timeline events appear after detections are stored in incident history."
+            title="No detections this match yet"
+            body="Timeline events appear as this match promotes incidents. Clear attacks or a new match starts a fresh timeline."
           />
         ) : (
           <ol>

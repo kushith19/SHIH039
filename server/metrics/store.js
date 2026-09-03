@@ -263,11 +263,17 @@ export function appendDetectionInput(input) {
 }
 
 /**
+ * Telemetry samples for the active TGNN window, anchored to this match's current tick.
+ * Never returns rows with tick > currentTick (stale/future ticks from a prior match).
+ *
  * @param {string} roomId
  * @param {number} [windowTicks]
+ * @param {number} [currentTick] current simulationTick; required to bound the window
  * @returns {Record<string, import('../detection/types.js').EndpointLookback>}
  */
-export function getLookback(roomId, windowTicks = LOOKBACK_TICKS) {
+export function getLookback(roomId, windowTicks = LOOKBACK_TICKS, currentTick) {
+  const t = Number(currentTick)
+  if (!Number.isFinite(t)) return {}
   const conn = ensureDb()
   const n = Math.max(1, Number(windowTicks) || LOOKBACK_TICKS)
   const rows = conn
@@ -275,10 +281,11 @@ export function getLookback(roomId, windowTicks = LOOKBACK_TICKS) {
       `SELECT endpoint_id, metric_key, tick, value
        FROM metric_samples
        WHERE room_id = ?
-         AND tick > (SELECT COALESCE(MAX(tick), 0) - ? FROM snapshot_index WHERE room_id = ?)
+         AND tick <= ?
+         AND tick > ?
        ORDER BY tick ASC`
     )
-    .all(roomId, n, roomId)
+    .all(roomId, t, t - n)
 
   /** @type {Record<string, import('../detection/types.js').EndpointLookback>} */
   const out = {}
@@ -348,22 +355,40 @@ export function getLatestDetection(roomId) {
   }
 }
 
-export function deleteRoomMetrics(roomId) {
+/** Drop incident rows for one room. Does not touch lookback samples or calibrator windows. */
+export function deleteRoomIncidents(roomId) {
+  const id = String(roomId ?? '')
+  if (!id) return
   const conn = ensureDb()
   const tx = conn.transaction(() => {
-    conn.prepare(`DELETE FROM metric_samples WHERE room_id = ?`).run(roomId)
-    conn.prepare(`DELETE FROM snapshot_index WHERE room_id = ?`).run(roomId)
-    conn.prepare(`DELETE FROM detection_runs WHERE room_id = ?`).run(roomId)
     conn
       .prepare(
         `DELETE FROM incident_relationships
          WHERE source_incident_id IN (SELECT incident_id FROM incidents WHERE room_id = ?)
             OR target_incident_id IN (SELECT incident_id FROM incidents WHERE room_id = ?)`
       )
-      .run(roomId, roomId)
-    conn.prepare(`DELETE FROM incidents WHERE room_id = ?`).run(roomId)
+      .run(id, id)
+    conn.prepare(`DELETE FROM incidents WHERE room_id = ?`).run(id)
   })
   tx()
+}
+
+/** Drop operational lookback samples for one room. Does not touch incident/campaign history. */
+export function deleteRoomLookbackSamples(roomId) {
+  const id = String(roomId ?? '')
+  if (!id) return
+  const conn = ensureDb()
+  const tx = conn.transaction(() => {
+    conn.prepare(`DELETE FROM metric_samples WHERE room_id = ?`).run(id)
+    conn.prepare(`DELETE FROM snapshot_index WHERE room_id = ?`).run(id)
+    conn.prepare(`DELETE FROM detection_runs WHERE room_id = ?`).run(id)
+  })
+  tx()
+}
+
+export function deleteRoomMetrics(roomId) {
+  deleteRoomLookbackSamples(roomId)
+  deleteRoomIncidents(roomId)
 }
 
 export function upsertCampaign(campaign) {

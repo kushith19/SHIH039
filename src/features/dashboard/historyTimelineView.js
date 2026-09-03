@@ -4,7 +4,7 @@
  */
 
 export const HISTORY_TIMELINE_CAPTION =
-  'Persisted incident history — chronological detections, not replay.'
+  'This match — chronological detections. Clears with the match, not a global archive.'
 
 export function formatHistoryClock(ms) {
   const n = Number(ms)

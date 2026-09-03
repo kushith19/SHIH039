@@ -1,5 +1,14 @@
 from fastapi import APIRouter, HTTPException, Depends
-from src.models.commander import CommanderRequest, CommanderResponse, ExplainResponse, AskRequest, AskResponse
+from src.models.commander import (
+    CommanderRequest,
+    CommanderResponse,
+    ExplainResponse,
+    AskRequest,
+    AskResponse,
+    KnowledgeRequest,
+    KnowledgeContextBody,
+    KnowledgeAskResponse,
+)
 from src.adapters.detection_adapter import DetectionAdapter, MockDetectionAdapter
 from src.services.commander_service import CommanderService
 
@@ -49,6 +58,42 @@ async def ask_commander(
     service: CommanderService = Depends(get_commander_service),
 ):
     return await service.ask_snapshot(request.question, request.snapshot)
+
+@router.post("/knowledge", response_model=KnowledgeContextBody)
+async def knowledge_enrichment(
+    request: KnowledgeRequest,
+    service: CommanderService = Depends(get_commander_service),
+):
+    """
+    Knowledge-only RAG enrichment for live Incident Commander.
+    Never generates a response plan or executable actions.
+    Soft-fails with retrieved=false (HTTP 200).
+    """
+    query = request.query
+    if not query and request.question:
+        query = request.question
+    return await service.enrich_knowledge(
+        detection=request.detection,
+        query=query,
+        incident_hints=request.incident_hints,
+    )
+
+
+@router.post("/knowledge/ask", response_model=KnowledgeAskResponse)
+async def knowledge_ask(
+    request: KnowledgeRequest,
+    service: CommanderService = Depends(get_commander_service),
+):
+    """Follow-up Q&A combining live facts + retrieved knowledge. No execution."""
+    if not (request.question or "").strip():
+        raise HTTPException(status_code=400, detail="question is required")
+    return await service.answer_with_knowledge(
+        request.question,
+        detection=request.detection,
+        query=request.query,
+        incident_hints=request.incident_hints,
+        live_facts=request.live_facts,
+    )
 
 @router.post("/posture")
 async def city_posture(payload: dict):

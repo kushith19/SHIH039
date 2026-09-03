@@ -1,4 +1,7 @@
-import { buildCitySnapshot, overlaySnapshotFromIngested } from './citySnapshot.js'
+import {
+  buildCitySnapshot,
+  overlaySnapshotFromIngested,
+} from './citySnapshot.js'
 import {
   adaptCitySnapshot,
   attachLookback,
@@ -9,11 +12,12 @@ import { runDetection } from '../detection/engine.js'
 import {
   LOOKBACK_TICKS,
   appendDetectionInput,
+  deleteRoomLookbackSamples,
   deleteRoomMetrics,
   getLookback,
   saveDetectionRun,
 } from '../metrics/store.js'
-import { persistDetectionIncidents } from '../metrics/incidents.js'
+import { clearPersistedIncidentHistory, persistDetectionIncidents } from '../metrics/incidents.js'
 import { emptyDetectionResult } from '../detection/types.js'
 import { advanceRiskMomentum, resetRiskHistory } from '../detection/riskMomentum.js'
 import { deleteTgnnCalibrator } from '../detection/calibrator.js'
@@ -69,7 +73,7 @@ export async function ingestCitySnapshot(room, onAfter) {
   const snapshot = overlaySnapshotFromIngested(produced, room.ingestedByEndpoint)
   const input = adaptCitySnapshot(snapshot)
   appendDetectionInput(input)
-  const withMetrics = attachLookback(input, getLookback(room.id, LOOKBACK_TICKS))
+  const withMetrics = attachLookback(input, getLookback(room.id, LOOKBACK_TICKS, input.simulationTick))
   const withWindow = attachNeighborLookback(withMetrics, room.neighborHistory)
   let detection = runDetection(withWindow)
   detection = advanceRiskMomentum(room, detection)
@@ -122,6 +126,16 @@ export function startTelemetryLoop(room, onTick) {
   room.detection = emptyDetectionResult()
   room.campaigns = []
   room.incidentLedger = []
+  try {
+    deleteRoomLookbackSamples(room.id)
+  } catch {
+    // store may not be initialized yet
+  }
+  try {
+    clearPersistedIncidentHistory(room.id)
+  } catch {
+    // store may not be initialized yet
+  }
   resetRiskHistory(room)
   room.neighborHistory = []
   room.ingestionStatus = room.ingestionStatus ?? 'empty'

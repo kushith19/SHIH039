@@ -3,14 +3,13 @@
  * Formats backend commander-context into INVESTIGATE / RESPOND outputs.
  * Does not recalculate risk, propagation, or financial exposure.
  *
- * RAG note: the live SOC path (/rooms/.../commander/ask + this module) is
- * deterministic and does not call Qdrant. The cleanest RAG hook for a future
- * lab path is ai-com-v1 POST /commander/analyze with toDetectionInput(incident)
- * — same LangGraph retrieve_knowledge pipeline used for campaign briefings.
- * Do not invent a second vector store.
+ * Knowledge enrichment: live SOC calls ai-com-v1 POST /commander/knowledge
+ * (Qdrant VectorRetriever) via the match server — knowledgeContext only.
+ * Deterministic response plan is never produced or modified by RAG.
  */
 
 import { detectionTypeLabel, formatEvidenceItem } from './incidents.js'
+import { buildAdvisoryResponsePlanPhases } from './responsePolicy.js'
 
 export const COMMANDER_MODES = Object.freeze({
   INVESTIGATE: 'investigate',
@@ -227,14 +226,16 @@ export function buildIncidentInvestigation(context) {
         : [],
     },
     knowledgeStatus: 'unavailable',
+    knowledgeContext: null,
     ragIntegrationPoint:
-      'Optional lab enrichment: POST /commander/analyze with toDetectionInput — reuses existing Qdrant RAG. Live SOC path stays deterministic.',
+      'Knowledge enrichment: POST /commander/knowledge (Qdrant). Response plan stays deterministic.',
     source: 'deterministic-incident-intel',
   }
 }
 
 /**
- * RESPOND — structured incident response plan (advisory only)
+ * RESPOND — structured incident response plan (advisory only).
+ * Phase content is policy-driven from responseClassification (Stage 2).
  */
 export function buildIncidentResponsePlan(context) {
   if (!context) return null
@@ -264,62 +265,20 @@ export function buildIncidentResponsePlan(context) {
   const evidence = evidenceLines(context)
   const finance = simulatedFinance(context)
 
-  const plan = [
-    {
-      step: 1,
-      phase: 'contain',
-      title: 'CONTAIN',
-      action: `Isolate the confirmed anomalous ${asset} network segment and restrict suspicious communications while preserving monitoring.`,
-      rationale:
-        'Contain the detected origin only. Do not automatically isolate every propagated or peer-exposed node.',
-      recommended: true,
-      executable: false,
-    },
-    {
-      step: 2,
-      phase: 'protect',
-      title: 'PROTECT',
-      action:
-        protectLabels.length > 0
-          ? `Increase monitoring and protect downstream / exposed services: ${protectLabels.join(', ')}.`
-          : `Increase monitoring on neighbours of ${asset}; no downstream path was supplied in context.`,
-      rationale:
-        'Propagated and peer-exposed nodes are potentially affected — protect and watch, do not treat as confirmed compromised.',
-      recommended: true,
-      executable: false,
-    },
-    {
-      step: 3,
-      phase: 'verify',
-      title: 'VERIFY',
-      action: [
-        evidence.length
-          ? 'Re-validate Level-1 detection evidence on the origin endpoint.'
-          : 'Inspect origin telemetry against expected load.',
-        protectLabels.length
-          ? 'Check whether propagated nodes show independent anomaly evidence before treating them as compromised.'
-          : null,
-        'Validate trust recovery after containment.',
-        finance.available
-          ? 'Confirm simulated financial exposure remains labelled scenario-based — not actual loss.'
-          : null,
-      ]
-        .filter(Boolean)
-        .join(' '),
-      rationale: 'Only recommend checks grounded in supplied incident context.',
-      recommended: true,
-      executable: false,
-    },
-    {
-      step: 4,
-      phase: 'recover',
-      title: 'RECOVER',
-      action: `Restore normal connectivity only after the originating anomaly on ${asset} clears and affected dependencies return to an acceptable trust state.`,
-      rationale: 'Recovery is operator-led. Commander does not execute infrastructure actions.',
-      recommended: true,
-      executable: false,
-    },
-  ]
+  const plan = buildAdvisoryResponsePlanPhases(context, {
+    asset,
+    protectLabels,
+    financeAvailable: finance.available === true,
+    evidencePresent: evidence.length > 0,
+  })
+
+  const profile =
+    context.responseClassification?.responseProfile ||
+    null
+  const graphDistinction =
+    profile === 'PROPAGATED_EXPOSURE'
+      ? 'Exposed / propagated context only — do not isolate without an independent confirmed seed.'
+      : 'Isolate confirmed anomaly when appropriate; monitor exposed / propagated dependencies.'
 
   return {
     mode: COMMANDER_MODES.RESPOND,
@@ -335,8 +294,7 @@ export function buildIncidentResponsePlan(context) {
       graphImpact: {
         pathLabels: path,
         confirmedAnomaly: asset,
-        distinction:
-          'Isolate confirmed anomaly; monitor exposed / propagated dependencies.',
+        distinction: graphDistinction,
       },
       financialImpact: finance,
       relatedIncidents: relatedSummaries(context),
@@ -346,6 +304,7 @@ export function buildIncidentResponsePlan(context) {
       calculated: [
         `Priority ${priority} from supplied severity/risk`,
         path.length > 1 ? `Path ${path.join(' → ')}` : null,
+        profile ? `Response profile ${profile}` : null,
       ].filter(Boolean),
       recommended: plan.map((p) => `${p.title}: ${p.action}`),
       simulated: finance.available
@@ -353,8 +312,9 @@ export function buildIncidentResponsePlan(context) {
         : [],
     },
     knowledgeStatus: 'unavailable',
+    knowledgeContext: null,
     ragIntegrationPoint:
-      'Optional lab enrichment: POST /commander/analyze with toDetectionInput — reuses existing Qdrant RAG. Live SOC path stays deterministic.',
+      'Knowledge enrichment: POST /commander/knowledge (Qdrant). Response plan stays deterministic.',
     source: 'deterministic-incident-intel',
   }
 }

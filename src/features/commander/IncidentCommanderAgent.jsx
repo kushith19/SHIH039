@@ -67,9 +67,6 @@ export default function IncidentCommanderAgent({
             </FilterChip>
           </div>
         </div>
-        <p className="mt-4 text-sm font-medium">
-          {intel?.statusLine || `Analyzing ${asset} incident…`}
-        </p>
       </header>
 
       <section className="tn-surface px-5 py-5">
@@ -113,11 +110,11 @@ export default function IncidentCommanderAgent({
         <InvestigateView intel={intel} />
       ) : null}
 
+      <KnowledgeSection intel={intel} />
+
       {mode === COMMANDER_MODES.RESPOND && intel?.plan ? (
         <RespondView intel={intel} />
       ) : null}
-
-      <EpistemicStrip intel={intel} />
     </div>
   )
 }
@@ -281,28 +278,82 @@ function Block({ title, children }) {
   )
 }
 
-function EpistemicStrip({ intel }) {
-  if (!intel?.epistemic) return null
-  const { observed, calculated, recommended, simulated } = intel.epistemic
-  const chips = [
-    observed?.length ? 'Observed evidence' : null,
-    calculated?.length ? 'Calculated risk / graph' : null,
-    recommended?.length ? 'Recommended actions' : null,
-    simulated?.length ? 'Simulated finance' : null,
-  ].filter(Boolean)
-  if (!chips.length) return null
+function KnowledgeSection({ intel }) {
+  const kc = intel?.knowledgeContext
+  const status =
+    kc?.knowledgeStatus ||
+    kc?.knowledge_status ||
+    intel?.knowledgeStatus ||
+    'unavailable'
+  const retrieved = kc?.retrieved === true
+  const attack =
+    kc?.attackUnderstanding || kc?.attack_understanding || []
+  const relevant = kc?.relevantKnowledge || kc?.relevant_knowledge || []
+  const prevention =
+    kc?.preventionGuidance || kc?.prevention_guidance || []
+  const sources = Array.isArray(kc?.sources) ? kc.sources : []
+
   return (
-    <section className="tn-surface px-5 py-4">
-      <div className="tn-label">Fact vs recommendation</div>
-      <div className="mt-2 flex flex-wrap gap-2">
-        {chips.map((c) => (
-          <StatusBadge key={c} tone="muted">
-            {c}
-          </StatusBadge>
-        ))}
-      </div>
-      <p className="tn-meta mt-2">
-        Knowledge retrieval: {intel.knowledgeStatus || 'unavailable'} on live SOC path
+    <section className="tn-surface px-5 py-5">
+      <h2 className="tn-section-title">Knowledge</h2>
+      <p className="tn-meta mt-1">
+        Knowledge base guidance · not live telemetry · not executable actions
+      </p>
+      {!retrieved ? (
+        <p className="tn-meta mt-3 leading-relaxed">
+          {kc?.reason ||
+            'Knowledge retrieval unavailable. Incident intelligence and response plan remain available from live SOC context.'}
+        </p>
+      ) : (
+        <div className="mt-4 space-y-5">
+          {attack.length ? (
+            <Block title="Attack pattern / why this is happening">
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+                {attack.map((line, i) => (
+                  <li key={i}>{line}</li>
+                ))}
+              </ul>
+            </Block>
+          ) : null}
+          {relevant.length ? (
+            <Block title="What this pattern means">
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+                {relevant.map((line, i) => (
+                  <li key={i}>{line}</li>
+                ))}
+              </ul>
+            </Block>
+          ) : null}
+          {prevention.length ? (
+            <Block title="Prevention / hardening">
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+                {prevention.map((line, i) => (
+                  <li key={i}>{line}</li>
+                ))}
+              </ul>
+            </Block>
+          ) : null}
+          <div>
+            <div className="tn-label">Sources</div>
+            {sources.length === 0 ? (
+              <p className="tn-meta mt-2">No citations attached.</p>
+            ) : (
+              <ul className="tn-meta mt-2 space-y-2">
+                {sources.map((c, i) => (
+                  <li key={i}>
+                    {c.document || c.source || 'Retrieved guidance'}
+                    {c.section ? ` · ${c.section}` : ''}
+                    {c.page != null ? ` · p.${c.page}` : ''}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
+      <p className="tn-meta mt-3">
+        Knowledge retrieval: {String(status)}
+        {retrieved ? ' · labeled as knowledge base, not observed detection' : ''}
       </p>
     </section>
   )

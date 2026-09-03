@@ -254,7 +254,7 @@ export default function SidebarAssets({
                 className="tn-btn mt-1.5 w-full justify-start text-sm"
                 onClick={() => onAbortCampaigns()}
               >
-                Clear attack overrides
+                Clear attacks
               </button>
             ) : null}
           </div>

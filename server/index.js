@@ -67,6 +67,22 @@ import {
   buildIncidentIntel,
 } from '../shared/commanderIncidentIntel.js'
 import {
+  buildKnowledgeRetrievalQuery,
+  isKnowledgeFollowUpQuestion,
+  liveFactsFromContext,
+  attachKnowledgeContext,
+} from '../shared/commanderKnowledgeQuery.js'
+import { attachAvailableResponseActions } from '../shared/responseActions.js'
+import { attachResponseClassification } from '../shared/responsePolicy.js'
+import { setNodeQuarantined } from './response/quarantineNode.js'
+import { executeResponseAction } from './response/executeAction.js'
+import {
+  fetchKnowledgeContext,
+  askWithKnowledge,
+  toDetectionInput,
+  fingerprintIncident,
+} from './commander/client.js'
+import {
   getRecentTelemetry,
   nodeIdsByCityEndpoint,
   samplesFromIngestedRows,
@@ -81,7 +97,8 @@ function liveCommanderContext(room, incidentId) {
     (inc) => inc.id === incidentId || inc.persistentId === incidentId
   )
   if (!live) return null
-  return {
+  const nodes = Array.isArray(room?.nodes) ? room.nodes : []
+  const base = {
     incidentId: live.persistentId || live.id,
     liveIncidentId: live.id,
     incidentType: live.detectionType,
@@ -103,13 +120,16 @@ function liveCommanderContext(room, incidentId) {
     campaignId: live.campaignId ?? null,
     currentStatus: live.status ?? 'open',
     actionsAlreadyTaken: live.actionsTaken ?? [],
+    isExposureIncident: live.isExposureIncident === true,
   }
+  return attachAvailableResponseActions(attachResponseClassification(base, nodes))
 }
 
 function resolveCommanderContext(room, roomId, incidentId) {
+  const nodes = Array.isArray(room?.nodes) ? room.nodes : []
   let context = null
   try {
-    context = commanderContextFor(roomId, incidentId)
+    context = commanderContextFor(roomId, incidentId, { nodes })
   } catch (err) {
     console.error('[incidents] commander-context failed', err)
   }
@@ -290,7 +310,7 @@ app.get('/rooms/:id/incidents/:incidentId/commander-context', (req, res) => {
   res.json({ ok: true, roomId: id, context })
 })
 
-app.post('/rooms/:id/commander/incident-intel', (req, res) => {
+app.post('/rooms/:id/commander/incident-intel', async (req, res) => {
   const id = String(req.params.id ?? '').toUpperCase()
   const room = getRoom(id)
   if (!room) {
@@ -306,13 +326,90 @@ app.post('/rooms/:id/commander/incident-intel', (req, res) => {
   }
   const mode = String(req.body?.mode ?? COMMANDER_MODES.INVESTIGATE).toLowerCase()
   const intel = buildIncidentIntel(context, mode)
+  const planBefore =
+    Array.isArray(intel?.plan) ? JSON.stringify(intel.plan) : null
+
+  const { query, hints } = buildKnowledgeRetrievalQuery(context)
+  const live = (room?.detection?.incidents ?? []).find(
+    (inc) =>
+      inc.id === focusId ||
+      inc.persistentId === focusId ||
+      String(inc.id) === focusId
+  )
+  const detection = live ? toDetectionInput(live, room) : null
+  const fp = live
+    ? fingerprintIncident(live)
+    : `${focusId}:${context.incidentType || ''}:${(context.anomalyEvidence || []).length}`
+
+  let knowledge
+  try {
+    knowledge = await fetchKnowledgeContext({
+      query,
+      hints,
+      detection,
+      incidentId: focusId,
+      fingerprint: fp,
+    })
+  } catch {
+    knowledge = {
+      retrieved: false,
+      reason: 'Knowledge retrieval unavailable',
+      knowledgeStatus: 'unavailable',
+      attackUnderstanding: [],
+      relevantKnowledge: [],
+      preventionGuidance: [],
+      sources: [],
+      queries: [],
+    }
+  }
+
+  const enriched = attachKnowledgeContext(intel, knowledge)
+  if (planBefore != null && Array.isArray(enriched?.plan)) {
+    // Response plan isolation: RAG must not alter deterministic plan
+    if (JSON.stringify(enriched.plan) !== planBefore) {
+      enriched.plan = JSON.parse(planBefore)
+    }
+  }
+
   res.json({
     ok: true,
     roomId: id,
-    mode: intel?.mode ?? mode,
+    mode: enriched?.mode ?? mode,
     context,
-    intel,
+    intel: enriched,
   })
+})
+
+app.post('/rooms/:id/commander/execute', (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  const room = getRoom(id)
+  if (!room) {
+    return res.status(404).json({ ok: false, message: 'Room not found' })
+  }
+  const incidentId = String(req.body?.incidentId ?? '').trim()
+  const actionId = String(req.body?.actionId ?? '').trim()
+  if (!incidentId) {
+    return res.status(400).json({ ok: false, message: 'incidentId required' })
+  }
+  if (!actionId) {
+    return res.status(400).json({ ok: false, message: 'actionId required' })
+  }
+  const context = resolveCommanderContext(room, id, incidentId)
+  const result = executeResponseAction({
+    room,
+    roomId: id,
+    incidentId,
+    actionId,
+    context,
+    onRoomMutated: syncWithTelemetry,
+  })
+  if (!result.ok) {
+    return res.status(result.statusCode ?? 400).json({
+      ok: false,
+      message: result.message ?? 'Execution failed',
+    })
+  }
+  res.json(result)
 })
 
 app.patch('/rooms/:id/incidents/:incidentId', (req, res) => {
@@ -337,7 +434,7 @@ app.patch('/rooms/:id/incidents/:incidentId', (req, res) => {
   }
 })
 
-app.post('/rooms/:id/commander/ask', (req, res) => {
+app.post('/rooms/:id/commander/ask', async (req, res) => {
   const id = String(req.params.id ?? '').toUpperCase()
   const room = getRoom(id)
   if (!room) {
@@ -345,6 +442,7 @@ app.post('/rooms/:id/commander/ask', (req, res) => {
   }
   const focusId = req.body?.incidentId ? String(req.body.incidentId) : ''
   const incidentContext = focusId ? resolveCommanderContext(room, id, focusId) : null
+  const question = req.body?.question
   const snapshot = {
     briefing: room.commanderBriefing,
     incidents: room.detection?.incidents ?? [],
@@ -352,7 +450,40 @@ app.post('/rooms/:id/commander/ask', (req, res) => {
     posture: publicRoomState(room).cityPosture,
     incidentContext,
   }
-  const result = answerCommanderQuestion(req.body?.question, snapshot)
+
+  // Knowledge follow-ups: live context + RAG (never mutates response plan / execute)
+  if (incidentContext && isKnowledgeFollowUpQuestion(question)) {
+    const { query, hints } = buildKnowledgeRetrievalQuery(incidentContext)
+    const liveFacts = liveFactsFromContext(incidentContext)
+    const live = (room?.detection?.incidents ?? []).find(
+      (inc) =>
+        inc.id === focusId ||
+        inc.persistentId === focusId ||
+        String(inc.id) === focusId
+    )
+    const detection = live ? toDetectionInput(live, room) : null
+    try {
+      const rag = await askWithKnowledge({
+        question: String(question ?? ''),
+        query,
+        hints,
+        detection,
+        liveFacts,
+      })
+      if (rag?.answer) {
+        return res.json({
+          ok: true,
+          answer: rag.answer,
+          insufficient: Boolean(rag.insufficient),
+          knowledgeContext: rag.knowledgeContext ?? null,
+        })
+      }
+    } catch {
+      /* fall through to deterministic ask */
+    }
+  }
+
+  const result = answerCommanderQuestion(question, snapshot)
   res.json({ ok: true, ...result })
 })
 
@@ -818,11 +949,28 @@ io.on('connection', (socket) => {
           sanitized.edgeScenarioBaselines ?? room.hackSimulator.edgeScenarioBaselines,
       }
     } else {
-      const nextIds = Object.keys(sanitized.nodeOverrides ?? {})
+      // Strip overrides aimed at quarantined nodes so stale client patches cannot
+      // undo Response Console / defender isolation.
+      const nodeOverrides = { ...(sanitized.nodeOverrides ?? {}) }
+      for (const n of room.nodes ?? []) {
+        if (runtimeStateOf(n?.data).quarantined === true) {
+          delete nodeOverrides[n.id]
+        }
+      }
       const nextEdges = Object.keys(sanitized.edgeOverrides ?? {})
-      room.hackSimulator = sanitized
+      room.hackSimulator = {
+        ...sanitized,
+        nodeOverrides,
+      }
+      const nextIds = Object.keys(nodeOverrides)
       if (nextIds.length === 0 && nextEdges.length === 0) {
-        abortAndClearAttacks(room)
+        // Clear attack overrides only. Do not lift quarantine here —
+        // campaign:abort / Clear attacks is the explicit full reset.
+        room.hackSimulator = {
+          ...room.hackSimulator,
+          nodeOverrides: {},
+          edgeOverrides: {},
+        }
       } else {
         attachOverrideNodes(room, nextIds)
       }
@@ -842,7 +990,9 @@ io.on('connection', (socket) => {
     if (!isAttacker(socket.id, room) || room.phase !== 'playing') {
       return emitError(socket, 'Only the attacker can apply a campaign stage during play')
     }
-    const result = applyManualPreset(room, String(payload.nodeId ?? ''), payload.presetId)
+    const nodeId = String(payload.nodeId ?? '')
+    const presetId = payload.presetId
+    const result = applyManualPreset(room, nodeId, presetId)
     if (!result.ok) return emitError(socket, result.message)
     ack({ ok: true })
     syncWithTelemetry(room)
@@ -866,17 +1016,8 @@ io.on('connection', (socket) => {
     if (!canQuarantine(socket.id, room)) {
       return emitError(socket, 'Cannot quarantine')
     }
-    const idx = room.nodes.findIndex((n) => n.id === nodeId)
-    if (idx < 0) return emitError(socket, 'Node not found')
-    const prev = room.nodes[idx].data ?? {}
-    const next = quarantined !== false
-    room.nodes[idx] = {
-      ...room.nodes[idx],
-      data: {
-        ...prev,
-        runtimeState: { ...runtimeStateOf(prev), quarantined: next },
-      },
-    }
+    const result = setNodeQuarantined(room, nodeId, quarantined !== false)
+    if (!result.ok) return emitError(socket, 'Node not found')
     if (typeof ack === 'function') ack({ ok: true })
     syncWithTelemetry(room)
   })

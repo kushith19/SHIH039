@@ -17,6 +17,9 @@ import {
   _resetCommanderCircuitForTests,
   _seedExplanationCacheForTests,
   _explanationQueueLengthForTests,
+  fetchKnowledgeContext,
+  unavailableKnowledgeContext,
+  _clearKnowledgeCacheForTests,
 } from './client.js'
 
 test('mapDetectionType maps UK spelling', () => {
@@ -400,4 +403,76 @@ test('campaign analyze is invoked only after a correlator match', async () => {
     clearExplanationCache('DEMO-camp')
     clearExplanationCache('DEMO-explain')
   }
+})
+
+test('fetchKnowledgeContext soft-fails when circuit open', async () => {
+  _clearKnowledgeCacheForTests()
+  _openCommanderCircuitForTests(60_000)
+  try {
+    const kc = await fetchKnowledgeContext({
+      query: 'behavioral anomaly payment',
+      incidentId: 'inc-k',
+      fingerprint: 'fp1',
+    })
+    assert.equal(kc.retrieved, false)
+    assert.match(kc.reason, /unavailable/i)
+    assert.equal(kc.knowledgeStatus, 'unavailable')
+    assert.ok(!('responsePlan' in kc))
+    assert.ok(!('actionId' in kc))
+  } finally {
+    _resetCommanderCircuitForTests()
+    _clearKnowledgeCacheForTests()
+  }
+})
+
+test('fetchKnowledgeContext normalizes payload and strips plan/action fields', async () => {
+  _clearKnowledgeCacheForTests()
+  _resetCommanderCircuitForTests()
+  const orig = globalThis.fetch
+  globalThis.fetch = async (url) => {
+    const u = String(url)
+    if (u.includes('/health')) {
+      return { ok: true, text: async () => JSON.stringify({ status: 'ok' }) }
+    }
+    if (u.includes('/commander/knowledge')) {
+      return {
+        ok: true,
+        text: async () =>
+          JSON.stringify({
+            retrieved: true,
+            knowledgeStatus: 'success',
+            attackUnderstanding: ['pattern consistent with flood'],
+            relevantKnowledge: ['resource exhaustion'],
+            preventionGuidance: ['rate limiting guidance'],
+            sources: [{ document: 'NIST.SP.800-61r3', source: 'NIST' }],
+            responsePlan: [{ action: 'execute shutdown', actionId: 'fake' }],
+            actionId: 'isolate-node',
+          }),
+      }
+    }
+    return { ok: false, text: async () => 'no' }
+  }
+  try {
+    const kc = await fetchKnowledgeContext({
+      query: 'flood payment',
+      incidentId: 'inc-strip',
+      fingerprint: 'fp-strip',
+    })
+    assert.equal(kc.retrieved, true)
+    assert.equal(kc.knowledgeStatus, 'success')
+    assert.ok(kc.attackUnderstanding.length >= 1)
+    assert.equal(kc.responsePlan, undefined)
+    assert.equal(kc.actionId, undefined)
+  } finally {
+    globalThis.fetch = orig
+    _resetCommanderCircuitForTests()
+    _clearKnowledgeCacheForTests()
+  }
+})
+
+test('unavailableKnowledgeContext shape', () => {
+  const kc = unavailableKnowledgeContext()
+  assert.equal(kc.retrieved, false)
+  assert.deepEqual(kc.attackUnderstanding, [])
+  assert.deepEqual(kc.sources, [])
 })

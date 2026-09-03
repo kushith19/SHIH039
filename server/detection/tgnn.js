@@ -154,10 +154,10 @@ export function runTgnnAnomaly(input, opts = {}) {
     return score
   })
 
-  const anomalyFlags =
-    input.endpoints.length < MIN_NODES_FOR_FULL_CLASSIFY
-      ? classifySmallGraphFallback(scoreList, hasScenarioDrift, deviationRatios, hasMetricSpike)
-      : classifyTgnnScores(scoreList, hasScenarioDrift, deviationRatios, hasMetricSpike)
+  const smallGraph = input.endpoints.length < MIN_NODES_FOR_FULL_CLASSIFY
+  const anomalyFlags = smallGraph
+    ? classifySmallGraphFallback(scoreList, hasScenarioDrift, deviationRatios, hasMetricSpike)
+    : classifyTgnnScores(scoreList, hasScenarioDrift, deviationRatios, hasMetricSpike)
 
   const isolationScoresByNodeId = {}
   const anomalyNodeIds = []
@@ -165,7 +165,10 @@ export function runTgnnAnomaly(input, opts = {}) {
   for (let i = 0; i < input.endpoints.length; i++) {
     const ep = input.endpoints[i]
     const score = scoreList[i]
-    const isAnomaly = anomalyFlags[i] === true
+    // Already-contained nodes keep a residual score for explainability but are
+    // not re-seeded as anomalies (avoids open↔cleared incident reopen loops).
+    const isAnomaly =
+      anomalyFlags[i] === true && ep.runtimeState?.quarantined !== true
     isolationScoresByNodeId[ep.id] = score
     if (isAnomaly) anomalyNodeIds.push(ep.id)
     nodeResults.push({

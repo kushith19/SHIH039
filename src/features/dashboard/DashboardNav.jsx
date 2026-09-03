@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   Server,
   Shield,
+  ShieldAlert,
 } from 'lucide-react'
 import {
   DASHBOARD_PANEL_COPY,
@@ -16,6 +17,7 @@ const ICONS = {
   commander: Shield,
   fleet: Server,
   incidents: AlertTriangle,
+  response: ShieldAlert,
 }
 
 export default function DashboardNav({

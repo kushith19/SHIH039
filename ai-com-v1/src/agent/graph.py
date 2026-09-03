@@ -19,6 +19,7 @@ from src.models.commander import (
 from src.agent.risk_compose import compose_risk, knowledge_status_from_retrieval
 from src.agent.epistemic import EPISTEMIC_RULES
 from src.agent.models import RetrievalPlan, RetrievedEvidence, RetrievalQuery, RetrievalPriority, EvidenceSufficiency
+from src.agent.knowledge_retrieval import build_deterministic_retrieval_plan
 from src.agent.llm_provider import get_llm_provider
 from src.agent.prompts import COMMANDER_SYSTEM_PROMPT, QUERY_PLANNER_PROMPT, EVIDENCE_SUFFICIENCY_PROMPT
 
@@ -139,31 +140,12 @@ def generate_retrieval_plan(state: AgentState) -> AgentState:
     logger.info(f"Generating retrieval plan for {log_id}")
     
     # Phase 5C: Safe Deterministic Query Planning
-    if not is_complex:
-        domains = ["incident-response"]
-        if any(k in incident_desc for k in ["water", "traffic", "control", "scada", "plc", "ot", "ics", "substation"]):
-            domains.append("ot-ics")
-        if any(k in incident_desc for k in ["smart", "municipal", "city", "auth", "server", "cloud"]):
-            domains.append("smart-city")
-        if "india" in incident_desc or "cigu" in incident_desc or "nciipc" in incident_desc:
-            domains.append("india")
-            
-        queries = []
-        
-        queries.append(RetrievalQuery(
-            query=f"{base_term} {endpoints_term}",
-            rationale="Deterministic query for primary detection",
-            priority=RetrievalPriority.HIGH
-        ))
-        
-        for d in domains:
-            queries.append(RetrievalQuery(
-                query=f"{base_term} {d}",
-                rationale=f"Deterministic query for domain: {d}",
-                priority=RetrievalPriority.MEDIUM
-            ))
-            
-        plan = RetrievalPlan(queries=queries[:4])
+    if (
+        not is_complex
+        and state.get("analysis_mode") != "campaign"
+        and state.get("incident_input") is not None
+    ):
+        plan = build_deterministic_retrieval_plan(detection=state["incident_input"])
         t1 = time.perf_counter()
         plan_lat = (t1-t0)*1000
         

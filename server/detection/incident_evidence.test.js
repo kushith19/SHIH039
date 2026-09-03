@@ -160,6 +160,45 @@ test('promoteIncidents attaches numeric Level-1 evidence', () => {
   )
 })
 
+test('finance node promotion does not crash on metricFacts object (illustrativeImpact)', () => {
+  const input = {
+    roomId: 'TEST',
+    timestamp: '2026-08-29T00:00:00.000Z',
+    tsMs: Date.parse('2026-08-29T00:00:00.000Z'),
+    simulationTick: 10,
+    cityContext: 'normal_day',
+    simHour: 10,
+    matchActive: false,
+    endpoints: [
+      ep('pay', {
+        type: 'payment_processing_system',
+        sector: 'finance',
+        criticality: 'critical',
+        telemetry: tel(8000, 400, 1, 1),
+        expectedTelemetry: tel(420, 80, 5, 2),
+      }),
+    ],
+    dependencies: [],
+  }
+  const result = {
+    anomalyNodeIds: ['pay'],
+    reasonsByNodeId: { pay: ['tgnn_embed'] },
+    isolationScoresByNodeId: { pay: 0.9 },
+    spreadEdgeIds: [],
+    atRiskEdgeIds: [],
+    compromisedNodeIds: [],
+    atRiskNodeIds: [],
+    primarySpreadNodeId: null,
+    timestamp: input.timestamp,
+  }
+  const incidents = promoteIncidents(result, input)
+  assert.equal(incidents.length, 1)
+  assert.equal(incidents[0].endpointId, 'pay')
+  assert.ok(incidents[0].illustrativeImpact)
+  assert.equal(incidents[0].illustrativeImpact.kind, 'illustrative')
+  assert.equal(typeof incidents[0].illustrativeImpact.value, 'number')
+})
+
 test('metric_deviation evidence is limited to live encoder game keys', () => {
   setYamlMetricNames(['cpu_usage', 'active_power', 'controller_response_latency'])
   const input = {
@@ -208,4 +247,117 @@ test('metric_deviation evidence is limited to live encoder game keys', () => {
   assert.equal(metrics.includes('active_power'), false)
   assert.equal(metrics.includes('controller_response_latency'), false)
   setYamlMetricNames([])
+})
+
+test('one TGNN seed promotes exactly one confirmed incident; peer and propagation stay on context', () => {
+  const input = {
+    roomId: 'TEST',
+    timestamp: '2026-08-29T00:00:00.000Z',
+    tsMs: Date.parse('2026-08-29T00:00:00.000Z'),
+    simulationTick: 10,
+    cityContext: 'normal_day',
+    simHour: 10,
+    matchActive: false,
+    endpoints: [
+      ep('pay', {
+        type: 'payment_processing_system',
+        sector: 'finance',
+        label: 'Payment Processing',
+        criticality: 'critical',
+        telemetry: tel(8000, 400, 1, 1),
+        expectedTelemetry: tel(420, 80, 5, 2),
+      }),
+      ep('gw', { type: 'bank_gateway', sector: 'finance', label: 'Bank Gateway' }),
+      ep('core', { type: 'banking_financial', sector: 'finance', label: 'Core Banking' }),
+      ep('hospital', { type: 'hospital_gateway', sector: 'healthcare', label: 'Hospital Gateway' }),
+      ep('auth', { type: 'hospital_auth', sector: 'healthcare', label: 'Hospital Auth' }),
+      ep('emr', { type: 'hospital_emr', sector: 'healthcare', label: 'Hospital EMR' }),
+    ],
+    dependencies: [
+      dep('e-pay-gw', 'pay', 'gw', 80, 80),
+      dep('e-gw-core', 'gw', 'core', 80, 80),
+      dep('e-pay-hosp', 'pay', 'hospital', 80, 80),
+      dep('e-hosp-auth', 'hospital', 'auth', 80, 80),
+      dep('e-auth-emr', 'auth', 'emr', 80, 80),
+    ],
+  }
+  const result = {
+    anomalyNodeIds: ['pay'],
+    peerExposedNodeIds: ['gw', 'hospital'],
+    propagatedNodeIds: ['gw', 'core', 'hospital', 'auth', 'emr'],
+    propagationPaths: {
+      gw: ['pay', 'gw'],
+      core: ['pay', 'gw', 'core'],
+      hospital: ['pay', 'hospital'],
+      auth: ['pay', 'hospital', 'auth'],
+      emr: ['pay', 'hospital', 'auth', 'emr'],
+    },
+    propagationRiskByNode: { gw: 50, core: 25, hospital: 50, auth: 25, emr: 12.5 },
+    primarySpreadNodeId: 'hospital',
+    primarySpreadEdgeId: 'e-pay-hosp',
+    reasonsByNodeId: { pay: ['tgnn_embed'] },
+    isolationScoresByNodeId: { pay: 0.9 },
+    timestamp: input.timestamp,
+  }
+
+  const incidents = promoteIncidents(result, input)
+  assert.equal(incidents.length, 1)
+  const inc = incidents[0]
+  assert.equal(inc.endpointId, 'pay')
+  assert.equal(inc.id, 'inc-pay')
+  assert.notEqual(inc.isExposureIncident, true)
+  assert.deepEqual([...inc.peerExposedNodeIds].sort(), ['gw', 'hospital'])
+  assert.deepEqual(
+    [...inc.propagatedNodeIds].sort(),
+    ['auth', 'core', 'emr', 'gw', 'hospital']
+  )
+  assert.deepEqual(inc.propagationPaths.emr, ['pay', 'hospital', 'auth', 'emr'])
+  assert.equal(inc.primarySpreadNodeId, 'hospital')
+  assert.ok(inc.affectedDependencies.length > 0)
+})
+
+test('two independent TGNN seeds promote two confirmed incidents', () => {
+  const input = {
+    roomId: 'TEST',
+    timestamp: '2026-08-29T00:00:00.000Z',
+    tsMs: Date.parse('2026-08-29T00:00:00.000Z'),
+    simulationTick: 10,
+    cityContext: 'normal_day',
+    simHour: 10,
+    matchActive: false,
+    endpoints: [
+      ep('pay', { type: 'payment_processing_system', sector: 'finance', label: 'Pay' }),
+      ep('road', { type: 'road_infrastructure', sector: 'transport', label: 'Road' }),
+      ep('gw', { type: 'bank_gateway', sector: 'finance' }),
+      ep('traffic', { type: 'traffic_management', sector: 'transport' }),
+    ],
+    dependencies: [
+      dep('e-pay-gw', 'pay', 'gw', 80, 80),
+      dep('e-road-traffic', 'road', 'traffic', 80, 80),
+    ],
+  }
+  const result = {
+    anomalyNodeIds: ['pay', 'road'],
+    peerExposedNodeIds: ['gw', 'traffic'],
+    propagatedNodeIds: ['gw', 'traffic'],
+    propagationPaths: {
+      gw: ['pay', 'gw'],
+      traffic: ['road', 'traffic'],
+    },
+    reasonsByNodeId: { pay: ['tgnn_embed'], road: ['tgnn_embed'] },
+    isolationScoresByNodeId: { pay: 0.9, road: 0.8 },
+    timestamp: input.timestamp,
+  }
+  const incidents = promoteIncidents(result, input)
+  assert.equal(incidents.length, 2)
+  assert.deepEqual(incidents.map((i) => i.endpointId).sort(), ['pay', 'road'])
+  assert.ok(incidents.every((i) => i.isExposureIncident !== true))
+  const payInc = incidents.find((i) => i.endpointId === 'pay')
+  const roadInc = incidents.find((i) => i.endpointId === 'road')
+  assert.deepEqual(payInc.peerExposedNodeIds, ['gw'])
+  assert.deepEqual(payInc.propagatedNodeIds, ['gw'])
+  assert.deepEqual(payInc.propagationPaths.gw, ['pay', 'gw'])
+  assert.deepEqual(roadInc.peerExposedNodeIds, ['traffic'])
+  assert.deepEqual(roadInc.propagatedNodeIds, ['traffic'])
+  assert.deepEqual(roadInc.propagationPaths.traffic, ['road', 'traffic'])
 })

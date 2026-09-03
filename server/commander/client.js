@@ -10,6 +10,7 @@ const MAX_IN_FLIGHT = 1
 const MAX_QUEUE = 5
 const COMMANDER_TIMEOUT_MS = 45_000
 const COMMANDER_HEALTH_TIMEOUT_MS = 3_000
+const KNOWLEDGE_TIMEOUT_MS = 25_000
 const HEALTH_TTL_MS = 5_000
 const OLLAMA_TIMEOUT_MS = 60_000
 const OLLAMA_NUM_PREDICT = 120
@@ -27,6 +28,10 @@ const FALLBACK_ALWAYS_PREFIXES = Object.freeze([
 let commanderDownUntil = 0
 let commanderHealthyUntil = 0
 let circuitOpenLogged = false
+
+/** @type {Map<string, { fingerprint: string, knowledge: object, at: number }>} */
+const knowledgeCache = new Map()
+const KNOWLEDGE_CACHE_TTL_MS = 120_000
 
 const TYPE_MAP = {
   behavioural_anomaly: 'behavioral_anomaly',
@@ -736,4 +741,151 @@ export function _seedExplanationCacheForTests(roomId, incidentId, row) {
 
 export function _explanationQueueLengthForTests() {
   return queue.length
+}
+
+export function unavailableKnowledgeContext(reason = 'Knowledge retrieval unavailable') {
+  return {
+    retrieved: false,
+    reason,
+    knowledgeStatus: 'unavailable',
+    attackUnderstanding: [],
+    relevantKnowledge: [],
+    preventionGuidance: [],
+    sources: [],
+    queries: [],
+  }
+}
+
+function normalizeKnowledgePayload(data) {
+  if (!data || typeof data !== 'object') return unavailableKnowledgeContext()
+  // Strip any accidental execution / plan fields — knowledge is informational only
+  const {
+    responsePlan: _rp,
+    response_plan: _rp2,
+    actionId: _aid,
+    action_id: _aid2,
+    actions: _acts,
+    execute: _ex,
+    quarantine: _q,
+    ...rest
+  } = data
+  const retrieved = Boolean(rest.retrieved)
+  return {
+    retrieved,
+    reason: rest.reason ?? (retrieved ? null : 'Knowledge retrieval unavailable'),
+    knowledgeStatus:
+      rest.knowledgeStatus ||
+      rest.knowledge_status ||
+      (retrieved ? 'success' : 'unavailable'),
+    attackUnderstanding: Array.isArray(rest.attackUnderstanding)
+      ? rest.attackUnderstanding.map(String)
+      : Array.isArray(rest.attack_understanding)
+        ? rest.attack_understanding.map(String)
+        : [],
+    relevantKnowledge: Array.isArray(rest.relevantKnowledge)
+      ? rest.relevantKnowledge.map(String)
+      : Array.isArray(rest.relevant_knowledge)
+        ? rest.relevant_knowledge.map(String)
+        : [],
+    preventionGuidance: Array.isArray(rest.preventionGuidance)
+      ? rest.preventionGuidance.map(String)
+      : Array.isArray(rest.prevention_guidance)
+        ? rest.prevention_guidance.map(String)
+        : [],
+    sources: Array.isArray(rest.sources) ? rest.sources : [],
+    queries: Array.isArray(rest.queries) ? rest.queries.map(String) : [],
+  }
+}
+
+function knowledgeCacheKey(incidentId, fingerprint) {
+  return `${String(incidentId || '')}::${String(fingerprint || '')}`
+}
+
+/**
+ * Knowledge-only RAG call. Does not generate or modify response plans.
+ * Soft-fails with retrieved:false — never throws for Commander UX.
+ */
+export async function fetchKnowledgeContext({
+  query,
+  hints = null,
+  detection = null,
+  incidentId = null,
+  fingerprint = null,
+} = {}) {
+  const cacheKey = knowledgeCacheKey(incidentId, fingerprint || query)
+  const cached = knowledgeCache.get(cacheKey)
+  if (cached && Date.now() - cached.at < KNOWLEDGE_CACHE_TTL_MS) {
+    return cached.knowledge
+  }
+
+  if (!(await commanderAvailable())) {
+    return unavailableKnowledgeContext('Knowledge retrieval unavailable')
+  }
+
+  try {
+    const body = {
+      query: query || undefined,
+      incidentHints: hints || undefined,
+      detection: detection || undefined,
+    }
+    const data = await fetchJson(`${AI_COMMANDER_URL}/commander/knowledge`, {
+      timeoutMs: KNOWLEDGE_TIMEOUT_MS,
+      body,
+    })
+    markCommanderHealthy()
+    const knowledge = normalizeKnowledgePayload(data)
+    knowledgeCache.set(cacheKey, { fingerprint: fingerprint || query || '', knowledge, at: Date.now() })
+    return knowledge
+  } catch (err) {
+    openCircuit(err)
+    return unavailableKnowledgeContext('Knowledge retrieval unavailable')
+  }
+}
+
+/**
+ * Knowledge follow-up ask. Combines live facts + RAG. Soft-fails.
+ */
+export async function askWithKnowledge({
+  question,
+  query,
+  hints = null,
+  detection = null,
+  liveFacts = null,
+} = {}) {
+  if (!(await commanderAvailable())) {
+    return {
+      answer: null,
+      insufficient: true,
+      knowledgeContext: unavailableKnowledgeContext('Knowledge retrieval unavailable'),
+    }
+  }
+  try {
+    const data = await fetchJson(`${AI_COMMANDER_URL}/commander/knowledge/ask`, {
+      timeoutMs: KNOWLEDGE_TIMEOUT_MS,
+      body: {
+        question,
+        query: query || question,
+        incidentHints: hints || undefined,
+        detection: detection || undefined,
+        liveFacts: liveFacts || undefined,
+      },
+    })
+    markCommanderHealthy()
+    return {
+      answer: String(data?.answer ?? '').trim() || null,
+      insufficient: Boolean(data?.insufficient),
+      knowledgeContext: normalizeKnowledgePayload(data?.knowledgeContext || data?.knowledge_context),
+    }
+  } catch (err) {
+    openCircuit(err)
+    return {
+      answer: null,
+      insufficient: true,
+      knowledgeContext: unavailableKnowledgeContext('Knowledge retrieval unavailable'),
+    }
+  }
+}
+
+export function _clearKnowledgeCacheForTests() {
+  knowledgeCache.clear()
 }
