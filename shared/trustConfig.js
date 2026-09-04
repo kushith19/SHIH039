@@ -3,6 +3,22 @@
 export const TRUST_CONFIG = Object.freeze({
   eps: 1,
 
+  /**
+   * Metric-aware deviation soft floors for low-count game channels.
+   * Relative |Δ|/max(expected,eps=1) treats +1 on a zero baseline as ratio=1.
+   * Count references are scaled to training idle spans (files ~1–8, logins ~1–3)
+   * so small absolute edits stay below drift/spike gates while attack-scale
+   * jumps (hundreds) still saturate.
+   */
+  metricDeviation: Object.freeze({
+    countReference: Object.freeze({
+      filesDownloaded: 25,
+      failedLoginsPerMin: 20,
+    }),
+    httpSmallExpectedMax: 20,
+    httpSmallReference: 40,
+  }),
+
   blend: Object.freeze({
     intrinsic: 0.25,
     peer: 0.3,

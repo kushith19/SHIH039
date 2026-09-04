@@ -3,6 +3,14 @@ import { Link, useSearchParams } from 'react-router-dom'
 import EmptyState from '../../ui/EmptyState'
 import { dashboardPanelHref } from '../dashboard/dashboardPanels.js'
 import ResponseConsole from './ResponseConsole.jsx'
+import {
+  getResponseAnalyzeUi,
+  subscribeResponseAnalyzeUi,
+} from './responseAnalyzeUi.js'
+import {
+  responseConsolePresentation,
+  safeLlmDebugFields,
+} from './responseConsoleView.js'
 
 /**
  * Dashboard panel: loads commander-context and wires Response Console execute
@@ -11,11 +19,16 @@ import ResponseConsole from './ResponseConsole.jsx'
 export default function ResponseConsolePanel({
   roomId,
   focusIncidentId = null,
+  orchestrationState = null,
 }) {
   const [searchParams] = useSearchParams()
   const [context, setContext] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [analyzeUi, setAnalyzeUi] = useState(getResponseAnalyzeUi)
+  const [debugLast, setDebugLast] = useState(null)
+
+  useEffect(() => subscribeResponseAnalyzeUi(setAnalyzeUi), [])
 
   const loadContext = useCallback(async () => {
     if (!roomId || !focusIncidentId) {
@@ -65,6 +78,46 @@ export default function ResponseConsolePanel({
     }
   }, [roomId, focusIncidentId, loadContext])
 
+  const presentation = responseConsolePresentation({
+    context,
+    socketPlan: orchestrationState?.plan ?? null,
+    analyzeUi,
+    workflowStatus: orchestrationState?.workflowStatus,
+    continuationReason: orchestrationState?.continuationReason,
+    pausedForApprovalReason: orchestrationState?.pausedForApprovalReason,
+  })
+
+  useEffect(() => {
+    if (!presentation.visiblePlan) {
+      setDebugLast(null)
+      return undefined
+    }
+    let cancelled = false
+    void fetch('/debug/llm-response')
+      .then((res) => res.json())
+      .then((json) => {
+        if (cancelled || !json || json.ok === false) return
+        const last = json.last
+        if (!last || typeof last !== 'object') return
+        const lastIncident = String(last.incidentId ?? '').trim()
+        const focused = String(
+          context?.incidentId || context?.liveIncidentId || ''
+        ).trim()
+        if (lastIncident && focused && lastIncident !== focused) return
+        setDebugLast(safeLlmDebugFields(last))
+      })
+      .catch(() => {
+        if (!cancelled) setDebugLast(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [
+    presentation.visiblePlan?.planId,
+    context?.incidentId,
+    context?.liveIncidentId,
+  ])
+
   if (!focusIncidentId) {
     return (
       <EmptyState
@@ -88,8 +141,18 @@ export default function ResponseConsolePanel({
       <ResponseConsole
         roomId={roomId}
         context={context}
-        loading={loading && !context}
+        responsePlan={presentation.visiblePlan}
+        loading={loading && !context && !presentation.waiting}
         error={error}
+        analyzing={presentation.waiting}
+        analyzeFailed={presentation.failed}
+        analyzeError={analyzeUi.error || orchestrationState?.pausedForApprovalReason}
+        analyzeAttempted={
+          Number(analyzeUi.generation) > 0 ||
+          orchestrationState?.continuationReason === 'planning_failed'
+        }
+        socketPlan={orchestrationState?.plan ?? null}
+        debugLast={debugLast}
         onRefreshContext={loadContext}
       />
     </div>

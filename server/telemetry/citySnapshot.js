@@ -105,6 +105,12 @@ function nodeBaseline(node, sim) {
   return live
 }
 
+function nodeAttackStateActive(sim, nodeId) {
+  const states = sim?.nodeAttackStates
+  if (!states || typeof states !== 'object') return false
+  return states[nodeId] === true || states[nodeId] === 'under_attack'
+}
+
 function nodeMeta(node, tick, simHour, extra = {}) {
   const type = nodeTypeOf(node?.data)
   return {
@@ -116,6 +122,7 @@ function nodeMeta(node, tick, simHour, extra = {}) {
     tick,
     simHour,
     quarantined: extra.quarantined === true,
+    // Explicit attack simulation only — not mere telemetry overrides.
     attackOverrideActive: extra.attackOverrideActive === true,
   }
 }
@@ -181,9 +188,11 @@ export function buildCitySnapshot(room) {
     const baselineTelemetry = nodeBaseline(n, sim)
     const overridePatch = normalizeMetricPatch(sim.nodeOverrides?.[n.id])
     const quarantined = runtimeStateOf(n.data).quarantined === true
-    const overrideActive =
+    const telemetryOverrideActive =
       !quarantined && NODE_METRIC_KEYS.some((k) => overridePatch[k] !== undefined)
-    const liveMeta = { quarantined, attackOverrideActive: overrideActive }
+    // Explicit attack / operational compromise — never inferred from overrides alone.
+    const attackStateActive = !quarantined && nodeAttackStateActive(sim, n.id)
+    const liveMeta = { quarantined, attackOverrideActive: attackStateActive }
     const expected = nodeExpected(n, sim, cityContext, tick, simHour)
     const telemetry = nodeEffective(n, sim, cityContext, tick, simHour, liveMeta)
     return {
@@ -199,7 +208,8 @@ export function buildCitySnapshot(room) {
         matchLocked: matchIds.has(n.id),
       },
       behaviour: {
-        attackOverrideActive: overrideActive,
+        attackOverrideActive: attackStateActive,
+        telemetryOverrideActive,
         intrinsicTrust: getNodeTypeTrust(n.data),
       },
       telemetry,
@@ -208,7 +218,7 @@ export function buildCitySnapshot(room) {
       activeContexts: {
         phase: String(room.phase ?? 'lobby'),
         matchActive,
-        overrideActive,
+        overrideActive: telemetryOverrideActive,
         cityContext,
       },
     }

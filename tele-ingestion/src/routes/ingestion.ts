@@ -5,7 +5,6 @@ import { IngestionService } from '../ingestion/service.js';
 export const ingestionRouter = Router();
 
 ingestionRouter.post('/snapshot', async (req, res) => {
-  console.info(`[ingestion route] Request arrived. tick: ${req.body?.simulationTick}, timestamp: ${req.body?.timestamp}, endpoints: ${req.body?.endpoints?.length}`);
   try {
     const result = await IngestionService.processSnapshot(req.body);
     res.status(202).json(result);

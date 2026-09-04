@@ -139,11 +139,12 @@ describe('server orchestration STEP 3 execute', () => {
     const beforePlanId = room.responseOrchestration.plan.planId
     const result = executeOrchestrationPlan(room, {
       resolveContext,
+      autoContinue: false,
       clientPlan: { recommendedActions: [{ actionId: 'disable-api-key' }] },
       clientActionIds: ['disable-api-key'],
     })
     assert.equal(result.ok, true)
-    assert.equal(room.responseOrchestration.status, ORCHESTRATION_STATUS.VERIFYING)
+    assert.equal(room.responseOrchestration.status, ORCHESTRATION_STATUS.CONTINUING)
     assert.equal(room.responseOrchestration.plan.planId, beforePlanId)
     assert.equal(
       runtimeStateOf(room.nodes.find((n) => n.id === 'pay').data).quarantined,
@@ -195,16 +196,17 @@ describe('server orchestration STEP 3 execute', () => {
     })
     assert.ok(snapshots.length >= 1)
     const final = room.responseOrchestration.execution
-    assert.equal(final.totalSteps, 1)
-    assert.equal(final.completedSteps, 1)
-    assert.equal(final.results[0].status, 'completed')
-    assert.ok(final.results[0].result?.status)
+    assert.ok(final.totalSteps > 1)
+    assert.equal(final.completedSteps, final.totalSteps)
+    const isolate = final.results.find((step) => step.actionId === 'isolate-node')
+    assert.equal(isolate?.status, 'completed')
+    assert.ok(isolate?.result?.status)
   })
 
   it('M/N: failed action stops remaining and marks REPLAN_REQUIRED', () => {
     const room = roomWithIncident('FAIL-STOP')
     analyzeAndApprove(room)
-    // Invalidate by clearing anomaly seeds so isolate fails policy
+    // Remove the target from confirmed anomaly seeds so isolate fails policy.
     room.detection.anomalyNodeIds = ['other-node']
     const result = executeOrchestrationPlan(room, { resolveContext })
     assert.equal(result.ok, false)
@@ -213,15 +215,19 @@ describe('server orchestration STEP 3 execute', () => {
       ORCHESTRATION_STATUS.REPLAN_REQUIRED
     )
     const results = room.responseOrchestration.execution.results
-    assert.equal(results[0].status, 'failed')
+    const isolate = results.find((step) => step.actionId === 'isolate-node')
+    assert.equal(isolate?.status, 'failed')
   })
 
-  it('O/P/Q/R: success → VERIFYING; no recovery / close / auto-restore', () => {
+  it('O/P/Q/R: success → CONTINUING; no recovery / close / auto-restore', () => {
     const room = roomWithIncident('VERIFY')
     analyzeAndApprove(room)
-    const result = executeOrchestrationPlan(room, { resolveContext })
+    const result = executeOrchestrationPlan(room, {
+      resolveContext,
+      autoContinue: false,
+    })
     assert.equal(result.ok, true)
-    assert.equal(room.responseOrchestration.status, ORCHESTRATION_STATUS.VERIFYING)
+    assert.equal(room.responseOrchestration.status, ORCHESTRATION_STATUS.CONTINUING)
     assert.equal(result.recovered, false)
     assert.equal(result.incidentsClosed, false)
     assert.equal(result.autoRestored, false)
@@ -238,9 +244,15 @@ describe('server orchestration STEP 3 execute', () => {
   it('S/T: double execute rejected; concurrent guard', () => {
     const room = roomWithIncident('DOUBLE')
     analyzeAndApprove(room)
-    const first = executeOrchestrationPlan(room, { resolveContext })
+    const first = executeOrchestrationPlan(room, {
+      resolveContext,
+      autoContinue: false,
+    })
     assert.equal(first.ok, true)
-    const second = executeOrchestrationPlan(room, { resolveContext })
+    const second = executeOrchestrationPlan(room, {
+      resolveContext,
+      autoContinue: false,
+    })
     assert.equal(second.ok, false)
     assert.ok(
       String(second.message).includes('APPROVED') ||
@@ -251,7 +263,7 @@ describe('server orchestration STEP 3 execute', () => {
   it('I: restore-connectivity executes through executeResponseAction after isolate', () => {
     const room = roomWithIncident('RESTORE')
     analyzeAndApprove(room)
-    executeOrchestrationPlan(room, { resolveContext })
+    executeOrchestrationPlan(room, { resolveContext, autoContinue: false })
     assert.equal(
       runtimeStateOf(room.nodes.find((n) => n.id === 'pay').data).quarantined,
       true
@@ -291,7 +303,7 @@ describe('server orchestration STEP 3 execute', () => {
   it('reset clears execution state', () => {
     const room = roomWithIncident('RESET-EXEC')
     analyzeAndApprove(room)
-    executeOrchestrationPlan(room, { resolveContext })
+    executeOrchestrationPlan(room, { resolveContext, autoContinue: false })
     resetRoomOrchestration(room)
     assert.equal(room.responseOrchestration.status, ORCHESTRATION_STATUS.IDLE)
     assert.equal(room.responseOrchestration.execution, null)

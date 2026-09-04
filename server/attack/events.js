@@ -47,6 +47,12 @@ export function recordSeedAttackEvent(room, { targetNodeId, presetId = null }) {
   const key = hopKey('seed', null, target)
   if (anySequenceHasHop(store, key)) {
     const existing = Object.values(store).find((s) => sequenceHasHop(s, key))
+    if (existing && presetId) {
+      const seed = (existing.events ?? []).find(
+        (e) => e?.kind === 'seed' && String(e.targetNodeId) === target
+      )
+      if (seed) seed.presetId = presetId
+    }
     return { sequence: existing ?? null, event: null, created: false, duplicate: true }
   }
 
@@ -55,6 +61,11 @@ export function recordSeedAttackEvent(room, { targetNodeId, presetId = null }) {
     (s) => s.status === 'active' && s.nodePath?.[s.nodePath.length - 1] === target
   )
   if (tipSeq) {
+    if (presetId) {
+      const seed = (tipSeq.events ?? []).find((e) => e?.kind === 'seed')
+      if (seed) seed.presetId = presetId
+      else if (tipSeq.events?.[0]) tipSeq.events[0].presetId = presetId
+    }
     return { sequence: tipSeq, event: null, created: false, duplicate: true }
   }
 

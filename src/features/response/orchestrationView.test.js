@@ -13,15 +13,21 @@ import {
   canStartNewOrchestrationCycle,
   correlatedGroupView,
   createEmptyOrchestrationState,
+  defaultOrchestrationSelectedStep,
   executionProgressView,
   focusedIncidentsView,
   graphHealthView,
   graphImpactFromVerification,
   graphImpactView,
+  isApprovedScopeContinuation,
+  isGenuineReplanState,
+  orchestrationFlowRailView,
   planActionDetailsView,
   planEvolutionView,
+  primaryOrchestrationActionView,
   replanHandoffView,
   responsePlanView,
+  responseTodoChecklistView,
   verificationView,
   whyResolveFirstView,
 } from './orchestrationView.js'
@@ -31,6 +37,37 @@ import {
 } from '../../../shared/response/orchestration.js'
 
 describe('orchestrationView', () => {
+  it('preserves rich LLM strategy and action reasoning for Commander display', () => {
+    const plan = {
+      planId: 'llm-rich',
+      llmSummary: 'Distinct evidence-grounded summary.',
+      attackInterpretation: 'Assessment: possible credential abuse.',
+      strategy: 'Capture identity state before containment.',
+      riskAssessment: 'Containment may affect authentication availability.',
+      llmUncertainty: 'Credential ownership remains unverified.',
+      recommendedActions: [{
+        actionId: 'capture-device-state',
+        target: { id: 'auth', name: 'Identity Gateway' },
+        reason: 'Preserve runtime evidence.',
+        expectedImpact: 'Retain evidence for operator investigation.',
+        confidence: 0.82,
+        dependencies: [],
+        executable: true,
+        executionOrder: 1,
+      }],
+    }
+    const view = responsePlanView(plan)
+    const details = planActionDetailsView(plan)
+    assert.equal(view.summary, 'Distinct evidence-grounded summary.')
+    assert.match(view.attackInterpretation, /credential abuse/)
+    assert.match(view.strategy, /identity state/)
+    assert.match(view.riskAssessment, /authentication availability/)
+    assert.match(view.uncertainty, /ownership/)
+    assert.equal(details.actions[0].expectedImpact, 'Retain evidence for operator investigation.')
+    assert.equal(details.actions[0].confidence, 0.82)
+    assert.deepEqual(details.actions[0].dependencies, [])
+  })
+
   it('1: IDLE state ownership and lanes', () => {
     const state = createEmptyOrchestrationState()
     const view = agentLaneView(state)
@@ -82,7 +119,7 @@ describe('orchestrationView', () => {
     }
     const spotlight = approvalSpotlightView(state)
     assert.equal(spotlight.required, true)
-    assert.equal(spotlight.buttonLabel, 'Approve Strategy & Continue')
+    assert.equal(spotlight.buttonLabel, 'Approve Response')
     assert.ok(spotlight.expectedEffect.includes('May reduce'))
     assert.equal(canApproveOrchestration(state), true)
     assert.equal(activeAgentOwnershipView(state).focusId, 'approval')
@@ -175,7 +212,7 @@ describe('orchestrationView', () => {
       workflowStatus: ORCHESTRATION_STATUS.RECOVERED,
       verification,
     })
-    assert.equal(view.title, 'Response verified')
+    assert.equal(view.title, 'Episode recovered')
     const impact = graphImpactFromVerification(verification)
     assert.ok(impact.some((m) => m.key === 'openIncidents' && m.before === 3 && m.after === 1))
     assert.ok(impact.some((m) => m.key === 'quarantined' && m.before === 0 && m.after === 1))
@@ -199,10 +236,7 @@ describe('orchestrationView', () => {
     assert.ok(handoff.commanderMessage.includes('re-analysis'))
     const ownership = activeAgentOwnershipView(state)
     assert.equal(ownership.focusId, 'commander')
-    assert.equal(ownership.handoffFrom, 'recovery')
-    const recovery = agentLaneView(state).lanes.find((l) => l.id === 'recovery')
-    assert.equal(recovery.slotLabel, 'Replan required')
-    assert.equal(recovery.tone, 'crit')
+    assert.equal(ownership.handoffFrom, 'response')
   })
 
   it('10: new plan displays previousPlanId / plan number', () => {
@@ -228,7 +262,7 @@ describe('orchestrationView', () => {
       },
     })
     assert.equal(spotlight.isReplan, true)
-    assert.equal(spotlight.buttonLabel, 'Approve New Plan & Continue')
+    assert.equal(spotlight.buttonLabel, 'Approve Expanded Response')
     assert.equal(spotlight.planNumber, 2)
   })
 
@@ -363,14 +397,10 @@ describe('orchestrationView', () => {
     const split = actionRegistrySplitView()
     assert.ok(split.executable.every((i) => i.availability === 'available' && i.actionId))
     assert.ok(split.executable.some((i) => i.actionId === 'isolate-node'))
-    assert.ok(
-      split.catalog.some((i) => String(i.capabilityId || '').includes('rate-limit'))
-    )
-    assert.ok(!split.executable.some((i) => String(i.capabilityId || '').includes('rate-limit')))
+    assert.ok(split.catalog.some((i) => i.supported === false))
+    assert.ok(!split.executable.some((i) => i.supported === false))
     const groups = actionRegistryView()
-    const contain = groups.find((g) => g.category === 'CONTAIN')
-    const rate = contain.items.find((i) => i.capabilityId === 'contain.rate-limit-endpoint')
-    assert.ok(rate.availabilityLabel.includes('not implemented'))
+    assert.ok(groups.some((g) => g.category === 'containment' || g.categoryLabel === 'Containment'))
   })
 
   it('legacy helpers remain stable', () => {
@@ -405,5 +435,235 @@ describe('orchestrationView', () => {
       ),
       false
     )
+  })
+
+  it('STEP 13: flow rail derives four persistent steps', () => {
+    const idle = orchestrationFlowRailView(createEmptyOrchestrationState())
+    assert.equal(idle.steps.length, 4)
+    assert.deepEqual(
+      idle.steps.map((s) => s.id),
+      ['commander', 'approval', 'response', 'complete']
+    )
+    assert.equal(idle.steps[0].phase, 'active')
+    assert.equal(idle.steps[3].phase, 'locked')
+    assert.equal(idle.suggestedStepId, 'commander')
+
+    const awaiting = orchestrationFlowRailView({
+      workflowStatus: ORCHESTRATION_STATUS.AWAITING_APPROVAL,
+      plan: {
+        planId: 'p1',
+        policyStatus: 'ALLOWED',
+        approvalStatus: PLAN_APPROVAL_STATUS.PENDING,
+        recommendedActions: [{ actionId: 'isolate-node', executable: true }],
+      },
+    })
+    assert.equal(awaiting.steps[0].phase, 'completed')
+    assert.equal(awaiting.steps[1].phase, 'active')
+    assert.equal(awaiting.steps[1].statusLabel, 'Approval required')
+    assert.equal(awaiting.suggestedStepId, 'approval')
+
+    const executing = orchestrationFlowRailView({
+      workflowStatus: ORCHESTRATION_STATUS.EXECUTING,
+      execution: { currentStep: 1, totalSteps: 1, results: [] },
+    })
+    assert.equal(executing.steps[2].phase, 'active')
+    assert.equal(executing.steps[2].statusLabel, 'Executing')
+    assert.equal(executing.suggestedStepId, 'response')
+  })
+
+  it('STEP 13: REPLAN_REQUIRED selects Commander on same rail', () => {
+    const state = {
+      workflowStatus: ORCHESTRATION_STATUS.REPLAN_REQUIRED,
+      lastReplanReason: 'Containment lost',
+      verification: { verdict: 'FAILED', reasons: ['Containment lost'] },
+    }
+    assert.equal(defaultOrchestrationSelectedStep(state), 'commander')
+    const rail = orchestrationFlowRailView(state)
+    assert.equal(rail.suggestedStepId, 'commander')
+    assert.equal(rail.steps[0].phase, 'active')
+    assert.equal(rail.steps[2].phase, 'waiting')
+    assert.equal(rail.steps[3].phase, 'locked')
+    assert.equal(rail.steps.length, 4)
+  })
+
+  it('STEP 13: continuation ANALYZING selects Commander', () => {
+    assert.equal(
+      defaultOrchestrationSelectedStep({
+        workflowStatus: ORCHESTRATION_STATUS.ANALYZING,
+        autoIteration: 2,
+        continuationReason: 'remaining_incidents',
+      }),
+      'commander'
+    )
+  })
+
+  it('STEP 13: RECOVERED selects Complete and new-cycle CTA', () => {
+    const state = { workflowStatus: ORCHESTRATION_STATUS.RECOVERED }
+    assert.equal(defaultOrchestrationSelectedStep(state), 'complete')
+    const rail = orchestrationFlowRailView(state)
+    assert.equal(rail.steps[3].phase, 'completed')
+    assert.equal(rail.steps[3].statusLabel, 'Recovered')
+    const cta = primaryOrchestrationActionView(state)
+    assert.equal(cta.actionId, 'new-cycle')
+    assert.equal(cta.enabled, true)
+  })
+
+  it('STEP 13: approval CTA maps to approve handler gate', () => {
+    const state = {
+      workflowStatus: ORCHESTRATION_STATUS.AWAITING_APPROVAL,
+      stale: false,
+      plan: {
+        planId: 'p1',
+        policyStatus: 'ALLOWED',
+        recommendedActions: [{ actionId: 'isolate-node', executable: true }],
+      },
+    }
+    const cta = primaryOrchestrationActionView(state, { hasIncidents: true })
+    assert.equal(cta.actionId, 'approve')
+    assert.equal(cta.label, 'Approve Response Plan')
+    assert.equal(canApproveOrchestration(state), true)
+  })
+
+  it('STEP 13: live execution checklist uses real statuses only', () => {
+    const view = responseTodoChecklistView({
+      workflowStatus: ORCHESTRATION_STATUS.EXECUTING,
+      execution: {
+        currentStep: 2,
+        totalSteps: 3,
+        completedSteps: 1,
+        results: [
+          {
+            actionId: 'isolate-node',
+            label: 'Isolate Node',
+            status: 'completed',
+            target: { id: 'a', name: 'NODE-A' },
+          },
+          {
+            actionId: 'isolate-node-2',
+            label: 'Isolate Node',
+            status: 'executing',
+            target: { id: 'b', name: 'NODE-B' },
+          },
+          {
+            actionId: 'isolate-node-3',
+            label: 'Isolate Node',
+            status: 'pending',
+            target: { id: 'c', name: 'NODE-C' },
+          },
+        ],
+      },
+    })
+    assert.equal(view.empty, false)
+    assert.equal(view.items[0].mark, '✓')
+    assert.equal(view.items[0].status, 'completed')
+    assert.equal(view.items[1].mark, '●')
+    assert.equal(view.items[2].mark, '○')
+    assert.equal(view.items.every((i) => i.kind === 'action'), true)
+  })
+
+  it('STEP 13: failed and blocked execution states', () => {
+    const view = responseTodoChecklistView({
+      workflowStatus: ORCHESTRATION_STATUS.REPLAN_REQUIRED,
+      execution: {
+        currentStep: 1,
+        totalSteps: 2,
+        results: [
+          { actionId: 'isolate-node', label: 'Isolate', status: 'failed', error: 'policy' },
+          { actionId: 'restore-connectivity', label: 'Restore', status: 'blocked' },
+        ],
+      },
+      verification: {
+        verdict: 'FAILED',
+        reasons: ['Not all approved actions completed'],
+        checks: { executionComplete: false },
+      },
+    })
+    assert.equal(view.items[0].mark, '✕')
+    assert.equal(view.items[1].mark, 'blocked')
+    assert.equal(view.items[1].status, 'blocked')
+    assert.equal(view.items.some((i) => i.kind === 'verify'), false)
+  })
+
+  it('STEP 13: verification display distinguishes step vs episode', () => {
+    const step = verificationView({
+      workflowStatus: ORCHESTRATION_STATUS.CONTINUING,
+      verification: {
+        verdict: 'VERIFIED',
+        reasons: ['ok'],
+        checks: { executionComplete: true, containmentHeld: true },
+      },
+    })
+    assert.equal(step.stepVerified, true)
+    assert.equal(step.episodeRecovered, false)
+    assert.equal(step.title, 'Response verified')
+
+    const episode = verificationView({
+      workflowStatus: ORCHESTRATION_STATUS.RECOVERED,
+      verification: {
+        verdict: 'VERIFIED',
+        reasons: ['ok'],
+        checks: { executionComplete: true },
+      },
+    })
+    assert.equal(episode.episodeRecovered, true)
+    assert.equal(episode.title, 'Episode recovered')
+  })
+
+  it('STEP 13: post-approval live progress CTA (no execute/verify click loop)', () => {
+    const cta = primaryOrchestrationActionView({
+      workflowStatus: ORCHESTRATION_STATUS.EXECUTING,
+    })
+    assert.equal(cta.actionId, null)
+    assert.equal(cta.liveProgress, true)
+    assert.ok(/executing/i.test(cta.liveMessage))
+  })
+
+  it('STEP 12: previousPlanId alone is not a replan; continuation UI is distinct', () => {
+    const cont = {
+      workflowStatus: ORCHESTRATION_STATUS.ANALYZING,
+      autoIteration: 1,
+      replanCount: 0,
+      continuationReason: 'remaining_incidents',
+      previousPlanId: null,
+      approvalScope: { incidentIds: ['a', 'b', 'c'] },
+      plan: {
+        planId: 'p2',
+        previousPlanId: null,
+        planKind: 'continuation',
+        continuationContext: { previousPlanId: null, continuationCount: 1 },
+        replanCount: 0,
+      },
+      verification: { verdict: 'VERIFIED', failReasons: [], reasons: [] },
+    }
+    assert.equal(isGenuineReplanState(cont), false)
+    assert.equal(isApprovedScopeContinuation(cont), true)
+    const ownership = activeAgentOwnershipView(cont)
+    assert.match(ownership.headline, /Commander preparing next response/i)
+    assert.doesNotMatch(ownership.headline, /replan|Verification failed/i)
+    const rail = orchestrationFlowRailView(cont)
+    assert.equal(rail.suggestedStepId, 'commander')
+    assert.equal(rail.steps[0].statusLabel, 'Continuing')
+    assert.equal(rail.steps[3].statusLabel, 'Locked')
+    assert.notEqual(rail.steps[2].phase, 'failed')
+    const spotlight = approvalSpotlightView({
+      ...cont,
+      workflowStatus: ORCHESTRATION_STATUS.AWAITING_APPROVAL,
+      plan: {
+        ...cont.plan,
+        policyStatus: 'ALLOWED',
+        recommendedActions: [{ actionId: 'isolate-node', executable: true }],
+      },
+    })
+    assert.equal(spotlight.isReplan, false)
+
+    const fail = {
+      workflowStatus: ORCHESTRATION_STATUS.REPLAN_REQUIRED,
+      replanCount: 0,
+      lastReplanReason: 'Containment lost',
+      verification: { verdict: 'FAILED', failReasons: ['Containment lost'] },
+    }
+    assert.equal(isGenuineReplanState(fail), true)
+    assert.equal(defaultOrchestrationSelectedStep(fail), 'commander')
+    assert.equal(orchestrationFlowRailView(fail).steps[2].phase, 'waiting')
   })
 })

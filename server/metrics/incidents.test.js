@@ -12,6 +12,7 @@ import {
   persistDetectionIncidents,
   updateIncidentStatus,
 } from './incidents.js'
+import { getRepositoryAction } from '../../shared/response/responseActionRepository.js'
 
 function payRoom() {
   return {
@@ -140,9 +141,13 @@ test('retrieval, status update, commander context preserve graph and finance', (
   assert.ok(ctx.financialExposure.lakhs > 0)
   assert.equal(ctx.hopDistance, 2)
   assert.ok(Array.isArray(ctx.availableActions))
-  assert.equal(ctx.availableActions.length, 1)
-  assert.equal(ctx.availableActions[0].actionId, 'isolate-node')
-  assert.equal(ctx.availableActions[0].actionType, 'ISOLATE_NODE')
+  assert.ok(ctx.availableActions.some((action) => action.actionId === 'isolate-node'))
+  assert.ok(
+    ctx.availableActions.every((action) => {
+      const registered = getRepositoryAction(action.actionId)
+      return registered?.supported === true && registered.actionType === action.actionType
+    })
+  )
   assert.equal(ctx.affectedAsset?.id, 'pay')
 
   // Live room with empty detection → current exposure ₹0 even while SQLite snapshot is non-zero

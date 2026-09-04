@@ -38,8 +38,11 @@ export function adaptCitySnapshot(snapshot) {
   const snap = snapshot && typeof snapshot === 'object' ? snapshot : {}
   const endpointsIn = Array.isArray(snap.endpoints) ? snap.endpoints : []
   const depsIn = Array.isArray(snap.dependencies) ? snap.dependencies : []
+  // yamlOnly ghost endpoints stay on the City Model / ingest surface but must not
+  // participate in TGNN anomaly detection (zero baselines distort residuals).
+  const liveEndpoints = endpointsIn.filter((ep) => ep?.yamlOnly !== true)
 
-  const endpoints = endpointsIn.map((ep) => {
+  const endpoints = liveEndpoints.map((ep) => {
     const runtime = ep.runtimeState && typeof ep.runtimeState === 'object' ? ep.runtimeState : {}
     const behaviour = ep.behaviour && typeof ep.behaviour === 'object' ? ep.behaviour : {}
     const contexts = ep.activeContexts && typeof ep.activeContexts === 'object' ? ep.activeContexts : {}
@@ -60,6 +63,7 @@ export function adaptCitySnapshot(snapshot) {
       },
       behaviour: {
         attackOverrideActive: behaviour.attackOverrideActive === true,
+        telemetryOverrideActive: behaviour.telemetryOverrideActive === true,
         intrinsicTrust:
           typeof behaviour.intrinsicTrust === 'number' &&
           Number.isFinite(behaviour.intrinsicTrust)

@@ -11,8 +11,8 @@ import {
   PLAN_APPROVAL_STATUS,
 } from '../../shared/response/orchestration.js'
 import {
-  getAvailableResponseActions,
   getResponseAction,
+  isExposureIncidentContext,
   isRegisteredResponseAction,
 } from '../../shared/responseActions.js'
 import { executeResponseAction, EXECUTION_STATUS } from './executeAction.js'
@@ -95,12 +95,6 @@ export function revalidateApprovedAction(action, context, plan) {
     return { ok: false, reason: 'Context unavailable for revalidation' }
   }
 
-  const available = getAvailableResponseActions(context)
-  const live = available.find((a) => String(a.actionId) === actionId)
-  if (!live) {
-    return { ok: false, reason: 'Action no longer available under current policy' }
-  }
-
   const plannedTarget = planStep.target?.id != null ? String(planStep.target.id) : null
   const liveTarget =
     context.affectedAsset?.id != null ? String(context.affectedAsset.id) : null
@@ -108,7 +102,17 @@ export function revalidateApprovedAction(action, context, plan) {
     return { ok: false, reason: 'Action target no longer matches the approved plan' }
   }
 
-  return { ok: true, registered, live }
+  // Approved plan is frozen authority for this execution episode step.
+  // Live policy may shift mid-plan (e.g. after isolate); do not block remaining
+  // approved steps that are still registered/supported.
+  if (
+    context.isExposureIncident === true ||
+    isExposureIncidentContext(context)
+  ) {
+    return { ok: false, reason: 'Action is only available for confirmed anomaly incidents' }
+  }
+
+  return { ok: true, registered, live: registered }
 }
 
 function resultEntry(action, patch = {}) {
@@ -249,6 +253,8 @@ export function runResponseAgent({
       incidentId,
       actionId: action.actionId,
       context,
+      peerTargetId: action.target?.peerId ?? null,
+      approvedPlanStep: true,
       // Mid-loop: room nodes already mutated; full telemetry sync after agent finishes.
       onRoomMutated: undefined,
     })

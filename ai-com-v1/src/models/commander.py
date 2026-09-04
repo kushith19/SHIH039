@@ -210,3 +210,26 @@ class KnowledgeAskResponse(BaseModel):
 
     class Config:
         populate_by_name = True
+
+
+class ResponsePlanRequest(BaseModel):
+    """LLM Commander planner input — facts + allowlisted action IDs only."""
+
+    planning_context: dict = Field(alias="planningContext")
+
+    class Config:
+        populate_by_name = True
+
+
+class ResponsePlanActionsResponse(BaseModel):
+    """Rich Commander plan. Match server remains authoritative for execution."""
+
+    summary: Optional[str] = None
+    attackInterpretation: Optional[str] = None
+    strategy: Optional[str] = None
+    actions: List[dict] = Field(default_factory=list)
+    riskAssessment: Optional[str] = None
+    confidence: Optional[float] = None
+    uncertainty: Optional[str] = None
+    raw: Optional[str] = None
+    provider: Optional[str] = None

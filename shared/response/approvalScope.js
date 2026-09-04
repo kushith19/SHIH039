@@ -7,15 +7,23 @@
  */
 
 import { filterActiveResponseIncidents } from '../incidentStatus.js'
+import { isExposureIncidentContext } from '../responseActions.js'
+import { missionAuthorizedActionIds } from './responseActionRepository.js'
+
+/** Exposure / peer-propagated records are assessment context — not Response Agent work. */
+export function isExecutableResponseIncident(inc) {
+  if (!inc || typeof inc !== 'object') return false
+  return !isExposureIncidentContext(inc)
+}
 
 function sortedUnique(ids = []) {
   return [...new Set((ids ?? []).map(String).filter(Boolean))].sort()
 }
 
 /**
- * Snapshot authorization at human approval time.
- * Includes all active incident IDs / seed endpoints so the loop can continue
- * across A→B→C without re-approval, while still blocking new incidents/targets/actions.
+ * Snapshot authorization at human approval time (STEP 17 mission scope).
+ * Includes active incident IDs / endpoints plus mission-authorized capabilities
+ * so the autonomous loop can escalate within the mission without re-approval.
  */
 export function buildApprovalScope({
   plan = null,
@@ -26,18 +34,27 @@ export function buildApprovalScope({
   const incidentIds = sortedUnique(
     active.map((inc) => inc.persistentId || inc.id)
   )
+  const peerIds = sortedUnique(
+    active.flatMap((inc) => [
+      ...(Array.isArray(inc.peerExposedNodeIds) ? inc.peerExposedNodeIds : []),
+      ...(Array.isArray(inc.propagatedNodeIds) ? inc.propagatedNodeIds : []),
+    ])
+  )
   const targetNodeIds = sortedUnique([
     ...active.map((inc) => inc.endpointId),
     ...(plan?.affectedNodeIds ?? []),
     ...(plan?.recommendedActions ?? [])
-      .map((a) => a?.target?.id)
+      .flatMap((a) => [a?.target?.id, a?.target?.peerId])
       .filter(Boolean),
+    ...peerIds,
   ])
-  const actionTypes = sortedUnique(
-    (plan?.recommendedActions ?? [])
-      .filter((a) => a?.executable === true && a?.actionId)
-      .map((a) => a.actionId)
-  )
+  const planActions = (plan?.recommendedActions ?? [])
+    .filter((a) => a?.executable === true && a?.actionId)
+    .map((a) => a.actionId)
+  const actionTypes = sortedUnique([
+    ...planActions,
+    ...missionAuthorizedActionIds(),
+  ])
 
   const scopeFingerprint = [
     `incidents=${incidentIds.join(',')}`,
@@ -50,6 +67,9 @@ export function buildApprovalScope({
     incidentIds,
     actionTypes,
     targetNodeIds,
+    /** STEP 17 — human authorized an autonomous mission */
+    autoContinue: true,
+    missionCapabilities: missionAuthorizedActionIds(),
     scopeFingerprint,
     approvedAtMs: Number(approvedAtMs) || Date.now(),
   }
@@ -119,10 +139,13 @@ export function isPlanWithinApprovalScope(plan, scope) {
 }
 
 /**
- * Active incidents whose seed endpoint is not yet quarantined — still need response.
+ * Active seed incidents whose endpoint is not yet quarantined — still need response.
+ * Exposure-only / propagated-risk records are never response candidates (STEP 14).
  */
 export function remainingResponseCandidates(room) {
-  const active = filterActiveResponseIncidents(room?.detection?.incidents ?? [])
+  const active = filterActiveResponseIncidents(room?.detection?.incidents ?? []).filter(
+    isExecutableResponseIncident
+  )
   const quarantined = new Set()
   for (const n of room?.nodes ?? []) {
     const q =

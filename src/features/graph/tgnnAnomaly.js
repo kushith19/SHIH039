@@ -135,6 +135,7 @@ function collectDriftSignals(nodes, sim) {
       const { deviationRatio } = computeDeviationMetrics({
         baselinePps: expected[key],
         effectivePps: effective[key],
+        metricKey: key,
       })
       if (deviationRatio >= TGNN_METRIC_SPIKE_DEVIATION_RATIO) return true
     }

@@ -11,8 +11,9 @@ import {
   hopDistanceOf,
   labelPath,
   primaryAttackPath,
-  INCIDENT_STATUS,
 } from '../../../shared/incidentIntel.js'
+import { isActiveResponseIncident } from '../../../shared/incidentStatus.js'
+import { selectPrimaryIncidentForPlan } from '../../../shared/response/responsePlan.js'
 import {
   formatMomentumLine,
   formatScoreOver100,
@@ -24,13 +25,6 @@ import {
   RESIDUAL_BAND,
 } from '../../../shared/financialExposure.js'
 import { fmt } from './metrics.js'
-
-const SEVERITY_RANK = Object.freeze({
-  critical: 0,
-  high: 1,
-  medium: 2,
-  low: 3,
-})
 
 const METRIC_LABELS = Object.freeze({
   packetsPerSecond: 'Packets / sec',
@@ -59,33 +53,16 @@ export function nodeLabel(nodes = [], id) {
   return n?.data?.label ?? n?.label ?? (id != null ? String(id) : '')
 }
 
-function severityRank(severity) {
-  return SEVERITY_RANK[String(severity ?? '').toLowerCase()] ?? 4
-}
-
 function isOpenIncident(inc) {
-  const status = String(inc?.status ?? INCIDENT_STATUS.OPEN).toLowerCase()
-  return status !== INCIDENT_STATUS.CLEARED
+  return isActiveResponseIncident(inc)
 }
 
-/** Highest-priority open incident (confirmed seeds only — promotion is TGNN-seed based). */
-export function selectPrimaryIncident(incidents = [], anomalyNodeIds = []) {
-  const list = Array.isArray(incidents) ? incidents : []
-  const anomalySet = new Set((anomalyNodeIds ?? []).map(String))
-  const open = list.filter(isOpenIncident)
-  const preferred = open.filter((inc) => anomalySet.has(String(inc.endpointId)))
-  const pool = preferred.length ? preferred : open
-  if (!pool.length) return null
-  return [...pool].sort((a, b) => {
-    const d = severityRank(a.severity) - severityRank(b.severity)
-    if (d !== 0) return d
-    const sa = Number(a.anomalyScore)
-    const sb = Number(b.anomalyScore)
-    if (Number.isFinite(sa) && Number.isFinite(sb) && sb !== sa) return sb - sa
-    return String(a.endpointLabel || a.endpointId || '').localeCompare(
-      String(b.endpointLabel || b.endpointId || '')
-    )
-  })[0]
+/** Same active population and recovery-priority ranking as Commander Analyze. */
+export function selectPrimaryIncident(incidents = [], _anomalyNodeIds = []) {
+  return selectPrimaryIncidentForPlan(
+    { incidents: Array.isArray(incidents) ? incidents : [] },
+    null
+  )
 }
 
 export function metricEvidenceHighlight(incident) {

@@ -15,6 +15,7 @@ import {
   normalizePlanAction,
 } from './orchestration.js'
 import { RESPONSE_ACTIONS } from '../responseActions.js'
+import { listRepositoryActions } from './responseActionRepository.js'
 
 describe('response orchestration contract', () => {
   it('starts IDLE with locked approval and recovery', () => {
@@ -35,7 +36,7 @@ describe('response orchestration contract', () => {
     assert.equal(slots.recovery, 'locked')
   })
 
-  it('allows EXECUTING → REPLAN_REQUIRED and VERIFYING → REPLAN_REQUIRED', () => {
+  it('allows EXECUTING → REPLAN_REQUIRED and EXECUTING → CONTINUING', () => {
     assert.equal(
       canTransitionOrchestration(
         ORCHESTRATION_STATUS.EXECUTING,
@@ -45,10 +46,17 @@ describe('response orchestration contract', () => {
     )
     assert.equal(
       canTransitionOrchestration(
+        ORCHESTRATION_STATUS.EXECUTING,
+        ORCHESTRATION_STATUS.CONTINUING
+      ),
+      true
+    )
+    assert.equal(
+      canTransitionOrchestration(
         ORCHESTRATION_STATUS.VERIFYING,
         ORCHESTRATION_STATUS.REPLAN_REQUIRED
       ),
-      true
+      false
     )
     assert.equal(
       canTransitionOrchestration(
@@ -163,10 +171,12 @@ describe('response orchestration contract', () => {
 
   it('executable simulator list matches registry only', () => {
     const exec = listExecutableSimulatorActions()
-    assert.equal(exec.length, 2)
     assert.deepEqual(
       exec.map((a) => a.actionId).sort(),
-      ['isolate-node', 'restore-connectivity']
+      listRepositoryActions({ supportedOnly: true })
+        .map((a) => a.actionId)
+        .sort()
     )
+    assert.ok(exec.every((a) => a.supported === true))
   })
 })

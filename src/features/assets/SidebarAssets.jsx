@@ -4,7 +4,7 @@ import {
   getAssetsGroupedByDomain,
   getLiveCityAssets,
 } from '../graph/assetCatalog'
-import { ATTACK_PRESETS } from '../graph/attackPresets'
+import { ATTACK_PRESETS, getAttackPreset } from '../graph/attackPresets'
 import {
   hasActiveAttackOverride,
   listEligibleSpreadTargets,
@@ -161,7 +161,39 @@ function isValidSpreadSource(sourceNodeId, nodes, detection, hackSimulator) {
 }
 
 function presetTitle(presetId) {
-  return ATTACK_PRESETS.find((p) => p.id === presetId)?.title ?? String(presetId ?? '')
+  return getAttackPreset(presetId)?.title ?? ATTACK_PRESETS.find((p) => p.id === presetId)?.title ?? String(presetId ?? '')
+}
+
+function PresetMeta({ presetId }) {
+  const preset = getAttackPreset(presetId)
+  if (!preset) return null
+  const seeds = (preset.preferredSeedTypes ?? []).slice(0, 3).join(', ')
+  const stageNames = (preset.stages ?? []).map((s) => s.name).join(' → ')
+  return (
+    <div className="mt-2 space-y-1 rounded-md border border-[var(--tn-line)] bg-[var(--tn-elevated)] px-2.5 py-2 text-[11px] text-[var(--tn-muted)]">
+      <p>
+        <span className="font-semibold text-[var(--tn-text)]">Type </span>
+        {preset.attackType}
+      </p>
+      {stageNames ? (
+        <p>
+          <span className="font-semibold text-[var(--tn-text)]">Stages </span>
+          {stageNames}
+        </p>
+      ) : null}
+      {seeds ? (
+        <p className="truncate" title={(preset.preferredSeedTypes ?? []).join(', ')}>
+          <span className="font-semibold text-[var(--tn-text)]">Preferred seeds </span>
+          {seeds}
+          {(preset.preferredSeedTypes?.length ?? 0) > 3 ? '…' : ''}
+        </p>
+      ) : null}
+      <p>
+        <span className="font-semibold text-[var(--tn-text)]">Expect </span>
+        {preset.expectedBehavior}
+      </p>
+    </div>
+  )
 }
 
 function AttackConsole({
@@ -296,27 +328,34 @@ function AttackConsole({
         {!selectedNodeId ? (
           <p className="text-sm text-[var(--tn-muted)]">Select a node on the map.</p>
         ) : (
-          <div className="grid grid-cols-1 gap-1">
-            {ATTACK_PRESETS.map((preset) => (
-              <button
-                key={preset.id}
-                type="button"
-                disabled={!canUsePresets}
-                title={preset.description}
-                onClick={() => {
-                  if (!canUsePresets) return
-                  setSpreadPresetId(preset.id)
-                  onApplyAttackPreset(preset.id)
-                }}
-                className={[
-                  'tn-btn w-full justify-start text-sm disabled:opacity-35',
-                  spreadPresetId === preset.id ? 'ring-1 ring-[var(--tn-ink)]' : '',
-                ].join(' ')}
-              >
-                {preset.title}
-              </button>
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 gap-1">
+              {ATTACK_PRESETS.map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  disabled={!canUsePresets}
+                  title={`${preset.attackType ?? ''}: ${preset.description}`}
+                  onClick={() => {
+                    if (!canUsePresets) return
+                    setSpreadPresetId(preset.id)
+                    onApplyAttackPreset(preset.id)
+                  }}
+                  className={[
+                    'tn-btn w-full flex-col items-start justify-start gap-0.5 py-2 text-left text-sm disabled:opacity-35',
+                    spreadPresetId === preset.id ? 'ring-1 ring-[var(--tn-ink)]' : '',
+                  ].join(' ')}
+                >
+                  <span className="font-medium">{preset.title}</span>
+                  <span className="text-[11px] font-normal text-[var(--tn-muted)]">
+                    {preset.attackType}
+                    {preset.stages?.length > 1 ? ` · ${preset.stages.length} stages` : ''}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <PresetMeta presetId={spreadPresetId} />
+          </>
         )}
       </section>
 

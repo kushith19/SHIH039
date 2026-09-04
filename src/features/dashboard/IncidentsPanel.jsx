@@ -248,6 +248,7 @@ export default function IncidentsPanel({
                 nodes={nodes}
                 primarySpreadNodeId={primarySpreadNodeId}
                 onSelectEndpoint={onSelectEndpoint}
+                roomId={roomId}
               />
             ) : (
               <p className="tn-meta">Select an incident from the stream to inspect recovery impact.</p>

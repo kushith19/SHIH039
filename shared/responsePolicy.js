@@ -23,6 +23,12 @@ import {
   affectedNodeIdFromContext,
   isExposureIncidentContext,
 } from './responseActions.js'
+import {
+  actionAlreadyTaken,
+  getPlaybookSteps,
+  peerCandidatesFromContext,
+  selectPlaybookId,
+} from './response/responsePlaybooks.js'
 
 export const RESPONSE_PROFILES = Object.freeze({
   PROPAGATED_EXPOSURE: 'PROPAGATED_EXPOSURE',
@@ -964,7 +970,7 @@ const RESTORE_RATIONALE =
 
 /**
  * Stage 3/4 — deterministic response policy for plan + executable availability.
- * recommendedActions may list registry actionIds; availability intersects the registry.
+ * Uses playbooks (STEP 17) to recommend registered actionIds only.
  * Advisory-only ideas must not invent actionIds that are not registered.
  *
  * restore-connectivity only when: confirmed seed, currently quarantined,
@@ -985,26 +991,72 @@ export function buildResponsePolicy(context) {
   const priorIsolate = hasPriorCommanderIsolate(context, nodeId)
   const restoreEligible = seedEligible && quarantined && priorIsolate
 
+  const peers = peerCandidatesFromContext(context)
+  const primaryPeer = peers[0] ?? null
+  const playbookId = restoreEligible
+    ? 'RECOVERY'
+    : seedEligible
+      ? selectPlaybookId(profile, context)
+      : null
+  const playbookSteps = getPlaybookSteps(playbookId)
+
   const recommendedActions = []
-  if (seedEligible) {
-    recommendedActions.push({
-      actionId: 'isolate-node',
-      rationale: isolateRationaleFor(profile),
-      priority: 1,
-      profileLabel: RESPONSE_PROFILE_LABELS[profile] || profile,
-    })
-  }
+  const profileLabel = RESPONSE_PROFILE_LABELS[profile] || profile
+
   if (restoreEligible) {
-    recommendedActions.push({
-      actionId: 'restore-connectivity',
-      rationale: RESTORE_RATIONALE,
-      priority: 2,
-      profileLabel: RESPONSE_PROFILE_LABELS[profile] || profile,
-    })
+    for (const step of playbookSteps) {
+      if (actionAlreadyTaken(context, step.actionId, nodeId)) continue
+      if (step.requirePeer && !primaryPeer) continue
+      recommendedActions.push({
+        actionId: step.actionId,
+        rationale: step.rationale || RESTORE_RATIONALE,
+        priority: step.priority,
+        profileLabel,
+        peerTargetId: step.requirePeer ? primaryPeer : null,
+        peerCandidates: peers,
+      })
+    }
+    if (!recommendedActions.some((a) => a.actionId === 'restore-connectivity')) {
+      recommendedActions.push({
+        actionId: 'restore-connectivity',
+        rationale: RESTORE_RATIONALE,
+        priority: 1,
+        profileLabel,
+      })
+    }
+  } else if (seedEligible) {
+    for (const step of playbookSteps) {
+      if (actionAlreadyTaken(context, step.actionId, nodeId)) continue
+      if (step.requirePeer && !primaryPeer) continue
+      recommendedActions.push({
+        actionId: step.actionId,
+        rationale: step.rationale || isolateRationaleFor(profile),
+        priority: step.priority,
+        profileLabel,
+        peerTargetId: step.requirePeer ? primaryPeer : null,
+        peerCandidates: peers,
+      })
+    }
+    // Always ensure isolate remains available for confirmed seeds unless already taken / quarantined
+    if (
+      !quarantined &&
+      !actionAlreadyTaken(context, 'isolate-node', nodeId) &&
+      !recommendedActions.some((a) => a.actionId === 'isolate-node')
+    ) {
+      recommendedActions.push({
+        actionId: 'isolate-node',
+        rationale: isolateRationaleFor(profile),
+        priority: 99,
+        profileLabel,
+      })
+    }
   }
+
+  recommendedActions.sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99))
 
   return Object.freeze({
     responseProfile: profile,
+    playbookId,
     classificationConfidence:
       classification.classificationConfidence || CLASSIFICATION_CONFIDENCE.LOW,
     reasons: Object.freeze([...(classification.reasons || [])]),

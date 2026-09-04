@@ -13,6 +13,7 @@ import {
   affectedNodeIdFromContext,
   getAvailableResponseActions,
   getResponseAction,
+  isExposureIncidentContext,
   isRegisteredResponseAction,
 } from '../responseActions.js'
 import { buildResponsePolicy } from '../responsePolicy.js'
@@ -126,7 +127,10 @@ export function selectPrimaryIncidentForReplan(
   } = {}
 ) {
   const incidents = Array.isArray(detection?.incidents) ? detection.incidents : []
-  const open = incidents.filter(isActiveResponseIncident)
+  // Exposure-only / peer-propagated records are not executable Response targets (STEP 14)
+  const open = incidents
+    .filter(isActiveResponseIncident)
+    .filter((inc) => !isExposureIncidentContext(inc))
   if (!open.length) return null
 
   const quarantined = new Set()
@@ -320,27 +324,101 @@ function actionRiskLabel(actionId, context) {
   if (actionId === 'restore-connectivity') {
     return 'Recovery risk — restores connectivity after prior containment'
   }
+  if (actionId === 'block-peer' || actionId === 'revoke-peer-access') {
+    return 'Containment risk — blocks or revokes a peer communication path'
+  }
+  if (actionId === 'block-external-communication') {
+    return 'Containment risk — blocks external communication'
+  }
+  if (actionId === 'segment-device') {
+    return 'Containment risk — moves device into a restricted segment'
+  }
+  if (
+    actionId === 'capture-device-state' ||
+    actionId === 'snapshot-network-state' ||
+    actionId === 'collect-telemetry-window' ||
+    actionId === 'inspect-peer-history'
+  ) {
+    return 'Diagnostic — read-only evidence collection'
+  }
   return 'Policy-assessed response action'
 }
 
 /**
  * Map server-authoritative availableActions → plan steps.
  * Ignores any client-supplied actionIds. Catalog capabilities never appear as executable.
+ *
+ * When selectedActionIds is provided (LLM Commander), only those IDs are included,
+ * resolved against the executable repository (not the policy playbook).
  */
-export function buildRecommendedActionsFromContext(context) {
+export function buildRecommendedActionsFromContext(context, { selectedActionIds = null } = {}) {
   const nodeId = affectedNodeIdFromContext(context)
   const nodeName =
     context?.affectedAsset?.summary ||
     context?.affectedAsset?.id ||
     nodeId
   const available = getAvailableResponseActions(context)
+
+  /** @type {object[]} */
+  let sourceActions
+  if (selectedActionIds != null) {
+    if (!Array.isArray(selectedActionIds)) return []
+    sourceActions = []
+    const seen = new Set()
+    for (const selected of selectedActionIds) {
+      const actionId = String(
+        selected && typeof selected === 'object'
+          ? selected.actionId
+          : selected ?? ''
+      ).trim()
+      if (!actionId || seen.has(actionId)) continue
+      const registered = getResponseAction(actionId)
+      if (!registered || registered.supported !== true || !registered.executionTarget) {
+        continue
+      }
+      seen.add(actionId)
+      const llmTarget =
+        selected && typeof selected === 'object'
+          ? String(selected.target ?? '').trim() || null
+          : null
+      sourceActions.push({
+        ...registered,
+        rationale:
+          selected &&
+          typeof selected === 'object' &&
+          typeof selected.rationale === 'string' &&
+          selected.rationale.trim()
+            ? selected.rationale.trim()
+            : null,
+        expectedImpact:
+          selected && typeof selected === 'object'
+            ? selected.expectedImpact ?? null
+            : null,
+        confidence:
+          selected && typeof selected === 'object'
+            ? selected.confidence ?? null
+            : null,
+        dependencies:
+          selected &&
+          typeof selected === 'object' &&
+          Array.isArray(selected.dependencies)
+            ? [...selected.dependencies]
+            : [],
+        peerTargetId: registered.requiresPeer ? llmTarget : null,
+      })
+    }
+  } else {
+    sourceActions = available
+  }
+
   const steps = []
   let order = 1
-  for (const action of available) {
+  for (const action of sourceActions) {
     const actionId = String(action.actionId ?? '')
     if (!isRegisteredResponseAction(actionId)) continue
     const registered = getResponseAction(actionId)
     if (!registered || registered.supported !== true) continue
+    const peerId = action.peerTargetId ? String(action.peerTargetId) : null
     steps.push(
       normalizePlanAction({
         stepId: `step-${order}-${actionId}`,
@@ -348,12 +426,27 @@ export function buildRecommendedActionsFromContext(context) {
         actionType: registered.actionType,
         label: registered.label,
         target: nodeId
-          ? { id: nodeId, name: nodeName || nodeId }
+          ? {
+              id: nodeId,
+              name: nodeName || nodeId,
+              ...(peerId ? { peerId, peerName: peerId } : {}),
+            }
           : null,
-        reason: action.rationale || registered.description,
+        reason:
+          selectedActionIds != null
+            ? action.rationale ?? null
+            : action.rationale || registered.description,
+        expectedImpact: action.expectedImpact ?? null,
+        confidence: action.confidence ?? null,
+        dependencies: Array.isArray(action.dependencies)
+          ? [...action.dependencies]
+          : [],
         executionOrder: order,
         risk: actionRiskLabel(actionId, context),
-        reversibility: actionId !== 'restore-connectivity',
+        reversibility:
+          typeof registered.reversible === 'boolean'
+            ? registered.reversible
+            : actionId !== 'restore-connectivity',
         policyStatus: 'ALLOWED',
         status: PLAN_ACTION_STATUS.READY,
         executable: true,
@@ -406,7 +499,12 @@ export function fingerprintFromPlanAndContext(plan, context, detection) {
     const inc = findIncident(detection?.incidents ?? [], id)
     statuses[String(id)] = String(inc?.status ?? 'missing')
   }
-  const available = getAvailableResponseActions(context)
+  const llmPlan = plan?.planSource === 'llm'
+  const available = llmPlan
+    ? (plan?.recommendedActions ?? [])
+        .filter((a) => a?.executable === true)
+        .map((a) => a.actionId)
+    : getAvailableResponseActions(context).map((a) => a.actionId)
   const policy = context?.responsePolicy || buildResponsePolicy(context)
   return buildPlanFingerprint({
     primaryIncidentId: plan?.primaryIncidentId ?? null,
@@ -414,9 +512,11 @@ export function fingerprintFromPlanAndContext(plan, context, detection) {
     incidentStatuses: statuses,
     targetNodeIds: Array.isArray(plan?.affectedNodeIds) ? plan.affectedNodeIds : [],
     recoveryPriority: primary?.recoveryPriority ?? plan?.expectedImpact?.recoveryPriority,
-    availableActionIds: available.map((a) => a.actionId),
-    policyProfile: policy?.responseProfile ?? null,
-    policyExposureOnly: policy?.executionConstraints?.exposureOnly === true,
+    availableActionIds: available,
+    policyProfile: llmPlan ? 'llm' : policy?.responseProfile ?? null,
+    policyExposureOnly: llmPlan
+      ? false
+      : policy?.executionConstraints?.exposureOnly === true,
   })
 }
 
@@ -436,12 +536,14 @@ function makePlanId(primaryIncidentId) {
  *   context: object,
  *   focusIncidentId?: string|null,
  *   nowMs?: number,
- *   mode?: 'plan'|'replan',
+ *   mode?: 'plan'|'replan'|'continue',
  *   nodes?: object[],
  *   previousPlan?: object|null,
  *   verification?: object|null,
  *   previousPlanId?: string|null,
  *   replanCount?: number,
+ *   continuationCount?: number,
+ *   selectedActionIds?: string[]|null,
  * }} args
  */
 export function buildResponsePlan({
@@ -455,6 +557,8 @@ export function buildResponsePlan({
   verification = null,
   previousPlanId = null,
   replanCount = 0,
+  continuationCount = 0,
+  selectedActionIds = null,
 } = {}) {
   if (!context || typeof context !== 'object') {
     return {
@@ -466,13 +570,17 @@ export function buildResponsePlan({
   }
 
   const isReplan = mode === 'replan'
-  let primarySelectionReason = isReplan
-    ? 'replan_adaptive_recovery_priority'
-    : 'global_recovery_priority'
+  const isContinue = mode === 'continue'
+  const usesAdaptivePrimary = isReplan || isContinue
+  let primarySelectionReason = isContinue
+    ? 'continuation_adaptive_recovery_priority'
+    : isReplan
+      ? 'replan_adaptive_recovery_priority'
+      : 'global_recovery_priority'
   let focusOverride = false
 
   let primary
-  if (isReplan) {
+  if (usesAdaptivePrimary) {
     primary =
       selectPrimaryIncidentForReplan(detection, {
         nodes,
@@ -502,11 +610,31 @@ export function buildResponsePlan({
   const nodeId = affectedNodeIdFromContext(context)
   const affectedNodeIds = nodeId ? [nodeId] : []
 
+  const llmSelected =
+    Array.isArray(selectedActionIds) && selectedActionIds.length > 0
   const policy = context.responsePolicy || buildResponsePolicy(context)
-  const recommendedActions = buildRecommendedActionsFromContext(context)
+  const recommendedActions = buildRecommendedActionsFromContext(context, {
+    selectedActionIds,
+  })
   const executableActions = recommendedActions.filter((a) => a.executable === true)
-  const policyStatus =
-    policy?.executionConstraints?.exposureOnly === true
+
+  if (
+    llmSelected &&
+    executableActions.length === 0
+  ) {
+    return {
+      ok: false,
+      message: 'Selected action IDs are not executable repository actions',
+      plan: null,
+      fingerprint: null,
+    }
+  }
+
+  const policyStatus = llmSelected
+    ? executableActions.length > 0
+      ? 'ALLOWED'
+      : 'NO_EXECUTABLE_ACTIONS'
+    : policy?.executionConstraints?.exposureOnly === true
       ? 'BLOCKED_EXPOSURE'
       : executableActions.length > 0
         ? 'ALLOWED'
@@ -518,13 +646,20 @@ export function buildResponsePlan({
   })
 
   const adapted =
-    isReplan &&
+    usesAdaptivePrimary &&
     previousPlan?.primaryIncidentId &&
     primaryId &&
     String(previousPlan.primaryIncidentId) !== String(primaryId)
 
   const reasoningParts = []
-  if (isReplan) {
+  if (isContinue) {
+    reasoningParts.push(
+      'Continuing approved response within human approval scope after a verified iteration.'
+    )
+    if (adapted) {
+      reasoningParts.push('Next primary selected by live recovery priority among remaining candidates.')
+    }
+  } else if (isReplan) {
     reasoningParts.push(
       buildReplanReasoning({
         previousPlan,
@@ -538,13 +673,25 @@ export function buildResponsePlan({
   if (expectedImpact.reasons.length) {
     reasoningParts.push(...expectedImpact.reasons.slice(0, 4))
   }
-  if (policy?.reasons?.length) {
+  if (policy?.reasons?.length && !llmSelected) {
     reasoningParts.push(`Policy profile: ${policy.responseProfile}`)
+  }
+  if (llmSelected) {
+    reasoningParts.push(
+      `LLM Commander selected ${executableActions.length} repository-validated action(s)`
+    )
   }
 
   const count = Number.isFinite(Number(replanCount))
     ? Math.max(0, Math.floor(Number(replanCount)))
     : 0
+  const contCount = Number.isFinite(Number(continuationCount))
+    ? Math.max(0, Math.floor(Number(continuationCount)))
+    : 0
+
+  const lineagePreviousId = isReplan
+    ? previousPlanId || previousPlan?.planId || null
+    : null
 
   const plan = createEmptyResponsePlan({
     planId: makePlanId(primaryId),
@@ -559,13 +706,13 @@ export function buildResponsePlan({
     policyStatus,
     reasoning: reasoningParts.join(' · ') || null,
     approvalStatus: PLAN_APPROVAL_STATUS.NONE,
-    previousPlanId: isReplan
-      ? previousPlanId || previousPlan?.planId || null
-      : null,
+    planKind: isContinue ? 'continuation' : isReplan ? 'replan' : 'fresh',
+    /** STEP 16: previousPlanId only for genuine replan lineage — never normal continuation */
+    previousPlanId: lineagePreviousId,
     replanCount: isReplan ? count : 0,
     replanContext: isReplan
       ? {
-          previousPlanId: previousPlanId || previousPlan?.planId || null,
+          previousPlanId: lineagePreviousId,
           previousPrimaryIncidentId: previousPlan?.primaryIncidentId ?? null,
           previousExecutableActionIds: (previousPlan?.recommendedActions ?? [])
             .filter((a) => a?.executable)
@@ -574,14 +721,30 @@ export function buildResponsePlan({
             ? [...previousPlan.affectedNodeIds]
             : [],
           verificationVerdict: verification?.verdict ?? null,
-          verificationReasons: Array.isArray(verification?.reasons)
-            ? [...verification.reasons]
+          verificationReasons: Array.isArray(verification?.failReasons)
+            ? [...verification.failReasons]
+            : Array.isArray(verification?.reasons)
+              ? [...verification.reasons]
+              : [],
+          adapted: adapted === true,
+        }
+      : null,
+    continuationContext: isContinue
+      ? {
+          previousPrimaryIncidentId: previousPlan?.primaryIncidentId ?? null,
+          previousExecutableActionIds: (previousPlan?.recommendedActions ?? [])
+            .filter((a) => a?.executable)
+            .map((a) => a.actionId),
+          previousTargets: Array.isArray(previousPlan?.affectedNodeIds)
+            ? [...previousPlan.affectedNodeIds]
             : [],
+          continuationCount: contCount,
           adapted: adapted === true,
         }
       : null,
     primarySelectionReason,
     focusOverride,
+    planSource: llmSelected ? 'llm' : 'policy',
   })
 
   const fingerprint = fingerprintFromPlanAndContext(plan, context, detection)
@@ -602,7 +765,10 @@ export function buildResponsePlan({
 /**
  * Revalidate plan executable actions against live context.
  * Returns { ok, staleReason?, liveActions, policyStatus }.
- * Does not trust client action lists — rebuilds from context.
+ * Does not trust client action lists — rebuilds availability from context.
+ *
+ * Plan actions must remain a subset of live available actions (LLM may select
+ * fewer than the full policy set). Exact equality is not required.
  */
 export function revalidatePlanAgainstContext(plan, context, detection) {
   if (!plan || typeof plan !== 'object') {
@@ -612,32 +778,86 @@ export function revalidatePlanAgainstContext(plan, context, detection) {
     return { ok: false, reason: 'Context unavailable', liveActions: [], policyStatus: null }
   }
 
-  const liveActions = buildRecommendedActionsFromContext(context)
-  const liveIds = liveActions.map((a) => a.actionId).sort()
-  const planExecIds = (plan.recommendedActions || [])
-    .filter((a) => a && a.executable === true)
-    .map((a) => a.actionId)
-    .sort()
+  const planExec = (plan.recommendedActions || []).filter((a) => a && a.executable === true)
+  const planExecIds = planExec.map((a) => a.actionId)
 
-  // Reject any plan that claimed executable catalog-only / unknown ids
-  for (const action of plan.recommendedActions || []) {
-    if (action?.executable !== true) continue
+  for (const action of planExec) {
     if (!isRegisteredResponseAction(action.actionId)) {
       return {
         ok: false,
         reason: 'Plan contains non-registered executable actionId',
-        liveActions,
+        liveActions: [],
+        policyStatus: 'INVALID_ACTION',
+      }
+    }
+    const registered = getResponseAction(action.actionId)
+    if (!registered || registered.supported !== true || !registered.executionTarget) {
+      return {
+        ok: false,
+        reason: 'Plan contains a non-executable actionId',
+        liveActions: [],
         policyStatus: 'INVALID_ACTION',
       }
     }
   }
 
-  if (liveIds.join(',') !== planExecIds.join(',')) {
+  if (plan.planSource === 'llm') {
+    const nodeId = affectedNodeIdFromContext(context)
+    const primary = findIncident(detection?.incidents ?? [], plan.primaryIncidentId)
+    if (plan.primaryIncidentId && !primary) {
+      return {
+        ok: false,
+        reason: 'Primary incident no longer exists',
+        liveActions: [],
+        policyStatus: 'MISSING_INCIDENT',
+      }
+    }
+    if (planExecIds.length === 0) {
+      return {
+        ok: false,
+        reason: 'No executable actions in LLM plan',
+        liveActions: [],
+        policyStatus: 'NO_EXECUTABLE_ACTIONS',
+      }
+    }
+    if (planExec.some((action) => {
+      const registered = getResponseAction(action.actionId)
+      return registered?.requiresNode && !nodeId
+    })) {
+      return {
+        ok: false,
+        reason: 'Incident node missing',
+        liveActions: [],
+        policyStatus: 'MISSING_TARGET',
+      }
+    }
+    return {
+      ok: true,
+      liveActions: planExec,
+      policyStatus: 'ALLOWED',
+    }
+  }
+
+  const liveActions = buildRecommendedActionsFromContext(context)
+  const liveIdSet = new Set(liveActions.map((a) => a.actionId))
+
+  if (planExecIds.length === 0) {
     return {
       ok: false,
-      reason: 'Executable actions no longer match live policy',
+      reason: 'No executable actions available under current policy',
       liveActions,
-      policyStatus: 'STALE_ACTIONS',
+      policyStatus: 'NO_EXECUTABLE_ACTIONS',
+    }
+  }
+
+  for (const actionId of planExecIds) {
+    if (!liveIdSet.has(actionId)) {
+      return {
+        ok: false,
+        reason: 'Executable actions no longer match live policy',
+        liveActions,
+        policyStatus: 'STALE_ACTIONS',
+      }
     }
   }
 

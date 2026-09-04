@@ -9,6 +9,7 @@ import {
 } from './orchestrate.js'
 import {
   captureVerificationBaseline,
+  cloneDetectionSnapshot,
   runRecoveryAgent,
   VERIFICATION_VERDICT,
 } from './recoveryAgent.js'
@@ -135,20 +136,20 @@ function roomWithIncident(id = 'ORCH-REC') {
 function toVerifying(room) {
   generateOrchestrationPlan(room, { focusIncidentId: 'inc-pay', resolveContext })
   approveOrchestrationPlan(room, { resolveContext, autoContinue: false })
-  const exec = executeOrchestrationPlan(room, { resolveContext })
+  const exec = executeOrchestrationPlan(room, { resolveContext, autoContinue: false })
   assert.equal(exec.ok, true)
-  assert.equal(room.responseOrchestration.status, ORCHESTRATION_STATUS.VERIFYING)
+  assert.equal(room.responseOrchestration.status, ORCHESTRATION_STATUS.CONTINUING)
   // Simulate post-sync detection: seed no longer anomalous while quarantined
   room.detection.anomalyNodeIds = []
   room.detection.isolationScoresByNodeId = { pay: 0.4, gw: 0.1 }
 }
 
 describe('Recovery Agent STEP 4', () => {
-  it('rejects verify unless VERIFYING', () => {
+  it('rejects verify before response execution', () => {
     const room = roomWithIncident('NO-V')
     const result = verifyOrchestrationPlan(room)
     assert.equal(result.ok, false)
-    assert.ok(String(result.message).includes('VERIFYING'))
+    assert.ok(/execute|continuing|verification/i.test(String(result.message)))
   })
 
   it('captures baseline before execute mutations', () => {
@@ -159,7 +160,7 @@ describe('Recovery Agent STEP 4', () => {
       runtimeStateOf(room.nodes.find((n) => n.id === 'pay').data).quarantined,
       false
     )
-    executeOrchestrationPlan(room, { resolveContext })
+    executeOrchestrationPlan(room, { resolveContext, autoContinue: false })
     const baseline = room.responseOrchestration.verificationBaseline
     assert.ok(baseline)
     assert.equal(baseline.quarantineByTarget.pay, false)
@@ -176,7 +177,8 @@ describe('Recovery Agent STEP 4', () => {
     const result = verifyOrchestrationPlan(room)
     assert.equal(result.ok, true)
     assert.equal(result.verdict, VERIFICATION_VERDICT.RECOVERED)
-    assert.equal(room.responseOrchestration.status, ORCHESTRATION_STATUS.RECOVERED)
+    assert.equal(result.observational, true)
+    assert.notEqual(room.responseOrchestration.status, ORCHESTRATION_STATUS.REPLAN_REQUIRED)
     assert.equal(result.autoRestored, false)
     assert.equal(result.incidentsClosed, false)
     assert.equal(result.mutatedQuarantine, false)
@@ -197,25 +199,34 @@ describe('Recovery Agent STEP 4', () => {
     )
   })
 
-  it('REPLAN_REQUIRED when quarantine missing after execute', () => {
+  it('observes missing quarantine without writing REPLAN_REQUIRED', () => {
     const room = roomWithIncident('NO-Q')
     toVerifying(room)
     setNodeQuarantined(room, 'pay', false)
     const result = verifyOrchestrationPlan(room)
-    assert.equal(result.ok, false)
+    assert.equal(result.observational, true)
     assert.equal(result.verdict, VERIFICATION_VERDICT.REPLAN_REQUIRED)
-    assert.equal(
+    assert.notEqual(
       room.responseOrchestration.status,
       ORCHESTRATION_STATUS.REPLAN_REQUIRED
     )
   })
 
-  it('REPLAN_REQUIRED when new out-of-scope anomaly appears', () => {
+  it('observes a new out-of-scope anomaly without workflow mutation', () => {
     const room = roomWithIncident('NEW-A')
     toVerifying(room)
-    room.detection.anomalyNodeIds = ['gw']
+    const outsideNodeId = 'brand-new-outside-scope-node'
+    assert.equal(
+      room.responseOrchestration.approvalScope.targetNodeIds.includes(outsideNodeId),
+      false
+    )
+    room.detection.anomalyNodeIds = [outsideNodeId]
+    // Authoritative post-response detection update (not a racing tick)
+    room.responseOrchestration.postExecutionDetection = cloneDetectionSnapshot(
+      room.detection
+    )
     const result = verifyOrchestrationPlan(room)
-    assert.equal(result.ok, false)
+    assert.equal(result.workflowUnchangedByVerdict, true)
     assert.equal(result.verdict, VERIFICATION_VERDICT.REPLAN_REQUIRED)
   })
 
@@ -332,7 +343,7 @@ describe('Recovery Agent STEP 10 verification semantics', () => {
 
     generateOrchestrationPlan(room, { focusIncidentId: 'inc-a', resolveContext })
     approveOrchestrationPlan(room, { resolveContext, autoContinue: false })
-    executeOrchestrationPlan(room, { resolveContext })
+    executeOrchestrationPlan(room, { resolveContext, autoContinue: false })
     room.detection.isolationScoresByNodeId = { pay: 0.4, water: 0.85, gw: 0.1 }
 
     const verified = verifyOrchestrationPlan(room, {
@@ -353,7 +364,7 @@ describe('Recovery Agent STEP 10 verification semantics', () => {
     assert.ok(
       [
         ORCHESTRATION_STATUS.RECOVERED,
-        ORCHESTRATION_STATUS.VERIFYING,
+        ORCHESTRATION_STATUS.CONTINUING,
         ORCHESTRATION_STATUS.AWAITING_APPROVAL,
         ORCHESTRATION_STATUS.APPROVED,
         ORCHESTRATION_STATUS.ANALYZING,
@@ -391,7 +402,7 @@ describe('Recovery Agent STEP 10 verification semantics', () => {
     const room = roomWithIncident('S10-4')
     generateOrchestrationPlan(room, { focusIncidentId: 'inc-pay', resolveContext })
     approveOrchestrationPlan(room, { resolveContext, autoContinue: false })
-    executeOrchestrationPlan(room, { resolveContext })
+    executeOrchestrationPlan(room, { resolveContext, autoContinue: false })
     const execution = {
       ...room.responseOrchestration.execution,
       results: (room.responseOrchestration.execution.results || []).map((r) => ({

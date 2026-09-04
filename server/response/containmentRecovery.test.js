@@ -317,6 +317,7 @@ test('ALREADY_EXECUTED via execute path remains idempotent', () => {
     incidentId: 'inc-pay',
     actionId: 'isolate-node',
     context: commanderContextFor('IDEMP', 'inc-pay'),
+    approvedPlanStep: true,
   })
   assert.equal(second.status, EXECUTION_STATUS.ALREADY_EXECUTED)
   assert.deepEqual(room.hackSimulator.nodeOverrides, overrides)

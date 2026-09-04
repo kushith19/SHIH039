@@ -1,54 +1,51 @@
 /**
- * Response Action Registry — executable simulator actions only.
+ * Response Action Registry — facade over the Response Action Repository (STEP 17).
  *
- * RECOMMENDATION (AI Commander advisory text) is separate from EXECUTABLE ACTION
- * (what the simulator actually knows how to perform). Only registered actions
- * may receive a future EXECUTE operation.
- *
- * Availability (Stage 3+): response policy recommendedActions ∩ registry,
- * subject to seed-only / exposure / recovery constraints. RAG/LLM cannot invent actionIds.
- *
- * ISOLATE_NODE → setNodeQuarantined(true) (+ clear attack override).
- * RESTORE_CONNECTIVITY → setNodeQuarantined(false) (does not restore attack).
+ * RECOMMENDATION (Commander) is separate from EXECUTABLE ACTION.
+ * Only supported repository actions may receive executeResponseAction.
  * This module does not execute anything.
  */
 
 import { buildResponsePolicy } from './responsePolicy.js'
+import {
+  RESPONSE_ACTION_REPOSITORY,
+  RESPONSE_ACTION_TYPES,
+  getRepositoryAction,
+  listRepositoryActions,
+  isSupportedExecutableAction,
+} from './response/responseActionRepository.js'
 
-export const RESPONSE_ACTION_TYPES = Object.freeze({
-  ISOLATE_NODE: 'ISOLATE_NODE',
-  RESTORE_CONNECTIVITY: 'RESTORE_CONNECTIVITY',
-})
+export { RESPONSE_ACTION_TYPES }
 
-const ISOLATE_NODE_ACTION = Object.freeze({
-  actionId: 'isolate-node',
-  actionType: RESPONSE_ACTION_TYPES.ISOLATE_NODE,
-  label: 'Isolate Node',
-  description: 'Isolate the affected endpoint from active communication.',
-  requiresNode: true,
-  supported: true,
-  /** Execute target: setNodeQuarantined(true) / defender:quarantine
-   *  (quarantine also clears that node's active nodeOverrides entry). */
-  executionTarget: 'quarantine',
-})
+/**
+ * Frozen registry keyed by actionId — supported executable entries only
+ * (plus unsupported foreshadowing kept out of RESPONSE_ACTIONS for execute safety).
+ * Backward-compatible shape for existing callers.
+ */
+function toLegacyShape(def) {
+  return Object.freeze({
+    actionId: def.actionId,
+    actionType: def.actionType,
+    label: def.label,
+    description: def.description,
+    requiresNode: def.requiresNode === true,
+    requiresPeer: def.requiresPeer === true,
+    supported: def.supported === true,
+    reversible: def.reversible,
+    mutation: def.mutation !== false,
+    category: def.category,
+    riskLevel: def.riskLevel,
+    requiresApproval: def.requiresApproval !== false,
+    executionTarget: def.executionTarget,
+  })
+}
 
-const RESTORE_CONNECTIVITY_ACTION = Object.freeze({
-  actionId: 'restore-connectivity',
-  actionType: RESPONSE_ACTION_TYPES.RESTORE_CONNECTIVITY,
-  label: 'Restore Connectivity',
-  description:
-    'Restore connectivity to a previously contained endpoint after recovery conditions are satisfied.',
-  requiresNode: true,
-  supported: true,
-  /** Execute target: setNodeQuarantined(false). Does not restore attack overrides. */
-  executionTarget: 'unquarantine',
-})
+const supportedEntries = listRepositoryActions({ supportedOnly: true }).map(toLegacyShape)
 
-/** Frozen registry keyed by actionId. */
-export const RESPONSE_ACTIONS = Object.freeze({
-  [ISOLATE_NODE_ACTION.actionId]: ISOLATE_NODE_ACTION,
-  [RESTORE_CONNECTIVITY_ACTION.actionId]: RESTORE_CONNECTIVITY_ACTION,
-})
+/** Frozen registry keyed by actionId (supported only). */
+export const RESPONSE_ACTIONS = Object.freeze(
+  Object.fromEntries(supportedEntries.map((a) => [a.actionId, a]))
+)
 
 export function listRegisteredResponseActions() {
   return Object.values(RESPONSE_ACTIONS)
@@ -56,12 +53,19 @@ export function listRegisteredResponseActions() {
 
 export function getResponseAction(actionId) {
   if (actionId == null || actionId === '') return null
-  const action = RESPONSE_ACTIONS[String(actionId)]
-  return action ?? null
+  const fromRegistry = RESPONSE_ACTIONS[String(actionId)]
+  if (fromRegistry) return fromRegistry
+  // Unsupported repository entries resolve for messaging but not for RESPONSE_ACTIONS
+  const raw = getRepositoryAction(actionId)
+  return raw ? toLegacyShape(raw) : null
 }
 
 export function isRegisteredResponseAction(actionId) {
-  return getResponseAction(actionId) != null
+  return RESPONSE_ACTIONS[String(actionId)] != null
+}
+
+export function isExecutableResponseAction(actionId) {
+  return isSupportedExecutableAction(actionId) && isRegisteredResponseAction(actionId)
 }
 
 /** Non-empty affected node id from commander / incident context shapes. */
@@ -84,7 +88,6 @@ const EXPOSURE_EVIDENCE_CODES = new Set(['peer_exposure', 'graph_propagation'])
 
 /**
  * Exposure / propagated-risk records are context, not executable incidents.
- * Historical SQLite rows may still exist; detect them from the stored flag or evidence.
  */
 export function isExposureIncidentContext(incidentContext) {
   if (!incidentContext || typeof incidentContext !== 'object') return false
@@ -103,8 +106,6 @@ export function isExposureIncidentContext(incidentContext) {
 export function getAvailableResponseActions(incidentContext) {
   if (!incidentContext || typeof incidentContext !== 'object') return []
   const nodeId = affectedNodeIdFromContext(incidentContext)
-  if (!nodeId) return []
-
   const policy = buildResponsePolicy(incidentContext)
   if (policy.executionConstraints?.exposureOnly === true) return []
 
@@ -116,6 +117,10 @@ export function getAvailableResponseActions(incidentContext) {
     const registered = getResponseAction(actionId)
     if (!registered || registered.supported !== true) continue
     if (registered.requiresNode && !nodeId) continue
+    if (registered.requiresPeer && !rec.peerTargetId && !(rec.peerCandidates || []).length) {
+      // Peer-required without a candidate — skip
+      continue
+    }
     seen.add(actionId)
     available.push({
       ...registered,
@@ -123,6 +128,9 @@ export function getAvailableResponseActions(incidentContext) {
       priority: rec.priority ?? null,
       responseProfile: policy.responseProfile,
       profileLabel: rec.profileLabel || policy.responseProfile,
+      peerTargetId: rec.peerTargetId ?? null,
+      peerCandidates: rec.peerCandidates ?? null,
+      playbookId: policy.playbookId ?? null,
     })
   }
   return available
@@ -138,3 +146,5 @@ export function attachAvailableResponseActions(context) {
     availableActions: getAvailableResponseActions(context),
   }
 }
+
+export { RESPONSE_ACTION_REPOSITORY, listRepositoryActions, getRepositoryAction }

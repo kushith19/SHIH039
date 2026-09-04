@@ -1,18 +1,18 @@
 /**
- * Explicit multi-incident orchestration continuation runner (STEP 9).
+ * Explicit multi-incident orchestration continuation runner (STEP 9 / 16).
  *
- * After human approval establishes an approvalScope, this runner drives:
- *   execute → verify → (more work?) → plan → scope check → auto-approve → …
- * until no remaining active (non-quarantined) incidents, scope expansion, or max iterations.
+ * STEP 16 control flow (Verification is NOT a gate):
+ *   Human approval → Response execute → (remaining?) → Commander continue → execute → …
+ * until no remaining approved-scope work, scope expansion, or max iterations.
  *
- * Not a recursive HTTP chain — a single server-side loop with explicit transitions.
+ * REPLAN_REQUIRED only on genuine Response execution failure.
+ * Scope expansion → AWAITING_APPROVAL (human), not replan.
  */
 
 import {
   AGENT_SLOT_STATUS,
   ORCHESTRATION_STATUS,
   PLAN_APPROVAL_STATUS,
-  agentSlotsForStatus,
   canTransitionOrchestration,
   normalizeOrchestrationStatus,
 } from '../../shared/response/orchestration.js'
@@ -26,13 +26,47 @@ import {
   isPlanWithinApprovalScope,
   remainingResponseCandidates,
 } from '../../shared/response/approvalScope.js'
+import { verifyResponseStep } from './recoveryAgent.js'
+import { pushWorkflowTrace } from './workflowTrace.js'
 
 export const DEFAULT_MAX_AUTO_ITERATIONS = 8
+
+/** Demo/readability pause between automatic agent stages (ms). */
+export const ORCHESTRATION_STEP_DELAY_MS = 3500
 
 export function getMaxAutoIterations() {
   const n = Number(process.env.ORCHESTRATION_MAX_AUTO_ITERATIONS)
   if (Number.isFinite(n) && n > 0) return Math.min(Math.floor(n), 20)
   return DEFAULT_MAX_AUTO_ITERATIONS
+}
+
+export function getOrchestrationStepDelayMs() {
+  if (
+    process.env.ORCHESTRATION_STEP_DELAY_MS != null &&
+    process.env.ORCHESTRATION_STEP_DELAY_MS !== ''
+  ) {
+    const n = Number(process.env.ORCHESTRATION_STEP_DELAY_MS)
+    if (Number.isFinite(n) && n >= 0) return Math.min(Math.floor(n), 15000)
+  }
+  return ORCHESTRATION_STEP_DELAY_MS
+}
+
+export function sleepMs(ms) {
+  const n = Math.floor(Number(ms) || 0)
+  if (n <= 0) return
+  const sab = new SharedArrayBuffer(4)
+  const ia = new Int32Array(sab)
+  Atomics.wait(ia, 0, 0, n)
+}
+
+const loopInFlight = new Set()
+
+export function isOrchestrationLoopInFlight(roomId) {
+  return loopInFlight.has(String(roomId ?? '').toUpperCase())
+}
+
+export function clearOrchestrationLoopInFlight(roomId) {
+  if (roomId) loopInFlight.delete(String(roomId).toUpperCase())
 }
 
 const PLAN_HISTORY_LIMIT = 5
@@ -51,8 +85,10 @@ function historyEntryFromPlan(plan, {
 } = {}) {
   return {
     planId: plan?.planId ?? null,
-    previousPlanId: plan?.previousPlanId ?? null,
-    replanCount: Number(plan?.replanCount) || 0,
+    previousPlanId: null,
+    planKind: plan?.planKind ?? null,
+    replanCount: 0,
+    continuationCount: Number(plan?.continuationContext?.continuationCount) || 0,
     primaryIncidentId: plan?.primaryIncidentId ?? null,
     executableActionIds: (plan?.recommendedActions ?? [])
       .filter((a) => a?.executable)
@@ -65,16 +101,65 @@ function historyEntryFromPlan(plan, {
   }
 }
 
+function paceStage(room, {
+  delayMs,
+  reason,
+  writeState,
+  publicOrchestrationState,
+  onProgress,
+  log,
+} = {}) {
+  const ms = Math.floor(Number(delayMs) || 0)
+  if (ms <= 0) return
+  writeState(room, {
+    continuationReason: reason,
+    updatedAtMs: Date.now(),
+  })
+  if (typeof onProgress === 'function') {
+    onProgress(publicOrchestrationState(room))
+  }
+  if (Array.isArray(log)) {
+    log.push({ event: 'paced', reason, delayMs: ms, atMs: Date.now() })
+  }
+  sleepMs(ms)
+}
+
 /**
- * Build the next Commander plan for continuation (fresh state; prior plan = context).
- * Does not execute. Caller owns status transitions.
+ * Observational evidence only — never gates continuation or writes REPLAN.
  */
+export function recordObservationalVerification(room) {
+  const state = room?.responseOrchestration
+  if (!state?.plan || !state?.execution) return null
+  const step = verifyResponseStep({
+    room,
+    plan: state.plan,
+    execution: state.execution,
+    baseline: state.verificationBaseline,
+    approvalScope: state.approvalScope ?? null,
+    detectionSnapshot: state.postExecutionDetection ?? null,
+    nowMs: Date.now(),
+  })
+  state.verification = step.verification
+  pushWorkflowTrace(room, {
+    kind: 'observational_verification',
+    verified: step.verified === true,
+    failReasons: step.failReasons ?? [],
+    planId: state.plan?.planId ?? null,
+    primaryIncidentId: state.plan?.primaryIncidentId ?? null,
+    // Explicit: does not change workflow status
+    controlFlow: 'ignored',
+  })
+  return step
+}
+
 export function buildContinuationPlan(room, {
   resolveContext,
   nowMs = Date.now(),
   previousPlan = null,
   verification = null,
   replanCount = 0,
+  continuationCount = 0,
+  planMode = 'continue',
 } = {}) {
   if (typeof resolveContext !== 'function') {
     return { ok: false, message: 'Context resolver unavailable' }
@@ -99,17 +184,19 @@ export function buildContinuationPlan(room, {
     return { ok: false, message: 'Fresh Commander context unavailable' }
   }
 
+  const mode = planMode === 'replan' ? 'replan' : 'continue'
   const built = buildResponsePlan({
     detection,
     context,
     focusIncidentId: contextIncidentId,
     nowMs,
-    mode: 'replan',
+    mode,
     nodes: room.nodes ?? [],
     previousPlan,
     verification,
-    previousPlanId: previousPlan?.planId ?? null,
-    replanCount,
+    previousPlanId: mode === 'replan' ? previousPlan?.planId ?? null : null,
+    replanCount: mode === 'replan' ? replanCount : 0,
+    continuationCount,
   })
 
   if (!built.ok || !built.plan) {
@@ -120,46 +207,95 @@ export function buildContinuationPlan(room, {
       ok: false,
       message: 'No policy-approved response action is currently available',
       noExecutable: true,
-      plan: built.plan,
-      fingerprint: built.fingerprint,
     }
   }
-
   return {
     ok: true,
-    plan: {
-      ...built.plan,
-      commanderStatus: AGENT_SLOT_STATUS.READY,
-      approvalStatus: PLAN_APPROVAL_STATUS.PENDING,
-    },
+    plan: built.plan,
     fingerprint: built.fingerprint,
-    primaryIncident: built.primaryIncident,
+    primaryIncidentId: built.plan.primaryIncidentId,
   }
 }
 
-/**
- * Run automatic continuation after a verification outcome or from APPROVED.
- *
- * @param {object} deps - injected orchestrate primitives to avoid circular imports
- */
 export function runOrchestrationContinuation(room, {
   resolveContext,
   onProgress = null,
   onCompleteSync = null,
   nowMs = Date.now(),
   maxIterations = null,
-  /** 'from_approved' | 'after_step_verified' | 'after_step_failed' */
-  mode = 'after_step_verified',
+  stepDelayMs = null,
+  /** 'from_approved' | 'after_execution' */
+  mode = 'after_execution',
   writeState,
   publicOrchestrationState,
   executeOrchestrationPlan,
-  verifyOrchestrationPlan,
+  verifyOrchestrationPlan: _unusedVerify,
+  markEpisodeRecovered,
+} = {}) {
+  const roomKey = String(room?.id ?? '').toUpperCase()
+  if (roomKey && loopInFlight.has(roomKey)) {
+    return {
+      ok: false,
+      statusCode: 409,
+      message: 'Orchestration continuation already in progress for this room',
+      orchestration:
+        typeof publicOrchestrationState === 'function'
+          ? publicOrchestrationState(room)
+          : null,
+    }
+  }
+  if (roomKey) loopInFlight.add(roomKey)
+
+  try {
+    return runOrchestrationContinuationBody(room, {
+      resolveContext,
+      onProgress,
+      onCompleteSync,
+      nowMs,
+      maxIterations,
+      stepDelayMs,
+      mode,
+      writeState,
+      publicOrchestrationState,
+      executeOrchestrationPlan,
+      markEpisodeRecovered,
+    })
+  } finally {
+    if (roomKey) loopInFlight.delete(roomKey)
+  }
+}
+
+function runOrchestrationContinuationBody(room, {
+  resolveContext,
+  onProgress = null,
+  onCompleteSync = null,
+  nowMs = Date.now(),
+  maxIterations = null,
+  stepDelayMs = null,
+  mode = 'after_execution',
+  writeState,
+  publicOrchestrationState,
+  executeOrchestrationPlan,
   markEpisodeRecovered,
 } = {}) {
   const max = maxIterations ?? getMaxAutoIterations()
+  const delayMs =
+    stepDelayMs != null && Number.isFinite(Number(stepDelayMs))
+      ? Math.max(0, Math.floor(Number(stepDelayMs)))
+      : getOrchestrationStepDelayMs()
   let autoIteration = Number(room.responseOrchestration?.autoIteration) || 0
   const scope = room.responseOrchestration?.approvalScope ?? null
   const log = []
+  let pendingTerminalSync = false
+  const requestTerminalSync = () => {
+    pendingTerminalSync = true
+  }
+  const flushTerminalSync = () => {
+    if (pendingTerminalSync && typeof onCompleteSync === 'function') {
+      onCompleteSync(room)
+      pendingTerminalSync = false
+    }
+  }
 
   const emit = () => {
     if (typeof onProgress === 'function') {
@@ -167,9 +303,27 @@ export function runOrchestrationContinuation(room, {
     }
   }
 
-  // from_approved: execute the human-approved plan first
+  const pace = (reason) =>
+    paceStage(room, {
+      delayMs,
+      reason,
+      writeState,
+      publicOrchestrationState,
+      onProgress,
+      log,
+    })
+
+  const afterSuccessfulExecute = (planId) => {
+    // executeOrchestrationPlan already recorded observational evidence + RESPONSE_COMPLETED
+    log.push({ event: 'execute_ok', planId })
+    requestTerminalSync()
+  }
+
+  // from_approved: hold APPROVED visibility, then execute the human-approved plan
   if (mode === 'from_approved') {
-    const status = normalizeOrchestrationStatus(room.responseOrchestration.workflowStatus)
+    const status = normalizeOrchestrationStatus(
+      room.responseOrchestration.workflowStatus
+    )
     if (status !== ORCHESTRATION_STATUS.APPROVED) {
       return {
         ok: false,
@@ -178,50 +332,49 @@ export function runOrchestrationContinuation(room, {
         orchestration: publicOrchestrationState(room),
       }
     }
+    emit()
+    pace('pacing_after_approval')
+
+    pushWorkflowTrace(room, {
+      kind: 'agent_loop',
+      phase: 'RESPONSE_EXECUTING',
+      planId: room.responseOrchestration?.plan?.planId,
+      primaryIncidentId: room.responseOrchestration?.plan?.primaryIncidentId,
+      atMs: Date.now(),
+    })
+
     const exec = executeOrchestrationPlan(room, {
       resolveContext,
       onProgress,
-      onCompleteSync,
+      onCompleteSync: null,
       nowMs,
       _internalContinuation: true,
     })
     if (!exec.ok) {
-      // Execution failed → may be REPLAN_REQUIRED; try to continue planning
-      if (
-        normalizeOrchestrationStatus(room.responseOrchestration.workflowStatus) ===
-        ORCHESTRATION_STATUS.REPLAN_REQUIRED
-      ) {
-        mode = 'after_step_failed'
-        log.push({ event: 'execute_failed', message: exec.message })
-      } else {
-        return { ...exec, continuationLog: log }
-      }
-    } else {
-      const verify = verifyOrchestrationPlan(room, {
-        nowMs: Date.now(),
-        _internalContinuation: true,
-        autoContinue: false,
-      })
-      emit()
-      if (verify.verdict === 'RECOVERED' || verify.stepVerified === true) {
-        mode = 'after_step_verified'
-        log.push({ event: 'step_verified', planId: room.responseOrchestration.plan?.planId })
-      } else {
-        mode = 'after_step_failed'
-        log.push({ event: 'step_verify_failed', message: verify.message })
-      }
+      log.push({ event: 'execute_failed', message: exec.message })
+      if (typeof onCompleteSync === 'function') onCompleteSync(room)
+      return { ...exec, continuationLog: log, stepVerified: false }
     }
+    emit()
+    afterSuccessfulExecute(room.responseOrchestration?.plan?.planId)
+    mode = 'after_execution'
   }
 
   while (autoIteration < max) {
-    // Episode complete?
     if (!hasRemainingResponseWork(room)) {
+      pace('pacing_before_recovered')
       markEpisodeRecovered(room, {
         nowMs: Date.now(),
         reason: 'No active non-quarantined incidents remain',
       })
+      pushWorkflowTrace(room, {
+        kind: 'agent_loop',
+        phase: 'EPISODE_RECOVERED',
+        atMs: Date.now(),
+      })
       emit()
       if (typeof onCompleteSync === 'function') onCompleteSync(room)
+      else flushTerminalSync()
       return {
         ok: true,
         episodeComplete: true,
@@ -242,6 +395,8 @@ export function runOrchestrationContinuation(room, {
         updatedAtMs: Date.now(),
       })
       emit()
+      if (typeof onCompleteSync === 'function') onCompleteSync(room)
+      else flushTerminalSync()
       return {
         ok: true,
         pausedForApproval: true,
@@ -255,17 +410,15 @@ export function runOrchestrationContinuation(room, {
     const prev = room.responseOrchestration
     const previousPlan = prev.plan
     const previousVerification = prev.verification
-    const nextReplanCount =
-      (Number.isFinite(Number(prev.replanCount))
-        ? Math.max(0, Math.floor(Number(prev.replanCount)))
-        : 0) + (mode === 'after_step_failed' || previousPlan ? 1 : 0)
+    const prevReplanCount = Number.isFinite(Number(prev.replanCount))
+      ? Math.max(0, Math.floor(Number(prev.replanCount)))
+      : 0
 
     const historySeed = previousPlan
       ? appendPlanHistory(
           prev.planHistory,
           historyEntryFromPlan(previousPlan, {
-            outcome:
-              mode === 'after_step_failed' ? 'verification_failed' : 'step_verified',
+            outcome: 'continued',
             verificationVerdict: previousVerification?.verdict ?? null,
             atMs: Date.now(),
           })
@@ -274,57 +427,67 @@ export function runOrchestrationContinuation(room, {
         ? [...prev.planHistory]
         : []
 
-    // Transition into ANALYZING for Commander re-evaluation
     const fromStatus = normalizeOrchestrationStatus(prev.workflowStatus)
     if (
-      fromStatus !== ORCHESTRATION_STATUS.ANALYZING &&
-      canTransitionOrchestration(fromStatus, ORCHESTRATION_STATUS.ANALYZING)
+      fromStatus !== ORCHESTRATION_STATUS.CONTINUING &&
+      canTransitionOrchestration(fromStatus, ORCHESTRATION_STATUS.CONTINUING)
     ) {
       writeState(room, {
-        workflowStatus: ORCHESTRATION_STATUS.ANALYZING,
+        workflowStatus: ORCHESTRATION_STATUS.CONTINUING,
         autoIteration,
-        continuationReason:
-          mode === 'after_step_failed'
-            ? 'verification_failed_replan'
-            : 'remaining_incidents',
+        continuationReason: 'remaining_incidents',
         pausedForApprovalReason: null,
         stale: false,
+        staleReason: null,
         planHistory: historySeed,
-        previousPlanId: previousPlan?.planId ?? prev.previousPlanId,
-        replanCount: nextReplanCount,
+        previousPlanId: null,
+        replanCount: prevReplanCount,
+        lastReplanReason: null,
         updatedAtMs: Date.now(),
       })
       emit()
     } else {
       writeState(room, {
         autoIteration,
-        continuationReason:
-          mode === 'after_step_failed'
-            ? 'verification_failed_replan'
-            : 'remaining_incidents',
+        continuationReason: 'remaining_incidents',
         planHistory: historySeed,
-        previousPlanId: previousPlan?.planId ?? prev.previousPlanId,
-        replanCount: nextReplanCount,
+        previousPlanId: null,
+        replanCount: prevReplanCount,
+        lastReplanReason: null,
         updatedAtMs: Date.now(),
       })
     }
+
+    pushWorkflowTrace(room, {
+      kind: 'agent_loop',
+      phase: 'COMMANDER_CONTINUATION',
+      autoIteration,
+      remaining: remainingResponseCandidates(room).map((i) => i.id),
+      atMs: Date.now(),
+    })
+
+    pace('pacing_commander_continuation')
 
     const built = buildContinuationPlan(room, {
       resolveContext,
       nowMs: Date.now(),
       previousPlan,
       verification: previousVerification,
-      replanCount: nextReplanCount,
+      replanCount: 0,
+      continuationCount: autoIteration,
+      planMode: 'continue',
     })
 
     if (!built.ok) {
       if (built.noWork || !hasRemainingResponseWork(room)) {
+        pace('pacing_before_recovered')
         markEpisodeRecovered(room, {
           nowMs: Date.now(),
           reason: built.message || 'No remaining response work',
         })
         emit()
         if (typeof onCompleteSync === 'function') onCompleteSync(room)
+        else flushTerminalSync()
         return {
           ok: true,
           episodeComplete: true,
@@ -338,9 +501,12 @@ export function runOrchestrationContinuation(room, {
         workflowStatus: ORCHESTRATION_STATUS.AWAITING_APPROVAL,
         pausedForApprovalReason: built.message || 'Continuation planning failed',
         continuationReason: 'planning_failed',
+        stale: false,
         updatedAtMs: Date.now(),
       })
       emit()
+      if (typeof onCompleteSync === 'function') onCompleteSync(room)
+      else flushTerminalSync()
       return {
         ok: true,
         pausedForApproval: true,
@@ -366,10 +532,13 @@ export function runOrchestrationContinuation(room, {
         continuationReason: 'scope_expansion',
         approvalScope: scope,
         autoIteration,
+        previousPlanId: null,
         updatedAtMs: Date.now(),
       })
       emit()
       log.push({ event: 'paused_scope', reason: scopeCheck.reason })
+      if (typeof onCompleteSync === 'function') onCompleteSync(room)
+      else flushTerminalSync()
       return {
         ok: true,
         pausedForApproval: true,
@@ -380,11 +549,11 @@ export function runOrchestrationContinuation(room, {
       }
     }
 
-    // Within scope — auto-approve
     const approvedPlan = {
       ...built.plan,
       approvalStatus: PLAN_APPROVAL_STATUS.APPROVED,
       commanderStatus: AGENT_SLOT_STATUS.READY,
+      previousPlanId: null,
       recommendedActions: (built.plan.recommendedActions || []).map((a) =>
         a?.executable
           ? { ...a, policyStatus: 'ALLOWED', status: 'approved' }
@@ -403,6 +572,9 @@ export function runOrchestrationContinuation(room, {
       autoIteration,
       execution: null,
       verificationBaseline: null,
+      postExecutionDetection: null,
+      previousPlanId: null,
+      replanCount: prevReplanCount,
       updatedAtMs: Date.now(),
     })
     emit()
@@ -413,41 +585,42 @@ export function runOrchestrationContinuation(room, {
       candidates: remainingResponseCandidates(room).map((i) => i.id),
     })
 
+    pushWorkflowTrace(room, {
+      kind: 'agent_loop',
+      phase: 'AUTO_APPROVED_WITHIN_SCOPE',
+      planId: approvedPlan.planId,
+      primaryIncidentId: approvedPlan.primaryIncidentId,
+      atMs: Date.now(),
+    })
+
+    pace('pacing_before_execute')
+
+    pushWorkflowTrace(room, {
+      kind: 'agent_loop',
+      phase: 'RESPONSE_EXECUTING',
+      planId: approvedPlan.planId,
+      primaryIncidentId: approvedPlan.primaryIncidentId,
+      atMs: Date.now(),
+    })
+
     const exec = executeOrchestrationPlan(room, {
       resolveContext,
       onProgress,
-      onCompleteSync,
+      onCompleteSync: null,
       nowMs: Date.now(),
       _internalContinuation: true,
     })
     if (!exec.ok) {
       log.push({ event: 'execute_failed', message: exec.message })
-      mode = 'after_step_failed'
-      if (
-        normalizeOrchestrationStatus(room.responseOrchestration.workflowStatus) !==
-        ORCHESTRATION_STATUS.REPLAN_REQUIRED
-      ) {
-        return { ...exec, continuationLog: log, autoIteration }
-      }
-      continue
+      if (typeof onCompleteSync === 'function') onCompleteSync(room)
+      return { ...exec, continuationLog: log, autoIteration, stepVerified: false }
     }
 
-    const verify = verifyOrchestrationPlan(room, {
-      nowMs: Date.now(),
-      _internalContinuation: true,
-      autoContinue: false,
-    })
     emit()
-    if (verify.stepVerified === true || verify.verdict === 'RECOVERED') {
-      log.push({ event: 'step_verified', planId: approvedPlan.planId })
-      mode = 'after_step_verified'
-      continue
-    }
-    log.push({ event: 'step_verify_failed', message: verify.message })
-    mode = 'after_step_failed'
+    afterSuccessfulExecute(approvedPlan.planId)
+    mode = 'after_execution'
   }
 
-  // Max iterations — pause safely (not stale: human may re-approve to continue)
   writeState(room, {
     workflowStatus: ORCHESTRATION_STATUS.AWAITING_APPROVAL,
     pausedForApprovalReason: `Automatic iteration limit reached (${max}) — human review required`,
@@ -457,6 +630,8 @@ export function runOrchestrationContinuation(room, {
     updatedAtMs: Date.now(),
   })
   emit()
+  if (typeof onCompleteSync === 'function') onCompleteSync(room)
+  else flushTerminalSync()
   return {
     ok: true,
     statusCode: 409,

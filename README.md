@@ -30,13 +30,19 @@ It is the default in:
 - `ai-com-v1` (`OLLAMA_MODEL`, `src/config/settings.py`)
 - `server` (`OLLAMA_MODEL` in `.env.example`)
 
-Install Ollama, then pull and run that tag:
+`npm start` does **not** start Ollama. Run it separately when you want local Qwen:
+
+```bash
+npm run ollama:qwen
+```
+
+That starts `ollama serve` if needed and pulls `qwen2.5:7b-instruct`. Equivalent CLI:
 
 ```bash
 # https://ollama.com — install the app or CLI for your OS
 
-ollama pull qwen2.5:7b-instruct
 ollama serve          # if the daemon is not already running
+ollama pull qwen2.5:7b-instruct
 ollama list           # confirm qwen2.5:7b-instruct is present
 ```
 
@@ -139,6 +145,7 @@ From the **repo root**:
 npm install
 npm install --prefix server
 npm start                 # UI + API + Commander; Qdrant only with --with-rag
+npm run ollama:qwen       # optional local Qwen (Ollama); not started by npm start
 # or just the browser app + game server:
 npm run dev:all
 ```
@@ -177,11 +184,12 @@ npm start
 That one command:
 
 1. Copies missing `.env` files from the examples  
-2. Starts Ollama if it is not already on port 11434, and pulls `qwen2.5:7b-instruct` if needed  
-3. Starts Qdrant only if you pass `--with-rag`  
-4. Starts TimescaleDB + tele-ingestion unless you pass `--no-ingest`  
-5. Creates `ai-com-v1/venv` and installs Python deps if needed, then runs Commander on port 8000  
-6. Starts the Vite UI (`5173`) and Node API (`3001`)
+2. Starts Qdrant only if you pass `--with-rag`  
+3. Starts TimescaleDB + tele-ingestion unless you pass `--no-ingest`  
+4. Creates `ai-com-v1/venv` and installs Python deps if needed, then runs Commander on port 8000  
+5. Starts the Vite UI (`5173`) and Node API (`3001`)
+
+Local Qwen is optional. In another terminal: `npm run ollama:qwen`.
 
 Open http://localhost:5173 as two tabs (defender + attacker). Wait for the 15-tick idle window before attacking.
 

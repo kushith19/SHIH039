@@ -1,4 +1,5 @@
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useState } from 'react'
 import {
   detectionTypeLabel,
   formatEvidenceItem,
@@ -16,6 +17,7 @@ import {
   dashboardCommanderIncidentHref,
   dashboardResponseIncidentHref,
 } from './dashboardPanels.js'
+import { requestIncidentResponsePlan } from '../response/orchestrationView.js'
 import { fmt } from './metrics'
 import { metricEvidenceHighlight } from './overviewView.js'
 import {
@@ -60,8 +62,11 @@ export default function IncidentCard({
   nodes = [],
   primarySpreadNodeId = null,
   onSelectEndpoint,
+  roomId = '',
 }) {
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const [planning, setPlanning] = useState(false)
   const roomLike = { nodes }
   const path = primaryAttackPath(inc)
   const labels = labelPath(path, roomLike)
@@ -118,6 +123,18 @@ export default function IncidentCard({
     .map(formatEvidenceItem)
     .filter(Boolean)
     .slice(0, 4)
+
+  async function onPressResponse() {
+    if (!commanderId) return
+    navigate(dashboardResponseIncidentHref(searchParams, commanderId))
+    if (!roomId) return
+    setPlanning(true)
+    try {
+      await requestIncidentResponsePlan(roomId, commanderId)
+    } finally {
+      setPlanning(false)
+    }
+  }
 
   return (
     <div>
@@ -416,13 +433,17 @@ export default function IncidentCard({
         >
           Commander <span className="text-[var(--tn-muted)]">(advisory)</span>
         </Link>
-        <Link
-          to={dashboardResponseIncidentHref(searchParams, commanderId)}
-          replace
+        <button
+          type="button"
           className="tn-btn-primary inline-flex"
+          disabled={planning || !roomId}
+          onClick={() => {
+            void onPressResponse()
+          }}
         >
-          Response <span className="opacity-80">(execute)</span>
-        </Link>
+          {planning ? 'Generating response plan…' : 'Response'}
+          {!planning ? <span className="opacity-80"> (plan)</span> : null}
+        </button>
       </div>
     </div>
   )

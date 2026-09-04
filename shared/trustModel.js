@@ -50,11 +50,84 @@ export function intrinsicFromTypeAndCriticality(
   return applyIntrinsicCaps(mixed, runtime, config)
 }
 
-export function computeDeviationMetrics({ baselinePps, effectivePps }, config = TRUST_CONFIG) {
+function countReferenceFor(metricKey, config) {
+  const key = metricKey != null ? String(metricKey) : ''
+  if (!key) return null
+  const md = cfg(config).metricDeviation ?? TRUST_CONFIG.metricDeviation
+  const ref = md?.countReference?.[key]
+  if (Number.isFinite(Number(ref)) && Number(ref) > 0) return Number(ref)
+  return null
+}
+
+/**
+ * Relative deviation with metric-aware soft floors for low-count channels.
+ * @param {{ baselinePps: number, effectivePps: number, metricKey?: string }} args
+ */
+export function computeDeviationMetrics(
+  { baselinePps, effectivePps, metricKey },
+  config = TRUST_CONFIG
+) {
+  const expected = Number(baselinePps) || 0
+  const observed = Number(effectivePps) || 0
+  const abs = Math.abs(observed - expected)
+  if (abs === 0) return { deviationRatio: 0, deviationPercent: 0 }
+
+  const key = metricKey != null ? String(metricKey) : ''
+  const md = cfg(config).metricDeviation ?? TRUST_CONFIG.metricDeviation
+  const countRef = countReferenceFor(key, config)
+  if (countRef != null) {
+    const deviationRatio = abs / Math.max(expected, countRef)
+    return { deviationRatio, deviationPercent: deviationRatio * 100 }
+  }
+  if (
+    key === 'httpRequestsPerMin' &&
+    expected < (Number(md?.httpSmallExpectedMax) || 20)
+  ) {
+    const ref = Number(md?.httpSmallReference) || 40
+    const deviationRatio = abs / Math.max(expected, ref)
+    return { deviationRatio, deviationPercent: deviationRatio * 100 }
+  }
+
   const eps = epsOf(config)
-  const baseline = Math.max(Number(baselinePps) || 0, eps)
-  const deviationRatio = Math.abs((Number(effectivePps) || 0) - (Number(baselinePps) || 0)) / baseline
+  const baseline = Math.max(expected, eps)
+  const deviationRatio = abs / baseline
   return { deviationRatio, deviationPercent: deviationRatio * 100 }
+}
+
+/**
+ * Debug/test helper: per-metric deviation breakdown for one endpoint bag pair.
+ */
+export function explainTelemetryDeviation(
+  expected,
+  observed,
+  metricKeys = getTelemetryKeys(),
+  config = TRUST_CONFIG
+) {
+  const keys = metricKeys ?? getTelemetryKeys()
+  const rows = []
+  let maxDeviation = 0
+  let dominantMetric = null
+  for (const key of keys) {
+    const b = expected?.[key]
+    const e = observed?.[key]
+    if (b == null || e == null) continue
+    const { deviationRatio, deviationPercent } = computeDeviationMetrics(
+      { baselinePps: b, effectivePps: e, metricKey: key },
+      config
+    )
+    rows.push({
+      metric: key,
+      expected: Number(b) || 0,
+      observed: Number(e) || 0,
+      deviationRatio,
+      deviationPercent,
+    })
+    if (deviationRatio >= maxDeviation) {
+      maxDeviation = deviationRatio
+      dominantMetric = key
+    }
+  }
+  return { maxDeviation, dominantMetric, metrics: rows }
 }
 
 export function behavioralScoreFromDeviation(deviationRatio, config = TRUST_CONFIG) {
@@ -86,7 +159,7 @@ export function maxMetricDeviation(baseline, effective, metricKeys = getTelemetr
     const e = effective?.[key]
     if (b == null || e == null) continue
     const { deviationRatio } = computeDeviationMetrics(
-      { baselinePps: b, effectivePps: e },
+      { baselinePps: b, effectivePps: e, metricKey: key },
       config
     )
     max = Math.max(max, deviationRatio)
@@ -109,7 +182,7 @@ export function behavioralFromMetrics(
     const e = effective?.[key]
     if (b == null || e == null) continue
     const { deviationRatio } = computeDeviationMetrics(
-      { baselinePps: b, effectivePps: e },
+      { baselinePps: b, effectivePps: e, metricKey: key },
       config
     )
     maxDeviation = Math.max(maxDeviation, deviationRatio)

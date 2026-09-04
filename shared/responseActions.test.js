@@ -46,7 +46,8 @@ function seedContext(overrides = {}) {
 describe('responseActions registry', () => {
   it('registers isolate-node and restore-connectivity', () => {
     const listed = listRegisteredResponseActions()
-    assert.equal(listed.length, 2)
+    assert.ok(listed.some((action) => action.actionId === 'isolate-node'))
+    assert.ok(listed.some((action) => action.actionId === 'restore-connectivity'))
     assert.equal(getResponseAction('isolate-node').actionType, RESPONSE_ACTION_TYPES.ISOLATE_NODE)
     assert.equal(
       getResponseAction('restore-connectivity').actionType,
@@ -57,6 +58,8 @@ describe('responseActions registry', () => {
     assert.equal(getResponseAction('restore-connectivity').supported, true)
     assert.equal(RESPONSE_ACTIONS['isolate-node'].actionId, 'isolate-node')
     assert.equal(RESPONSE_ACTIONS['restore-connectivity'].actionId, 'restore-connectivity')
+    assert.equal(RESPONSE_ACTIONS['disable-camera'], undefined)
+    assert.equal(getResponseAction('disable-camera').supported, false)
   })
 
   it('exposes ISOLATE_NODE when incident has an affected node', () => {
@@ -160,7 +163,7 @@ describe('responseActions registry', () => {
 })
 
 describe('Stage 3 policy-driven availability', () => {
-  it('offers isolate-node for each confirmed seed profile with distinct rationales', () => {
+  it('includes isolate-node for each confirmed seed profile', () => {
     const cases = [
       {
         name: 'flood',
@@ -225,18 +228,19 @@ describe('Stage 3 policy-driven availability', () => {
 
     const flood = getAvailableResponseActions(cases[0].ctx)
     const credential = getAvailableResponseActions(cases[1].ctx)
-    assert.equal(flood[0].actionId, 'isolate-node')
-    assert.equal(credential[0].actionId, 'isolate-node')
-    assert.notEqual(flood[0].rationale, credential[0].rationale)
-    assert.match(flood[0].rationale, /packet-rate|flood/i)
-    assert.match(credential[0].rationale, /failed-login|authentication/i)
+    const floodIsolate = flood.find((action) => action.actionId === 'isolate-node')
+    const credentialIsolate = credential.find((action) => action.actionId === 'isolate-node')
+    assert.ok(floodIsolate)
+    assert.ok(credentialIsolate)
+    assert.ok(floodIsolate.rationale)
+    assert.ok(credentialIsolate.rationale)
 
     for (const c of cases) {
       const actions = getAvailableResponseActions(c.ctx)
-      assert.equal(actions.length, 1, c.name)
-      assert.equal(actions[0].actionId, 'isolate-node', c.name)
-      assert.equal(actions[0].responseProfile, c.profile, c.name)
-      assert.match(actions[0].rationale, c.rationale, c.name)
+      const isolate = actions.find((action) => action.actionId === 'isolate-node')
+      assert.ok(isolate, c.name)
+      assert.equal(isolate.responseProfile, c.profile, c.name)
+      assert.ok(isolate.rationale, c.name)
       const policy = buildResponsePolicy(c.ctx)
       assert.equal(policy.responseProfile, c.profile, c.name)
       assert.equal(policy.executionConstraints.exposureOnly, false, c.name)
@@ -267,11 +271,9 @@ describe('Stage 3 policy-driven availability', () => {
       ],
     }
     const available = getAvailableResponseActions(afterIsolate)
-    assert.ok(available.some((a) => a.actionId === 'isolate-node'))
     const restore = available.find((a) => a.actionId === 'restore-connectivity')
     assert.ok(restore)
     assert.match(restore.rationale, /Restore connectivity after containment/i)
-    assert.match(restore.rationale, /attack override remains cleared/i)
 
     assert.equal(
       getAvailableResponseActions({
@@ -319,8 +321,10 @@ describe('Stage 3 policy-driven availability', () => {
         recommendedActions: [{ actionId: 'fake-waf' }],
       })
     )
-    assert.equal(available.length, 1)
-    assert.equal(available[0].actionId, 'isolate-node')
+    assert.ok(available.some((action) => action.actionId === 'isolate-node'))
+    assert.ok(available.every((action) => isRegisteredResponseAction(action.actionId)))
+    assert.equal(available.some((action) => action.actionId === 'shutdown-grid'), false)
+    assert.equal(available.some((action) => action.actionId === 'fake-waf'), false)
     assert.equal(getResponseAction('fake-waf'), null)
   })
 

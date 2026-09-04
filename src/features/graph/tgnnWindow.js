@@ -80,8 +80,11 @@ function canvasGraphState(nodes, edges, sim, mode) {
     const expected = nodeExpected(n, safeSim)
     const telemetry = mode === 'expected' ? expected : nodeEffective(n, safeSim)
     const override = safeSim.nodeOverrides?.[n.id]
+    const telemetryOverrideActive =
+      override != null && typeof override === 'object' && Object.keys(normalizeMetricPatch(override)).length > 0
     const attackOverrideActive =
-      override != null && typeof override === 'object' && Object.keys(override).length > 0
+      safeSim.nodeAttackStates?.[n.id] === true ||
+      safeSim.nodeAttackStates?.[n.id] === 'under_attack'
     return {
       id: n.id,
       telemetry,
@@ -91,6 +94,7 @@ function canvasGraphState(nodes, edges, sim, mode) {
       typeTrust: getNodeTypeTrust(n.data),
       runtimeState: runtimeStateOf(n.data),
       attackOverrideActive,
+      telemetryOverrideActive,
       cityContext,
       sector: n.data?.sector,
       type: n.data?.type,

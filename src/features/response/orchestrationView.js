@@ -14,18 +14,27 @@ import {
   normalizeOrchestrationStatus,
 } from '../../../shared/response/orchestration.js'
 import {
+  repositoryActionsByCategory,
+  RESPONSE_ACTION_CATEGORIES,
+} from '../../../shared/response/responseActionRepository.js'
+import {
   hopDistanceOf,
   primaryAttackPath,
 } from '../../../shared/incidentIntel.js'
+import { isActiveResponseIncident } from '../../../shared/incidentStatus.js'
 import { computeFinancialExposure } from '../../../shared/financialExposure.js'
 import { selectPrimaryIncident, isNodeQuarantined, nodeLabel } from '../dashboard/overviewView.js'
 import { recoveryPriorityValue } from '../dashboard/incidentStreamView.js'
+import {
+  notifyResponseAnalyzeFinished,
+  notifyResponseAnalyzeStarted,
+} from './responseAnalyzeUi.js'
 
 const AGENT_LABELS = Object.freeze({
   commander: 'Commander Agent',
   approval: 'Human Approval',
   response: 'Response Agent',
-  recovery: 'Recovery Agent',
+  recovery: 'Verification',
 })
 
 const SLOT_COPY = Object.freeze({
@@ -56,14 +65,157 @@ const SLOT_TONE = Object.freeze({
   [AGENT_SLOT_STATUS.COMPLETE]: 'ok',
 })
 
+const CONTINUATION_REASONS = Object.freeze(
+  new Set([
+    'remaining_incidents',
+    'step_verified',
+    'awaiting_step_verification',
+    'execution_complete',
+    'pacing_commander_continuation',
+    'auto_approved_within_scope',
+    'pacing_before_execute',
+    'pacing_before_verify',
+    'pacing_after_approval',
+    'pacing_before_recovered',
+    'human_approved',
+  ])
+)
+
+/**
+ * Genuine failure / adaptive replan — never infer from previousPlanId alone.
+ * previousPlanId is lineage and may appear on successful continuations.
+ * Continuation signals (planKind / autoIteration / reason) override a stale replanCount.
+ */
+export function isGenuineReplanState(orchestrationState = null) {
+  const state = orchestrationState ?? createEmptyOrchestrationState()
+  const status = normalizeOrchestrationStatus(state.workflowStatus ?? state.status)
+  if (status === ORCHESTRATION_STATUS.REPLAN_REQUIRED) return true
+  if (state.continuationReason === 'verification_failed_replan') return true
+  if (state.continuationReason === 'verification_failed') return true
+
+  const continuingSignals =
+    state.plan?.planKind === 'continuation' ||
+    state.plan?.continuationContext != null ||
+    Number(state.autoIteration) > 0 ||
+    CONTINUATION_REASONS.has(String(state.continuationReason || ''))
+  if (continuingSignals) return false
+
+  if (state.plan?.planKind === 'replan') return true
+  if (Number(state.replanCount) > 0) return true
+  if (state.plan?.replanContext != null) return true
+  return false
+}
+
+/**
+ * Approved-scope multi-incident continuation (not a failure replan).
+ * Do not treat previousPlanId as replan.
+ */
+export function isApprovedScopeContinuation(orchestrationState = null) {
+  const state = orchestrationState ?? createEmptyOrchestrationState()
+  const status = normalizeOrchestrationStatus(state.workflowStatus ?? state.status)
+  if (status === ORCHESTRATION_STATUS.REPLAN_REQUIRED) return false
+  if (state.continuationReason === 'verification_failed_replan') return false
+  if (state.continuationReason === 'verification_failed') return false
+  if (state.plan?.planKind === 'continuation') return true
+  if (state.plan?.continuationContext != null) return true
+  if (Number(state.autoIteration) > 0) return true
+  if (CONTINUATION_REASONS.has(String(state.continuationReason || ''))) return true
+  return false
+}
+
+/**
+ * Progress within the human-approved incident scope (demo labels only).
+ */
+export function continuationProgressView(orchestrationState = null) {
+  const state = orchestrationState ?? createEmptyOrchestrationState()
+  const status = normalizeOrchestrationStatus(state.workflowStatus ?? state.status)
+  const scopeIds = Array.isArray(state.approvalScope?.incidentIds)
+    ? state.approvalScope.incidentIds
+    : []
+  const total = scopeIds.length > 0 ? scopeIds.length : null
+  const history = Array.isArray(state.planHistory) ? state.planHistory : []
+  const verified = history.filter(
+    (h) =>
+      h?.outcome === 'continued' ||
+      h?.outcome === 'step_verified' ||
+      h?.verificationVerdict === 'VERIFIED' ||
+      h?.verificationVerdict === 'RECOVERED'
+  ).length
+  const autoIteration = Number(state.autoIteration) || 0
+  const active =
+    isApprovedScopeContinuation(state) ||
+    (total != null && (autoIteration > 0 || verified > 0)) ||
+    status === ORCHESTRATION_STATUS.RECOVERED
+
+  if (!active && total == null) {
+    return { active: false, current: null, total: null, verified: 0, label: null }
+  }
+
+  let current = verified + 1
+  if (status === ORCHESTRATION_STATUS.RECOVERED) {
+    current = total != null ? total : Math.max(verified, 1)
+  } else if (total != null) {
+    current = Math.min(Math.max(current, 1), total)
+  }
+
+  const label =
+    total != null
+      ? `Incident ${current} of ${total}`
+      : autoIteration > 0
+        ? `Continuation ${autoIteration}`
+        : verified > 0
+          ? `Verified ${verified}`
+          : null
+
+  return {
+    active: active === true && Boolean(label),
+    current,
+    total,
+    verified,
+    autoIteration,
+    label,
+  }
+}
+
+/**
+ * Prefer the newer of HTTP localOverride vs socket orchestration by updatedAtMs.
+ * Never let a stale HTTP snapshot pin a false REPLAN_REQUIRED over live success.
+ */
+export function selectAuthoritativeOrchestrationState(
+  localOverride = null,
+  socketState = null
+) {
+  if (!localOverride && !socketState) return createEmptyOrchestrationState()
+  if (!localOverride) return socketState
+  if (!socketState) return localOverride
+  const localTs = Number(localOverride.updatedAtMs ?? localOverride.lastUpdatedAt) || 0
+  const socketTs = Number(socketState.updatedAtMs ?? socketState.lastUpdatedAt) || 0
+  if (socketTs > localTs) return socketState
+  if (localTs > socketTs) return localOverride
+  // Same timestamp — prefer non-failure socket if local looks like a false fail
+  const localStatus = normalizeOrchestrationStatus(
+    localOverride.workflowStatus ?? localOverride.status
+  )
+  const socketStatus = normalizeOrchestrationStatus(
+    socketState.workflowStatus ?? socketState.status
+  )
+  if (
+    localStatus === ORCHESTRATION_STATUS.REPLAN_REQUIRED &&
+    socketStatus !== ORCHESTRATION_STATUS.REPLAN_REQUIRED
+  ) {
+    return socketState
+  }
+  return localOverride
+}
+
 export function agentLaneView(orchestrationState = null) {
   const state = orchestrationState ?? createEmptyOrchestrationState()
   const status = normalizeOrchestrationStatus(state.workflowStatus ?? state.status)
   const slots = state.agents ?? agentSlotsForStatus(status)
   const ownership = activeAgentOwnershipView(state)
   const order = ['commander', 'approval', 'response', 'recovery']
-  const isReplanCycle =
-    Number(state.replanCount) > 0 || Boolean(state.plan?.previousPlanId)
+  const genuineReplan = isGenuineReplanState(state)
+  const continuing = isApprovedScopeContinuation(state)
 
   return {
     workflowStatus: status,
@@ -76,8 +228,16 @@ export function agentLaneView(orchestrationState = null) {
 
       if (id === 'commander') {
         if (status === ORCHESTRATION_STATUS.ANALYZING) {
-          slotLabel = isReplanCycle ? 'Re-planning' : 'Analyzing'
-          statusKey = isReplanCycle ? 're-planning' : 'analyzing'
+          if (genuineReplan) {
+            slotLabel = 'Re-planning'
+            statusKey = 're-planning'
+          } else if (continuing) {
+            slotLabel = 'Continuing'
+            statusKey = 'continuing'
+          } else {
+            slotLabel = 'Analyzing'
+            statusKey = 'analyzing'
+          }
         } else if (
           status === ORCHESTRATION_STATUS.PLAN_READY ||
           status === ORCHESTRATION_STATUS.AWAITING_APPROVAL
@@ -87,6 +247,7 @@ export function agentLaneView(orchestrationState = null) {
         } else if (
           status === ORCHESTRATION_STATUS.APPROVED ||
           status === ORCHESTRATION_STATUS.EXECUTING ||
+          status === ORCHESTRATION_STATUS.CONTINUING ||
           status === ORCHESTRATION_STATUS.VERIFYING ||
           status === ORCHESTRATION_STATUS.RECOVERED
         ) {
@@ -110,6 +271,7 @@ export function agentLaneView(orchestrationState = null) {
         } else if (
           status === ORCHESTRATION_STATUS.APPROVED ||
           status === ORCHESTRATION_STATUS.EXECUTING ||
+          status === ORCHESTRATION_STATUS.CONTINUING ||
           status === ORCHESTRATION_STATUS.VERIFYING ||
           status === ORCHESTRATION_STATUS.RECOVERED
         ) {
@@ -128,6 +290,7 @@ export function agentLaneView(orchestrationState = null) {
           slotLabel = 'Executing'
           statusKey = 'executing'
         } else if (
+          status === ORCHESTRATION_STATUS.CONTINUING ||
           status === ORCHESTRATION_STATUS.VERIFYING ||
           status === ORCHESTRATION_STATUS.RECOVERED
         ) {
@@ -146,15 +309,10 @@ export function agentLaneView(orchestrationState = null) {
       }
 
       if (id === 'recovery') {
-        if (status === ORCHESTRATION_STATUS.VERIFYING) {
-          slotLabel = 'Verifying'
-          statusKey = 'verifying'
-        } else if (status === ORCHESTRATION_STATUS.RECOVERED) {
-          slotLabel = 'Recovered'
-          statusKey = 'recovered'
-        } else if (status === ORCHESTRATION_STATUS.REPLAN_REQUIRED) {
-          slotLabel = 'Replan required'
-          statusKey = 'replan-required'
+        // STEP 16: observational evidence only — not an active workflow lane
+        if (state.verification) {
+          slotLabel = 'Evidence'
+          statusKey = 'complete'
         } else {
           statusKey = 'waiting'
         }
@@ -168,13 +326,11 @@ export function agentLaneView(orchestrationState = null) {
         slotLabel,
         statusKey,
         tone:
-          id === 'recovery' && status === ORCHESTRATION_STATUS.REPLAN_REQUIRED
-            ? 'crit'
-            : ownsFocus
-              ? SLOT_TONE[slot] === 'muted'
-                ? 'warn'
-                : SLOT_TONE[slot] || 'warn'
-              : SLOT_TONE[slot] || 'muted',
+          ownsFocus
+            ? SLOT_TONE[slot] === 'muted'
+              ? 'warn'
+              : SLOT_TONE[slot] || 'warn'
+            : SLOT_TONE[slot] || 'muted',
         active: slot !== AGENT_SLOT_STATUS.LOCKED && slot !== AGENT_SLOT_STATUS.WAITING,
         ownsFocus,
       }
@@ -188,28 +344,29 @@ export function agentLaneView(orchestrationState = null) {
 export function activeAgentOwnershipView(orchestrationState = null) {
   const state = orchestrationState ?? createEmptyOrchestrationState()
   const status = normalizeOrchestrationStatus(state.workflowStatus ?? state.status)
-  const replanCount = Number(state.replanCount) || 0
   const autoIteration = Number(state.autoIteration) || 0
   const continuationReason = state.continuationReason ?? null
   const pausedReason = state.pausedForApprovalReason ?? null
+  const continuing = isApprovedScopeContinuation(state)
+  const genuineReplan = isGenuineReplanState(state)
+  const progress = continuationProgressView(state)
+  const progressSuffix = progress.active && progress.label ? ` ${progress.label}.` : ''
 
   switch (status) {
     case ORCHESTRATION_STATUS.ANALYZING:
       return {
         focusId: 'commander',
-        headline:
-          continuationReason === 'remaining_incidents' || autoIteration > 0
-            ? 'Commander re-evaluating remaining incidents'
-            : replanCount > 0
-              ? 'Commander re-planning'
-              : 'Commander analyzing',
-        detail:
-          continuationReason === 'remaining_incidents' || autoIteration > 0
-            ? `Automatic continuation (iteration ${autoIteration || 1}) within approved scope.`
-            : replanCount > 0
-              ? 'Analyzing current graph state after verification failure.'
-              : 'Building a policy-approved response plan from live recovery priority.',
-        handoffFrom: replanCount > 0 || autoIteration > 0 ? 'recovery' : null,
+        headline: continuing
+          ? 'Commander preparing next response'
+          : genuineReplan
+            ? 'Commander re-planning'
+            : 'Commander is analyzing…',
+        detail: continuing
+          ? `Remaining approved incidents — automatic continuation (iteration ${autoIteration || 1}).${progressSuffix}`
+          : genuineReplan
+            ? 'Analyzing current graph state after execution failure.'
+            : 'Generating response plan with Qwen…',
+        handoffFrom: continuing || genuineReplan ? 'response' : null,
       }
     case ORCHESTRATION_STATUS.PLAN_READY:
     case ORCHESTRATION_STATUS.AWAITING_APPROVAL:
@@ -227,38 +384,42 @@ export function activeAgentOwnershipView(orchestrationState = null) {
       return {
         focusId: 'response',
         headline:
-          continuationReason === 'auto_approved_within_scope'
-            ? 'Response Agent continuing (within scope)'
-            : 'Response Agent ready',
+          continuationReason === 'pacing_after_approval'
+            ? 'Human approval complete'
+            : continuationReason === 'pacing_before_execute'
+              ? 'Response Agent is executing…'
+              : continuationReason === 'auto_approved_within_scope'
+                ? 'Response Agent continuing (within scope)'
+                : 'Response Agent ready',
         detail:
-          continuationReason === 'auto_approved_within_scope'
-            ? 'Plan stays inside approved scope — executing without re-approval.'
-            : 'Strategy approved. Agents execute and verify automatically within scope.',
+          continuationReason === 'pacing_after_approval'
+            ? 'Strategy approved. Response Agent will start next…'
+            : continuationReason === 'pacing_before_execute'
+              ? 'Response Agent is executing approved actions…'
+              : continuationReason === 'auto_approved_within_scope'
+                ? 'Plan stays inside approved scope — executing without re-approval.'
+                : 'Strategy approved. Response Agent executes within the approved scope.',
         handoffFrom: 'approval',
       }
     case ORCHESTRATION_STATUS.EXECUTING:
       return {
         focusId: 'response',
-        headline: 'Response Agent executing',
+        headline: 'Response Agent is executing…',
         detail: 'Running approved actions via executeResponseAction.',
         handoffFrom: 'approval',
       }
+    case ORCHESTRATION_STATUS.CONTINUING:
     case ORCHESTRATION_STATUS.VERIFYING:
       return {
-        focusId: 'recovery',
-        headline:
-          continuationReason === 'remaining_incidents'
-            ? 'Step verified — more incidents remain'
-            : 'Recovery Agent verifying',
+        focusId: 'commander',
+        headline: 'Commander — continuing to next incident',
         detail:
-          continuationReason === 'remaining_incidents'
-            ? 'This step passed. Episode is not recovered until no active response work remains.'
-            : 'Comparing post-response graph to pre-response baseline.',
+          'Response completed. Determining remaining approved-scope work for the next Commander plan.',
         handoffFrom: 'response',
       }
     case ORCHESTRATION_STATUS.RECOVERED:
       return {
-        focusId: 'recovery',
+        focusId: 'complete',
         headline: 'Episode recovered',
         detail:
           'No active non-quarantined response incidents remain. Start a new cycle only for a new episode.',
@@ -267,20 +428,19 @@ export function activeAgentOwnershipView(orchestrationState = null) {
     case ORCHESTRATION_STATUS.REPLAN_REQUIRED:
       return {
         focusId: 'commander',
-        headline: 'Verification failed — Commander handoff',
+        headline: 'Replan required',
         detail:
           state.lastReplanReason ||
-          state.verification?.reasons?.[0] ||
           state.staleReason ||
-          'Additional response required.',
-        handoffFrom: 'recovery',
+          'Response execution failed or approved scope is no longer valid — human decision required.',
+        handoffFrom: 'response',
       }
     case ORCHESTRATION_STATUS.IDLE:
     default:
       return {
         focusId: 'commander',
-        headline: 'Awaiting Commander analysis',
-        detail: 'Run analysis when open incidents are present.',
+        headline: 'Waiting for Response',
+        detail: 'Press Response on an incident to generate a Qwen response plan.',
         handoffFrom: null,
       }
   }
@@ -293,7 +453,7 @@ export function responsePlanView(plan = null) {
       plan: createEmptyResponsePlan(),
       actions: [],
       expectedImpact: null,
-      summary: 'No active response plan. Run Commander analysis to build one.',
+      summary: 'No active LLM response plan yet. Press Response on an incident to generate one.',
     }
   }
   const normalized = createEmptyResponsePlan(plan)
@@ -308,7 +468,15 @@ export function responsePlanView(plan = null) {
     plan: normalized,
     actions,
     expectedImpact: normalized.expectedImpact,
-    summary: normalized.reasoning || 'Plan present — execution gated on human approval.',
+    summary:
+      normalized.llmSummary ||
+      normalized.reasoning ||
+      'Plan present — execution gated on human approval.',
+    attackInterpretation: normalized.attackInterpretation,
+    strategy: normalized.strategy,
+    riskAssessment: normalized.riskAssessment,
+    uncertainty: normalized.llmUncertainty,
+    confidence: normalized.llmConfidence,
   }
 }
 
@@ -375,9 +543,8 @@ export function canExecuteOrchestration(orchestrationState = null) {
 }
 
 export function canVerifyOrchestration(orchestrationState = null) {
-  const state = orchestrationState ?? createEmptyOrchestrationState()
-  const status = normalizeOrchestrationStatus(state.workflowStatus ?? state.status)
-  return status === ORCHESTRATION_STATUS.VERIFYING
+  // STEP 16: verification is observational only — no Verify CTA / gate
+  return false
 }
 
 /**
@@ -393,6 +560,7 @@ export function planEvolutionView(orchestrationState = null) {
     index: i + 1,
     planId: h.planId,
     previousPlanId: h.previousPlanId ?? null,
+    planKind: h.planKind ?? null,
     replanCount: Number(h.replanCount) || 0,
     outcome: h.outcome || null,
     verificationVerdict: h.verificationVerdict ?? null,
@@ -418,11 +586,17 @@ export function planEvolutionView(orchestrationState = null) {
       outcome = 'verification_failed'
     } else if (status === ORCHESTRATION_STATUS.PLAN_READY) {
       outcome = 'awaiting_approval'
+    } else if (
+      status === ORCHESTRATION_STATUS.ANALYZING &&
+      isApprovedScopeContinuation(state)
+    ) {
+      outcome = 'continuing'
     }
     entries.push({
       index: entries.length + 1,
       planId: current.planId,
       previousPlanId: current.previousPlanId ?? state.previousPlanId ?? null,
+      planKind: current.planKind ?? null,
       replanCount: Number(current.replanCount ?? state.replanCount) || 0,
       outcome,
       verificationVerdict: state.verification?.verdict ?? null,
@@ -441,6 +615,7 @@ export function planEvolutionView(orchestrationState = null) {
     previousPlanId: state.previousPlanId ?? current?.previousPlanId ?? null,
     lastReplanReason: state.lastReplanReason ?? null,
     planNumber: planNumberFromState(state),
+    continuation: continuationProgressView(state),
     entries,
   }
 }
@@ -453,6 +628,21 @@ function journeyStepsForOutcome(outcome) {
         { label: 'Human approved', done: true },
         { label: 'Executed', done: true },
         { label: 'Verification failed', done: true, failed: true },
+      ]
+    case 'continued':
+    case 'step_verified':
+      return [
+        { label: 'Commander', done: true },
+        { label: 'Human approved', done: true },
+        { label: 'Executed', done: true },
+        { label: 'Step verified', done: true },
+        { label: 'Continuing approved response', done: true },
+      ]
+    case 'continuing':
+      return [
+        { label: 'Step verified', done: true },
+        { label: 'Continuing approved response', done: false, current: true },
+        { label: 'Commander', done: false },
       ]
     case 'awaiting_approval':
       return [
@@ -556,11 +746,38 @@ export function verificationView(orchestrationState = null) {
     incidentsClosedByAgent: verification.incidentsClosedByAgent === true,
     beforeAfter: graphImpactFromVerification(verification),
     title:
-      verification.verdict === 'RECOVERED'
-        ? 'Response verified'
-        : verification.verdict === 'REPLAN_REQUIRED'
-          ? 'Verification failed'
-          : 'Verification result',
+      status === ORCHESTRATION_STATUS.RECOVERED
+        ? 'Episode recovered'
+        : verification.verified === true ||
+            verification.verdict === 'VERIFIED' ||
+            verification.verdict === 'RECOVERED'
+          ? status === ORCHESTRATION_STATUS.ANALYZING ||
+            state.continuationReason === 'remaining_incidents'
+            ? 'Response verified — remaining approved incidents'
+            : 'Response verified'
+          : verification.verified === false ||
+              ((verification.verdict === 'FAILED' ||
+                verification.verdict === 'REPLAN_REQUIRED') &&
+                status === ORCHESTRATION_STATUS.REPLAN_REQUIRED)
+            ? 'Verification failed'
+            : 'Verification result',
+    stepVerified:
+      verification.verified === true ||
+      verification.verdict === 'VERIFIED' ||
+      verification.verdict === 'RECOVERED',
+    stepFailed:
+      verification.verified === false ||
+      (status === ORCHESTRATION_STATUS.REPLAN_REQUIRED &&
+        (verification.verdict === 'FAILED' ||
+          verification.verdict === 'REPLAN_REQUIRED')),
+    episodeRecovered: status === ORCHESTRATION_STATUS.RECOVERED,
+    primaryReason: verification.primaryReason ?? null,
+    failReasons: Array.isArray(verification.failReasons)
+      ? verification.failReasons
+      : [],
+    passNotes: Array.isArray(verification.passNotes)
+      ? verification.passNotes
+      : [],
   }
 }
 
@@ -705,6 +922,20 @@ export async function postOrchestrationAnalyze(roomId, { incidentId = null } = {
   return { ok: true, orchestration: json.orchestration, executed: json.executed === true }
 }
 
+/**
+ * Incident Response button: generate an LLM Response Plan. Does not execute.
+ */
+export async function requestIncidentResponsePlan(roomId, incidentId, previousPlan = null) {
+  notifyResponseAnalyzeStarted(previousPlan)
+  const result = await postOrchestrationAnalyze(roomId, { incidentId })
+  notifyResponseAnalyzeFinished({
+    ok: result.ok,
+    message: result.message,
+    orchestration: result.orchestration,
+  })
+  return result
+}
+
 export async function postOrchestrationApprove(roomId) {
   if (!roomId) {
     return { ok: false, message: 'Room required' }
@@ -845,14 +1076,34 @@ export async function postOrchestrationNewCycle(roomId) {
 }
 
 export function actionRegistryView() {
-  return listActionCapabilitiesByCategory().map((group) => ({
+  const categoryLabels = {
+    [RESPONSE_ACTION_CATEGORIES.CONTAINMENT]: 'Containment',
+    [RESPONSE_ACTION_CATEGORIES.POLICY]: 'Policy',
+    [RESPONSE_ACTION_CATEGORIES.RECOVERY]: 'Recovery',
+    [RESPONSE_ACTION_CATEGORIES.DIAGNOSTIC]: 'Diagnostics',
+  }
+  return repositoryActionsByCategory().map((group) => ({
     category: group.category,
-    categoryLabel: group.category,
+    categoryLabel: categoryLabels[group.category] || group.category,
     items: group.items.map((item) => ({
-      ...item,
-      availabilityLabel:
-        item.availability === 'available' ? 'Available' : 'Catalog capability · not implemented',
-      tone: item.availability === 'available' ? 'ok' : 'muted',
+      capabilityId: item.actionId,
+      category: group.category,
+      label: item.label,
+      description: item.description,
+      actionId: item.supported ? item.actionId : null,
+      availability: item.supported
+        ? 'available'
+        : 'catalog',
+      reversible: item.reversible,
+      mutation: item.mutation !== false,
+      riskLevel: item.riskLevel,
+      supported: item.supported === true,
+      availabilityLabel: item.supported
+        ? item.mutation === false
+          ? 'SUPPORTED · READ-ONLY'
+          : 'SUPPORTED'
+        : 'UNSUPPORTED',
+      tone: item.supported ? 'ok' : 'muted',
     })),
   }))
 }
@@ -866,14 +1117,44 @@ export function actionRegistrySplitView() {
   const catalog = []
   for (const group of groups) {
     for (const item of group.items) {
-      if (item.availability === 'available' && item.actionId) {
+      if (item.supported && item.actionId) {
         executable.push(item)
       } else {
         catalog.push(item)
       }
     }
   }
-  return { executable, catalog }
+  return { executable, catalog, groups }
+}
+
+/**
+ * STEP 17 — Commander "why this response" from plan + policy snapshot.
+ */
+export function commanderReasoningView(orchestrationState = null) {
+  const state = orchestrationState ?? createEmptyOrchestrationState()
+  const plan = state.plan
+  if (!plan?.planId) {
+    return { empty: true }
+  }
+  const actions = (plan.recommendedActions || []).filter((a) => a?.executable)
+  const policy = plan.reasoning || null
+  return {
+    empty: false,
+    primaryIncidentId: plan.primaryIncidentId,
+    planKind: plan.planKind || 'fresh',
+    playbookHint: null,
+    selectedActions: actions.map((a) => ({
+      actionId: a.actionId,
+      label: a.label || a.actionId,
+      target: a.target?.name || a.target?.id || null,
+      peer: a.target?.peerId || null,
+      reason: a.reason || null,
+    })),
+    reasoningText: typeof policy === 'string' ? policy : null,
+    signals: Array.isArray(plan.replanContext?.verificationReasons)
+      ? plan.replanContext.verificationReasons
+      : [],
+  }
 }
 
 /**
@@ -995,17 +1276,22 @@ export function approvalSpotlightView(orchestrationState = null) {
     (status === ORCHESTRATION_STATUS.PLAN_READY && canApproveOrchestration(state))
   const plan = state.plan
   const actions = (plan?.recommendedActions || []).filter((a) => a?.executable)
-  const isReplan =
-    Number(state.replanCount) > 0 || Boolean(plan?.previousPlanId)
+  const isReplan = isGenuineReplanState(state)
+  const pausedReason = state.pausedForApprovalReason ?? null
+  const scopeExpansion =
+    Boolean(pausedReason) ||
+    state.continuationReason === 'scope_expansion'
   return {
     required: required === true && Boolean(plan?.planId),
     approved:
       status === ORCHESTRATION_STATUS.APPROVED ||
       status === ORCHESTRATION_STATUS.EXECUTING ||
+      status === ORCHESTRATION_STATUS.CONTINUING ||
       status === ORCHESTRATION_STATUS.VERIFYING ||
       status === ORCHESTRATION_STATUS.RECOVERED,
     planNumber: planNumberFromState(state),
     isReplan,
+    isContinuation: isApprovedScopeContinuation(state),
     policyStatus: plan?.policyStatus ?? null,
     actionSummaries: actions.map((a) => ({
       actionId: a.actionId,
@@ -1017,7 +1303,18 @@ export function approvalSpotlightView(orchestrationState = null) {
       (Number(plan?.expectedImpact?.mayReduceExposureCount) > 0
         ? `May reduce exposure on ${plan.expectedImpact.mayReduceExposureCount} downstream nodes`
         : plan?.expectedImpact?.whyFirst || null),
-    buttonLabel: isReplan ? 'Approve New Plan & Continue' : 'Approve Strategy & Continue',
+    buttonLabel: isReplan
+      ? 'Approve Expanded Response'
+      : scopeExpansion
+        ? 'Approve Expanded Response'
+        : 'Approve Response',
+    missionTitle: 'Response Mission',
+    autoContinue: state.approvalScope?.autoContinue !== false,
+    capabilities: Array.isArray(state.approvalScope?.missionCapabilities)
+      ? state.approvalScope.missionCapabilities
+      : Array.isArray(state.approvalScope?.actionTypes)
+        ? state.approvalScope.actionTypes
+        : actions.map((a) => a.actionId),
   }
 }
 
@@ -1027,7 +1324,8 @@ export function approvalSpotlightView(orchestrationState = null) {
 export function replanHandoffView(orchestrationState = null) {
   const state = orchestrationState ?? createEmptyOrchestrationState()
   const status = normalizeOrchestrationStatus(state.workflowStatus ?? state.status)
-  if (status !== ORCHESTRATION_STATUS.REPLAN_REQUIRED && !(Number(state.replanCount) > 0)) {
+  // previousPlanId alone is not a replan signal
+  if (status !== ORCHESTRATION_STATUS.REPLAN_REQUIRED && !isGenuineReplanState(state)) {
     return { active: false }
   }
   const verify = verificationView(state)
@@ -1158,16 +1456,28 @@ export function planActionDetailsView(plan = null, execution = null) {
   }
   return {
     empty: false,
-    planNumber:
-      (Number(plan?.replanCount) || 0) + 1,
+    planNumber: (Number(plan?.replanCount) || 0) + 1,
     previousPlanId: plan?.previousPlanId ?? null,
+    planKind: plan?.planKind ?? 'fresh',
+    isContinuation: plan?.planKind === 'continuation' || plan?.continuationContext != null,
+    isReplan: plan?.planKind === 'replan' || (plan?.replanContext != null && plan?.planKind !== 'continuation'),
+    lineageLabel:
+      plan?.planKind === 'continuation'
+        ? 'Prior plan (continuation lineage)'
+        : plan?.previousPlanId
+          ? 'Previous plan'
+          : null,
     actions: planView.actions.map((a) => {
       const result = resultByAction.get(String(a.actionId))
       return {
         actionId: a.actionId,
         label: a.label || a.actionId,
         target: a.target?.name || a.target?.id || null,
+        targetPeer: a.target?.peerId || a.target?.peerName || null,
         reason: a.reason || null,
+        expectedImpact: a.expectedImpact || null,
+        confidence: a.confidence,
+        dependencies: Array.isArray(a.dependencies) ? [...a.dependencies] : [],
         risk: a.risk || null,
         reversible: a.reversibility === true,
         reversibleLabel:
@@ -1289,6 +1599,406 @@ export function graphHealthView({
   }
 }
 
+/** Persistent flowchart step ids (UI only — not a server FSM). */
+export const ORCHESTRATION_FLOW_STEP_IDS = Object.freeze([
+  'commander',
+  'approval',
+  'response',
+  'complete',
+])
+
+const FLOW_STEP_LABELS = Object.freeze({
+  commander: 'Commander',
+  approval: 'Human Approval',
+  response: 'Response Agent',
+  complete: 'Recovered',
+})
+
+/**
+ * Default detail-panel selection from live orchestration state.
+ */
+export function defaultOrchestrationSelectedStep(orchestrationState = null) {
+  const state = orchestrationState ?? createEmptyOrchestrationState()
+  const status = normalizeOrchestrationStatus(state.workflowStatus ?? state.status)
+
+  if (status === ORCHESTRATION_STATUS.REPLAN_REQUIRED) return 'commander'
+  if (status === ORCHESTRATION_STATUS.CONTINUING || status === ORCHESTRATION_STATUS.VERIFYING) {
+    return 'commander'
+  }
+  if (status === ORCHESTRATION_STATUS.ANALYZING && isApprovedScopeContinuation(state)) {
+    return 'commander'
+  }
+  if (status === ORCHESTRATION_STATUS.RECOVERED) return 'complete'
+
+  const focus = activeAgentOwnershipView(state).focusId
+  if (ORCHESTRATION_FLOW_STEP_IDS.includes(focus)) return focus
+  return 'commander'
+}
+
+/**
+ * Four-step workflow rail: Commander → Approval → Response → Recovered.
+ * Verification is evidence-only (not a rail lane).
+ */
+export function orchestrationFlowRailView(orchestrationState = null) {
+  const state = orchestrationState ?? createEmptyOrchestrationState()
+  const status = normalizeOrchestrationStatus(state.workflowStatus ?? state.status)
+  const ownership = activeAgentOwnershipView(state)
+  const lanes = agentLaneView(state)
+  const laneById = Object.fromEntries(lanes.lanes.map((l) => [l.id, l]))
+  const genuineReplan = isGenuineReplanState(state)
+  const continuing = isApprovedScopeContinuation(state)
+  const suggestedStepId = defaultOrchestrationSelectedStep(state)
+
+  const steps = ORCHESTRATION_FLOW_STEP_IDS.map((id) => {
+    const base = { id, label: FLOW_STEP_LABELS[id] }
+    let phase = 'locked'
+    let statusLabel = 'Locked'
+    let tone = 'muted'
+
+    if (id === 'commander') {
+      const lane = laneById.commander
+      if (status === ORCHESTRATION_STATUS.IDLE) {
+        phase = 'active'
+        statusLabel = 'Awaiting analysis'
+        tone = 'warn'
+      } else if (
+        status === ORCHESTRATION_STATUS.ANALYZING ||
+        status === ORCHESTRATION_STATUS.CONTINUING ||
+        status === ORCHESTRATION_STATUS.VERIFYING
+      ) {
+        phase = 'active'
+        if (genuineReplan) {
+          statusLabel = 'Re-planning'
+        } else if (continuing || status === ORCHESTRATION_STATUS.CONTINUING) {
+          statusLabel = 'Continuing'
+        } else {
+          statusLabel = 'Analyzing'
+        }
+        tone = 'warn'
+      } else if (status === ORCHESTRATION_STATUS.REPLAN_REQUIRED) {
+        phase = 'active'
+        statusLabel = 'Re-analysis available'
+        tone = 'warn'
+      } else if (
+        status === ORCHESTRATION_STATUS.PLAN_READY ||
+        status === ORCHESTRATION_STATUS.AWAITING_APPROVAL ||
+        status === ORCHESTRATION_STATUS.APPROVED ||
+        status === ORCHESTRATION_STATUS.EXECUTING ||
+        status === ORCHESTRATION_STATUS.RECOVERED
+      ) {
+        phase = 'completed'
+        statusLabel = 'Complete'
+        tone = 'ok'
+      } else {
+        phase = 'idle'
+        statusLabel = lane?.slotLabel || 'Idle'
+        tone = 'muted'
+      }
+    } else if (id === 'approval') {
+      if (
+        status === ORCHESTRATION_STATUS.IDLE ||
+        status === ORCHESTRATION_STATUS.ANALYZING ||
+        status === ORCHESTRATION_STATUS.REPLAN_REQUIRED
+      ) {
+        phase = 'locked'
+        statusLabel = 'Locked'
+        tone = 'muted'
+      } else if (
+        status === ORCHESTRATION_STATUS.AWAITING_APPROVAL ||
+        status === ORCHESTRATION_STATUS.PLAN_READY
+      ) {
+        phase = 'active'
+        statusLabel =
+          status === ORCHESTRATION_STATUS.AWAITING_APPROVAL
+            ? 'Approval required'
+            : 'Waiting'
+        tone = 'warn'
+      } else if (
+        status === ORCHESTRATION_STATUS.APPROVED ||
+        status === ORCHESTRATION_STATUS.EXECUTING ||
+        status === ORCHESTRATION_STATUS.CONTINUING ||
+        status === ORCHESTRATION_STATUS.VERIFYING ||
+        status === ORCHESTRATION_STATUS.RECOVERED
+      ) {
+        phase = 'completed'
+        statusLabel = 'Approved'
+        tone = 'ok'
+      }
+    } else if (id === 'response') {
+      if (
+        status === ORCHESTRATION_STATUS.APPROVED ||
+        status === ORCHESTRATION_STATUS.EXECUTING
+      ) {
+        phase = 'active'
+        statusLabel =
+          status === ORCHESTRATION_STATUS.EXECUTING ? 'Executing' : 'Ready'
+        tone = 'warn'
+      } else if (
+        status === ORCHESTRATION_STATUS.CONTINUING ||
+        status === ORCHESTRATION_STATUS.VERIFYING ||
+        status === ORCHESTRATION_STATUS.RECOVERED
+      ) {
+        phase = 'completed'
+        statusLabel = 'Complete'
+        tone = 'ok'
+      } else if (
+        status === ORCHESTRATION_STATUS.REPLAN_REQUIRED &&
+        Array.isArray(state.execution?.results) &&
+        state.execution.results.some((r) => r?.status === 'failed')
+      ) {
+        phase = 'failed'
+        statusLabel = 'Failed'
+        tone = 'crit'
+      } else if (
+        status === ORCHESTRATION_STATUS.IDLE ||
+        status === ORCHESTRATION_STATUS.ANALYZING ||
+        status === ORCHESTRATION_STATUS.PLAN_READY ||
+        status === ORCHESTRATION_STATUS.AWAITING_APPROVAL ||
+        status === ORCHESTRATION_STATUS.REPLAN_REQUIRED
+      ) {
+        phase = continuing && status === ORCHESTRATION_STATUS.ANALYZING
+          ? 'completed'
+          : 'waiting'
+        statusLabel =
+          continuing && status === ORCHESTRATION_STATUS.ANALYZING
+            ? 'Complete'
+            : 'Waiting'
+        tone = 'muted'
+      }
+    } else if (id === 'complete') {
+      if (status === ORCHESTRATION_STATUS.RECOVERED) {
+        phase = 'completed'
+        statusLabel = 'Recovered'
+        tone = 'ok'
+      } else {
+        phase = 'locked'
+        statusLabel = 'Locked'
+        tone = 'muted'
+      }
+    }
+
+    const ownsFocus = suggestedStepId === id || ownership.focusId === id
+    return {
+      ...base,
+      index: ORCHESTRATION_FLOW_STEP_IDS.indexOf(id) + 1,
+      phase,
+      statusLabel,
+      tone,
+      ownsFocus: ownsFocus && phase === 'active',
+    }
+  })
+
+  return {
+    steps,
+    suggestedStepId,
+    ownership,
+    continuing,
+    genuineReplan,
+  }
+}
+
+/**
+ * Context-aware primary CTA for the detail panel (maps to existing handlers only).
+ * During post-approval auto-continuation, prefers live progress over Execute/Verify clicks.
+ */
+export function primaryOrchestrationActionView(
+  orchestrationState = null,
+  { hasIncidents = false } = {}
+) {
+  const state = orchestrationState ?? createEmptyOrchestrationState()
+  const status = normalizeOrchestrationStatus(state.workflowStatus ?? state.status)
+
+  if (canReplanOrchestration(state)) {
+    return {
+      actionId: 'replan',
+      label: 'Run Commander Re-analysis',
+      enabled: true,
+      liveProgress: false,
+    }
+  }
+  if (canStartNewOrchestrationCycle(state)) {
+    return {
+      actionId: 'new-cycle',
+      label: 'Start New Response Cycle',
+      enabled: true,
+      liveProgress: false,
+    }
+  }
+  if (canApproveOrchestration(state)) {
+    return {
+      actionId: 'approve',
+      label: 'Approve Response Plan',
+      enabled: true,
+      liveProgress: false,
+    }
+  }
+  if (canAnalyzeOrchestration(state, hasIncidents)) {
+    return {
+      actionId: 'analyze',
+      label: 'Run Commander Analysis',
+      enabled: true,
+      liveProgress: false,
+    }
+  }
+  if (
+    status === ORCHESTRATION_STATUS.APPROVED ||
+    status === ORCHESTRATION_STATUS.EXECUTING ||
+    status === ORCHESTRATION_STATUS.CONTINUING ||
+    status === ORCHESTRATION_STATUS.VERIFYING ||
+    (status === ORCHESTRATION_STATUS.ANALYZING && Number(state.autoIteration) > 0)
+  ) {
+    const exec = state.execution
+    const stepLabel =
+      exec?.activeAction?.label ||
+      exec?.activeAction?.actionId ||
+      null
+    const progress =
+      exec && Number(exec.totalSteps) > 0
+        ? `Step ${Number(exec.completedSteps) || 0} of ${exec.totalSteps}`
+        : null
+    return {
+      actionId: null,
+      label: null,
+      enabled: false,
+      liveProgress: true,
+      liveMessage:
+        status === ORCHESTRATION_STATUS.EXECUTING
+          ? [
+              'AUTONOMOUS RESPONSE ACTIVE',
+              progress,
+              stepLabel ? `Executing ${stepLabel}` : 'Response Agent executing…',
+            ]
+              .filter(Boolean)
+              .join(' · ')
+          : status === ORCHESTRATION_STATUS.CONTINUING ||
+              status === ORCHESTRATION_STATUS.VERIFYING
+            ? 'AUTONOMOUS RESPONSE · Commander continuing within approved scope…'
+            : status === ORCHESTRATION_STATUS.ANALYZING
+              ? 'AUTONOMOUS RESPONSE · Commander reassessment…'
+              : 'AUTONOMOUS RESPONSE ACTIVE',
+    }
+  }
+  return {
+    actionId: null,
+    label: null,
+    enabled: false,
+    liveProgress: false,
+  }
+}
+
+/**
+ * Live Response Agent checklist from real execution / plan statuses only.
+ */
+export function responseTodoChecklistView(orchestrationState = null) {
+  const state = orchestrationState ?? createEmptyOrchestrationState()
+  const status = normalizeOrchestrationStatus(state.workflowStatus ?? state.status)
+  const progress = executionProgressView(state)
+  const actionDetails = planActionDetailsView(state.plan, state.execution)
+  const items = []
+
+  if (!progress.empty && progress.results.length > 0) {
+    for (const step of progress.results) {
+      const st = String(step.status || 'pending').toLowerCase()
+      items.push({
+        key: step.stepId || step.actionId || `exec-${items.length}`,
+        label: step.label || step.actionId || 'Action',
+        target: step.target?.name || step.target?.id || null,
+        status: st,
+        mark:
+          st === 'completed'
+            ? '✓'
+            : st === 'failed'
+              ? '✕'
+              : st === 'executing'
+                ? '●'
+                : st === 'blocked'
+                  ? 'blocked'
+                  : '○',
+        error: step.error || null,
+        kind: 'action',
+      })
+    }
+  } else if (
+    !actionDetails.empty &&
+    (status === ORCHESTRATION_STATUS.APPROVED ||
+      status === ORCHESTRATION_STATUS.AWAITING_APPROVAL ||
+      status === ORCHESTRATION_STATUS.PLAN_READY)
+  ) {
+    for (const action of actionDetails.actions.filter((a) => a.executable)) {
+      items.push({
+        key: action.actionId,
+        label: action.label || action.actionId,
+        target: action.target,
+        status: 'pending',
+        mark: '○',
+        error: null,
+        kind: 'action',
+      })
+    }
+  }
+
+  // Observational evidence marker — not a workflow gate
+  if (
+    state.verification &&
+    (status === ORCHESTRATION_STATUS.CONTINUING ||
+      status === ORCHESTRATION_STATUS.VERIFYING ||
+      status === ORCHESTRATION_STATUS.RECOVERED ||
+      status === ORCHESTRATION_STATUS.REPLAN_REQUIRED)
+  ) {
+    const verify = verificationView(state)
+    items.push({
+      key: 'evidence-verification',
+      label: 'Evidence / Verification (observational)',
+      target: null,
+      status: verify.stepFailed ? 'failed' : 'completed',
+      mark: verify.stepFailed ? '✕' : '✓',
+      error: null,
+      kind: 'evidence',
+    })
+  }
+
+  if (
+    (status === ORCHESTRATION_STATUS.CONTINUING ||
+      status === ORCHESTRATION_STATUS.ANALYZING) &&
+    Number(state.autoIteration) > 0
+  ) {
+    items.push({
+      key: 'continue-next',
+      label: 'Commander — continuing to next incident',
+      target: null,
+      status: 'executing',
+      mark: '●',
+      error: null,
+      kind: 'continue',
+    })
+  } else if (
+    status === ORCHESTRATION_STATUS.VERIFYING &&
+    state.continuationReason === 'remaining_incidents'
+  ) {
+    items.push({
+      key: 'continue-next',
+      label: 'Commander — continuing to next incident',
+      target: null,
+      status: 'pending',
+      mark: '○',
+      error: null,
+      kind: 'continue',
+    })
+  }
+
+  return {
+    empty: items.length === 0,
+    currentStep: progress.currentStep,
+    totalSteps: progress.totalSteps,
+    completedSteps: progress.completedSteps,
+    failedSteps: progress.failedSteps,
+    activeAction: progress.activeAction,
+    title: progress.title,
+    complete: progress.complete,
+    items,
+  }
+}
+
 export function focusedIncidentsView({
   detection = null,
   incidents = null,
@@ -1324,7 +2034,11 @@ export function focusedIncidentsView({
 
   const primary =
     (focus &&
-      list.find((inc) => String(inc.persistentId || inc.id) === focus)) ||
+      list.find(
+        (inc) =>
+          isActiveResponseIncident(inc) &&
+          String(inc.persistentId || inc.id) === focus
+      )) ||
     selectPrimaryIncident(list, detection?.anomalyNodeIds ?? [])
 
   return {

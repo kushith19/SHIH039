@@ -355,6 +355,7 @@ export default function DashboardPage({
       <ResponseConsolePanel
         roomId={roomId}
         focusIncidentId={searchParams.get('incident')}
+        orchestrationState={responseOrchestration}
       />
     )
   } else {

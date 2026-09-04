@@ -31,16 +31,28 @@ test('meshPosture uses concrete counts and HEALTHY empty state', () => {
   assert.match(crit.summary, /2 quarantined/)
 })
 
-test('selectPrimaryIncident prefers open anomaly seeds by severity', () => {
+test('selectPrimaryIncident matches Commander active and recovery-priority semantics', () => {
   const primary = selectPrimaryIncident(
     [
-      { id: 'a', endpointId: 'road', severity: 'medium', anomalyScore: 0.9, status: 'open' },
-      { id: 'b', endpointId: 'pay', severity: 'critical', anomalyScore: 0.5, status: 'open' },
-      { id: 'c', endpointId: 'gw', severity: 'high', anomalyScore: 0.8, status: 'cleared' },
+      { id: 'a', endpointId: 'road', severity: 'medium', anomalyScore: 0.9, recoveryPriority: 90, status: 'acknowledged' },
+      { id: 'b', endpointId: 'pay', severity: 'critical', anomalyScore: 0.5, recoveryPriority: 20, status: 'open' },
+      { id: 'c', endpointId: 'gw', severity: 'high', anomalyScore: 0.8, recoveryPriority: 200, status: 'resolved' },
     ],
     ['road', 'pay']
   )
-  assert.equal(primary.endpointId, 'pay')
+  assert.equal(primary.endpointId, 'road')
+})
+
+test('Overview active count excludes cleared, closed, and resolved incidents', () => {
+  const model = buildOverviewModel({
+    incidents: [
+      { id: 'a', endpointId: 'road', status: 'investigating' },
+      { id: 'b', endpointId: 'pay', status: 'closed' },
+      { id: 'c', endpointId: 'gw', status: 'resolved' },
+      { id: 'd', endpointId: 'water', status: 'cleared' },
+    ],
+  })
+  assert.equal(model.stats.activeIncidents, 1)
 })
 
 test('metricEvidenceHighlight reads observed evidence only', () => {

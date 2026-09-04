@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import StatusBadge from '../../ui/StatusBadge'
 import {
+  LLM_RESPONSE_UI_STATUS,
   RESPONSE_ACTION_UI_STATUS,
+  actionStatusLabel,
   executeButtonLabel,
   exposureLabelFromContext,
   formatRiskDisplay,
   formatTrustDisplay,
   incidentIdForExecute,
   isExecuteDisabled,
+  llmResponseBannerView,
+  logResponseUiTransition,
   noExecutableActionsCopy,
   postCommanderExecute,
   responseActionRows,
@@ -24,19 +28,82 @@ import {
 export default function ResponseConsole({
   roomId = '',
   context = null,
+  responsePlan = null,
   loading = false,
   error = null,
+  analyzing = false,
+  analyzeFailed = false,
+  analyzeError = null,
+  analyzeAttempted = false,
+  socketPlan = null,
+  debugLast = null,
   onRefreshContext = null,
 }) {
   /** @type {Record<string, { uiStatus: string, result?: object, message?: string }>} */
   const [localByAction, setLocalByAction] = useState({})
   const actionListRef = useRef(null)
   const scrollToAvailableRef = useRef(false)
+  const lastLogKeyRef = useRef('')
 
   const actions = useMemo(
-    () => responseActionRows(context, localByAction),
-    [context, localByAction]
+    () =>
+      analyzing || analyzeFailed
+        ? []
+        : responseActionRows(context, localByAction, responsePlan),
+    [analyzing, analyzeFailed, context, localByAction, responsePlan]
   )
+
+  const planId = responsePlan?.planId ?? null
+  useEffect(() => {
+    setLocalByAction({})
+  }, [analyzing, planId])
+
+  const banner = llmResponseBannerView({
+    waiting: analyzing,
+    failed: analyzeFailed,
+    error: analyzeError,
+    visiblePlan: analyzing || analyzeFailed ? null : responsePlan,
+    socketPlan,
+    analyzeAttempted,
+    debugLast,
+  })
+
+  useEffect(() => {
+    const key = analyzing
+      ? `wait:${planId ?? 'none'}`
+      : analyzeFailed
+        ? `fail:${analyzeError ?? ''}`
+        : actions.length > 0
+          ? `recv:${planId}:${actions.length}`
+          : `none:${banner.status}`
+    if (lastLogKeyRef.current === key) return
+    lastLogKeyRef.current = key
+    if (analyzing) {
+      logResponseUiTransition('WAITING_FOR_LLM')
+      return
+    }
+    if (actions.length > 0) {
+      logResponseUiTransition('LLM_RESPONSE_RECEIVED', {
+        planSource: responsePlan?.planSource,
+        actionCount: actions.length,
+      })
+      return
+    }
+    if (analyzeFailed || banner.status === LLM_RESPONSE_UI_STATUS.NO_LLM_RESPONSE) {
+      logResponseUiTransition('NO_LLM_RESPONSE', {
+        planSource: socketPlan?.planSource ?? responsePlan?.planSource ?? '',
+      })
+    }
+  }, [
+    analyzing,
+    analyzeFailed,
+    analyzeError,
+    actions.length,
+    banner.status,
+    planId,
+    responsePlan?.planSource,
+    socketPlan?.planSource,
+  ])
 
   useEffect(() => {
     if (!scrollToAvailableRef.current) return
@@ -104,16 +171,18 @@ export default function ResponseConsole({
     return null
   }, [actions, localByAction, context])
 
-  if (loading) {
+  if (loading && !context && !analyzing) {
     return (
       <section className="soc-zone px-5 py-5">
         <div className="soc-zone-title">Response Console</div>
-        <p className="mt-3 text-sm text-[var(--tn-muted)]">Loading incident context…</p>
+        <p className="mt-3 text-sm text-[var(--tn-muted)]">
+          Loading incident context…
+        </p>
       </section>
     )
   }
 
-  if (error) {
+  if (error && !context) {
     return (
       <section className="soc-zone px-5 py-5">
         <div className="soc-zone-title">Response Console</div>
@@ -126,9 +195,22 @@ export default function ResponseConsole({
     return (
       <section className="soc-zone px-5 py-5">
         <div className="soc-zone-title">Response Console</div>
-        <p className="mt-3 text-sm text-[var(--tn-muted)]">
-          Select an incident to open the execution console.
-        </p>
+        <section
+          className="mt-3 rounded-md border border-[var(--tn-line)] px-3 py-3"
+          data-testid="llm-response-proof"
+          aria-live="polite"
+        >
+          <div className="soc-zone-title">LLM RESPONSE</div>
+          <p className="mt-1.5 text-sm font-medium">Status: {banner.status}</p>
+          {banner.detail ? (
+            <p className="tn-meta mt-1 text-[12px]">{banner.detail}</p>
+          ) : null}
+          {banner.error ? (
+            <p className="mt-1 text-sm text-[var(--tn-crit)]">
+              Error: {banner.error}
+            </p>
+          ) : null}
+        </section>
       </section>
     )
   }
@@ -154,10 +236,10 @@ export default function ResponseConsole({
     actionCount: actions.length,
     execution: primaryExecution,
   })
-  const emptyActions = noExecutableActionsCopy(context)
+  const emptyActions = noExecutableActionsCopy(context, responsePlan)
 
   async function handleExecute(action) {
-    if (isExecuteDisabled(action.uiStatus)) return
+    if (!action.canExecute || isExecuteDisabled(action.uiStatus)) return
 
     const incidentId = incidentIdForExecute(context)
     if (!incidentId || !roomId) {
@@ -292,7 +374,41 @@ export default function ResponseConsole({
 
           <div className="flex min-h-0 flex-col overflow-hidden px-5 py-4">
             <h3 className="soc-zone-title shrink-0">Response actions</h3>
-            {actions.length === 0 ? (
+            <section
+              className="mt-3 shrink-0 rounded-md border border-[var(--tn-line)] px-3 py-3"
+              data-testid="llm-response-proof"
+              aria-live="polite"
+            >
+              <div className="soc-zone-title">LLM RESPONSE</div>
+              <p className="mt-1.5 text-sm font-medium">
+                Status: {banner.status}
+              </p>
+              {banner.detail ? (
+                <p className="tn-meta mt-1 text-[12px]">{banner.detail}</p>
+              ) : null}
+              {banner.error ? (
+                <p className="mt-1 text-sm text-[var(--tn-crit)]">
+                  Error: {banner.error}
+                </p>
+              ) : null}
+              {banner.fields.map((field) => (
+                <p key={field.label} className="tn-meta mt-1 text-[12px]">
+                  {field.label}: {field.value}
+                </p>
+              ))}
+            </section>
+            {analyzing ? (
+              <p className="mt-3 text-sm text-[var(--tn-text)]" aria-live="polite">
+                Generating response plan with Qwen…
+              </p>
+            ) : null}
+            {!analyzing && analyzeFailed ? (
+              <p className="mt-3 text-sm text-[var(--tn-crit)]" role="alert">
+                LLM Response Plan unavailable
+                {analyzeError ? `: ${analyzeError}` : ''}
+              </p>
+            ) : null}
+            {!analyzing && !analyzeFailed && actions.length === 0 ? (
               <div className="mt-3">
                 {emptyActions.title ? (
                   <div className="text-sm font-medium uppercase tracking-wide">
@@ -309,7 +425,8 @@ export default function ResponseConsole({
                 className="mt-3 min-h-0 flex-1 space-y-3 overflow-y-auto pr-1"
               >
                 {actions.map((action) => {
-                  const disabled = isExecuteDisabled(action.uiStatus)
+                  const disabled =
+                    !action.canExecute || isExecuteDisabled(action.uiStatus)
                   const badgeTone =
                     action.uiStatus === RESPONSE_ACTION_UI_STATUS.FAILED
                       ? 'crit'
@@ -319,13 +436,11 @@ export default function ResponseConsole({
                         : action.uiStatus === RESPONSE_ACTION_UI_STATUS.EXECUTING
                           ? 'warn'
                           : 'muted'
-                  const executed =
-                    action.uiStatus === RESPONSE_ACTION_UI_STATUS.EXECUTED ||
-                    action.uiStatus === RESPONSE_ACTION_UI_STATUS.ALREADY_EXECUTED
                   return (
                     <li
                       key={action.actionId}
                       data-action-id={action.actionId}
+                      data-testid="response-action-card"
                       data-action-available={
                         action.uiStatus === RESPONSE_ACTION_UI_STATUS.AVAILABLE
                           ? 'true'
@@ -333,76 +448,86 @@ export default function ResponseConsole({
                       }
                       className="scroll-mt-3 rounded-md border border-[var(--tn-line)] px-4 py-3"
                     >
-                      {executed ? (
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="min-w-0">
-                            <div className="text-sm font-medium uppercase tracking-wide">
-                              {action.label}
-                            </div>
-                            <p className="tn-meta mt-0.5 text-[12px]">
-                              {action.targetName || action.targetId || '—'}
-                              {action.actionType ? ` · ${action.actionType}` : ''}
-                            </p>
-                          </div>
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
-                            <StatusBadge tone={badgeTone}>{action.uiStatus}</StatusBadge>
-                            <span className="text-sm font-medium text-[var(--tn-ok)]">
-                              {executeButtonLabel(action.uiStatus)}
+                            <span className="tn-label">
+                              {action.category || action.responseProfile || 'Response'}
                             </span>
+                            {action.aiRecommended ? (
+                              <span className="soc-role-chip soc-role-commander">
+                                AI Recommended
+                              </span>
+                            ) : null}
                           </div>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="flex flex-wrap items-start justify-between gap-2">
-                            <div>
-                              {action.profileLabel ? (
-                                <div className="tn-label">{action.profileLabel}</div>
-                              ) : null}
-                              <div
-                                className={`text-sm font-medium uppercase tracking-wide ${
-                                  action.profileLabel ? 'mt-1' : ''
-                                }`}
-                              >
-                                {action.label}
-                              </div>
-                              <p className="tn-meta mt-1 text-[12px]">
-                                {action.rationale || action.description}
-                              </p>
-                            </div>
-                            <StatusBadge tone={badgeTone}>{action.uiStatus}</StatusBadge>
+                          <div className="mt-1 text-sm font-medium uppercase tracking-wide">
+                            {action.label}
                           </div>
-                          <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
-                            <div className="text-sm">
-                              <span className="tn-label">Target</span>
-                              <div className="mt-0.5 font-medium">
-                                {action.targetName || action.targetId || '—'}
-                              </div>
-                              {action.actionType ? (
-                                <p className="tn-meta mt-0.5 text-[11px]">{action.actionType}</p>
-                              ) : null}
-                            </div>
-                            <button
-                              type="button"
-                              className="tn-btn-primary"
-                              disabled={disabled}
-                              aria-busy={
-                                action.uiStatus === RESPONSE_ACTION_UI_STATUS.EXECUTING
-                              }
-                              onClick={() => {
-                                void handleExecute(action)
-                              }}
-                            >
-                              {executeButtonLabel(action.uiStatus)}
-                            </button>
-                          </div>
-                          {action.uiStatus === RESPONSE_ACTION_UI_STATUS.FAILED &&
-                          localByAction[action.actionId]?.message ? (
-                            <p className="mt-2 text-sm text-[var(--tn-crit)]">
-                              {localByAction[action.actionId].message}
+                          <p className="tn-meta mt-1 text-[12px]">
+                            {action.description}
+                          </p>
+                          {action.aiRecommended && action.rationale ? (
+                            <p className="mt-2 text-sm">
+                              <span className="tn-label">Why:</span>{' '}
+                              {action.rationale}
                             </p>
                           ) : null}
-                        </>
-                      )}
+                          {action.expectedImpact ? (
+                            <p className="tn-meta mt-1 text-[12px]">
+                              <span className="tn-label">Expected impact:</span>{' '}
+                              {action.expectedImpact}
+                            </p>
+                          ) : null}
+                        </div>
+                        <StatusBadge tone={badgeTone}>
+                          {actionStatusLabel(action.uiStatus)}
+                        </StatusBadge>
+                      </div>
+                      <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <dt className="tn-label">Target</dt>
+                          <dd className="mt-0.5 font-medium">
+                            {action.targetName || action.targetId || '—'}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="tn-label">Action ID</dt>
+                          <dd className="tn-meta mt-0.5 font-mono text-[11px]">
+                            {action.actionId}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="tn-label">Policy</dt>
+                          <dd className="mt-0.5">{action.policyStatus}</dd>
+                        </div>
+                        <div>
+                          <dt className="tn-label">Support</dt>
+                          <dd className="mt-0.5">
+                            {action.supported ? 'EXECUTABLE' : 'UNSUPPORTED'}
+                          </dd>
+                        </div>
+                      </dl>
+                      <div className="mt-3 flex justify-end">
+                        <button
+                          type="button"
+                          className="tn-btn-primary"
+                          disabled={disabled}
+                          aria-busy={
+                            action.uiStatus === RESPONSE_ACTION_UI_STATUS.EXECUTING
+                          }
+                          onClick={() => {
+                            void handleExecute(action)
+                          }}
+                        >
+                          {executeButtonLabel(action.uiStatus)}
+                        </button>
+                      </div>
+                      {action.uiStatus === RESPONSE_ACTION_UI_STATUS.FAILED &&
+                      localByAction[action.actionId]?.message ? (
+                        <p className="mt-2 text-sm text-[var(--tn-crit)]">
+                          {localByAction[action.actionId].message}
+                        </p>
+                      ) : null}
                     </li>
                   )
                 })}

@@ -39,6 +39,7 @@ export { NODE_METRIC_KEYS } from '../nodeMetrics.js'
  *   }
  *   behaviour: {
  *     attackOverrideActive: boolean
+ *     telemetryOverrideActive?: boolean
  *     intrinsicTrust: number
  *   }
  *   activeContexts: {

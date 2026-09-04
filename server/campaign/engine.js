@@ -1,4 +1,7 @@
-import { computePresetOverrides, isAttackPresetId } from '../../shared/attackPresets.js'
+import {
+  computePresetOverrides,
+  isAttackPresetId,
+} from '../../shared/attackPresets.js'
 import { validateSpreadAttack } from '../../shared/attackSpread.js'
 import { isLiveCampaignStatus } from '../../shared/campaigns.js'
 import { runtimeStateOf } from '../infrastructureNode.js'
@@ -7,6 +10,7 @@ import { mergeMetrics, normalizeMetricPatch, normalizeMetricSnapshot } from '../
 import { clearSpreadTargetLocks } from '../../shared/spreadTargetLock.js'
 import {
   clearActiveAttackSequences,
+  listActiveSequences,
   recordSeedAttackEvent,
   recordSpreadAttackEvent,
 } from '../attack/events.js'
@@ -27,9 +31,25 @@ function nodeBaseline(room, nodeId) {
   return live
 }
 
-function applyOverride(room, nodeId, presetId) {
+/**
+ * Hop depth for the next spread target: seed = stage 0, first hop = 1, …
+ * Uses the active attack sequence whose tip is sourceNodeId.
+ */
+function stageIndexForSpread(room, sourceNodeId) {
+  const source = String(sourceNodeId ?? '')
+  if (!source) return 1
+  const tipSeq = listActiveSequences(room)
+    .filter((s) => s.status === 'active' && s.nodePath?.[s.nodePath.length - 1] === source)
+    .sort((a, b) => (Number(b.lastTick) || 0) - (Number(a.lastTick) || 0))[0]
+  const depth = tipSeq?.nodePath?.length
+  return Number.isFinite(Number(depth)) && Number(depth) > 0 ? Number(depth) : 1
+}
+
+function applyOverride(room, nodeId, presetId, { stageIndex = 0 } = {}) {
   const baseline = nodeBaseline(room, nodeId)
-  const patch = normalizeMetricPatch(computePresetOverrides(presetId, baseline))
+  const patch = normalizeMetricPatch(
+    computePresetOverrides(presetId, baseline, { stageIndex })
+  )
   if (Object.keys(patch).length === 0) {
     return false
   }
@@ -37,6 +57,11 @@ function applyOverride(room, nodeId, presetId) {
   const prev = normalizeMetricPatch(sim.nodeOverrides?.[nodeId])
   sim.nodeOverrides = { ...(sim.nodeOverrides ?? {}) }
   sim.nodeOverrides[nodeId] = mergeMetrics(prev, patch)
+  // Attack presets are explicit operational attacks — enable under_attack sampling.
+  sim.nodeAttackStates = { ...(sim.nodeAttackStates ?? {}) }
+  sim.nodeAttackStates[nodeId] = true
+  sim.nodePresetIds = { ...(sim.nodePresetIds ?? {}) }
+  sim.nodePresetIds[nodeId] = String(presetId)
   room.hackSimulator = sim
   return true
 }
@@ -73,6 +98,7 @@ export function abortAndClearAttacks(room) {
     ...sim,
     nodeOverrides: {},
     edgeOverrides: {},
+    nodeAttackStates: {},
     // Preserve defender mode across Clear Attacks; reset only on match rebuild.
     attackSpreadMode: normalizeAttackSpreadMode(sim.attackSpreadMode),
   }
@@ -99,10 +125,15 @@ export function abortAndClearAttacks(room) {
 export function clearNodeAttackOverride(room, nodeId) {
   const id = String(nodeId ?? '')
   const sim = room?.hackSimulator
-  if (!id || !sim?.nodeOverrides || sim.nodeOverrides[id] == null) return false
-  const nodeOverrides = { ...sim.nodeOverrides }
+  if (!id || !sim) return false
+  const hadOverride = sim.nodeOverrides?.[id] != null
+  const hadAttack = sim.nodeAttackStates?.[id] != null
+  if (!hadOverride && !hadAttack) return false
+  const nodeOverrides = { ...(sim.nodeOverrides ?? {}) }
   delete nodeOverrides[id]
-  room.hackSimulator = { ...sim, nodeOverrides }
+  const nodeAttackStates = { ...(sim.nodeAttackStates ?? {}) }
+  delete nodeAttackStates[id]
+  room.hackSimulator = { ...sim, nodeOverrides, nodeAttackStates }
   return true
 }
 
@@ -151,7 +182,8 @@ export function spreadAttack(room, { sourceNodeId, targetNodeId, presetId }) {
   const check = validateSpreadAttack(room, sourceNodeId, targetNodeId)
   if (!check.ok) return check
 
-  const applied = applyOverride(room, String(targetNodeId), presetId)
+  const stageIndex = stageIndexForSpread(room, sourceNodeId)
+  const applied = applyOverride(room, String(targetNodeId), presetId, { stageIndex })
   if (!applied) {
     return { ok: false, message: 'Could not apply attack override to target' }
   }

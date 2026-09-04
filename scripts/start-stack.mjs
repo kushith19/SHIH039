@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /**
- * Bring up the local TrustNet stack: Ollama, Commander, API, UI.
+ * Bring up the local TrustNet stack: Commander, API, UI.
  * Usage: npm start
  * Skip ingest: npm start -- --no-ingest
  * Start Qdrant for lab RAG: npm start -- --with-rag
+ * Local Qwen (separate): npm run ollama:qwen
  */
 import { spawn, spawnSync } from 'node:child_process'
-import { copyFileSync, existsSync, readFileSync } from 'node:fs'
+import { copyFileSync, existsSync } from 'node:fs'
 import { networkInterfaces } from 'node:os'
 import net from 'node:net'
 import { dirname, join } from 'node:path'
@@ -22,7 +23,6 @@ const aiCom = join(root, 'ai-com-v1')
 const teleIng = join(root, 'tele-ingestion')
 const withIngest = !process.argv.includes('--no-ingest')
 const withRag = process.argv.includes('--with-rag')
-const DEFAULT_MODEL = 'qwen2.5:7b-instruct'
 const COMMANDER_HEALTH_TIMEOUT_MS = 120_000
 const children = []
 let shuttingDown = false
@@ -57,23 +57,6 @@ function venvPython() {
   const bin = process.platform === 'win32' ? 'Scripts' : 'bin'
   const name = process.platform === 'win32' ? 'python.exe' : 'python'
   return join(aiCom, 'venv', bin, name)
-}
-
-function resolveModel() {
-  try {
-    const text = readFileSync(join(aiCom, '.env'), 'utf8')
-    const m = text.match(/^OLLAMA_MODEL=(.+)$/m)
-    if (m) return m[1].trim()
-  } catch {
-    /* default */
-  }
-  return process.env.OLLAMA_MODEL || DEFAULT_MODEL
-}
-
-function modelPresent(names, model) {
-  return names.some(
-    (n) => n === model || n === `${model}:latest` || n.startsWith(`${model}:`)
-  )
 }
 
 function lanIpv4() {
@@ -214,31 +197,6 @@ function shutdown(code = 0) {
 
 process.on('SIGINT', () => shutdown(0))
 process.on('SIGTERM', () => shutdown(0))
-
-async function ensureOllama(model) {
-  if (!which('ollama')) {
-    fail('ollama is not on PATH. Install from https://ollama.com then retry.')
-  }
-  try {
-    const res = await fetch('http://127.0.0.1:11434/api/tags')
-    if (!res.ok) throw new Error(String(res.status))
-  } catch {
-    log('starting ollama serve')
-    spawnInherit('ollama', ['serve'])
-    await waitForHttp('http://127.0.0.1:11434/api/tags', {
-      timeoutMs: 30_000,
-      label: 'Ollama',
-    })
-  }
-  const tags = await fetch('http://127.0.0.1:11434/api/tags').then((r) => r.json())
-  const names = (tags.models ?? []).map((m) => String(m.name ?? ''))
-  if (!modelPresent(names, model)) {
-    log(`pulling Ollama model ${model} (first time can take several minutes)`)
-    runChecked('ollama', ['pull', model])
-  } else {
-    log(`Ollama model ready (${model})`)
-  }
-}
 
 function ensurePython() {
   const py = venvPython()
@@ -411,7 +369,7 @@ async function main() {
   }
 
   ensureNodeModules()
-  await ensureOllama(resolveModel())
+  log('skipping Ollama (run `npm run ollama:qwen` in another terminal when you need local Qwen)')
 
   if (withRag) {
     log('starting Qdrant (docker compose)')
@@ -431,7 +389,6 @@ async function main() {
 
   log('starting web UI (:5173) and game API (:3001) — LAN host open')
   log('')
-  log('  Ollama     http://localhost:11434')
   if (withRag) log('  Qdrant     http://localhost:6333/dashboard')
   if (withIngest) {
     log('  Timescale  localhost:5432')

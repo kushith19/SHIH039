@@ -13,7 +13,7 @@ import {
   RESPONSE_ACTIONS,
 } from '../responseActions.js'
 
-/** Workflow phases for the multi-agent response loop (no auto-execute yet). */
+/** Workflow phases for the multi-agent response loop (STEP 16). */
 export const ORCHESTRATION_STATUS = Object.freeze({
   IDLE: 'IDLE',
   ANALYZING: 'ANALYZING',
@@ -21,6 +21,12 @@ export const ORCHESTRATION_STATUS = Object.freeze({
   AWAITING_APPROVAL: 'AWAITING_APPROVAL',
   APPROVED: 'APPROVED',
   EXECUTING: 'EXECUTING',
+  /** Commander building next in-scope plan after successful execute */
+  CONTINUING: 'CONTINUING',
+  /**
+   * @deprecated STEP 16 — observational evidence only; not a control-flow gate.
+   * Kept so older snapshots / tests normalize safely.
+   */
   VERIFYING: 'VERIFYING',
   RECOVERED: 'RECOVERED',
   REPLAN_REQUIRED: 'REPLAN_REQUIRED',
@@ -32,8 +38,8 @@ export const ORCHESTRATION_TRANSITIONS = Object.freeze({
   [ORCHESTRATION_STATUS.ANALYZING]: Object.freeze([
     ORCHESTRATION_STATUS.PLAN_READY,
     ORCHESTRATION_STATUS.AWAITING_APPROVAL,
-    /** Scope-authorized auto-approve during multi-incident continuation */
     ORCHESTRATION_STATUS.APPROVED,
+    ORCHESTRATION_STATUS.CONTINUING,
     ORCHESTRATION_STATUS.IDLE,
     ORCHESTRATION_STATUS.REPLAN_REQUIRED,
     ORCHESTRATION_STATUS.RECOVERED,
@@ -42,13 +48,11 @@ export const ORCHESTRATION_TRANSITIONS = Object.freeze({
     ORCHESTRATION_STATUS.AWAITING_APPROVAL,
     ORCHESTRATION_STATUS.ANALYZING,
     ORCHESTRATION_STATUS.IDLE,
-    ORCHESTRATION_STATUS.REPLAN_REQUIRED,
   ]),
   [ORCHESTRATION_STATUS.AWAITING_APPROVAL]: Object.freeze([
     ORCHESTRATION_STATUS.APPROVED,
     ORCHESTRATION_STATUS.ANALYZING,
     ORCHESTRATION_STATUS.IDLE,
-    ORCHESTRATION_STATUS.REPLAN_REQUIRED,
   ]),
   [ORCHESTRATION_STATUS.APPROVED]: Object.freeze([
     ORCHESTRATION_STATUS.EXECUTING,
@@ -56,18 +60,26 @@ export const ORCHESTRATION_TRANSITIONS = Object.freeze({
     ORCHESTRATION_STATUS.REPLAN_REQUIRED,
   ]),
   [ORCHESTRATION_STATUS.EXECUTING]: Object.freeze([
-    ORCHESTRATION_STATUS.VERIFYING,
-    ORCHESTRATION_STATUS.REPLAN_REQUIRED,
-  ]),
-  [ORCHESTRATION_STATUS.VERIFYING]: Object.freeze([
+    ORCHESTRATION_STATUS.CONTINUING,
     ORCHESTRATION_STATUS.RECOVERED,
     ORCHESTRATION_STATUS.REPLAN_REQUIRED,
-    /** More active incidents remain — Commander continuation */
-    ORCHESTRATION_STATUS.ANALYZING,
-    /** Scope expansion / max iterations — pause for human */
-    ORCHESTRATION_STATUS.AWAITING_APPROVAL,
+    /** Legacy observational verify path */
+    ORCHESTRATION_STATUS.VERIFYING,
   ]),
-  /** New cycle only via intentional startNewOrchestrationCycle → IDLE */
+  [ORCHESTRATION_STATUS.CONTINUING]: Object.freeze([
+    ORCHESTRATION_STATUS.APPROVED,
+    ORCHESTRATION_STATUS.EXECUTING,
+    ORCHESTRATION_STATUS.ANALYZING,
+    ORCHESTRATION_STATUS.AWAITING_APPROVAL,
+    ORCHESTRATION_STATUS.RECOVERED,
+  ]),
+  [ORCHESTRATION_STATUS.VERIFYING]: Object.freeze([
+    ORCHESTRATION_STATUS.CONTINUING,
+    ORCHESTRATION_STATUS.RECOVERED,
+    ORCHESTRATION_STATUS.ANALYZING,
+    ORCHESTRATION_STATUS.AWAITING_APPROVAL,
+    ORCHESTRATION_STATUS.APPROVED,
+  ]),
   [ORCHESTRATION_STATUS.RECOVERED]: Object.freeze([ORCHESTRATION_STATUS.IDLE]),
   [ORCHESTRATION_STATUS.REPLAN_REQUIRED]: Object.freeze([
     ORCHESTRATION_STATUS.ANALYZING,
@@ -265,27 +277,35 @@ export function agentSlotsForStatus(workflowStatus) {
         response: AGENT_SLOT_STATUS.EXECUTING,
         recovery: AGENT_SLOT_STATUS.LOCKED,
       }
+    case ORCHESTRATION_STATUS.CONTINUING:
+      return {
+        commander: AGENT_SLOT_STATUS.ANALYZING,
+        approval: AGENT_SLOT_STATUS.APPROVED,
+        response: AGENT_SLOT_STATUS.COMPLETE,
+        recovery: AGENT_SLOT_STATUS.LOCKED,
+      }
     case ORCHESTRATION_STATUS.VERIFYING:
+      // STEP 16: observational only — treat like post-execute continuation handoff
       return {
         commander: AGENT_SLOT_STATUS.READY,
         approval: AGENT_SLOT_STATUS.APPROVED,
         response: AGENT_SLOT_STATUS.COMPLETE,
-        recovery: AGENT_SLOT_STATUS.READY,
+        recovery: AGENT_SLOT_STATUS.LOCKED,
       }
     case ORCHESTRATION_STATUS.RECOVERED:
       return {
         commander: AGENT_SLOT_STATUS.READY,
         approval: AGENT_SLOT_STATUS.APPROVED,
-        response: AGENT_SLOT_STATUS.WAITING,
-        recovery: AGENT_SLOT_STATUS.RECOVERED,
+        response: AGENT_SLOT_STATUS.COMPLETE,
+        recovery: AGENT_SLOT_STATUS.LOCKED,
       }
     case ORCHESTRATION_STATUS.REPLAN_REQUIRED:
       return {
         commander: AGENT_SLOT_STATUS.IDLE,
         approval: AGENT_SLOT_STATUS.LOCKED,
         response: AGENT_SLOT_STATUS.WAITING,
-        /** Recovery completed with failed verification — Commander may re-plan */
-        recovery: AGENT_SLOT_STATUS.COMPLETE,
+        /** Observational evidence only — not a control-flow lane */
+        recovery: AGENT_SLOT_STATUS.LOCKED,
       }
     case ORCHESTRATION_STATUS.IDLE:
     default:
@@ -348,6 +368,11 @@ export function createEmptyOrchestrationState(overrides = {}) {
       overrides.verificationBaseline === undefined
         ? null
         : overrides.verificationBaseline,
+    /** STEP 13 — frozen detection at execute completion for Recovery */
+    postExecutionDetection:
+      overrides.postExecutionDetection === undefined
+        ? null
+        : overrides.postExecutionDetection,
     verification:
       overrides.verification === undefined ? null : overrides.verification,
     /** STEP 5 — adaptive re-plan lineage (in-memory, not campaigns). */
@@ -399,18 +424,42 @@ export function createEmptyResponsePlan(overrides = {}) {
     policyStatus: overrides.policyStatus ?? null,
     reasoning: overrides.reasoning ?? null,
     approvalStatus: overrides.approvalStatus ?? PLAN_APPROVAL_STATUS.NONE,
+    /**
+     * Plan kind:
+     * - fresh: initial Commander analyze
+     * - continuation: automatic multi-incident within approvalScope (not a failure replan)
+     * - replan: genuine verification failure / adaptive replan lineage
+     */
+    planKind: overrides.planKind ?? 'fresh',
     /** STEP 5 lineage — prior plan is context, not authority */
     previousPlanId: overrides.previousPlanId ?? null,
     replanCount: Number.isFinite(Number(overrides.replanCount))
       ? Math.max(0, Math.floor(Number(overrides.replanCount)))
       : 0,
     replanContext: overrides.replanContext ?? null,
+    /** STEP 12 — successful approved-scope continuation context (not replan) */
+    continuationContext: overrides.continuationContext ?? null,
     /**
      * Why this primary was chosen:
-     * global_recovery_priority | explicit_focus_override | replan_adaptive_recovery_priority
+     * global_recovery_priority | explicit_focus_override |
+     * replan_adaptive_recovery_priority | continuation_adaptive_recovery_priority
      */
     primarySelectionReason: overrides.primarySelectionReason ?? null,
     focusOverride: overrides.focusOverride === true,
+    llmSummary: overrides.llmSummary ?? null,
+    attackInterpretation: overrides.attackInterpretation ?? null,
+    strategy: overrides.strategy ?? null,
+    riskAssessment: overrides.riskAssessment ?? null,
+    llmConfidence:
+      overrides.llmConfidence != null &&
+      Number.isFinite(Number(overrides.llmConfidence))
+        ? Number(overrides.llmConfidence)
+        : null,
+    llmUncertainty: overrides.llmUncertainty ?? null,
+    llmActions: Array.isArray(overrides.llmActions)
+      ? overrides.llmActions.map((action) => ({ ...action }))
+      : [],
+    planSource: overrides.planSource ?? null,
   }
 }
 
@@ -425,6 +474,14 @@ export function normalizePlanAction(raw = {}) {
     label: raw.label ?? registered?.label ?? null,
     target: raw.target ?? null,
     reason: raw.reason ?? raw.rationale ?? null,
+    expectedImpact: raw.expectedImpact ?? null,
+    confidence:
+      raw.confidence != null && Number.isFinite(Number(raw.confidence))
+        ? Number(raw.confidence)
+        : null,
+    dependencies: Array.isArray(raw.dependencies)
+      ? raw.dependencies.map(String)
+      : [],
     executionOrder:
       Number.isFinite(Number(raw.executionOrder)) ? Number(raw.executionOrder) : null,
     risk: raw.risk ?? null,

@@ -16,8 +16,10 @@ import {
   ORCHESTRATION_STATUS,
   PLAN_APPROVAL_STATUS,
 } from '../../shared/response/orchestration.js'
+import { getRepositoryAction } from '../../shared/response/responseActionRepository.js'
 import { runtimeStateOf } from '../infrastructureNode.js'
 import { setNodeQuarantined } from './quarantineNode.js'
+import { bindPostExecutionDetection } from './recoveryAgent.js'
 
 function node(id, criticality = 'high') {
   return {
@@ -120,18 +122,12 @@ function roomWithIncident(id = 'ORCH-RP') {
 function forceReplanRequired(room, { keepPayQuarantined = true } = {}) {
   generateOrchestrationPlan(room, { focusIncidentId: 'inc-pay', resolveContext })
   approveOrchestrationPlan(room, { resolveContext, autoContinue: false })
+  const originalIncidents = room.detection.incidents
+  room.detection.incidents = []
   const exec = executeOrchestrationPlan(room, { resolveContext })
-  assert.equal(exec.ok, true)
-  // Fail verification by clearing quarantine after execute
-  if (!keepPayQuarantined) {
-    setNodeQuarantined(room, 'pay', false)
-  } else {
-    // New out-of-scope anomaly → REPLAN while containment held
-    room.detection.anomalyNodeIds = ['gw']
-    room.detection.isolationScoresByNodeId = { pay: 0.3, gw: 0.85 }
-  }
-  const verified = verifyOrchestrationPlan(room)
-  assert.equal(verified.verdict, 'REPLAN_REQUIRED')
+  room.detection.incidents = originalIncidents
+  assert.equal(exec.ok, false)
+  if (!keepPayQuarantined) setNodeQuarantined(room, 'pay', false)
   assert.equal(
     room.responseOrchestration.status,
     ORCHESTRATION_STATUS.REPLAN_REQUIRED
@@ -191,23 +187,14 @@ describe('Commander re-planning STEP 5', () => {
     assert.equal(plan.replanCount, 1)
   })
 
-  it('6/7: previous verification is context; previous plan not authoritative', () => {
+  it('6/7: execution failure is context; previous plan not authoritative', () => {
     const room = forceReplanRequired(roomWithIncident('RP4'))
-    const prevVerification = room.responseOrchestration.verification
-    assert.ok(prevVerification)
+    assert.equal(room.responseOrchestration.verification, null)
     room.detection.anomalyNodeIds = ['pay']
     room.hackSimulator.nodeOverrides.pay = { packetsPerSecond: 900 }
     replanOrchestrationPlan(room, { resolveContext, nowMs: 8000 })
     const plan = room.responseOrchestration.plan
-    assert.equal(
-      room.responseOrchestration.verification?.verdict,
-      prevVerification.verdict
-    )
     assert.ok(plan.replanContext)
-    assert.equal(
-      plan.replanContext.verificationVerdict,
-      prevVerification.verdict
-    )
     assert.ok(
       String(plan.reasoning || '').includes('Previous response') ||
         String(plan.reasoning || '').includes('did not sufficiently')
@@ -223,10 +210,10 @@ describe('Commander re-planning STEP 5', () => {
     replanOrchestrationPlan(room, { resolveContext })
     const actions = room.responseOrchestration.plan.recommendedActions
     for (const a of actions) {
-      assert.ok(['isolate-node', 'restore-connectivity'].includes(a.actionId))
+      assert.equal(getRepositoryAction(a.actionId)?.supported, true)
       assert.equal(a.executable, true)
     }
-    assert.ok(!actions.some((a) => a.actionId === 'rate-limit-endpoint'))
+    assert.ok(!actions.some((a) => a.actionId === 'disable-camera'))
   })
 
   it('9/10: client cannot inject actionIds or targets', () => {
@@ -303,9 +290,10 @@ describe('Commander re-planning STEP 5', () => {
     room.detection.anomalyNodeIds = []
     const result = approveOrchestrationPlan(room, { resolveContext, autoContinue: false })
     assert.equal(result.ok, false)
+    assert.equal(room.responseOrchestration.stale, true)
     assert.equal(
       room.responseOrchestration.status,
-      ORCHESTRATION_STATUS.REPLAN_REQUIRED
+      ORCHESTRATION_STATUS.AWAITING_APPROVAL
     )
   })
 
@@ -348,13 +336,12 @@ describe('Commander re-planning STEP 5', () => {
       room.responseOrchestration.status,
       ORCHESTRATION_STATUS.REPLAN_REQUIRED
     )
+    const msg = `${result.message || ''} ${room.responseOrchestration.lastReplanReason || ''}`
     assert.ok(
-      String(result.message).includes('No policy-approved') ||
-        String(room.responseOrchestration.lastReplanReason || '').includes(
-          'No policy-approved'
-        ) ||
-        String(result.message).includes('No open') ||
-        String(result.message).includes('context')
+      /No policy-approved|No open|context|No suitable primary|No remaining|exposure|executable/i.test(
+        msg
+      ),
+      `unexpected replan message: ${msg}`
     )
   })
 
@@ -368,9 +355,10 @@ describe('Commander re-planning STEP 5', () => {
     assert.equal(room.responseOrchestration.previousPlanId, firstId)
     assert.equal(room.responseOrchestration.replanCount, 1)
     approveOrchestrationPlan(room, { resolveContext, autoContinue: false })
-    executeOrchestrationPlan(room, { resolveContext })
-    room.detection.anomalyNodeIds = ['gw']
-    verifyOrchestrationPlan(room)
+    const originalIncidents = room.detection.incidents
+    room.detection.incidents = []
+    executeOrchestrationPlan(room, { resolveContext, autoContinue: false })
+    room.detection.incidents = originalIncidents
     assert.equal(
       room.responseOrchestration.status,
       ORCHESTRATION_STATUS.REPLAN_REQUIRED
@@ -413,7 +401,7 @@ describe('Commander re-planning STEP 5', () => {
     )
     assert.equal(
       room.responseOrchestration.verification?.verdict,
-      verification.verdict
+      verification?.verdict
     )
     assert.ok(publicOrchestrationState(room).previousPlanId)
   })

@@ -90,6 +90,7 @@ function collectDriftSignals(input) {
       const { deviationRatio } = computeDeviationMetrics({
         baselinePps: expected[key],
         effectivePps: ep.telemetry[key],
+        metricKey: key,
       })
       if (deviationRatio >= TGNN_METRIC_SPIKE_DEVIATION_RATIO) return true
     }
@@ -171,11 +172,23 @@ export function runTgnnAnomaly(input, opts = {}) {
       anomalyFlags[i] === true && ep.runtimeState?.quarantined !== true
     isolationScoresByNodeId[ep.id] = score
     if (isAnomaly) anomalyNodeIds.push(ep.id)
+    const expected = expectedTelemetryOf(ep)
     nodeResults.push({
       id: ep.id,
       label: ep.label,
       isolationScore: score,
       isAnomaly,
+      // Debug/test observability — not rendered in production UI.
+      debug: {
+        cityContext: ep.activeContexts?.cityContext ?? input.cityContext ?? null,
+        telemetryOverrideActive: ep.behaviour?.telemetryOverrideActive === true,
+        attackStateActive: ep.behaviour?.attackOverrideActive === true,
+        maxDeviation: deviationRatios[i] ?? 0,
+        hasScenarioDrift: hasScenarioDrift[i] === true,
+        hasMetricSpike: hasMetricSpike[i] === true,
+        expectedFilesDownloaded: expected?.filesDownloaded,
+        observedFilesDownloaded: ep.telemetry?.filesDownloaded,
+      },
     })
   }
   return {

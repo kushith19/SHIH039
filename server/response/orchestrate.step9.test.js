@@ -17,7 +17,7 @@ import { attachRecoveryImpact } from '../../shared/recovery/recoveryImpact.js'
 import { ORCHESTRATION_STATUS } from '../../shared/response/orchestration.js'
 import { runtimeStateOf } from '../infrastructureNode.js'
 import { setNodeQuarantined } from './quarantineNode.js'
-import { runRecoveryAgent } from './recoveryAgent.js'
+import { runRecoveryAgent, bindPostExecutionDetection } from './recoveryAgent.js'
 import {
   buildApprovalScope,
   isPlanWithinApprovalScope,
@@ -192,7 +192,8 @@ describe('STEP 9 multi-incident autonomous orchestration', () => {
       resolveContext,
       autoContinue: false,
     })
-    assert.equal(verified.stepVerified, true)
+    assert.equal(verified.observational, true)
+    assert.equal(verified.workflowUnchangedByVerdict, true)
     assert.equal(verified.episodeComplete, false)
     assert.equal(verified.remainingWork, true)
     assert.equal(verified.recovered, false)
@@ -262,7 +263,7 @@ describe('STEP 9 multi-incident autonomous orchestration', () => {
     assert.equal(check.ok, true)
   })
 
-  it('4: replan outside scope → AWAITING_APPROVAL', () => {
+  it('4: verify observes a new out-of-scope incident without writing REPLAN_REQUIRED', () => {
     const room = roomSingle('OUT')
     generateOrchestrationPlan(room, {
       focusIncidentId: 'inc-a',
@@ -286,7 +287,6 @@ describe('STEP 9 multi-incident autonomous orchestration', () => {
     )
 
     executeOrchestrationPlan(room, { resolveContext })
-    // Inject a new incident outside approval scope before verification
     room.detection.incidents.push(
       seedIncident('inc-new', 'water', { recoveryPriority: 99 })
     )
@@ -297,18 +297,17 @@ describe('STEP 9 multi-incident autonomous orchestration', () => {
       edges: room.edges,
       overrides: {},
     })
+    bindPostExecutionDetection(room)
     const result = verifyOrchestrationPlan(room, {
       resolveContext,
       autoContinue: true,
     })
-    // Verification may fail on the new seed; continuation must pause — not auto-execute water
-    assert.equal(
+    // Verification evidence is observational and does not control the workflow.
+    assert.equal(result.stepVerified, false)
+    assert.equal(result.observational, true)
+    assert.notEqual(
       room.responseOrchestration.status,
-      ORCHESTRATION_STATUS.AWAITING_APPROVAL
-    )
-    assert.equal(result.pausedForApproval, true)
-    assert.ok(
-      String(room.responseOrchestration.pausedForApprovalReason || '').length > 0
+      ORCHESTRATION_STATUS.REPLAN_REQUIRED
     )
     assert.equal(
       runtimeStateOf(room.nodes.find((n) => n.id === 'water').data).quarantined,
@@ -373,7 +372,7 @@ describe('STEP 9 multi-incident autonomous orchestration', () => {
     )
   })
 
-  it('7: recovery failure → fresh replan (within scope continues)', () => {
+  it('7: failed verification is observational and never restores quarantine', () => {
     const room = roomSingle('FAIL')
     generateOrchestrationPlan(room, {
       focusIncidentId: 'inc-a',
@@ -386,15 +385,14 @@ describe('STEP 9 multi-incident autonomous orchestration', () => {
       resolveContext,
       autoContinue: true,
     })
-    // Replan should have re-isolated within scope → eventually recovered or mid-continue
+    // Verification cannot restore quarantine or force a replan.
     assert.equal(result.autoRestored, false)
-    assert.ok(result.autoContinued === true || result.stepVerified === false)
-    if (room.responseOrchestration.status === ORCHESTRATION_STATUS.RECOVERED) {
-      assert.equal(
-        runtimeStateOf(room.nodes.find((n) => n.id === 'pay').data).quarantined,
-        true
-      )
-    }
+    assert.equal(result.observational, true)
+    assert.notEqual(room.responseOrchestration.status, ORCHESTRATION_STATUS.REPLAN_REQUIRED)
+    assert.equal(
+      runtimeStateOf(room.nodes.find((n) => n.id === 'pay').data).quarantined,
+      false
+    )
   })
 
   it('8: stale/policy-invalid plan → stop for revalidation', () => {
@@ -410,9 +408,10 @@ describe('STEP 9 multi-incident autonomous orchestration', () => {
       autoContinue: false,
     })
     assert.equal(rejected.ok, false)
+    assert.equal(room.responseOrchestration.stale, true)
     assert.equal(
       room.responseOrchestration.status,
-      ORCHESTRATION_STATUS.REPLAN_REQUIRED
+      ORCHESTRATION_STATUS.AWAITING_APPROVAL
     )
   })
 

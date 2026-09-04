@@ -133,3 +133,26 @@ Never invent MITRE IDs or actionIds. Never instruct execute/quarantine/state cha
 
 Return ONLY JSON: {"answer": "..."} with plain text. No markdown fences.
 """
+
+RESPONSE_PLAN_ACTIONS_PROMPT = """You are the Commander Agent.
+Analyze the attack, incident, telemetry and graph context.
+Choose the most appropriate ordered response actions from the executable action repository.
+Use only provided actionIds.
+Do not invent actions or capabilities.
+Prefer the minimum effective response.
+Return valid JSON only.
+
+{
+  "summary": "...",
+  "attackInterpretation": "...",
+  "strategy": "...",
+  "actions": [
+    {
+      "actionId": "...",
+      "target": "...",
+      "rationale": "...",
+      "expectedImpact": "..."
+    }
+  ]
+}
+"""

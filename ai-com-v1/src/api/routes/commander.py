@@ -8,6 +8,8 @@ from src.models.commander import (
     KnowledgeRequest,
     KnowledgeContextBody,
     KnowledgeAskResponse,
+    ResponsePlanRequest,
+    ResponsePlanActionsResponse,
 )
 from src.adapters.detection_adapter import DetectionAdapter, MockDetectionAdapter
 from src.services.commander_service import CommanderService
@@ -94,6 +96,20 @@ async def knowledge_ask(
         incident_hints=request.incident_hints,
         live_facts=request.live_facts,
     )
+
+
+@router.post("/plan", response_model=ResponsePlanActionsResponse)
+async def plan_response_actions(
+    request: ResponsePlanRequest,
+    service: CommanderService = Depends(get_commander_service),
+):
+    """
+    LLM Commander planner: returns {"actions":["action-id",...]}.
+    Does not execute actions or mutate infrastructure.
+    Match server validates action IDs against registry + policy.
+    """
+    return await service.plan_response_actions(request.planning_context)
+
 
 @router.post("/posture")
 async def city_posture(payload: dict):

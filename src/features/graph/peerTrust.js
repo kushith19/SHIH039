@@ -54,8 +54,8 @@ export const TRUST_SCORE_WEIGHT_BEHAVIORAL = TRUST_CONFIG.blend.behavioral
 export const TRUST_SCORE_WEIGHT_INTERACTION = TRUST_CONFIG.blend.interaction
 export const BEHAVIORAL_TRUST_FULL_PENALTY_RATIO = TRUST_CONFIG.behavioral.fullPenaltyRatio
 
-export function computeDeviationMetrics({ baselinePps, effectivePps }) {
-  return modelDeviationMetrics({ baselinePps, effectivePps })
+export function computeDeviationMetrics({ baselinePps, effectivePps, metricKey }) {
+  return modelDeviationMetrics({ baselinePps, effectivePps, metricKey })
 }
 
 /**

@@ -147,9 +147,10 @@ describe('responsePlan builder', () => {
     const ctx = contextFor(incident, nodes)
     const steps = buildRecommendedActionsFromContext(ctx)
     assert.ok(steps.length >= 1)
-    assert.equal(steps[0].actionId, 'isolate-node')
-    assert.equal(steps[0].executable, true)
-    assert.equal(steps[0].policyStatus, 'ALLOWED')
+    const isolate = steps.find((step) => step.actionId === 'isolate-node')
+    assert.ok(isolate)
+    assert.equal(isolate.executable, true)
+    assert.equal(isolate.policyStatus, 'ALLOWED')
 
     const fake = normalizePlanAction({
       actionId: 'rate-limit-endpoint',
@@ -179,6 +180,69 @@ describe('responsePlan builder', () => {
     assert.equal(built.plan.approvalStatus, PLAN_APPROVAL_STATUS.NONE)
     assert.ok(built.plan.recommendedActions.every((a) => a.executable === true))
     assert.ok(built.fingerprint)
+    assert.equal(built.plan.planKind, 'fresh')
+  })
+
+  it('buildResponsePlan mode continue has no replan lineage', () => {
+    const nodes = [node('pay', 'critical'), node('water', 'high')]
+    const edges = [{ id: 'e1', source: 'pay', target: 'water' }]
+    const detection = {
+      incidents: [
+        seedIncident('inc-pay', 'pay', { recoveryPriority: 10 }),
+        seedIncident('inc-water', 'water', { recoveryPriority: 40 }),
+      ],
+      anomalyNodeIds: ['pay', 'water'],
+    }
+    attachRecoveryImpact(detection, { nodes, edges, overrides: {} })
+    const ctx = contextFor(detection.incidents[1], nodes)
+    const built = buildResponsePlan({
+      detection,
+      context: ctx,
+      mode: 'continue',
+      previousPlan: {
+        planId: 'p-prev',
+        primaryIncidentId: 'inc-pay',
+        affectedNodeIds: ['pay'],
+        recommendedActions: [{ actionId: 'isolate-node', executable: true }],
+      },
+      previousPlanId: 'p-prev',
+      continuationCount: 2,
+      nodes,
+      nowMs: 1_700_000_000_001,
+    })
+    assert.equal(built.ok, true)
+    assert.equal(built.plan.planKind, 'continuation')
+    assert.equal(built.plan.previousPlanId, null)
+    assert.equal(built.plan.replanCount, 0)
+    assert.equal(built.plan.replanContext, null)
+    assert.equal(built.plan.continuationContext.continuationCount, 2)
+    assert.equal(
+      built.plan.primarySelectionReason,
+      'continuation_adaptive_recovery_priority'
+    )
+  })
+
+  it('buildResponsePlan mode replan still sets replanContext', () => {
+    const nodes = [node('pay', 'critical')]
+    const incident = seedIncident('inc-pay', 'pay')
+    const detection = { incidents: [incident], anomalyNodeIds: ['pay'] }
+    attachRecoveryImpact(detection, { nodes, edges: [], overrides: {} })
+    const ctx = contextFor(detection.incidents[0], nodes)
+    const built = buildResponsePlan({
+      detection,
+      context: ctx,
+      mode: 'replan',
+      previousPlan: { planId: 'old', primaryIncidentId: 'inc-pay', affectedNodeIds: ['pay'] },
+      previousPlanId: 'old',
+      replanCount: 1,
+      verification: { verdict: 'FAILED', failReasons: ['Containment lost'] },
+      nodes,
+    })
+    assert.equal(built.ok, true)
+    assert.equal(built.plan.planKind, 'replan')
+    assert.equal(built.plan.replanCount, 1)
+    assert.ok(built.plan.replanContext)
+    assert.equal(built.plan.continuationContext, null)
   })
 
   it('revalidate rejects plan with injected non-registry executable action', () => {

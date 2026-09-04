@@ -15,6 +15,8 @@ export const DEFAULT_HACK_SIMULATOR = {
   active: false,
   nodeOverrides: {},
   edgeOverrides: {},
+  /** Explicit under_attack / compromise flags — independent of metric overrides. */
+  nodeAttackStates: {},
   nodeScenarioBaselines: undefined,
   edgeScenarioBaselines: undefined,
   /** @type {'manual' | 'auto'} Defender-controlled; default preserves explicit spreads. */

@@ -24,10 +24,6 @@ export class SnapshotExtractor {
       }
     }
 
-    console.info(`[extractor] Created ${rows.length} TelemetryRow objects`);
-    const sample = rows.slice(0, 3).map(r => ({ endpointId: r.endpointId, metricName: r.metricName, value: r.value, unit: r.unit }));
-    console.info(`[extractor] Sample first 3 rows: ${JSON.stringify(sample)}`);
-
     return rows;
   }
 }

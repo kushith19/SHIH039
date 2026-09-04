@@ -3,8 +3,13 @@
  * Does not recalculate risk, TGNN, propagation, or financial exposure.
  */
 
+import { getRepositoryAction } from '../../../shared/response/responseActionRepository.js'
+
 export const RESPONSE_ACTION_UI_STATUS = Object.freeze({
   AVAILABLE: 'AVAILABLE',
+  UNAVAILABLE: 'UNAVAILABLE',
+  POLICY_BLOCKED: 'POLICY_BLOCKED',
+  BLOCKED: 'BLOCKED',
   EXECUTING: 'EXECUTING',
   EXECUTED: 'EXECUTED',
   ALREADY_EXECUTED: 'ALREADY_EXECUTED',
@@ -79,38 +84,371 @@ export function resolveActionUiStatus(actionId, context, localByAction = {}) {
   return uiStatusFromHistory(context, actionId)
 }
 
+export function responsePlanMatchesContext(responsePlan, context) {
+  if (!responsePlan || !context) return false
+  return [
+    responsePlan.primaryIncidentId,
+    ...(Array.isArray(responsePlan.incidentIds) ? responsePlan.incidentIds : []),
+  ]
+    .filter(Boolean)
+    .map(String)
+    .some(
+      (id) =>
+        id === String(context?.incidentId ?? '') ||
+        id === String(context?.liveIncidentId ?? '')
+    )
+}
+
 /**
- * Map registry availableActions to display rows.
- * uiStatus comes from local execute state or actionsAlreadyTaken — not invented recovery.
+ * True only for a backend LLM ResponsePlan that belongs to the focused incident.
+ * Never treats context.availableActions or policy playbooks as a plan.
  */
-export function responseActionRows(context, localByAction = {}) {
-  const actions = Array.isArray(context?.availableActions) ? context.availableActions : []
-  const targetId = context?.affectedAsset?.id ?? null
+export function isAuthoritativeLlmResponsePlan(responsePlan, context) {
+  if (!responsePlan || typeof responsePlan !== 'object') return false
+  if (String(responsePlan.planSource ?? '') !== 'llm') return false
+  if (!responsePlanMatchesContext(responsePlan, context)) return false
+  const actions = Array.isArray(responsePlan.recommendedActions)
+    ? responsePlan.recommendedActions.filter((action) => action?.actionId)
+    : []
+  return actions.length > 0
+}
+
+/**
+ * Plan the Response Console may render. Stale socket plans are suppressed while
+ * Analyze is in flight or after a failed / non-LLM Analyze.
+ */
+export function visibleResponsePlan({
+  socketPlan = null,
+  context = null,
+  analyzeUi = null,
+  workflowStatus = null,
+} = {}) {
+  const waiting =
+    analyzeUi?.waiting === true ||
+    String(workflowStatus ?? '').toUpperCase() === 'ANALYZING'
+  if (waiting) return null
+  if (analyzeUi?.failed === true) return null
+
+  const candidate =
+    analyzeUi?.resultOk === true && analyzeUi.resultPlan
+      ? analyzeUi.resultPlan
+      : socketPlan
+
+  if (!isAuthoritativeLlmResponsePlan(candidate, context)) return null
+
+  if (
+    analyzeUi?.generation > 0 &&
+    analyzeUi.resultOk !== true &&
+    analyzeUi.startedPlanId &&
+    candidate.planId &&
+    String(candidate.planId) === String(analyzeUi.startedPlanId)
+  ) {
+    return null
+  }
+
+  return candidate
+}
+
+export const LLM_RESPONSE_UI_STATUS = Object.freeze({
+  WAITING: 'WAITING',
+  WAITING_FOR_RESPONSE: 'WAITING FOR RESPONSE',
+  RECEIVED: 'RECEIVED',
+  FAILED: 'FAILED',
+  NO_LLM_RESPONSE: 'NO LLM RESPONSE',
+})
+
+function presentDebugField(value) {
+  if (value == null) return null
+  const text = String(value).trim()
+  return text ? text : null
+}
+
+/** Safe debug fields only — never copies raw model text. */
+export function safeLlmDebugFields(debugLast = null) {
+  if (!debugLast || typeof debugLast !== 'object') return {}
+  const fields = {}
+  const requestId = presentDebugField(debugLast.requestId)
+  if (requestId) fields.requestId = requestId
+  if (Number.isFinite(Number(debugLast.durationMs))) {
+    fields.durationMs = Number(debugLast.durationMs)
+  }
+  const model = presentDebugField(debugLast.model)
+  if (model) fields.model = model
+  const doneReason = presentDebugField(
+    debugLast.doneReason ?? debugLast.done_reason
+  )
+  if (doneReason) fields.doneReason = doneReason
+  if (debugLast.httpStatus != null && Number.isFinite(Number(debugLast.httpStatus))) {
+    fields.httpStatus = Number(debugLast.httpStatus)
+  }
+  const source = presentDebugField(debugLast.source)
+  if (source) fields.source = source
+  return fields
+}
+
+export function llmResponseBannerView({
+  waiting = false,
+  failed = false,
+  error = null,
+  visiblePlan = null,
+  socketPlan = null,
+  analyzeAttempted = false,
+  debugLast = null,
+} = {}) {
+  if (waiting) {
+    return {
+      status: LLM_RESPONSE_UI_STATUS.WAITING_FOR_RESPONSE,
+      detail: 'Generating response plan with Qwen…',
+      error: null,
+      fields: [],
+    }
+  }
+  if (failed) {
+    return {
+      status: LLM_RESPONSE_UI_STATUS.FAILED,
+      detail: 'LLM Response Plan unavailable',
+      error: String(error || 'LLM Response Plan unavailable'),
+      fields: [],
+    }
+  }
+  if (visiblePlan) {
+    const debug = safeLlmDebugFields(debugLast)
+    const sourceParts = []
+    if (debug.source) sourceParts.push(debug.source)
+    sourceParts.push('llm')
+    const fields = [
+      { label: 'Source', value: sourceParts.join(' / ') },
+      {
+        label: 'Actions received',
+        value: String(
+          visiblePlan.recommendedActions.filter((action) => action?.actionId)
+            .length
+        ),
+      },
+    ]
+    if (debug.requestId) {
+      fields.push({ label: 'Request ID', value: debug.requestId })
+    }
+    if (debug.durationMs != null) {
+      fields.push({ label: 'Response time', value: `${debug.durationMs} ms` })
+    }
+    if (debug.model) {
+      fields.push({ label: 'Model', value: debug.model })
+    }
+    if (debug.doneReason) {
+      fields.push({ label: 'Done reason', value: debug.doneReason })
+    }
+    if (debug.httpStatus != null) {
+      fields.push({ label: 'HTTP status', value: String(debug.httpStatus) })
+    }
+    return {
+      status: LLM_RESPONSE_UI_STATUS.RECEIVED,
+      detail: null,
+      error: null,
+      fields,
+    }
+  }
+  if (
+    analyzeAttempted &&
+    socketPlan &&
+    String(socketPlan.planSource ?? '') &&
+    String(socketPlan.planSource) !== 'llm'
+  ) {
+    return {
+      status: LLM_RESPONSE_UI_STATUS.NO_LLM_RESPONSE,
+      detail: 'NO LLM RESPONSE',
+      error: null,
+      fields: [
+        { label: 'Source', value: String(socketPlan.planSource) },
+      ],
+    }
+  }
+  if (analyzeAttempted) {
+    return {
+      status: LLM_RESPONSE_UI_STATUS.NO_LLM_RESPONSE,
+      detail: 'No LLM response was received.',
+      error: null,
+      fields: [],
+    }
+  }
+  return {
+    status: LLM_RESPONSE_UI_STATUS.WAITING,
+    detail: 'Press Response on an incident to generate a plan with Qwen.',
+    error: null,
+    fields: [],
+  }
+}
+
+export function logResponseUiTransition(kind, extras = {}) {
+  const prefix = '[RESPONSE UI]'
+  if (kind === 'ANALYZE_STARTED') {
+    console.info(`${prefix} ANALYZE_STARTED`)
+    console.info(`${prefix} WAITING_FOR_LLM`)
+    return
+  }
+  if (kind === 'WAITING_FOR_LLM') {
+    console.info(`${prefix} WAITING_FOR_LLM`)
+    return
+  }
+  if (kind === 'LLM_RESPONSE_RECEIVED') {
+    console.info(`${prefix} LLM_RESPONSE_RECEIVED`)
+    console.info(`${prefix} PLAN_SOURCE=${extras.planSource ?? ''}`)
+    console.info(`${prefix} ACTION_COUNT=${extras.actionCount ?? 0}`)
+    console.info(`${prefix} RENDERING_LLM_ACTIONS`)
+    return
+  }
+  if (kind === 'NO_LLM_RESPONSE') {
+    console.info(`${prefix} NO_LLM_RESPONSE`)
+    if (extras.planSource != null && extras.planSource !== '') {
+      console.info(`${prefix} PLAN_SOURCE=${extras.planSource}`)
+    }
+    console.info(`${prefix} ACTION_COUNT=0`)
+  }
+}
+
+/**
+ * Display rows for the Response Console.
+ * Only an authoritative LLM ResponsePlan may produce cards.
+ * Never unioned with context.availableActions or the policy playbook.
+ */
+export function responseActionRows(context, localByAction = {}, responsePlan = null) {
+  if (!isAuthoritativeLlmResponsePlan(responsePlan, context)) {
+    return []
+  }
+  const planActions = responsePlan.recommendedActions.filter(
+    (action) => action?.actionId
+  )
+  const llmPlan = true
+
+  const seen = new Set()
+  const contextTargetId = context?.affectedAsset?.id ?? null
   const targetName =
     context?.affectedAsset?.summary ||
     context?.affectedAsset?.id ||
     null
-  return actions.map((action) => ({
-    actionId: action.actionId,
-    actionType: action.actionType,
-    label: action.label || action.actionId,
-    description: action.rationale || action.description || '',
-    rationale: action.rationale || action.description || '',
-    responseProfile: action.responseProfile || context?.responseClassification?.responseProfile || null,
-    profileLabel:
-      action.profileLabel ||
-      context?.responsePolicy?.recommendedActions?.[0]?.profileLabel ||
-      null,
-    executionTarget: action.executionTarget ?? null,
-    requiresNode: action.requiresNode === true,
-    targetId,
-    targetName,
-    uiStatus: resolveActionUiStatus(action.actionId, context, localByAction),
-  }))
+
+  return planActions.flatMap((planAction) => {
+    const actionId = String(planAction.actionId)
+    if (seen.has(actionId)) return []
+    seen.add(actionId)
+    const repositoryAction = getRepositoryAction(actionId)
+    if (!repositoryAction) return []
+
+    const supported =
+      repositoryAction.supported === true &&
+      Boolean(repositoryAction.executionTarget)
+    const policyBlocked =
+      planAction?.policyStatus === 'BLOCKED' ||
+      planAction?.policyStatus === 'POLICY_BLOCKED'
+    const planExecutable = planAction?.executable !== false
+    const executionStatus = resolveActionUiStatus(
+      actionId,
+      context,
+      localByAction
+    )
+    const hasExecutionState =
+      executionStatus !== RESPONSE_ACTION_UI_STATUS.AVAILABLE
+    const canExecute =
+      supported && planExecutable && !policyBlocked && !hasExecutionState
+    const uiStatus = hasExecutionState
+      ? executionStatus
+      : !supported
+        ? RESPONSE_ACTION_UI_STATUS.BLOCKED
+        : policyBlocked
+          ? RESPONSE_ACTION_UI_STATUS.POLICY_BLOCKED
+          : RESPONSE_ACTION_UI_STATUS.AVAILABLE
+    const authoritativeTarget = planAction?.target?.id ?? contextTargetId
+
+    return [{
+      actionId: repositoryAction.actionId,
+      actionType: repositoryAction.actionType,
+      label: planAction.label || repositoryAction.label,
+      description: repositoryAction.description,
+      category: repositoryAction.category ?? null,
+      riskLevel: repositoryAction.riskLevel ?? null,
+      responseProfile:
+        context?.responseClassification?.responseProfile || null,
+      executionTarget: repositoryAction.executionTarget ?? null,
+      requiresNode: repositoryAction.requiresNode === true,
+      requiresPeer: repositoryAction.requiresPeer === true,
+      supported,
+      executable: canExecute,
+      policyStatus:
+        planAction?.policyStatus ??
+        (policyBlocked ? 'POLICY_BLOCKED' : canExecute ? 'ALLOWED' : 'UNAVAILABLE'),
+      availability: canExecute ? 'available' : 'unavailable',
+      targetId: authoritativeTarget,
+      targetName:
+        planAction?.target?.name ||
+        (String(authoritativeTarget ?? '') === String(contextTargetId ?? '')
+          ? targetName
+          : authoritativeTarget),
+      aiRecommended: llmPlan || Boolean(planAction),
+      rationale: planAction?.reason ?? planAction?.rationale ?? null,
+      expectedImpact: planAction?.expectedImpact ?? null,
+      uiStatus,
+      canExecute,
+    }]
+  })
 }
 
-/** Empty-state copy when policy forbids executable containment. */
-export function noExecutableActionsCopy(context) {
+export function responseConsolePresentation({
+  context = null,
+  socketPlan = null,
+  analyzeUi = null,
+  workflowStatus = null,
+  localByAction = {},
+  debugLast = null,
+  continuationReason = null,
+  pausedForApprovalReason = null,
+} = {}) {
+  const waiting =
+    analyzeUi?.waiting === true ||
+    String(workflowStatus ?? '').toUpperCase() === 'ANALYZING'
+  const failed =
+    analyzeUi?.failed === true ||
+    (!waiting && String(continuationReason ?? '') === 'planning_failed')
+  const visiblePlan = visibleResponsePlan({
+    socketPlan,
+    context,
+    analyzeUi,
+    workflowStatus,
+  })
+  const analyzeAttempted =
+    Number(analyzeUi?.generation ?? 0) > 0 ||
+    String(continuationReason ?? '') === 'planning_failed' ||
+    Boolean(visiblePlan)
+  const banner = llmResponseBannerView({
+    waiting,
+    failed,
+    error: analyzeUi?.error || pausedForApprovalReason,
+    visiblePlan,
+    socketPlan,
+    analyzeAttempted,
+    debugLast,
+  })
+  const actions =
+    waiting || failed
+      ? []
+      : responseActionRows(context, localByAction, visiblePlan)
+  return { waiting, failed, visiblePlan, banner, actions }
+}
+
+/** Empty-state copy when there is no Commander plan to execute. */
+export function noExecutableActionsCopy(context, responsePlan = null) {
+  if (responsePlan?.planSource === 'llm') {
+    return {
+      title: null,
+      detail:
+        'No executable actions in the Commander plan for this incident.',
+    }
+  }
+  if (!responsePlan?.recommendedActions?.length) {
+    return {
+      title: null,
+      detail: 'Press Response on an incident to generate a plan with Qwen.',
+    }
+  }
   const profile =
     context?.responseClassification?.responseProfile ||
     context?.responsePolicy?.responseProfile ||
@@ -147,8 +485,21 @@ export function executeButtonLabel(uiStatus) {
   }
 }
 
+export function actionStatusLabel(uiStatus) {
+  if (
+    uiStatus === RESPONSE_ACTION_UI_STATUS.EXECUTED ||
+    uiStatus === RESPONSE_ACTION_UI_STATUS.ALREADY_EXECUTED
+  ) {
+    return 'COMPLETED'
+  }
+  return uiStatus || RESPONSE_ACTION_UI_STATUS.UNAVAILABLE
+}
+
 export function isExecuteDisabled(uiStatus) {
   return (
+    uiStatus === RESPONSE_ACTION_UI_STATUS.UNAVAILABLE ||
+    uiStatus === RESPONSE_ACTION_UI_STATUS.POLICY_BLOCKED ||
+    uiStatus === RESPONSE_ACTION_UI_STATUS.BLOCKED ||
     uiStatus === RESPONSE_ACTION_UI_STATUS.EXECUTING ||
     uiStatus === RESPONSE_ACTION_UI_STATUS.EXECUTED ||
     uiStatus === RESPONSE_ACTION_UI_STATUS.ALREADY_EXECUTED

@@ -154,6 +154,7 @@ export function buildAttackLayerFromGraph(nodes, edges) {
     active: true,
     nodeOverrides: {},
     edgeOverrides: {},
+    nodeAttackStates: {},
     nodeScenarioBaselines,
     edgeScenarioBaselines,
     // Match start/reset: always manual unless set later by defender.

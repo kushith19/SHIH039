@@ -11,6 +11,7 @@ import { attachAvailableResponseActions } from '../../shared/responseActions.js'
 import { attachResponseClassification } from '../../shared/responsePolicy.js'
 import { attachRecoveryImpact } from '../../shared/recovery/recoveryImpact.js'
 import { ORCHESTRATION_STATUS, PLAN_APPROVAL_STATUS } from '../../shared/response/orchestration.js'
+import { getRepositoryAction } from '../../shared/response/responseActionRepository.js'
 import { executeResponseAction } from './executeAction.js'
 
 function node(id, criticality = 'high') {
@@ -168,10 +169,10 @@ describe('server orchestration STEP 2', () => {
     generateOrchestrationPlan(room, { focusIncidentId: 'inc-pay', resolveContext })
     const actions = room.responseOrchestration.plan.recommendedActions
     for (const a of actions) {
-      assert.ok(['isolate-node', 'restore-connectivity'].includes(a.actionId))
+      assert.equal(getRepositoryAction(a.actionId)?.supported, true)
       assert.equal(a.executable, true)
     }
-    assert.ok(!actions.some((a) => a.actionId === 'rate-limit-endpoint'))
+    assert.ok(!actions.some((a) => a.actionId === 'disable-camera'))
   })
 
   it('G/J: generate and approve never call execute / never quarantine', () => {
@@ -210,7 +211,7 @@ describe('server orchestration STEP 2', () => {
     assert.equal(result.ok, false)
   })
 
-  it('L: stale plan is rejected / REPLAN_REQUIRED', () => {
+  it('L: stale plan is rejected while awaiting approval', () => {
     const room = roomWithIncident()
     generateOrchestrationPlan(room, { focusIncidentId: 'inc-pay', resolveContext })
     // Material change: clear the primary incident
@@ -220,7 +221,7 @@ describe('server orchestration STEP 2', () => {
     assert.equal(result.ok, false)
     assert.equal(
       room.responseOrchestration.status,
-      ORCHESTRATION_STATUS.REPLAN_REQUIRED
+      ORCHESTRATION_STATUS.AWAITING_APPROVAL
     )
   })
 

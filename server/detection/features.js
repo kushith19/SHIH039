@@ -23,8 +23,8 @@ export function cityContextOf(ep, input) {
   return String(ep?.activeContexts?.cityContext ?? input?.cityContext ?? 'normal_day')
 }
 
-export function computeDeviationMetrics({ baselinePps, effectivePps }) {
-  return modelDeviationMetrics({ baselinePps, effectivePps })
+export function computeDeviationMetrics({ baselinePps, effectivePps, metricKey }) {
+  return modelDeviationMetrics({ baselinePps, effectivePps, metricKey })
 }
 
 export function computeBehavioralTrustComponent({ baselinePps, effectivePps }) {

@@ -384,6 +384,7 @@ export default function InspectorPanel({
                       ? computeDeviationMetrics({
                           baselinePps: baseline,
                           effectivePps: value,
+                          metricKey: field.key,
                         }).deviationPercent
                       : null
                   const showExpected = hackModeActive && baseline !== value
@@ -445,6 +446,7 @@ export default function InspectorPanel({
                         ? computeDeviationMetrics({
                             baselinePps: expected,
                             effectivePps: value,
+                            metricKey: key,
                           }).deviationPercent
                         : null
                     const showDrift =

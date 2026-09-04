@@ -5,14 +5,7 @@ import { TelemetryRepository } from '../database/repository.js';
 
 export class IngestionService {
   static async processSnapshot(rawSnapshot: unknown) {
-    let validated;
-    try {
-      validated = CitySnapshotSchema.parse(rawSnapshot);
-      console.info('[ingestion service] Validation success.');
-    } catch (err) {
-      console.error('[ingestion service] Validation failure.');
-      throw err;
-    }
+    const validated = CitySnapshotSchema.parse(rawSnapshot);
     
     const rows = SnapshotExtractor.extract(validated);
     

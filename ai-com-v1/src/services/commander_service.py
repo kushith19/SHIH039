@@ -14,6 +14,7 @@ from src.models.commander import (
     KnowledgeContextBody,
     KnowledgeSource,
     KnowledgeAskResponse,
+    ResponsePlanActionsResponse,
 )
 from src.agent.graph import create_commander_graph
 from src.agent.llm_provider import get_llm_provider
@@ -22,6 +23,7 @@ from src.agent.prompts import (
     COMMANDER_SYSTEM_PROMPT,
     KNOWLEDGE_CONTEXT_PROMPT,
     KNOWLEDGE_ASK_PROMPT,
+    RESPONSE_PLAN_ACTIONS_PROMPT,
 )
 from src.agent.risk_compose import knowledge_status_from_retrieval
 from src.agent.knowledge_retrieval import (
@@ -587,3 +589,122 @@ class CommanderService:
             return KnowledgeAskResponse(
                 answer=answer, insufficient=False, knowledgeContext=kc
             )
+
+    async def plan_response_actions(self, planning_context: dict) -> ResponsePlanActionsResponse:
+        """
+        LLM selects executable repository action IDs only.
+        Does not execute, quarantine, or invent infrastructure identifiers.
+        """
+        ctx = planning_context if isinstance(planning_context, dict) else {}
+        catalog = ctx.get("availableActions") or ctx.get("executableActions") or []
+        allowed = ctx.get("allowedActionIds") or []
+        if not allowed and isinstance(catalog, list):
+            allowed = [
+                item.get("actionId") if isinstance(item, dict) else item
+                for item in catalog
+            ]
+            allowed = [item for item in allowed if item]
+        if not isinstance(allowed, list) or len(allowed) == 0:
+            raise HTTPException(
+                status_code=400,
+                detail="planning_context must include the executable action repository",
+            )
+
+        llm = get_llm_provider().get_model()
+        try:
+            bound = llm.bind(format="json")
+        except Exception:
+            bound = llm
+
+        messages = [
+            SystemMessage(content=RESPONSE_PLAN_ACTIONS_PROMPT),
+            HumanMessage(
+                content=(
+                    "Select response actions for this incident.\n"
+                    f"{json.dumps(ctx, default=str)}"
+                )
+            ),
+        ]
+        try:
+            response = await bound.ainvoke(messages)
+        except Exception:
+            try:
+                response = await asyncio.to_thread(bound.invoke, messages)
+            except Exception as e:
+                logger.error("Response plan LLM failed: %s", e)
+                raise HTTPException(status_code=502, detail=f"LLM plan failed: {e}") from e
+
+        content = getattr(response, "content", None) or str(response)
+        provider = None
+        meta = getattr(response, "response_metadata", None) or {}
+        if isinstance(meta, dict):
+            provider = meta.get("provider")
+
+        parsed = _parse_json_object(content) if isinstance(content, str) else {}
+        if not isinstance(parsed, dict):
+            parsed = {}
+        actions_raw = parsed.get("actions")
+        actions: list[dict] = []
+        if isinstance(actions_raw, list):
+            for item in actions_raw:
+                if isinstance(item, dict):
+                    actions.append(item)
+                elif isinstance(item, str) and item.strip():
+                    # Backward-compatible provider output; match server resolves target.
+                    actions.append(
+                        {
+                            "actionId": item.strip(),
+                            "target": ctx.get("serverAuthoritativeTarget"),
+                            "rationale": None,
+                        }
+                    )
+
+        summary = str(parsed.get("summary") or "").strip() or None
+        attack_interpretation = (
+            str(parsed.get("attackInterpretation") or "").strip() or None
+        )
+        strategy = str(parsed.get("strategy") or "").strip() or None
+        risk_assessment = (
+            str(parsed.get("riskAssessment") or "").strip() or None
+        )
+        confidence_raw = parsed.get("confidence")
+        confidence = (
+            float(confidence_raw)
+            if isinstance(confidence_raw, (int, float))
+            and 0 <= float(confidence_raw) <= 1
+            else None
+        )
+        uncertainty = str(parsed.get("uncertainty") or "").strip() or None
+
+        plan_payload = {
+            "summary": summary,
+            "attackInterpretation": attack_interpretation,
+            "strategy": strategy,
+            "actions": actions,
+            "riskAssessment": risk_assessment,
+            "confidence": confidence,
+            "uncertainty": uncertainty,
+        }
+        # Visible in the AI Commander / stack terminal (not the Ollama process).
+        print("[LLM COMMANDER PLAN]", flush=True)
+        print(json.dumps(plan_payload, indent=2), flush=True)
+        if isinstance(content, str) and content.strip():
+            print("[LLM COMMANDER RAW]", flush=True)
+            print(content[:2000], flush=True)
+        logger.info(
+            "LLM Commander plan actions=%s provider=%s",
+            actions,
+            provider,
+        )
+
+        return ResponsePlanActionsResponse(
+            summary=summary,
+            attackInterpretation=attack_interpretation,
+            strategy=strategy,
+            actions=actions,
+            riskAssessment=risk_assessment,
+            confidence=confidence,
+            uncertainty=uncertainty,
+            raw=content if isinstance(content, str) else json.dumps(content),
+            provider=provider,
+        )

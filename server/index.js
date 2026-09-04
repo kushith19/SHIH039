@@ -82,11 +82,17 @@ import { attachResponseClassification } from '../shared/responsePolicy.js'
 import { setNodeQuarantined } from './response/quarantineNode.js'
 import { executeResponseAction } from './response/executeAction.js'
 import {
+  getLastLlmResponse,
+  llmResponsePlanEnabled,
+  logLlmCommanderBootBanner,
+  LLM_RESPONSE_TXT_PATH,
+} from './response/llmCommanderClient.js'
+import {
   approveOrchestrationPlan,
   executeOrchestrationPlan,
-  generateOrchestrationPlan,
+  generateOrchestrationPlanMaybeLlm,
   refreshOrchestrationFreshness,
-  replanOrchestrationPlan,
+  replanOrchestrationPlanMaybeLlm,
   resetRoomOrchestration,
   startNewOrchestrationCycle,
   verifyOrchestrationPlan,
@@ -142,6 +148,8 @@ function liveCommanderContext(room, incidentId) {
   if (!live) return null
   const nodes = Array.isArray(room?.nodes) ? room.nodes : []
   const edges = Array.isArray(room?.edges) ? room.edges : []
+  const affectedNode =
+    nodes.find((node) => String(node?.id) === String(live.endpointId)) ?? null
   const status = live.status ?? 'open'
   const financialExposure =
     String(status).toLowerCase() === 'cleared'
@@ -170,9 +178,19 @@ function liveCommanderContext(room, incidentId) {
     incidentId: live.persistentId || live.id,
     liveIncidentId: live.id,
     incidentType: live.detectionType,
+    cityContext: live.cityContext ?? room?.detection?.cityContext ?? null,
     severity: live.severity,
     status,
-    affectedAsset: { id: live.endpointId, summary: live.endpointLabel || live.endpointId },
+    affectedAsset: {
+      id: live.endpointId,
+      summary: live.endpointLabel || live.endpointId,
+      type: affectedNode?.data?.type ?? affectedNode?.type ?? null,
+      sector: affectedNode?.data?.sector ?? affectedNode?.sector ?? null,
+      criticality:
+        affectedNode?.data?.criticality ?? affectedNode?.criticality ?? null,
+      quarantined:
+        affectedNode?.data?.runtimeState?.quarantined === true,
+    },
     riskScore: live.anomalyScore,
     trustScore: live.trustScore,
     anomalyEvidence: live.evidence ?? [],
@@ -184,6 +202,7 @@ function liveCommanderContext(room, incidentId) {
     blastRadius: live.graphContext?.blastRadius ?? null,
     hopDistance: live.graphContext?.hopDistance ?? null,
     financialExposure,
+    recoveryImpact: live.recoveryImpact ?? null,
     relatedIncidents: live.relatedIncidents ?? [],
     campaignId: live.campaignId ?? null,
     currentStatus: status,
@@ -207,7 +226,18 @@ function resolveCommanderContext(room, roomId, incidentId) {
   } catch (err) {
     console.error('[incidents] commander-context failed', err)
   }
-  return context || liveCommanderContext(room, incidentId)
+  const live = liveCommanderContext(room, incidentId)
+  if (!context) return live
+  if (!live) return context
+  return {
+    ...live,
+    ...context,
+    affectedAsset: {
+      ...(live.affectedAsset ?? {}),
+      ...(context.affectedAsset ?? {}),
+    },
+    recoveryImpact: live.recoveryImpact ?? context.recoveryImpact ?? null,
+  }
 }
 
 const cityModel = loadCityModelFromDisk()
@@ -252,6 +282,16 @@ app.get('/health', async (_req, res) => {
     process: 'up',
     ingest: ingest ? 'up' : 'down',
     commander: commander ? 'up' : 'down',
+  })
+})
+
+/** Last LLM Commander plan response (also on disk at LLM_RESPONSE.txt). */
+app.get('/debug/llm-response', (_req, res) => {
+  res.json({
+    ok: true,
+    llmResponsePlan: llmResponsePlanEnabled(),
+    file: LLM_RESPONSE_TXT_PATH,
+    last: getLastLlmResponse(),
   })
 })
 
@@ -493,15 +533,22 @@ app.post('/rooms/:id/commander/execute', (req, res) => {
   res.json(result)
 })
 
-app.post('/rooms/:id/orchestration/analyze', (req, res) => {
+app.post('/rooms/:id/orchestration/analyze', async (req, res) => {
   const id = String(req.params.id ?? '').toUpperCase()
   const room = getRoom(id)
   if (!room) {
     return res.status(404).json({ ok: false, message: 'Room not found' })
   }
   const focusIncidentId = String(req.body?.incidentId ?? req.body?.focusIncidentId ?? '').trim() || null
+  try {
+    process.stderr.write(
+      `\n[LLM COMMANDER] POST /orchestration/analyze room=${id} LLM_RESPONSE_PLAN=${llmResponsePlanEnabled() ? 'ON' : 'OFF'}\n`
+    )
+  } catch {
+    /* ignore */
+  }
   // Client-supplied actionIds are intentionally ignored (injection protection).
-  const result = generateOrchestrationPlan(room, {
+  const result = await generateOrchestrationPlanMaybeLlm(room, {
     focusIncidentId,
     resolveContext: resolveCommanderContext,
   })
@@ -641,14 +688,14 @@ app.post('/rooms/:id/orchestration/verify', (req, res) => {
   })
 })
 
-app.post('/rooms/:id/orchestration/replan', (req, res) => {
+app.post('/rooms/:id/orchestration/replan', async (req, res) => {
   const id = String(req.params.id ?? '').toUpperCase()
   const room = getRoom(id)
   if (!room) {
     return res.status(404).json({ ok: false, message: 'Room not found' })
   }
   // Client-supplied actionIds / targets / plans are intentionally ignored.
-  const result = replanOrchestrationPlan(room, {
+  const result = await replanOrchestrationPlanMaybeLlm(room, {
     resolveContext: resolveCommanderContext,
     clientActionIds: req.body?.actionIds ?? req.body?.recommendedActions ?? null,
     clientTargets: req.body?.targets ?? req.body?.affectedNodeIds ?? null,
@@ -780,7 +827,9 @@ app.post('/rooms/:id/commander/ask', async (req, res) => {
 const httpServer = createServer(app)
 const io = new Server(httpServer, {
   cors: {
-    origin: isAllowedClientOrigin,
+    origin(origin, callback) {
+      callback(null, isAllowedClientOrigin(origin))
+    },
     methods: ['GET', 'POST'],
   },
   maxHttpBufferSize: 5e6,
@@ -1270,10 +1319,20 @@ io.on('connection', (socket) => {
         }
       }
       const nextEdges = Object.keys(sanitized.edgeOverrides ?? {})
+      const priorAttackStates = { ...(room.hackSimulator?.nodeAttackStates ?? {}) }
+      const nodeAttackStates = {}
+      for (const id of Object.keys(nodeOverrides)) {
+        if (priorAttackStates[id]) nodeAttackStates[id] = true
+      }
       room.hackSimulator = {
         ...sanitized,
         nodeOverrides,
+        nodeAttackStates,
         attackSpreadMode: priorMode,
+        nodeScenarioBaselines:
+          room.hackSimulator?.nodeScenarioBaselines ?? sanitized.nodeScenarioBaselines,
+        edgeScenarioBaselines:
+          room.hackSimulator?.edgeScenarioBaselines ?? sanitized.edgeScenarioBaselines,
       }
       const nextIds = Object.keys(nodeOverrides)
       if (nextIds.length === 0 && nextEdges.length === 0) {
@@ -1283,6 +1342,7 @@ io.on('connection', (socket) => {
           ...room.hackSimulator,
           nodeOverrides: {},
           edgeOverrides: {},
+          nodeAttackStates: {},
           attackSpreadMode: priorMode,
         }
       } else {
@@ -1442,4 +1502,5 @@ httpServer.on('error', (err) => {
 
 httpServer.listen(PORT, HOST, () => {
   console.log(`TrustNetAI game server on http://${HOST}:${PORT}`)
+  logLlmCommanderBootBanner()
 })

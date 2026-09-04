@@ -19,7 +19,11 @@ import {
 } from '../../shared/response/orchestration.js'
 import { runtimeStateOf } from '../infrastructureNode.js'
 import { setNodeQuarantined } from './quarantineNode.js'
-import { runRecoveryAgent, VERIFICATION_VERDICT } from './recoveryAgent.js'
+import {
+  bindPostExecutionDetection,
+  runRecoveryAgent,
+  VERIFICATION_VERDICT,
+} from './recoveryAgent.js'
 
 function node(id, criticality = 'high') {
   return {
@@ -168,29 +172,26 @@ describe('STEP 8 FSM / lineage / new-cycle / residual', () => {
     )
   })
 
-  it('fresh analyze clears lineage; replan preserves it', () => {
+  it('fresh analyze clears lineage; execution-failure replan preserves it', () => {
     const room = roomWithIncident('LINEAGE')
     generateOrchestrationPlan(room, { focusIncidentId: 'inc-pay', resolveContext })
     approveOrchestrationPlan(room, { resolveContext, autoContinue: false })
-    executeOrchestrationPlan(room, { resolveContext })
-    room.detection.anomalyNodeIds = ['gw']
-    verifyOrchestrationPlan(room)
+    const originalIncidents = room.detection.incidents
+    room.detection.incidents = []
+    const failed = executeOrchestrationPlan(room, { resolveContext })
+    room.detection.incidents = originalIncidents
+    assert.equal(failed.ok, false)
     assert.equal(
       room.responseOrchestration.status,
       ORCHESTRATION_STATUS.REPLAN_REQUIRED
     )
     const prevId = room.responseOrchestration.plan.planId
-    const verification = room.responseOrchestration.verification
     room.detection.anomalyNodeIds = ['pay']
     room.hackSimulator.nodeOverrides.pay = { packetsPerSecond: 900 }
     replanOrchestrationPlan(room, { resolveContext, nowMs: 5000 })
     assert.equal(room.responseOrchestration.previousPlanId, prevId)
     assert.equal(room.responseOrchestration.replanCount, 1)
     assert.ok(room.responseOrchestration.planHistory.length >= 1)
-    assert.equal(
-      room.responseOrchestration.verification?.verdict,
-      verification.verdict
-    )
     assert.ok(room.responseOrchestration.plan.previousPlanId)
 
     // Fresh analyze from awaiting clears lineage
