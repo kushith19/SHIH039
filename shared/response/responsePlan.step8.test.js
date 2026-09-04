@@ -6,7 +6,6 @@ import {
   selectPrimaryIncidentForReplan,
 } from './responsePlan.js'
 import { attachRecoveryImpact } from '../recovery/recoveryImpact.js'
-import { attachLiveCorrelation } from '../correlation/liveCorrelation.js'
 import { isActiveResponseIncident } from '../incidentStatus.js'
 
 function node(id, criticality = 'high') {
@@ -46,7 +45,7 @@ function seed(id, endpointId, extra = {}) {
 }
 
 describe('STEP 8 primary selection + status alignment', () => {
-  it('global #1 wins even when outside groups[0]', () => {
+  it('global recovery priority wins', () => {
     const nodes = [
       node('a', 'medium'),
       node('b', 'medium'),
@@ -57,7 +56,6 @@ describe('STEP 8 primary selection + status alignment', () => {
       { id: 'e1', source: 'a', target: 'b' },
       { id: 'e2', source: 'c', target: 'd' },
     ]
-    // Two separate correlation pairs; stamp priorities so C is global #1
     const incidents = [
       seed('inc-a', 'a', { recoveryPriority: 5 }),
       seed('inc-b', 'b', { recoveryPriority: 4 }),
@@ -67,20 +65,6 @@ describe('STEP 8 primary selection + status alignment', () => {
     const detection = {
       incidents,
       anomalyNodeIds: ['a', 'c'],
-      liveCorrelation: {
-        groups: [
-          {
-            groupId: 'g-low',
-            primaryIncidentId: 'inc-a',
-            incidentIds: ['inc-a', 'inc-b'],
-          },
-          {
-            groupId: 'g-high',
-            primaryIncidentId: 'inc-c',
-            incidentIds: ['inc-c', 'inc-d'],
-          },
-        ],
-      },
     }
     attachRecoveryImpact(detection, { nodes, edges, overrides: {} })
     // Force priorities after attach (attach recomputes)
@@ -88,16 +72,12 @@ describe('STEP 8 primary selection + status alignment', () => {
     detection.incidents.find((i) => i.id === 'inc-b').recoveryPriority = 4
     detection.incidents.find((i) => i.id === 'inc-c').recoveryPriority = 99
     detection.incidents.find((i) => i.id === 'inc-d').recoveryPriority = 10
-    detection.liveCorrelation.groups[0].primaryIncidentId = 'inc-a'
-    detection.liveCorrelation.groups[1].primaryIncidentId = 'inc-c'
 
     const primary = selectPrimaryIncidentForPlan(detection, null)
     assert.equal(primary.id, 'inc-c')
     const withReason = selectPrimaryIncidentForPlanWithReason(detection, null)
     assert.equal(withReason.reason, 'global_recovery_priority')
     assert.equal(withReason.focusOverride, false)
-    // groups[0] primary is NOT chosen merely for being first
-    assert.notEqual(primary.id, detection.liveCorrelation.groups[0].primaryIncidentId)
   })
 
   it('explicit focus override is documented when valid', () => {
@@ -106,7 +86,6 @@ describe('STEP 8 primary selection + status alignment', () => {
         seed('inc-a', 'a', { recoveryPriority: 99 }),
         seed('inc-b', 'b', { recoveryPriority: 1 }),
       ],
-      liveCorrelation: { groups: [] },
     }
     const withReason = selectPrimaryIncidentForPlanWithReason(detection, 'inc-b')
     assert.equal(withReason.incident.id, 'inc-b')
@@ -120,7 +99,6 @@ describe('STEP 8 primary selection + status alignment', () => {
         seed('inc-a', 'a', { recoveryPriority: 50 }),
         seed('inc-b', 'b', { recoveryPriority: 10, status: 'cleared' }),
       ],
-      liveCorrelation: { groups: [] },
     }
     const withReason = selectPrimaryIncidentForPlanWithReason(detection, 'inc-b')
     assert.equal(withReason.incident.id, 'inc-a')
@@ -168,7 +146,6 @@ describe('STEP 8 primary selection + status alignment', () => {
         seed('inc-ack', 'a', { status: 'acknowledged', recoveryPriority: 40 }),
         seed('inc-clear', 'b', { status: 'cleared', recoveryPriority: 99 }),
       ],
-      liveCorrelation: { groups: [] },
     }
     const primary = selectPrimaryIncidentForPlan(detection, null)
     assert.equal(primary.id, 'inc-ack')
@@ -186,7 +163,6 @@ describe('STEP 8 primary selection + status alignment', () => {
       peerExposedNodeIds: [],
       propagatedNodeIds: [],
     }
-    attachLiveCorrelation(detection, { nodes, edges })
     attachRecoveryImpact(detection, { nodes, edges, overrides: {} })
     const active = detection.incidents.filter(isActiveResponseIncident)
     assert.equal(active.length, 1)

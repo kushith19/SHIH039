@@ -1,6 +1,6 @@
 /**
  * Pure view helpers for Response Orchestration panel (STEP 1).
- * Reads existing detection / nodes / correlation — does not invent scores or execute.
+ * Reads existing detection / nodes — does not invent scores or execute.
  */
 
 import {
@@ -10,13 +10,8 @@ import {
   agentSlotsForStatus,
   createEmptyOrchestrationState,
   createEmptyResponsePlan,
-  listActionCapabilitiesByCategory,
   normalizeOrchestrationStatus,
 } from '../../../shared/response/orchestration.js'
-import {
-  repositoryActionsByCategory,
-  RESPONSE_ACTION_CATEGORIES,
-} from '../../../shared/response/responseActionRepository.js'
 import {
   hopDistanceOf,
   primaryAttackPath,
@@ -1138,58 +1133,6 @@ export async function postOrchestrationNewCycle(roomId) {
   return { ok: true, orchestration: json.orchestration, executed: false }
 }
 
-export function actionRegistryView() {
-  const categoryLabels = {
-    [RESPONSE_ACTION_CATEGORIES.CONTAINMENT]: 'Containment',
-    [RESPONSE_ACTION_CATEGORIES.POLICY]: 'Policy',
-    [RESPONSE_ACTION_CATEGORIES.RECOVERY]: 'Recovery',
-    [RESPONSE_ACTION_CATEGORIES.DIAGNOSTIC]: 'Diagnostics',
-  }
-  return repositoryActionsByCategory().map((group) => ({
-    category: group.category,
-    categoryLabel: categoryLabels[group.category] || group.category,
-    items: group.items.map((item) => ({
-      capabilityId: item.actionId,
-      category: group.category,
-      label: item.label,
-      description: item.description,
-      actionId: item.supported ? item.actionId : null,
-      availability: item.supported
-        ? 'available'
-        : 'catalog',
-      reversible: item.reversible,
-      mutation: item.mutation !== false,
-      riskLevel: item.riskLevel,
-      supported: item.supported === true,
-      availabilityLabel: item.supported
-        ? item.mutation === false
-          ? 'SUPPORTED · READ-ONLY'
-          : 'SUPPORTED'
-        : 'UNSUPPORTED',
-      tone: item.supported ? 'ok' : 'muted',
-    })),
-  }))
-}
-
-/**
- * Split registry into executable vs catalog-only (informational).
- */
-export function actionRegistrySplitView() {
-  const groups = actionRegistryView()
-  const executable = []
-  const catalog = []
-  for (const group of groups) {
-    for (const item of group.items) {
-      if (item.supported && item.actionId) {
-        executable.push(item)
-      } else {
-        catalog.push(item)
-      }
-    }
-  }
-  return { executable, catalog, groups }
-}
-
 /**
  * STEP 17 — Commander "why this response" from plan + policy snapshot.
  */
@@ -1425,92 +1368,10 @@ export function replanHandoffView(orchestrationState = null) {
 }
 
 /**
- * Correlated incident group — non-causal labels only.
+ * Correlated incident group — live correlation removed; always empty.
  */
-export function correlatedGroupView({
-  detection = null,
-  primaryIncidentId = null,
-  nodes = [],
-  incidents = null,
-} = {}) {
-  const list = Array.isArray(incidents)
-    ? incidents
-    : Array.isArray(detection?.incidents)
-      ? detection.incidents
-      : []
-  const groups = Array.isArray(detection?.liveCorrelation?.groups)
-    ? detection.liveCorrelation.groups
-    : []
-  const focus = primaryIncidentId ? String(primaryIncidentId) : null
-  if (!focus || !groups.length) {
-    return { empty: true, relatedCount: 0, primary: null, related: [], reasons: [] }
-  }
-
-  const group =
-    groups.find((g) => {
-      const members = Array.isArray(g?.incidentIds) ? g.incidentIds.map(String) : []
-      return (
-        members.includes(focus) ||
-        String(g?.primaryIncidentId ?? '') === focus
-      )
-    }) ?? null
-
-  if (!group) {
-    return { empty: true, relatedCount: 0, primary: null, related: [], reasons: [] }
-  }
-
-  const findInc = (id) =>
-    list.find(
-      (inc) =>
-        String(inc?.id) === String(id) ||
-        String(inc?.persistentId ?? '') === String(id)
-    ) ?? null
-
-  const primaryInc =
-    findInc(group.primaryIncidentId) || findInc(focus) || null
-  const related = (group.incidentIds || [])
-    .map(String)
-    .filter((id) => {
-      const p = primaryInc?.persistentId || primaryInc?.id
-      return String(id) !== String(focus) && String(id) !== String(p)
-    })
-    .map((id) => {
-      const inc = findInc(id)
-      return {
-        id,
-        label:
-          inc?.endpointLabel ||
-          nodeLabel(nodes, inc?.endpointId) ||
-          inc?.endpointId ||
-          id,
-      }
-    })
-
-  const reasons = (group.relationshipReasons || [])
-    .map((r) => ({
-      type: r?.type ?? null,
-      label: r?.label || r?.detail || String(r?.type ?? ''),
-      detail: r?.detail ?? null,
-    }))
-    .filter((r) => r.label)
-    // Never surface attack-chain wording
-    .filter((r) => !/attack chain|confirmed kill/i.test(r.label))
-
-  return {
-    empty: false,
-    relatedCount: (group.incidentIds || []).length,
-    primary: {
-      id: primaryInc?.persistentId || primaryInc?.id || group.primaryIncidentId,
-      label:
-        primaryInc?.endpointLabel ||
-        nodeLabel(nodes, primaryInc?.endpointId) ||
-        primaryInc?.endpointId ||
-        String(group.primaryIncidentId ?? ''),
-    },
-    related,
-    reasons,
-    terminology: 'Related incidents',
-  }
+export function correlatedGroupView() {
+  return { empty: true, relatedCount: 0, primary: null, related: [], reasons: [] }
 }
 
 /**
@@ -1662,9 +1523,7 @@ export function graphHealthView({
     atRiskCount: atRisk,
     criticalNodes,
     primaryIncidentId: primary?.persistentId || primary?.id || null,
-    liveGroupCount: Array.isArray(detection?.liveCorrelation?.groups)
-      ? detection.liveCorrelation.groups.length
-      : 0,
+    liveGroupCount: 0,
   }
 }
 
@@ -2084,25 +1943,10 @@ export function focusedIncidentsView({
       ? detection.incidents
       : []
   const focus = focusIncidentId ? String(focusIncidentId) : null
-  const groups = Array.isArray(detection?.liveCorrelation?.groups)
-    ? detection.liveCorrelation.groups
-    : []
-  const relatedIds = new Set()
-  if (focus) {
-    for (const g of groups) {
-      const members = Array.isArray(g?.incidentIds) ? g.incidentIds.map(String) : []
-      if (
-        members.includes(focus) ||
-        String(g?.primaryIncidentId ?? '') === focus
-      ) {
-        for (const id of members) relatedIds.add(id)
-      }
-    }
-  }
   const affected = focus
     ? list.filter((inc) => {
         const id = String(inc.persistentId || inc.id || '')
-        return id === focus || relatedIds.has(id) || relatedIds.has(String(inc.id))
+        return id === focus || String(inc.id) === focus
       })
     : list.slice(0, 5)
 

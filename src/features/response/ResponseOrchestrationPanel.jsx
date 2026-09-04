@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
-  actionRegistrySplitView,
   activeAgentOwnershipView,
   approvalSpotlightView,
   buildDemoResponseAgentExecution,
@@ -9,7 +8,6 @@ import {
   canApproveOrchestration,
   canReplanOrchestration,
   canStartNewOrchestrationCycle,
-  correlatedGroupView,
   DEMO_RESPONSE_AGENT_STEP_MS,
   focusedIncidentsView,
   orchestrationFlowRailView,
@@ -105,7 +103,6 @@ export default function ResponseOrchestrationPanel({
   const ownership = activeAgentOwnershipView(state)
   const rail = orchestrationFlowRailView(state)
   const planView = responsePlanView(state.plan)
-  const registry = actionRegistrySplitView()
   const focused = focusedIncidentsView({
     detection,
     incidents,
@@ -116,12 +113,6 @@ export default function ResponseOrchestrationPanel({
   const approval = approvalSpotlightView(state)
   const handoff = replanHandoffView(state)
   const whyFirst = whyResolveFirstView(focused.primary, state.plan)
-  const correlation = correlatedGroupView({
-    detection,
-    primaryIncidentId: state.plan?.primaryIncidentId || focused.primary?.id,
-    nodes,
-    incidents,
-  })
   const actionDetails = planActionDetailsView(state.plan, state.execution)
   const todo = responseTodoChecklistView(state)
 
@@ -321,7 +312,6 @@ export default function ResponseOrchestrationPanel({
           actionDetails={actionDetails}
           whyFirst={whyFirst}
           focused={focused}
-          correlation={correlation}
           approval={approval}
           approvalScope={state.approvalScope}
           pausedForApprovalReason={state.pausedForApprovalReason}
@@ -330,7 +320,6 @@ export default function ResponseOrchestrationPanel({
           verification={state.verification}
           handoff={handoff}
           evolution={evolution}
-          registry={registry}
           workflowTrace={state.workflowTrace}
           latestIterationTrace={state.latestIterationTrace}
           primaryAction={primaryAction}

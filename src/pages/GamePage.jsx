@@ -38,22 +38,6 @@ const rightPanelClass = (open) => {
     : `${base} w-0 overflow-hidden border-l-0 p-0 max-lg:translate-x-full max-lg:w-[25rem]`
 }
 
-function StatusPip({ ok, warn, muted, label, title }) {
-  const bg = muted
-    ? 'var(--tn-muted)'
-    : ok
-      ? 'var(--tn-ok)'
-      : warn
-        ? 'var(--tn-warn)'
-        : 'var(--tn-crit)'
-  return (
-    <span className="inline-flex items-center gap-1.5" title={title}>
-      <span className="tn-pip" style={{ background: bg }} />
-      <span className="hidden text-sm text-[var(--tn-muted)] xl:inline">{label}</span>
-    </span>
-  )
-}
-
 export default function GamePage() {
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -343,45 +327,6 @@ export default function GamePage() {
                       : `Tick ${room.simulationTick ?? 0}`
                     : 'Lobby'}
               </span>
-              <StatusPip
-                ok={connected}
-                warn={!connected}
-                label={connected ? 'Socket' : 'Socket off'}
-                title={connected ? 'Socket connected' : 'Socket disconnected'}
-              />
-              <StatusPip
-                ok={room.ingestionStatus === 'ok'}
-                warn={room.ingestionStatus !== 'down'}
-                label={
-                  room.ingestionStatus === 'ok'
-                    ? 'Ingest'
-                    : `Ingest ${room.ingestionStatus || 'empty'}`
-                }
-                title={`Ingest ${room.ingestionStatus || 'empty'}`}
-              />
-              <StatusPip
-                ok={room.phase === 'playing' && !tgnnCalibrating}
-                warn={room.phase === 'playing' && tgnnCalibrating}
-                muted={room.phase !== 'playing'}
-                label={
-                  room.phase !== 'playing'
-                    ? 'Detector idle'
-                    : tgnnWarmupPaused
-                      ? 'Paused'
-                      : tgnnCalibrating
-                        ? 'Warmup'
-                        : 'Detector'
-                }
-                title={
-                  room.phase !== 'playing'
-                    ? 'Detector idle until the match starts'
-                    : tgnnWarmupPaused
-                      ? 'Idle-window collection paused while an attack override is active. Clear attacks to finish 15/15.'
-                      : tgnnCalibrating
-                        ? 'Idle-window calibrator collecting residual baseline'
-                        : 'Graph residual detector live'
-                }
-              />
             </div>
           ) : null}
 

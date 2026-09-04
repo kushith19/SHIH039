@@ -33,7 +33,6 @@ function inc(id, endpointId, extra = {}) {
     criticality: 'medium',
     peerExposedNodeIds: [],
     propagatedNodeIds: [],
-    correlation: { groupId: null, relatedLiveIds: [], reasons: [] },
     ...extra,
   }
 }
@@ -320,17 +319,14 @@ test('TEST 11: no downstream exposure still yields non-zero certain priority', (
   assert.equal(impact.score, RECOVERY_IMPACT_WEIGHTS.certain * CRITICALITY_WEIGHT.low)
 })
 
-test('TEST 12: correlation membership is small contextual signal only', () => {
+test('TEST 12: relatedOpenIncidentIds stays empty without live correlation', () => {
   const nodes = [node('a'), node('b'), node('c')]
   const incidents = [
     inc('inc-a', 'a', {
       peerExposedNodeIds: ['b'],
       propagatedNodeIds: ['c'],
-      correlation: { groupId: 'corr-live-x', relatedLiveIds: ['inc-c'], reasons: [] },
     }),
-    inc('inc-c', 'c', {
-      correlation: { groupId: 'corr-live-x', relatedLiveIds: ['inc-a'], reasons: [] },
-    }),
+    inc('inc-c', 'c'),
   ]
   const impact = calculateRecoveryImpact({
     incident: incidents[0],
@@ -341,9 +337,8 @@ test('TEST 12: correlation membership is small contextual signal only', () => {
   })
   assert.ok(impact.excludedIndependentIds.includes('c'))
   assert.ok(!impact.reliefCandidateIds.includes('c'))
-  assert.ok(impact.relatedOpenIncidentIds.includes('inc-c'))
-  assert.equal(impact.explanation.relatedMayEase.count, 1)
-  // Must not claim resolve language for C
+  assert.deepEqual(impact.relatedOpenIncidentIds, [])
+  assert.equal(impact.explanation.relatedMayEase.count, 0)
   const blob = JSON.stringify(impact.explanation).toLowerCase()
   assert.ok(!blob.includes('resolves c'))
   assert.ok(!blob.includes('will restore'))
@@ -420,31 +415,19 @@ test('TEST 14: no mutation of overrides, quarantine, incident status, or nodes',
   assert.equal(incident.recoveryImpact, undefined)
 })
 
-test('attachRecoveryImpact stamps priority and group primaryIncidentId', () => {
+test('attachRecoveryImpact stamps priority on open incidents', () => {
   const detection = {
     incidents: [
       inc('inc-a', 'a', {
         severity: 'medium',
         criticality: 'medium',
         peerExposedNodeIds: ['b', 'c'],
-        correlation: { groupId: 'corr-live-1', relatedLiveIds: ['inc-iso'], reasons: [] },
       }),
       inc('inc-iso', 'iso', {
         severity: 'critical',
         criticality: 'low',
-        correlation: { groupId: 'corr-live-1', relatedLiveIds: ['inc-a'], reasons: [] },
       }),
     ],
-    liveCorrelation: {
-      groups: [
-        {
-          groupId: 'corr-live-1',
-          incidentIds: ['inc-a', 'inc-iso'],
-          nodeIds: ['a', 'iso'],
-          primaryIncidentId: null,
-        },
-      ],
-    },
   }
   const nodes = [
     node('a', 'medium'),
@@ -459,10 +442,8 @@ test('attachRecoveryImpact stamps priority and group primaryIncidentId', () => {
   attachRecoveryImpact(detection, { nodes, edges, overrides: {} })
   assert.ok(Number.isFinite(detection.incidents[0].recoveryPriority))
   assert.ok(detection.incidents[0].recoveryImpact)
-  assert.equal(detection.liveCorrelation.groups[0].primaryIncidentId, 'inc-a')
-  // correlation / severity untouched as fields
+  assert.deepEqual(detection.incidents[0].recoveryImpact.relatedOpenIncidentIds, [])
   assert.equal(detection.incidents[0].severity, 'medium')
-  assert.ok(detection.incidents[0].correlation)
 })
 
 test('compareByRecoveryPriority tie-breaks severity then anomaly then label', () => {

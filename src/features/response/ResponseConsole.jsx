@@ -299,9 +299,9 @@ export default function ResponseConsole({
               </p>
             ) : null}
             {showPlan ? (
-              <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
                 {planSummary || planInterpretation || planReview || planStrategy ? (
-                  <div className="shrink-0 space-y-3">
+                  <div className="space-y-3">
                     {planSummary ? (
                       <div>
                         <div className="tn-label">Summary</div>
@@ -331,7 +331,7 @@ export default function ResponseConsole({
                   </div>
                 ) : null}
                 {actions.length === 0 ? (
-                  <div className={planSummary || planStrategy ? 'mt-3' : ''}>
+                  <div>
                     {emptyActions.title ? (
                       <div className="text-sm font-medium uppercase tracking-wide">
                         {emptyActions.title}
@@ -342,7 +342,7 @@ export default function ResponseConsole({
                     </p>
                   </div>
                 ) : (
-                  <ul className="mt-3 min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
+                  <ul className="space-y-3">
                     {actions.map((action) => {
                       const badgeTone =
                         action.uiStatus === RESPONSE_ACTION_UI_STATUS.FAILED

@@ -21,7 +21,6 @@ export default function OrchestrationDetailPanel({
   actionDetails,
   whyFirst,
   focused,
-  correlation,
   approval,
   approvalScope,
   pausedForApprovalReason,
@@ -30,7 +29,6 @@ export default function OrchestrationDetailPanel({
   verification,
   handoff,
   evolution,
-  registry,
   workflowTrace = [],
   latestIterationTrace = null,
   primaryAction,
@@ -107,7 +105,6 @@ export default function OrchestrationDetailPanel({
           actionDetails={actionDetails}
           whyFirst={whyFirst}
           focused={focused}
-          correlation={correlation}
           handoff={handoff}
           needsReplan={needsReplan}
           primaryLabel={primaryLabel}
@@ -130,7 +127,6 @@ export default function OrchestrationDetailPanel({
         actionDetails={actionDetails}
         whyFirst={whyFirst}
         focused={focused}
-        correlation={correlation}
         handoff={handoff}
         needsReplan={needsReplan}
         primaryLabel={primaryLabel}
@@ -203,65 +199,22 @@ export default function OrchestrationDetailPanel({
         </div>
         ) : null}
 
-        {showDebugChrome ? (
-          <>
-            <section
-              className="mt-6 border-t border-[var(--tn-line)] pt-4"
-              aria-labelledby="orch-registry"
+        {showDebugChrome && (focusIncidentId || planPrimaryIncidentId) ? (
+          <div className="mt-4 border-t border-[var(--tn-line)] pt-3">
+            <Link
+              to={dashboardResponseIncidentHref(
+                searchParams,
+                focusIncidentId || planPrimaryIncidentId
+              )}
+              replace
+              className="tn-btn inline-flex"
             >
-              <h4 id="orch-registry" className="tn-label">
-                Response Action Repository
-              </h4>
-              <p className="tn-meta mt-1 mb-2">
-                Commander chooses only from registered capabilities. Unsupported
-                actions never execute.
-              </p>
-              <div className="space-y-3">
-                {(registry?.groups || []).map((group) => (
-                  <div key={group.category}>
-                    <div className="text-[11px] font-medium text-[var(--tn-muted)]">
-                      {group.categoryLabel || group.category}
-                    </div>
-                    <ul className="mt-1 space-y-1">
-                      {(group.items || []).map((item) => (
-                        <li
-                          key={item.capabilityId || item.actionId || item.label}
-                          className="flex items-center justify-between gap-2 text-sm text-[var(--tn-text)]"
-                        >
-                          <span>
-                            {item.supported ? '✓' : '○'} {item.label}
-                            {item.mutation === false ? ' · read-only' : ''}
-                          </span>
-                          <StatusBadge tone={item.supported ? 'ok' : 'muted'}>
-                            {item.availabilityLabel ||
-                              (item.supported ? 'SUPPORTED' : 'UNSUPPORTED')}
-                          </StatusBadge>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {(focusIncidentId || planPrimaryIncidentId) && (
-              <div className="mt-4 border-t border-[var(--tn-line)] pt-3">
-                <Link
-                  to={dashboardResponseIncidentHref(
-                    searchParams,
-                    focusIncidentId || planPrimaryIncidentId
-                  )}
-                  replace
-                  className="tn-btn inline-flex"
-                >
-                  Open Response Console
-                </Link>
-                <p className="tn-meta mt-1 text-[11px]">
-                  Direct-action surface — separate from orchestration workflow.
-                </p>
-              </div>
-            )}
-          </>
+              Open Response Console
+            </Link>
+            <p className="tn-meta mt-1 text-[11px]">
+              Direct-action surface — separate from orchestration workflow.
+            </p>
+          </div>
         ) : null}
       </div>
     </div>

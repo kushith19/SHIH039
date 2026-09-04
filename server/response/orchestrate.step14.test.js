@@ -152,7 +152,6 @@ function roomFive(id = 'S14-5') {
       ['gw', 0.2],
       ['extra', 0.2],
     ]),
-    liveCorrelation: { groups: [] },
   }
   attachRecoveryImpact(room.detection, {
     nodes: room.nodes,

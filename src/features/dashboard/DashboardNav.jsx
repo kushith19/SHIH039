@@ -5,7 +5,6 @@ import {
   ClipboardList,
   GitBranch,
   LayoutDashboard,
-  Link2,
   Server,
   Shield,
   ShieldAlert,
@@ -19,7 +18,6 @@ import {
 const ICONS = {
   overview: LayoutDashboard,
   timeline: Activity,
-  correlation: Link2,
   incidents: AlertTriangle,
   fleet: Server,
   'post-analysis': ClipboardList,

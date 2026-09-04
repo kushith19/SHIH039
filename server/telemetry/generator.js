@@ -22,7 +22,6 @@ import {
   persistDetectionIncidents,
 } from '../metrics/incidents.js'
 import { archiveDetectionIncidents } from '../postAnalysis/archive.js'
-import { attachLiveCorrelation } from '../../shared/correlation/liveCorrelation.js'
 import { attachRecoveryImpact } from '../../shared/recovery/recoveryImpact.js'
 import { emptyDetectionResult } from '../detection/types.js'
 import { advanceRiskMomentum, resetRiskHistory } from '../detection/riskMomentum.js'
@@ -98,17 +97,6 @@ export async function ingestCitySnapshot(room, onAfter) {
     archiveDetectionIncidents(room, detection)
   } catch (err) {
     console.error('[POST-ANALYSIS] archive failed', err?.message ?? err)
-  }
-  // Live correlation: related OPEN incidents only (not causality, not recovery ranking).
-  // History camp-h-* campaigns remain separate and untouched.
-  try {
-    attachLiveCorrelation(detection, {
-      edges: room.edges ?? [],
-      nowMs: Date.now(),
-    })
-  } catch (err) {
-    console.error('[correlation] live correlation failed', err)
-    detection.liveCorrelation = { groups: [], generatedAt: Date.now(), pairCount: 0, linkedPairCount: 0 }
   }
   // Recovery impact / priority: counterfactual only — does not mutate quarantine/overrides.
   try {

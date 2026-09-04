@@ -118,7 +118,6 @@ function roomWithIncident(id = 'ORCH-REC') {
     peerExposedNodeIds: ['gw'],
     propagatedNodeIds: [],
     isolationScoresByNodeId: { pay: 0.9, gw: 0.2 },
-    liveCorrelation: { groups: [] },
   }
   attachRecoveryImpact(room.detection, {
     nodes: room.nodes,
@@ -325,7 +324,6 @@ describe('Recovery Agent STEP 10 verification semantics', () => {
       peerExposedNodeIds: ['gw'],
       propagatedNodeIds: [],
       isolationScoresByNodeId: { pay: 0.9, water: 0.85, gw: 0.2 },
-      liveCorrelation: { groups: [] },
     }
     attachRecoveryImpact(room.detection, {
       nodes: room.nodes,

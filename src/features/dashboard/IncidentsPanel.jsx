@@ -9,7 +9,6 @@ import Toolbar, { FilterChip } from '../../ui/Toolbar'
 import StatusBadge from '../../ui/StatusBadge'
 import EmptyState from '../../ui/EmptyState'
 import {
-  correlationGroupId,
   formatPriorityScore,
   orderLiveIncidents,
   recoveryImpactBand,
@@ -215,7 +214,6 @@ function QueueRow({ inc, rank, selected, onSelect, isNextTarget = false }) {
   const band = recoveryImpactBand(priority)
   const relief = reliefCount(inc)
   const related = relatedLiveCount(inc)
-  const groupId = correlationGroupId(inc)
 
   return (
     <li>
@@ -261,11 +259,6 @@ function QueueRow({ inc, rank, selected, onSelect, isNextTarget = false }) {
             <span className="text-xs text-[var(--tn-muted)]">
               {detectionTypeLabel(inc.detectionType)}
             </span>
-            {groupId ? (
-              <StatusBadge tone="warn">
-                Related · {related || '—'}
-              </StatusBadge>
-            ) : null}
           </div>
           <div className="tn-meta mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px]">
             {priority != null ? (
@@ -275,7 +268,7 @@ function QueueRow({ inc, rank, selected, onSelect, isNextTarget = false }) {
               </span>
             ) : null}
             {relief > 0 ? <span>Relief {relief}</span> : null}
-            {related > 0 && !groupId ? <span>Related {related}</span> : null}
+            {related > 0 ? <span>Related {related}</span> : null}
           </div>
         </div>
       </button>

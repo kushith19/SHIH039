@@ -8,7 +8,10 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
   buildLlmCommanderPromptPayload,
+  buildPlannerRagQuery,
+  emptyRetrievedKnowledge,
   estimateCommanderPromptTokens,
+  knowledgeContextToRetrievedKnowledge,
   llmResponsePlanEnabled,
   LLM_COMMANDER_MERGED_SYSTEM_PROMPT,
   parseAndValidateLlmCommanderPlan,
@@ -16,7 +19,9 @@ import {
   logCommanderRaw,
   logCommanderParsed,
   logCommanderFinalPlan,
+  summarizeRetrievedKnowledgeForDebug,
 } from '../../shared/response/llmCommanderPlan.js'
+import { fetchKnowledgeContext } from '../commander/client.js'
 
 const AI_COMMANDER_URL = process.env.AI_COMMANDER_URL ?? 'http://localhost:8000'
 const OLLAMA_URL = process.env.OLLAMA_URL ?? 'http://localhost:11434'
@@ -33,6 +38,13 @@ export { llmResponsePlanEnabled }
 
 /** @type {null | ((payload: object) => Promise<unknown>)} */
 let testCaller = null
+
+/**
+ * Optional RAG override for tests. When null and testCaller is set, RAG is
+ * skipped (offline). Production always uses fetchKnowledgeContext.
+ * @type {null | ((args: object) => Promise<object>)}
+ */
+let testRagFetcher = null
 
 let sessionId = null
 
@@ -69,6 +81,11 @@ function emptyDebugRecord() {
     error: null,
     fallbackUsed: false,
     ollamaError: null,
+    ragUsed: false,
+    ragChunkCount: 0,
+    ragSources: [],
+    ragQuery: null,
+    ragStatus: null,
   }
 }
 
@@ -89,6 +106,87 @@ export function setLlmCommanderTestCaller(fn) {
 
 export function clearLlmCommanderTestCaller() {
   testCaller = null
+}
+
+export function setLlmCommanderRagFetcher(fn) {
+  testRagFetcher = typeof fn === 'function' ? fn : null
+}
+
+export function clearLlmCommanderRagFetcher() {
+  testRagFetcher = null
+}
+
+/**
+ * Soft-fail RAG enrichment for the Orchestrate Planner.
+ * Reuses existing POST /commander/knowledge via fetchKnowledgeContext.
+ */
+async function retrievePlannerRagKnowledge(context, { room = null } = {}) {
+  const incidentId = context?.incidentId ?? context?.liveIncidentId ?? null
+  say(`[PLANNER] incident=${incidentId ?? ''}`)
+  say('[PLANNER] RAG retrieval started')
+
+  let query = null
+  try {
+    const planned = buildPlannerRagQuery(context, { room })
+    query = planned.query
+    say(`[PLANNER] RAG query=${query}`)
+
+    let knowledge
+    if (testRagFetcher) {
+      knowledge = await testRagFetcher({
+        query,
+        hints: planned.hints,
+        context,
+        room,
+        incidentId,
+      })
+    } else if (testCaller) {
+      // Injected LLM tests stay offline unless RAG is explicitly mocked.
+      knowledge = {
+        retrieved: false,
+        reason: 'RAG skipped for injected LLM test',
+        knowledgeStatus: 'unavailable',
+        attackUnderstanding: [],
+        relevantKnowledge: [],
+        preventionGuidance: [],
+        sources: [],
+        queries: [],
+      }
+    } else {
+      knowledge = await fetchKnowledgeContext({
+        query,
+        hints: planned.hints,
+        incidentId,
+        fingerprint: `planner:${incidentId ?? 'none'}:${query}`,
+      })
+    }
+
+    const retrievedKnowledge = knowledgeContextToRetrievedKnowledge(knowledge, query)
+    const debug = summarizeRetrievedKnowledgeForDebug(retrievedKnowledge)
+    say(`[PLANNER] RAG retrieved=${debug.ragChunkCount} chunks`)
+    for (const src of debug.ragSources) {
+      say(
+        `[PLANNER] RAG source=${src.source ?? ''} document=${src.documentName ?? ''} category=${src.category ?? ''}`
+      )
+    }
+    if (!debug.ragUsed) {
+      say('[PLANNER] RAG retrieval returned no usable chunks; continuing without RAG')
+    }
+    return { retrievedKnowledge, ...debug, ragStatus: retrievedKnowledge.status }
+  } catch (err) {
+    say(
+      `[PLANNER] RAG retrieval failed; continuing without RAG (${err?.message ?? err})`
+    )
+    const retrievedKnowledge = emptyRetrievedKnowledge(
+      'No relevant authoritative knowledge was retrieved.',
+      query
+    )
+    return {
+      retrievedKnowledge,
+      ...summarizeRetrievedKnowledgeForDebug(retrievedKnowledge),
+      ragStatus: 'unavailable',
+    }
+  }
 }
 
 function say(msg) {
@@ -640,10 +738,12 @@ export async function requestLlmCommanderActions(
   context,
   { room = null, previousPlan = null, verification = null } = {}
 ) {
+  const ragResult = await retrievePlannerRagKnowledge(context, { room })
   const payload = buildLlmCommanderPromptPayload(context, {
     room,
     previousPlan,
     verification,
+    retrievedKnowledge: ragResult.retrievedKnowledge,
   })
   const requestId = newRequestId()
   const startedAt = new Date().toISOString()
@@ -656,7 +756,13 @@ export async function requestLlmCommanderActions(
     LLM_COMMANDER_MERGED_SYSTEM_PROMPT,
     payload
   )
+  const ragUsed = ragResult.ragUsed === true
+  const ragChunkCount = Number(ragResult.ragChunkCount) || 0
+  const ragSources = Array.isArray(ragResult.ragSources) ? ragResult.ragSources : []
+  const ragQuery = ragResult.ragQuery ?? null
+  const ragStatus = ragResult.ragStatus ?? (ragUsed ? 'available' : 'unavailable')
 
+  say('[PLANNER] sending enriched context to LLM')
   logCommanderPlanningInput(payload, {
     contextTokens,
     requestedContext: OLLAMA_NUM_CTX,
@@ -689,6 +795,11 @@ export async function requestLlmCommanderActions(
     error: null,
     fallbackUsed: false,
     ollamaError: null,
+    ragUsed,
+    ragChunkCount,
+    ragSources,
+    ragQuery,
+    ragStatus,
   })
 
   if (!Array.isArray(availableActionIds) || availableActionIds.length === 0) {
@@ -700,6 +811,11 @@ export async function requestLlmCommanderActions(
       completedAt: new Date().toISOString(),
       error: 'No executable repository actions for LLM to select',
       code: 'NO_AVAILABLE_ACTIONS',
+      ragUsed,
+      ragChunkCount,
+      ragSources,
+      ragQuery,
+      ragStatus,
       validationResult: {
         ok: false,
         code: 'NO_AVAILABLE_ACTIONS',
@@ -734,18 +850,22 @@ export async function requestLlmCommanderActions(
         '[LLM REQUEST START]',
         `requestId=${requestId} source=test model=${OLLAMA_MODEL} incident=${incidentId ?? ''} attackPreset=${attackPreset ?? ''} actionCount=${availableActionIds.length} promptChars=${promptChars} estimatedTokens=${contextTokens}`
       )
+      say('[LLM PLANNER] request sent')
       llmLine('[LLM REQUEST SENT]', `requestId=${requestId} source=test`)
       const t0 = Date.now()
       raw = await testCaller(payload)
       durationMs = Date.now() - t0
       httpStatus = 'test'
       configuredContext = 'test'
+      say('[LLM PLANNER] response received')
+      say(`[LLM PLANNER] RAG context included=${ragUsed}`)
       llmLine(
         '[LLM RESPONSE RECEIVED]',
         `requestId=${requestId} status=test durationMs=${durationMs} doneReason=n/a`
       )
     } else {
       try {
+        say('[LLM PLANNER] request sent')
         const ollama = await callOllamaPlan(payload, {
           requestId,
           incidentId,
@@ -760,6 +880,8 @@ export async function requestLlmCommanderActions(
         durationMs = ollama?.durationMs ?? null
         promptEvalCount = ollama?.promptEvalCount ?? null
         evalCount = ollama?.evalCount ?? null
+        say('[LLM PLANNER] response received')
+        say(`[LLM PLANNER] RAG context included=${ragUsed}`)
       } catch (ollamaErr) {
         const ollamaCode = classifyFetchError(ollamaErr)
         const ollamaMsg = String(ollamaErr?.message ?? ollamaErr)
@@ -772,6 +894,11 @@ export async function requestLlmCommanderActions(
           httpStatus: ollamaErr?.httpStatus ?? null,
           ollamaError: ollamaMsg,
           fallbackUsed: false,
+          ragUsed,
+          ragChunkCount,
+          ragSources,
+          ragQuery,
+          ragStatus,
           validationResult: { ok: false, code: ollamaCode, error: ollamaMsg },
           validation: { ok: false, code: ollamaCode, error: ollamaMsg },
         })
@@ -793,6 +920,11 @@ export async function requestLlmCommanderActions(
       completedAt: new Date().toISOString(),
       error: msg,
       httpStatus: err?.httpStatus ?? null,
+      ragUsed,
+      ragChunkCount,
+      ragSources,
+      ragQuery,
+      ragStatus,
       validationResult: { ok: false, code, error: msg },
       validation: { ok: false, code, error: msg },
     })
@@ -898,6 +1030,11 @@ export async function requestLlmCommanderActions(
       code: validated.code ?? null,
       error: validated.error ?? null,
     },
+    ragUsed,
+    ragChunkCount,
+    ragSources,
+    ragQuery,
+    ragStatus,
   })
   return validated
 }

@@ -215,30 +215,13 @@ export function buildReplanReasoning({
   return parts.join(' · ') || 'Commander re-analysis after verification failure'
 }
 
-/** Incident ids in the same live correlation group as the primary (or just primary). */
+/** Incident ids for plan scope — primary only (no live correlation groups). */
 export function correlatedIncidentIds(detection, primaryIncident) {
   const primaryLive = liveId(primaryIncident)
   const primaryAny = persistentOrLiveId(primaryIncident)
   const ids = new Set()
   if (primaryAny) ids.add(primaryAny)
   if (primaryLive) ids.add(primaryLive)
-
-  const groups = Array.isArray(detection?.liveCorrelation?.groups)
-    ? detection.liveCorrelation.groups
-    : []
-  for (const group of groups) {
-    const members = Array.isArray(group?.incidentIds)
-      ? group.incidentIds.map(String)
-      : []
-    const hit =
-      (primaryLive && members.includes(primaryLive)) ||
-      (primaryAny && members.includes(primaryAny)) ||
-      String(group?.primaryIncidentId ?? '') === primaryLive ||
-      String(group?.primaryIncidentId ?? '') === primaryAny
-    if (!hit) continue
-    for (const id of members) ids.add(id)
-    if (group.primaryIncidentId) ids.add(String(group.primaryIncidentId))
-  }
   return [...ids]
 }
 

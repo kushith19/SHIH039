@@ -15,7 +15,6 @@ import {
 import EndpointTable from '../features/dashboard/EndpointTable'
 import IncidentsPanel from '../features/dashboard/IncidentsPanel'
 import MonitorTimelinePanel from '../features/dashboard/MonitorTimelinePanel'
-import LiveCorrelationPanel from '../features/dashboard/LiveCorrelationPanel'
 import OverviewPanel from '../features/dashboard/OverviewPanel'
 import PostAnalysisPanel from '../features/dashboard/PostAnalysisPanel'
 import CommanderPanel from '../features/commander/CommanderPanel'
@@ -342,22 +341,6 @@ export default function DashboardPage({
         responseOrchestration={responseOrchestration}
       />
     )
-  } else if (panel === 'correlation') {
-    pageBody = (
-      <LiveCorrelationPanel
-        groups={Array.isArray(detection?.liveCorrelation?.groups) ? detection.liveCorrelation.groups : []}
-        incidents={incidents}
-        nodes={nodes}
-        edges={edges}
-        ready={detection != null}
-        onSelectIncident={(inc) => {
-          navigate(dashboardPanelHref(searchParams, 'incidents'), {
-            replace: true,
-            state: { selectIncidentId: inc?.persistentId || inc?.id || inc?.endpointId },
-          })
-        }}
-      />
-    )
   } else if (panel === 'post-analysis') {
     pageBody = <PostAnalysisPanel roomId={roomId} />
   } else if (panel === 'commander') {
@@ -446,7 +429,6 @@ export default function DashboardPage({
             panel === 'commander' ||
             panel === 'incidents' ||
             panel === 'timeline' ||
-            panel === 'correlation' ||
             panel === 'orchestrate' ||
             panel === 'response'
               ? 'flex min-h-0 flex-1 flex-col overflow-hidden p-4 md:px-6 md:py-5'
@@ -460,7 +442,6 @@ export default function DashboardPage({
               panel === 'commander' ||
               panel === 'incidents' ||
               panel === 'timeline' ||
-              panel === 'correlation' ||
               panel === 'orchestrate' ||
               panel === 'response'
                 ? 'flex min-h-0 flex-1 flex-col gap-4'

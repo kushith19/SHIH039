@@ -108,7 +108,6 @@ function roomWithIncident(id = 'STEP8') {
     peerExposedNodeIds: ['gw'],
     propagatedNodeIds: [],
     isolationScoresByNodeId: { pay: 0.9, gw: 0.2 },
-    liveCorrelation: { groups: [] },
   }
   attachRecoveryImpact(room.detection, {
     nodes: room.nodes,

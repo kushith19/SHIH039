@@ -114,7 +114,6 @@ function roomMulti(id = 'S9') {
     peerExposedNodeIds: [],
     propagatedNodeIds: [],
     isolationScoresByNodeId: { pay: 0.9, water: 0.85, traffic: 0.8, gw: 0.2 },
-    liveCorrelation: { groups: [] },
   }
   attachRecoveryImpact(room.detection, {
     nodes: room.nodes,

@@ -127,7 +127,6 @@ export default function CommanderDetailView({
   actionDetails,
   whyFirst,
   focused,
-  correlation,
   handoff = null,
   needsReplan = false,
   primaryLabel = '—',
@@ -157,7 +156,6 @@ export default function CommanderDetailView({
   const planHeading = showPlanNumber
     ? `Response plan · ${actionDetails.planNumber}`
     : 'Recommended response'
-  const graphReasons = (correlation?.reasons || []).filter((r) => r?.label)
 
   return (
     <div className="space-y-4">
@@ -281,17 +279,6 @@ export default function CommanderDetailView({
                   ))}
                 </ul>
               ) : null}
-            </section>
-          ) : null}
-
-          {graphReasons.length > 0 ? (
-            <section className="rounded-md border border-[var(--tn-line)] px-3 py-2.5">
-              <div className="tn-label">Related evidence</div>
-              <ul className="mt-1.5 space-y-0.5 text-sm text-[var(--tn-text)]">
-                {graphReasons.map((r, i) => (
-                  <li key={`${r.type || r.label}-${i}`}>{r.label}</li>
-                ))}
-              </ul>
             </section>
           ) : null}
 

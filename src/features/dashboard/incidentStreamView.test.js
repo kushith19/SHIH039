@@ -1,10 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
-  correlationGroupId,
   formatPriorityScore,
-  groupChronologicalTimeline,
-  groupDependencyChains,
   orderLiveIncidents,
   recoveryImpactBand,
   recoveryPriorityValue,
@@ -67,59 +64,11 @@ test('recovery helpers tolerate missing fields', () => {
   assert.equal(recoveryImpactBand(45), 'High')
   assert.equal(reliefCount({}), 0)
   assert.equal(relatedLiveCount({}), 0)
-  assert.equal(correlationGroupId({}), null)
-  assert.equal(formatPriorityScore(18.4), '18.4')
-})
-
-test('groupChronologicalTimeline sorts by time and attaches recovery ranks', () => {
-  const group = { incidentIds: ['inc-a', 'inc-b', 'inc-c'] }
-  const incidents = [
-    {
-      id: 'inc-b',
-      endpointId: 'b',
-      endpointLabel: 'Core Banking',
-      severity: 'critical',
-      recoveryPriority: 40,
-      detectedAtMs: 2_000,
-    },
-    {
-      id: 'inc-a',
-      endpointId: 'a',
-      endpointLabel: 'Payment Gateway',
-      severity: 'high',
-      recoveryPriority: 20,
-      detectedAtMs: 1_000,
-    },
-    {
-      id: 'inc-c',
-      endpointId: 'c',
-      endpointLabel: 'Transaction Service',
-      severity: 'high',
-      recoveryPriority: 10,
-      detectedAtMs: 3_000,
-    },
-  ]
-  const timeline = groupChronologicalTimeline(group, incidents)
-  assert.deepEqual(
-    timeline.map((e) => e.incident.id),
-    ['inc-a', 'inc-b', 'inc-c']
+  assert.equal(
+    relatedLiveCount({
+      recoveryImpact: { relatedOpenIncidentIds: ['inc-x', 'inc-y'] },
+    }),
+    2
   )
-  assert.equal(timeline[1].recoveryRank, 1)
-  assert.equal(timeline[0].recoveryRank, 2)
-})
-
-test('groupDependencyChains follows directed edges among group nodes only', () => {
-  const group = { incidentIds: ['inc-a', 'inc-b', 'inc-c'] }
-  const incidents = [
-    { id: 'inc-a', endpointId: 'a', recoveryPriority: 10 },
-    { id: 'inc-b', endpointId: 'b', recoveryPriority: 20 },
-    { id: 'inc-c', endpointId: 'c', recoveryPriority: 5 },
-  ]
-  const edges = [
-    { source: 'a', target: 'b' },
-    { source: 'b', target: 'c' },
-  ]
-  const chains = groupDependencyChains(group, incidents, edges)
-  assert.ok(chains.some((c) => c.join('>') === 'a>b>c'))
-  assert.deepEqual(groupDependencyChains(group, incidents, []), [])
+  assert.equal(formatPriorityScore(18.4), '18.4')
 })

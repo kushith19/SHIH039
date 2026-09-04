@@ -2,6 +2,9 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import {
   buildLlmCommanderPromptPayload,
+  buildPlannerRagQuery,
+  emptyRetrievedKnowledge,
+  knowledgeContextToRetrievedKnowledge,
   llmResponsePlanEnabled,
   logLlmCommanderPlan,
   parseAndValidateLlmCommanderPlan,
@@ -366,6 +369,86 @@ describe('LLM Commander plan parse/validate', () => {
     assert.ok(payload.relatedIncidents.length >= 1)
     assert.ok(payload.telemetryEvidence.length >= 1)
     assert.ok(payload.responseGoal)
+    assert.equal(payload.retrievedKnowledge.status, 'unavailable')
+    assert.ok(Array.isArray(payload.retrievedKnowledge.items))
+  })
+
+  it('builds an incident-specific planner RAG query from live fields', () => {
+    const ctx = seedContext('pay', {
+      incidentType: 'data_exfiltration',
+      anomalyEvidence: [
+        {
+          code: 'metric_deviation',
+          metric: 'filesDownloaded',
+          observed: 500,
+          expected: 10,
+          deviationPct: 4900,
+        },
+      ],
+    })
+    const { query, hints } = buildPlannerRagQuery(ctx, { room: null })
+    assert.match(query, /data exfiltration/i)
+    assert.match(query, /files downloaded|filesDownloaded/i)
+    assert.match(query, /incident response containment/i)
+    assert.equal(hints.plannerFocus, true)
+  })
+
+  it('maps knowledge context into retrievedKnowledge without inventing citations', () => {
+    const mapped = knowledgeContextToRetrievedKnowledge(
+      {
+        retrieved: true,
+        relevantKnowledge: ['Isolate affected OT segment while preserving monitoring.'],
+        sources: [
+          {
+            source: 'NIST',
+            document: 'NIST SP 800-82 Rev 3',
+            category: 'ot-ics',
+            section: 'Containment',
+            page: 120,
+            score: 0.81,
+          },
+        ],
+        attackUnderstanding: [],
+        preventionGuidance: ['Segment suspicious communications.'],
+        queries: ['ot ics containment'],
+      },
+      'ot ics containment'
+    )
+    assert.equal(mapped.status, 'available')
+    assert.equal(mapped.items.length, 1)
+    assert.equal(mapped.items[0].source, 'NIST')
+    assert.equal(mapped.items[0].documentName, 'NIST SP 800-82 Rev 3')
+    assert.equal(mapped.items[0].category, 'ot-ics')
+    assert.match(mapped.items[0].text, /Isolate affected OT/)
+    assert.deepEqual(
+      knowledgeContextToRetrievedKnowledge({ retrieved: false }, 'q').status,
+      'unavailable'
+    )
+    assert.equal(emptyRetrievedKnowledge().items.length, 0)
+  })
+
+  it('includes retrievedKnowledge in the planner payload when provided', () => {
+    const ctx = seedContext()
+    const retrievedKnowledge = knowledgeContextToRetrievedKnowledge(
+      {
+        retrieved: true,
+        relevantKnowledge: ['Rate-limit excessive request traffic when supported.'],
+        sources: [
+          {
+            source: 'NIST',
+            document: 'NIST SP 800-61 Rev 3',
+            category: 'incident-response',
+          },
+        ],
+      },
+      'api flood containment'
+    )
+    const payload = buildLlmCommanderPromptPayload(ctx, {
+      room: null,
+      retrievedKnowledge,
+    })
+    assert.equal(payload.retrievedKnowledge.status, 'available')
+    assert.equal(payload.retrievedKnowledge.items[0].documentName, 'NIST SP 800-61 Rev 3')
   })
 
   it('resolves authoritative attack preset, stage, graph, city, and previous plan context', () => {

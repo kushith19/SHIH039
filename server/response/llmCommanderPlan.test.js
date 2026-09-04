@@ -10,8 +10,10 @@ import {
 } from './orchestrate.js'
 import {
   clearLlmCommanderTestCaller,
+  clearLlmCommanderRagFetcher,
   getLastLlmResponse,
   setLlmCommanderTestCaller,
+  setLlmCommanderRagFetcher,
   ollamaRunnerIsRequestedModel,
   OLLAMA_MODEL,
   OLLAMA_NUM_CTX,
@@ -119,12 +121,98 @@ describe('LLM Commander orchestration STEP 2', () => {
 
   after(() => {
     clearLlmCommanderTestCaller()
+    clearLlmCommanderRagFetcher()
     if (prevFlag === undefined) delete process.env.LLM_RESPONSE_PLAN
     else process.env.LLM_RESPONSE_PLAN = prevFlag
     if (prevMode === undefined) delete process.env.RESPONSE_PLAN_MODE
     else process.env.RESPONSE_PLAN_MODE = prevMode
   })
 
+  it('injects retrievedKnowledge into the planner payload and debug record', async () => {
+    let seenPayload = null
+    setLlmCommanderRagFetcher(async () => ({
+      retrieved: true,
+      relevantKnowledge: [
+        'Prefer network segmentation and rate limiting for excessive request traffic.',
+      ],
+      sources: [
+        {
+          source: 'NIST',
+          document: 'NIST SP 800-61 Rev 3',
+          category: 'incident-response',
+          score: 0.77,
+        },
+      ],
+      attackUnderstanding: [],
+      preventionGuidance: [],
+      queries: ['behavioral anomaly payment'],
+    }))
+    setLlmCommanderTestCaller(async (payload) => {
+      seenPayload = payload
+      return {
+        summary: 'Contain with registry actions',
+        attackInterpretation: 'Possible traffic anomaly',
+        strategy: 'Contain then inspect',
+        actions: [
+          {
+            actionId: 'isolate-node',
+            target: 'pay',
+            rationale: 'Contain using live evidence; RAG informs approach only',
+            expectedImpact: 'Reduce lateral exposure',
+          },
+        ],
+      }
+    })
+    const room = roomFixture([seedIncident('inc-pay', 'pay')])
+    const result = await generateOrchestrationPlanMaybeLlm(room, {
+      focusIncidentId: 'inc-pay',
+      resolveContext,
+    })
+    assert.equal(result.ok, true)
+    assert.equal(seenPayload?.retrievedKnowledge?.status, 'available')
+    assert.equal(
+      seenPayload?.retrievedKnowledge?.items?.[0]?.documentName,
+      'NIST SP 800-61 Rev 3'
+    )
+    const debug = getLastLlmResponse()
+    assert.equal(debug.ragUsed, true)
+    assert.equal(debug.ragChunkCount, 1)
+    assert.equal(debug.ragSources?.[0]?.source, 'NIST')
+    clearLlmCommanderRagFetcher()
+    clearLlmCommanderTestCaller()
+  })
+
+  it('continues planner when RAG soft-fails', async () => {
+    setLlmCommanderRagFetcher(async () => {
+      throw new Error('qdrant down')
+    })
+    setLlmCommanderTestCaller(async (payload) => {
+      assert.equal(payload.retrievedKnowledge.status, 'unavailable')
+      return {
+        summary: 'Plan without RAG',
+        attackInterpretation: 'Live evidence only',
+        strategy: 'Contain',
+        actions: [
+          {
+            actionId: 'isolate-node',
+            target: 'pay',
+            rationale: 'Live evidence',
+            expectedImpact: 'Containment',
+          },
+        ],
+      }
+    })
+    const room = roomFixture([seedIncident('inc-pay', 'pay')])
+    const result = await generateOrchestrationPlanMaybeLlm(room, {
+      focusIncidentId: 'inc-pay',
+      resolveContext,
+    })
+    assert.equal(result.ok, true)
+    const debug = getLastLlmResponse()
+    assert.equal(debug.ragUsed, false)
+    clearLlmCommanderRagFetcher()
+    clearLlmCommanderTestCaller()
+  })
   it('valid JSON actions → ResponsePlan at AWAITING_APPROVAL (no auto-exec)', async () => {
     const logs = []
     const orig = console.log

@@ -120,7 +120,6 @@ function roomFive(id = 'S12') {
       ...ids.map((nid) => [nid, 0.9]),
       ['gw', 0.2],
     ]),
-    liveCorrelation: { groups: [] },
   }
   attachRecoveryImpact(room.detection, {
     nodes: room.nodes,

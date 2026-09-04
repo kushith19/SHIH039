@@ -2,7 +2,6 @@
 export const DASHBOARD_PANEL_IDS = [
   'overview',
   'timeline',
-  'correlation',
   'incidents',
   'fleet',
   'post-analysis',
@@ -16,7 +15,7 @@ export const DASHBOARD_NAV_GROUPS = [
   {
     id: 'monitor',
     label: 'Monitor',
-    panels: ['overview', 'incidents', 'timeline', 'correlation', 'fleet'],
+    panels: ['overview', 'incidents', 'timeline', 'fleet'],
   },
   {
     id: 'analyze',
@@ -48,10 +47,6 @@ export const DASHBOARD_PANEL_COPY = {
     label: 'Timeline',
     blurb:
       'Chronology of detections this match, plus response lifecycle when an incident is orchestrated.',
-  },
-  correlation: {
-    label: 'Live Correlation',
-    blurb: 'Related open incidents, assets, and dependency relationships. Triage context, not attribution.',
   },
   incidents: {
     label: 'Incidents',
@@ -87,6 +82,8 @@ export function resolveDashboardPanel(raw) {
   const id = String(raw ?? '').trim()
   // Legacy ?panel=analyze (removed Intel dashboard) → Monitor Overview
   if (id === 'analyze') return 'overview'
+  // Legacy ?panel=correlation (removed Live Correlation) → Monitor Overview
+  if (id === 'correlation') return 'overview'
   return PANEL_SET.has(id) ? id : 'overview'
 }
 

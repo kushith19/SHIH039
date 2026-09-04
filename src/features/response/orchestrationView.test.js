@@ -1,8 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import {
-  actionRegistrySplitView,
-  actionRegistryView,
   activeAgentOwnershipView,
   agentLaneView,
   approvalSpotlightView,
@@ -341,22 +339,9 @@ describe('orchestrationView', () => {
     assert.ok(why.bullets.some((b) => /quarantined ≠ recovered/i.test(b.text)))
   })
 
-  it('15: correlation labels remain non-causal', () => {
+  it('15: correlatedGroupView is empty without live correlation', () => {
     const view = correlatedGroupView({
       detection: {
-        liveCorrelation: {
-          groups: [
-            {
-              groupId: 'g1',
-              primaryIncidentId: 'inc-1',
-              incidentIds: ['inc-1', 'inc-2'],
-              relationshipReasons: [
-                { type: 'direct_dependency', label: 'Direct dependency' },
-                { type: 'exposure_overlap', label: 'Shared exposure context' },
-              ],
-            },
-          ],
-        },
         incidents: [
           { id: 'inc-1', endpointId: 'pay', endpointLabel: 'PAY' },
           { id: 'inc-2', endpointId: 'gw', endpointLabel: 'GW' },
@@ -365,10 +350,9 @@ describe('orchestrationView', () => {
       primaryIncidentId: 'inc-1',
       nodes: [],
     })
-    assert.equal(view.empty, false)
-    assert.equal(view.terminology, 'Related incidents')
-    assert.ok(view.reasons.every((r) => !/attack chain/i.test(r.label)))
-    assert.ok(view.reasons.some((r) => /Direct dependency/i.test(r.label)))
+    assert.equal(view.empty, true)
+    assert.equal(view.relatedCount, 0)
+    assert.deepEqual(view.reasons, [])
   })
 
   it('16: missing metrics do not render fabricated values', () => {
@@ -394,16 +378,6 @@ describe('orchestrationView', () => {
 
     const live = graphImpactView(createEmptyOrchestrationState(), { detection: null })
     assert.equal(live.mode, 'live')
-  })
-
-  it('17: catalog-only actions are not shown as executable', () => {
-    const split = actionRegistrySplitView()
-    assert.ok(split.executable.every((i) => i.availability === 'available' && i.actionId))
-    assert.ok(split.executable.some((i) => i.actionId === 'isolate-node'))
-    assert.ok(split.catalog.some((i) => i.supported === false))
-    assert.ok(!split.executable.some((i) => i.supported === false))
-    const groups = actionRegistryView()
-    assert.ok(groups.some((g) => g.category === 'containment' || g.categoryLabel === 'Containment'))
   })
 
   it('legacy helpers remain stable', () => {

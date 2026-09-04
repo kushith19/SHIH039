@@ -16,15 +16,28 @@ import {
   listRepositoryActions,
 } from './responseActionRepository.js'
 import { getAttackPreset, resolvePresetStage } from '../attackPresets.js'
+import { buildKnowledgeRetrievalQuery } from '../commanderKnowledgeQuery.js'
 
 export const LLM_COMMANDER_RESPONSE_GOAL =
   'Analyze the incident and current evidence. Select the smallest ordered set of executable response actions that will contain and resolve the incident. Return only valid JSON.'
 
 /** Shared system prompt for merged explain+plan JSON. */
-export const LLM_COMMANDER_MERGED_SYSTEM_PROMPT = `You are the Commander Agent.
+export const LLM_COMMANDER_MERGED_SYSTEM_PROMPT = `You are the Commander Planner.
 ${LLM_COMMANDER_RESPONSE_GOAL}
-Use only provided actionIds. Do not invent actions, capabilities, or code. Do not execute anything.
 
+Information hierarchy (strict):
+- LEVEL 1 — OBSERVED / LIVE EVIDENCE: incident, telemetryEvidence, graphContext, cityModelContext, attackContext, policy/state fields. This is the source of truth for what is happening NOW.
+- LEVEL 2 — DERIVED SYSTEM ANALYSIS: riskScore, trustScore, hopDistance, correlations. Derived from live evidence; not proof of a confirmed attack narrative beyond those numbers.
+- LEVEL 3 — AUTHORITATIVE KNOWLEDGE: retrievedKnowledge (NIST, MITRE ICS ATT&CK, CERT-In, CISA, IoT/OT guidance). Supporting domain guidance only.
+
+Use retrievedKnowledge to improve action selection, containment approach, rationale, and expectedImpact.
+Do NOT invent incident facts from RAG. Do NOT claim a technique occurred merely because MITRE describes it.
+Do NOT invent infrastructure. Do NOT invent actions missing from availableActions.
+Do NOT bypass policy. Do NOT execute anything. Do NOT treat RAG text as observed telemetry.
+availableActions is the ONLY source of executable actionIds. RAG may inform selection but cannot create actions.
+If retrievedKnowledge.status is unavailable, plan from live evidence alone.
+
+Return only valid JSON:
 {
   "summary": "...",
   "attackInterpretation": "...",
@@ -39,6 +52,143 @@ Use only provided actionIds. Do not invent actions, capabilities, or code. Do no
     }
   ]
 }`
+
+const PLANNER_RAG_NOTE_UNAVAILABLE =
+  'No relevant authoritative knowledge was retrieved.'
+
+function pushQueryPart(parts, value) {
+  const s = String(value ?? '')
+    .replace(/_/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (!s) return
+  const lower = s.toLowerCase()
+  if (parts.some((p) => p.toLowerCase() === lower)) return
+  parts.push(s)
+}
+
+/**
+ * Compact incident-specific RAG query for the Orchestrate Planner.
+ * Reuses buildKnowledgeRetrievalQuery; adds attack/response focus from live fields only.
+ */
+export function buildPlannerRagQuery(context, { room = null } = {}) {
+  const base = buildKnowledgeRetrievalQuery(context)
+  const parts = []
+  if (base.query) pushQueryPart(parts, base.query)
+
+  const nodeId = affectedNodeIdFromContext(context)
+  const attack = resolveAttackContext(room, nodeId)
+  if (attack?.attackType) pushQueryPart(parts, attack.attackType)
+  if (attack?.title) pushQueryPart(parts, attack.title)
+  if (attack?.stage?.id) pushQueryPart(parts, attack.stage.id)
+
+  const joined = parts.join(' ').toLowerCase()
+  pushQueryPart(parts, 'incident response containment')
+  if (/exfil|transfer|download|files downloaded|data/.test(joined)) {
+    pushQueryPart(parts, 'data protection network segmentation')
+  }
+  if (/credential|login|auth|spray|session|password/.test(joined)) {
+    pushQueryPart(parts, 'credential session security')
+  }
+  if (/power|substation|scada|plc|ot|ics|water|energy|traffic/.test(joined)) {
+    pushQueryPart(parts, 'OT ICS operational constraints')
+  }
+  if (/http|api|packet|flood|ddos|traffic|request/.test(joined)) {
+    pushQueryPart(parts, 'network rate limiting segmentation')
+  }
+
+  const query = parts.join(' ').replace(/\s+/g, ' ').trim().slice(0, 400)
+  return {
+    query: query || 'cybersecurity incident response anomaly containment',
+    hints: {
+      ...(base.hints || {}),
+      plannerFocus: true,
+      attackType: attack?.attackType ?? base.hints?.attackType ?? null,
+      attackPreset: attack?.presetId ?? null,
+    },
+  }
+}
+
+/** Empty / soft-fail retrievedKnowledge for the Planner payload. */
+export function emptyRetrievedKnowledge(reason = PLANNER_RAG_NOTE_UNAVAILABLE, query = null) {
+  return {
+    status: 'unavailable',
+    note: String(reason || PLANNER_RAG_NOTE_UNAVAILABLE),
+    query: query ? String(query) : null,
+    items: [],
+  }
+}
+
+/**
+ * Map existing /commander/knowledge payload into Planner retrievedKnowledge.
+ * Does not invent citations — only uses returned sources + excerpts.
+ */
+export function knowledgeContextToRetrievedKnowledge(kc, query = null) {
+  if (!kc || kc.retrieved !== true) {
+    return emptyRetrievedKnowledge(
+      kc?.reason || PLANNER_RAG_NOTE_UNAVAILABLE,
+      query
+    )
+  }
+
+  const sources = Array.isArray(kc.sources) ? kc.sources : []
+  const texts = Array.isArray(kc.relevantKnowledge) ? kc.relevantKnowledge : []
+  const items = []
+  const n = Math.min(5, Math.max(texts.length, sources.length))
+  for (let i = 0; i < n; i += 1) {
+    const src = sources[i] && typeof sources[i] === 'object' ? sources[i] : {}
+    const textRaw = texts[i] ?? null
+    const text = textRaw != null ? String(textRaw).trim().slice(0, 400) : null
+    const documentName = src.document ?? src.document_name ?? src.documentName ?? null
+    const source = src.source ?? null
+    const category = src.category ?? null
+    if (!text && !documentName && !source) continue
+    items.push({
+      source,
+      documentName,
+      category,
+      section: src.section ?? null,
+      page: src.page ?? src.page_number ?? null,
+      score: src.score ?? null,
+      text,
+    })
+  }
+
+  if (items.length === 0) {
+    return emptyRetrievedKnowledge(PLANNER_RAG_NOTE_UNAVAILABLE, query)
+  }
+
+  return {
+    status: 'available',
+    note: null,
+    query: query ? String(query) : Array.isArray(kc.queries) ? kc.queries[0] ?? null : null,
+    items,
+    attackUnderstanding: Array.isArray(kc.attackUnderstanding)
+      ? kc.attackUnderstanding.map(String).slice(0, 3)
+      : [],
+    preventionGuidance: Array.isArray(kc.preventionGuidance)
+      ? kc.preventionGuidance.map(String).slice(0, 3)
+      : [],
+  }
+}
+
+export function summarizeRetrievedKnowledgeForDebug(retrievedKnowledge) {
+  const rk =
+    retrievedKnowledge && typeof retrievedKnowledge === 'object'
+      ? retrievedKnowledge
+      : emptyRetrievedKnowledge()
+  const items = Array.isArray(rk.items) ? rk.items : []
+  return {
+    ragUsed: rk.status === 'available' && items.length > 0,
+    ragChunkCount: items.length,
+    ragQuery: rk.query ?? null,
+    ragSources: items.map((item) => ({
+      source: item?.source ?? null,
+      documentName: item?.documentName ?? null,
+      category: item?.category ?? null,
+    })),
+  }
+}
 
 export const LLM_COMMANDER_ACTIONS_SCHEMA = Object.freeze({
   type: 'object',
@@ -293,7 +443,12 @@ export function estimateCommanderPromptTokens(systemPrompt, payload) {
  */
 export function buildLlmCommanderPromptPayload(
   context,
-  { room = null, previousPlan = null, verification = null } = {}
+  {
+    room = null,
+    previousPlan = null,
+    verification = null,
+    retrievedKnowledge = null,
+  } = {}
 ) {
   const nodeId = affectedNodeIdFromContext(context)
   const actionRepository = listExecutableRepositoryForPlanner(context, room)
@@ -331,6 +486,11 @@ export function buildLlmCommanderPromptPayload(
     : []
 
   const telemetryEvidence = compactTelemetry(context?.anomalyEvidence)
+
+  const knowledge =
+    retrievedKnowledge && typeof retrievedKnowledge === 'object'
+      ? retrievedKnowledge
+      : emptyRetrievedKnowledge()
 
   return {
     incident: {
@@ -382,6 +542,8 @@ export function buildLlmCommanderPromptPayload(
       : null,
     relatedIncidents: related,
     availableActions: actionRepository,
+    /** Level-3 authoritative knowledge only — never live evidence. */
+    retrievedKnowledge: knowledge,
     responseGoal: LLM_COMMANDER_RESPONSE_GOAL,
     previousResponseContext: previousPlan
       ? {

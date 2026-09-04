@@ -21,8 +21,6 @@ import { requestIncidentResponsePlan } from '../response/orchestrationView.js'
 import { fmt } from './metrics'
 import { metricEvidenceHighlight } from './overviewView.js'
 import {
-  correlationGroupId,
-  correlationReasonLabels,
   formatPriorityScore,
   nodeLabelFromList,
   recoveryImpactBand,
@@ -71,8 +69,6 @@ export default function IncidentCard({
   const band = recoveryImpactBand(priority)
   const relief = reliefCount(inc)
   const relatedLive = relatedLiveCount(inc)
-  const groupId = correlationGroupId(inc)
-  const corrReasons = correlationReasonLabels(inc.correlation?.reasons)
   const explanation = impact?.explanation
   const dependencyChain = reliefDependencyLabels(inc, nodes)
 
@@ -125,9 +121,6 @@ export default function IncidentCard({
         ) : null}
         <StatusBadge tone={severityTone(inc.severity)}>{inc.severity || 'low'}</StatusBadge>
         <StatusBadge tone={status === 'open' ? 'warn' : 'muted'}>{status}</StatusBadge>
-        {groupId ? (
-          <StatusBadge tone="warn">Related · {relatedLive || '—'}</StatusBadge>
-        ) : null}
       </div>
       <h2 className="mt-2 text-lg font-medium">
         <button
@@ -233,17 +226,6 @@ export default function IncidentCard({
               <p className="tn-meta mt-1 text-[10px]">
                 Dependency topology — not a confirmed attack path. Potential relief ≠ restore.
               </p>
-            </div>
-          ) : null}
-
-          {corrReasons.length > 0 ? (
-            <div className="mt-3">
-              <div className="tn-label">Related because</div>
-              <ul className="tn-meta mt-1 list-disc space-y-0.5 pl-4 text-[11px]">
-                {corrReasons.map((reason) => (
-                  <li key={reason}>{reason}</li>
-                ))}
-              </ul>
             </div>
           ) : null}
         </div>

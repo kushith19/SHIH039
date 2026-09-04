@@ -16,7 +16,6 @@ import {
 import { attachAvailableResponseActions } from '../responseActions.js'
 import { attachResponseClassification } from '../responsePolicy.js'
 import { attachRecoveryImpact } from '../recovery/recoveryImpact.js'
-import { attachLiveCorrelation } from '../correlation/liveCorrelation.js'
 
 function node(id, criticality = 'medium') {
   return {
@@ -50,7 +49,6 @@ function seedIncident(id, endpointId, extra = {}) {
     ],
     peerExposedNodeIds: extra.peerExposedNodeIds ?? [],
     propagatedNodeIds: extra.propagatedNodeIds ?? [],
-    correlation: { groupId: null, relatedLiveIds: [], reasons: [] },
     ...extra,
   }
 }
@@ -92,7 +90,6 @@ describe('responsePlan builder', () => {
       }),
     ]
     const detection = { incidents, anomalyNodeIds: ['a', 'b'] }
-    attachLiveCorrelation(detection, { edges })
     attachRecoveryImpact(detection, { nodes, edges, overrides: {} })
 
     const primary = selectPrimaryIncidentForPlan(detection, null)
@@ -100,7 +97,7 @@ describe('responsePlan builder', () => {
     assert.ok(Number(primary.recoveryPriority) >= Number(incidents[0].recoveryPriority || 0))
   })
 
-  it('includes correlated group members in incidentIds', () => {
+  it('includes primary incident id in correlatedIncidentIds', () => {
     const nodes = [node('a'), node('b')]
     const edges = [{ source: 'a', target: 'b' }]
     const incidents = [
@@ -108,11 +105,11 @@ describe('responsePlan builder', () => {
       seedIncident('inc-b', 'b'),
     ]
     const detection = { incidents, anomalyNodeIds: ['a', 'b'] }
-    attachLiveCorrelation(detection, { edges })
     attachRecoveryImpact(detection, { nodes, edges, overrides: {} })
     const primary = selectPrimaryIncidentForPlan(detection, 'inc-a')
     const ids = correlatedIncidentIds(detection, primary)
     assert.ok(ids.includes('inc-a'))
+    assert.equal(ids.includes('inc-b'), false)
   })
 
   it('expectedImpact uses MAY language for exposure relief', () => {

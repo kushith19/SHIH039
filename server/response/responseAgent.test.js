@@ -100,7 +100,6 @@ function roomWithIncident(id = 'ORCH-EXEC') {
     atRiskNodeIds: ['gw'],
     propagatedNodeIds: [],
     peerExposedNodeIds: ['gw'],
-    liveCorrelation: { groups: [] },
   }
   attachRecoveryImpact(room.detection, {
     nodes: room.nodes,

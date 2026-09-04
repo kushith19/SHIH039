@@ -98,7 +98,6 @@ function roomWithIncident() {
     atRiskNodeIds: ['gw'],
     propagatedNodeIds: [],
     peerExposedNodeIds: ['gw'],
-    liveCorrelation: { groups: [] },
   }
   attachRecoveryImpact(room.detection, {
     nodes: room.nodes,

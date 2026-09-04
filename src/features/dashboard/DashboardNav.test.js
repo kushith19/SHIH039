@@ -16,7 +16,7 @@ describe('dashboard panel routing', () => {
     assert.equal(resolveDashboardPanel('nope'), 'overview')
     assert.equal(resolveDashboardPanel('incidents'), 'incidents')
     assert.equal(resolveDashboardPanel('timeline'), 'timeline')
-    assert.equal(resolveDashboardPanel('correlation'), 'correlation')
+    assert.equal(resolveDashboardPanel('correlation'), 'overview')
     assert.equal(resolveDashboardPanel('response'), 'response')
     assert.equal(resolveDashboardPanel('orchestrate'), 'orchestrate')
   })
@@ -37,16 +37,15 @@ describe('dashboard panel routing', () => {
     assert.equal(dashboardPanelMeta('response').label, 'Response')
     assert.equal(dashboardPanelMeta('orchestrate').label, 'Orchestrate')
     assert.equal(dashboardPanelMeta('timeline').label, 'Timeline')
-    assert.equal(dashboardPanelMeta('correlation').label, 'Live Correlation')
+    assert.equal(dashboardPanelMeta('correlation').label, 'Overview')
   })
 
-  it('places incidents, timeline, and live correlation under Monitor', () => {
+  it('places incidents and timeline under Monitor', () => {
     const monitor = DASHBOARD_NAV_GROUPS.find((g) => g.id === 'monitor')
     assert.deepEqual(monitor.panels, [
       'overview',
       'incidents',
       'timeline',
-      'correlation',
       'fleet',
     ])
     assert.equal(

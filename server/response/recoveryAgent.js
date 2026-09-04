@@ -127,14 +127,6 @@ export function cloneDetectionSnapshot(detection = null) {
     peerExposedNodeIds: sortedUnique(detection.peerExposedNodeIds ?? []),
     propagatedNodeIds: sortedUnique(detection.propagatedNodeIds ?? []),
     isolationScoresByNodeId: scores,
-    liveCorrelation: detection.liveCorrelation
-      ? {
-          ...detection.liveCorrelation,
-          groups: Array.isArray(detection.liveCorrelation.groups)
-            ? detection.liveCorrelation.groups.map((g) => ({ ...g }))
-            : [],
-        }
-      : detection.liveCorrelation,
   }
 }
 

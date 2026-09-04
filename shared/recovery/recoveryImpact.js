@@ -178,21 +178,8 @@ function openIncidentsByEndpoint(incidents) {
   return map
 }
 
-function relatedOpenIds(incident, incidentsById) {
-  const fromCorr = Array.isArray(incident?.correlation?.relatedLiveIds)
-    ? incident.correlation.relatedLiveIds
-    : []
-  const out = []
-  const seen = new Set()
-  for (const raw of fromCorr) {
-    const id = String(raw ?? '')
-    if (!id || seen.has(id)) continue
-    const other = incidentsById.get(id)
-    if (!other || !isOpenIncident(other)) continue
-    seen.add(id)
-    out.push(id)
-  }
-  return out
+function relatedOpenIds() {
+  return []
 }
 
 function illustrativeFinanceBonus(incident) {
@@ -295,7 +282,7 @@ export function calculateRecoveryImpact({
   excludedIndependentIds.sort((a, b) => a.localeCompare(b))
   excludedQuarantinedIds.sort((a, b) => a.localeCompare(b))
 
-  const relatedOpenIncidentIds = relatedOpenIds(incident, incidentsById)
+  const relatedOpenIncidentIds = relatedOpenIds()
 
   // Related open endpoints that sit in downstream∩exposure (pre-exclusion universe).
   const relatedInExposureContext = []
@@ -417,8 +404,6 @@ export function calculateRecoveryImpact({
 
 /**
  * Attach recoveryImpact + recoveryPriority onto each OPEN incident.
- * Optionally stamps liveCorrelation.groups[].primaryIncidentId to the member
- * with the highest recoveryPriority (does not change grouping).
  *
  * Pure w.r.t. room topology/overrides/quarantine — only mutates detection incident fields.
  *
@@ -455,29 +440,6 @@ export function attachRecoveryImpact(detection, roomLike = {}) {
     })
     inc.recoveryImpact = impact
     inc.recoveryPriority = impact.score
-  }
-
-  // Stamp resolve-first hint on live groups (highest recoveryPriority). Grouping unchanged.
-  const groups = detection.liveCorrelation?.groups
-  if (Array.isArray(groups)) {
-    const byId = new Map(incidents.map((inc) => [liveId(inc), inc]))
-    for (const group of groups) {
-      let bestId = null
-      let bestScore = -Infinity
-      for (const id of group.incidentIds ?? []) {
-        const inc = byId.get(String(id))
-        const score = Number(inc?.recoveryPriority)
-        if (!inc || !Number.isFinite(score)) continue
-        if (
-          score > bestScore ||
-          (score === bestScore && String(id) < String(bestId ?? ''))
-        ) {
-          bestScore = score
-          bestId = String(id)
-        }
-      }
-      group.primaryIncidentId = bestId
-    }
   }
 
   return detection
