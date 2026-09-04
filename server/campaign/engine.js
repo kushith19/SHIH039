@@ -1,9 +1,17 @@
 import { computePresetOverrides, isAttackPresetId } from '../../shared/attackPresets.js'
+import { validateSpreadAttack } from '../../shared/attackSpread.js'
 import { isLiveCampaignStatus } from '../../shared/campaigns.js'
 import { runtimeStateOf } from '../infrastructureNode.js'
 import { clearPersistedIncidentHistory } from '../metrics/incidents.js'
 import { mergeMetrics, normalizeMetricPatch, normalizeMetricSnapshot } from '../nodeMetrics.js'
 import { clearSpreadTargetLocks } from '../../shared/spreadTargetLock.js'
+import {
+  clearActiveAttackSequences,
+  recordSeedAttackEvent,
+  recordSpreadAttackEvent,
+} from '../attack/events.js'
+import { clearAutoSpreadGuards } from '../attack/autoSpread.js'
+import { normalizeAttackSpreadMode } from '../../shared/attackSpreadMode.js'
 
 function nodeById(room, nodeId) {
   return room.nodes.find((n) => n.id === nodeId) ?? null
@@ -53,6 +61,8 @@ export function abortAndClearAttacks(room) {
   expireRecognizedCampaigns(room)
   clearIncidentLedger(room)
   clearSpreadTargetLocks(room)
+  clearActiveAttackSequences(room)
+  clearAutoSpreadGuards(room)
   try {
     if (room?.id) clearPersistedIncidentHistory(room.id)
   } catch {
@@ -63,16 +73,19 @@ export function abortAndClearAttacks(room) {
     ...sim,
     nodeOverrides: {},
     edgeOverrides: {},
+    // Preserve defender mode across Clear Attacks; reset only on match rebuild.
+    attackSpreadMode: normalizeAttackSpreadMode(sim.attackSpreadMode),
   }
   if (!Array.isArray(room.nodes)) return
   room.nodes = room.nodes.map((n) => {
     const prev = n?.data ?? {}
-    if (runtimeStateOf(prev).quarantined !== true) return n
+    const rs = runtimeStateOf(prev)
+    if (rs.quarantined !== true) return n
     return {
       ...n,
       data: {
         ...prev,
-        runtimeState: { ...runtimeStateOf(prev), quarantined: false },
+        runtimeState: { ...rs, quarantined: false },
       },
     }
   })
@@ -103,8 +116,60 @@ export function applyManualPreset(room, nodeId, presetId) {
   if (runtimeStateOf(node?.data).quarantined === true) {
     return { ok: false, message: 'Target is quarantined' }
   }
-  applyOverride(room, nodeId, presetId)
+  const applied = applyOverride(room, nodeId, presetId)
+  if (!applied) return { ok: false, message: 'Could not apply attack override' }
+  recordSeedAttackEvent(room, {
+    targetNodeId: String(nodeId),
+    presetId,
+  })
   return { ok: true }
+}
+
+/**
+ * Real attack spread: write a normal metric override on a direct downstream
+ * neighbor that current detection marks as exposed/risk-relevant.
+ * Does not auto-spread; does not invent detection state.
+ *
+ * @param {object} room
+ * @param {{ sourceNodeId: string, targetNodeId: string, presetId: string }} args
+ * @returns {{ ok: true, sourceNodeId: string, targetNodeId: string, edgeId: string, presetId: string }
+ *   | { ok: false, message: string }}
+ */
+export function spreadAttack(room, { sourceNodeId, targetNodeId, presetId }) {
+  if (!isAttackPresetId(presetId)) {
+    return { ok: false, message: 'Unknown preset' }
+  }
+  if (room?.phase !== 'playing') {
+    return { ok: false, message: 'Spread is only available during play' }
+  }
+
+  const target = nodeById(room, targetNodeId)
+  if (target && runtimeStateOf(target?.data).quarantined === true) {
+    return { ok: false, message: 'Target is quarantined' }
+  }
+
+  const check = validateSpreadAttack(room, sourceNodeId, targetNodeId)
+  if (!check.ok) return check
+
+  const applied = applyOverride(room, String(targetNodeId), presetId)
+  if (!applied) {
+    return { ok: false, message: 'Could not apply attack override to target' }
+  }
+
+  recordSpreadAttackEvent(room, {
+    sourceNodeId: String(sourceNodeId),
+    targetNodeId: String(targetNodeId),
+    edgeId: check.edgeId,
+    presetId,
+  })
+
+  return {
+    ok: true,
+    sourceNodeId: String(sourceNodeId),
+    targetNodeId: String(targetNodeId),
+    edgeId: check.edgeId,
+    presetId,
+  }
 }
 
 export function publicCampaigns(room) {

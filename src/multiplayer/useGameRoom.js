@@ -18,6 +18,7 @@ const emptyRoom = {
   simHour: 10,
   detectionMode: 'tgnn',
   detection: null,
+  autoSpreadSafety: null,
   campaigns: [],
   commanderBriefing: null,
   cityPosture: null,
@@ -42,6 +43,13 @@ function roomFromState(state) {
     simHour: state.simHour ?? 10,
     detectionMode: 'tgnn',
     detection: state.detection ?? null,
+    autoSpreadSafety:
+      state.autoSpreadSafety && typeof state.autoSpreadSafety === 'object'
+        ? {
+            count: Number(state.autoSpreadSafety.count) || 0,
+            cap: Number(state.autoSpreadSafety.cap) || 0,
+          }
+        : null,
     campaigns: Array.isArray(state.campaigns) ? state.campaigns : [],
     commanderBriefing: state.commanderBriefing ?? null,
     cityPosture: state.cityPosture ?? null,
@@ -190,7 +198,10 @@ export function useGameRoom() {
       resetMatch: () => emitAck('game:reset'),
       applyCampaignPreset: (nodeId, presetId) =>
         emitAck('campaign:manual', { nodeId, presetId }),
+      spreadAttack: (sourceNodeId, targetNodeId, presetId) =>
+        emitAck('attack:spread', { sourceNodeId, targetNodeId, presetId }),
       abortCampaigns: () => emitAck('campaign:abort'),
+      setAttackSpreadMode: (mode) => emitAck('attack:setSpreadMode', { mode }),
     }),
     [emitAck]
   )

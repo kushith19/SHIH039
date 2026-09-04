@@ -34,6 +34,7 @@ import {
   toIngestSnapshot,
 } from './ingestionClient.js'
 import { ensureSpreadTargetLocks, clearSpreadTargetLocks } from '../../shared/spreadTargetLock.js'
+import { clearActiveAttackSequences } from '../attack/events.js'
 
 const TICK_MS = 1000
 /** @type {Map<string, ReturnType<typeof setInterval>>} */
@@ -127,6 +128,7 @@ export function startTelemetryLoop(room, onTick) {
   room.simulationTick = 0
   room.detection = emptyDetectionResult()
   clearSpreadTargetLocks(room)
+  clearActiveAttackSequences(room)
   room.campaigns = []
   room.incidentLedger = []
   try {

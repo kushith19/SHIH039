@@ -592,8 +592,8 @@ export default function InspectorPanel({
                 </button>
               ) : null}
               {runtimeStateOf(selectedNode.data).quarantined ? (
-                <div className="text-xs font-medium text-[var(--tn-muted)]">
-                  Segmented from spread (trust cutoff). Not a physical shutdown.
+                <div className="space-y-1 text-xs font-medium text-[var(--tn-muted)]">
+                  <div>Segmented from spread (trust cutoff). Not a physical shutdown.</div>
                 </div>
               ) : null}
               {onDeleteNodeById ? (

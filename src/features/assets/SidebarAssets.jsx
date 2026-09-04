@@ -1,10 +1,24 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   attackCatalog,
   getAssetsGroupedByDomain,
   getLiveCityAssets,
 } from '../graph/assetCatalog'
 import { ATTACK_PRESETS } from '../graph/attackPresets'
+import {
+  hasActiveAttackOverride,
+  listEligibleSpreadTargets,
+} from '@shared/attackSpread.js'
+import {
+  ATTACK_SPREAD_MODE_AUTO,
+  ATTACK_SPREAD_MODE_MANUAL,
+  getAttackSpreadMode,
+} from '@shared/attackSpreadMode.js'
+import {
+  applyStablePresentationOrder,
+  clearAllSpreadOrderLocks,
+  clearSpreadOrderForSource,
+} from './stableSpreadOrder.js'
 
 const DOMAIN_SHORT = {
   Energy: 'Energy',
@@ -101,12 +115,10 @@ function DomainAssetList({ assets, onDragStart }) {
               >
                 <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${accent}`} />
                 <span className="min-w-0 flex-1 truncate text-sm font-medium">{short}</span>
-                <span className="tabular-nums text-sm text-[var(--tn-muted)]">
-                  {group.assets.length}
-                </span>
+                <span className="text-xs text-[var(--tn-muted)]">{group.assets.length}</span>
               </button>
               {open ? (
-                <div className="pb-1 pl-1">
+                <div className="mb-1 ml-1 space-y-0.5 border-l border-[var(--tn-line)] pl-2">
                   {group.assets.map((asset) => (
                     <AssetRow
                       key={asset.type}
@@ -130,14 +142,393 @@ function CompactDeviceList({ assets, onDragStart }) {
       <p className="tn-label mb-1.5">Drag onto map</p>
       <div className="space-y-0.5">
         {assets.map((asset) => (
-          <AssetRow
-            key={asset.type}
-            asset={asset}
-            onDragStart={onDragStart}
-          />
+          <AssetRow key={asset.type} asset={asset} onDragStart={onDragStart} />
         ))}
       </div>
     </div>
+  )
+}
+
+function isValidSpreadSource(sourceNodeId, nodes, detection, hackSimulator) {
+  const source = String(sourceNodeId ?? '')
+  if (!source) return false
+  const sourceNode = (nodes ?? []).find((n) => String(n.id) === source)
+  if (!sourceNode) return false
+  if (sourceNode?.data?.runtimeState?.quarantined === true) return false
+  const anomalySet = new Set((detection?.anomalyNodeIds ?? []).map(String))
+  if (!anomalySet.has(source)) return false
+  return hasActiveAttackOverride(hackSimulator, source)
+}
+
+function presetTitle(presetId) {
+  return ATTACK_PRESETS.find((p) => p.id === presetId)?.title ?? String(presetId ?? '')
+}
+
+function AttackConsole({
+  selectedNodeId,
+  selectedNodeLabel,
+  tgnnCalibrating,
+  nodes,
+  edges,
+  detection,
+  hackSimulator,
+  autoSpreadSafety = null,
+  spreadPresetId,
+  setSpreadPresetId,
+  canUsePresets,
+  canSpread,
+  onApplyAttackPreset,
+  onSpreadAttack,
+  onAbortCampaigns,
+  onSetAttackSpreadMode,
+}) {
+  const orderBySourceRef = useRef(/** @type {Record<string, string[]>} */ ({}))
+  const spreadMode = getAttackSpreadMode(hackSimulator)
+  const isAuto = spreadMode === ATTACK_SPREAD_MODE_AUTO
+
+  const liveEligible = useMemo(() => {
+    if (!selectedNodeId || tgnnCalibrating) return []
+    return listEligibleSpreadTargets(
+      { nodes, edges, detection, hackSimulator },
+      selectedNodeId
+    )
+  }, [selectedNodeId, tgnnCalibrating, nodes, edges, detection, hackSimulator])
+
+  /** Live risk-ranked next auto target (not UI presentation order). */
+  const nextAutoTarget = isAuto && liveEligible.length > 0 ? liveEligible[0] : null
+
+  const sourceValid = useMemo(
+    () =>
+      Boolean(selectedNodeId) &&
+      !tgnnCalibrating &&
+      isValidSpreadSource(selectedNodeId, nodes, detection, hackSimulator),
+    [selectedNodeId, tgnnCalibrating, nodes, detection, hackSimulator]
+  )
+
+  useEffect(() => {
+    if (!selectedNodeId) return
+    if (!sourceValid) {
+      clearSpreadOrderForSource(orderBySourceRef.current, selectedNodeId)
+    }
+  }, [selectedNodeId, sourceValid])
+
+  const displayTargets = useMemo(() => {
+    if (!selectedNodeId || !sourceValid || isAuto) return []
+    return applyStablePresentationOrder(
+      selectedNodeId,
+      liveEligible,
+      orderBySourceRef.current
+    )
+  }, [selectedNodeId, sourceValid, liveEligible, isAuto])
+
+  const attackActive = Boolean(
+    selectedNodeId && hasActiveAttackOverride(hackSimulator, selectedNodeId)
+  )
+  const isAnomaly =
+    selectedNodeId &&
+    (detection?.anomalyNodeIds ?? []).some((id) => String(id) === String(selectedNodeId))
+
+  const statusLabel = tgnnCalibrating
+    ? 'CALIBRATING'
+    : !selectedNodeId
+      ? 'NO SOURCE'
+      : attackActive
+        ? isAnomaly
+          ? 'ACTIVE'
+          : 'SEEDED'
+        : 'IDLE'
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--tn-muted)]">
+          Attack console
+        </p>
+        {tgnnCalibrating ? (
+          <p className="mt-1 text-xs text-[var(--tn-muted)]">
+            Wait for the idle window before injecting.
+          </p>
+        ) : null}
+      </div>
+
+      <AttackSpreadModePanel
+        hackSimulator={hackSimulator}
+        detection={detection}
+        nodes={nodes}
+        edges={edges}
+        autoSpreadSafety={autoSpreadSafety}
+        onSetAttackSpreadMode={onSetAttackSpreadMode}
+      />
+
+      <section className="space-y-1.5 rounded-md border border-[var(--tn-line)] bg-[var(--tn-elevated)] px-2.5 py-2">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--tn-muted)]">
+          Active attack
+        </p>
+        <div className="space-y-0.5 text-sm">
+          <p className="truncate">
+            <span className="text-[var(--tn-muted)]">Source </span>
+            <span className="font-medium text-[var(--tn-text)]">
+              {selectedNodeLabel || selectedNodeId || '—'}
+            </span>
+          </p>
+          <p>
+            <span className="text-[var(--tn-muted)]">Status </span>
+            <span className="font-medium text-[var(--tn-text)]">{statusLabel}</span>
+          </p>
+          <p className="truncate">
+            <span className="text-[var(--tn-muted)]">Preset </span>
+            <span className="font-medium text-[var(--tn-text)]">
+              {presetTitle(spreadPresetId)}
+            </span>
+          </p>
+        </div>
+      </section>
+
+      <section className="space-y-2">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--tn-muted)]">
+            Initial attack
+          </p>
+          <p className="mt-0.5 text-xs text-[var(--tn-muted)]">
+            Choose a preset to seed an attack.
+          </p>
+        </div>
+        {!selectedNodeId ? (
+          <p className="text-sm text-[var(--tn-muted)]">Select a node on the map.</p>
+        ) : (
+          <div className="grid grid-cols-1 gap-1">
+            {ATTACK_PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                disabled={!canUsePresets}
+                title={preset.description}
+                onClick={() => {
+                  if (!canUsePresets) return
+                  setSpreadPresetId(preset.id)
+                  onApplyAttackPreset(preset.id)
+                }}
+                className={[
+                  'tn-btn w-full justify-start text-sm disabled:opacity-35',
+                  spreadPresetId === preset.id ? 'ring-1 ring-[var(--tn-ink)]' : '',
+                ].join(' ')}
+              >
+                {preset.title}
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="space-y-2 border-t border-[var(--tn-line)] pt-3">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--tn-muted)]">
+            Spread attack
+          </p>
+          <p className="mt-0.5 text-xs text-[var(--tn-muted)]">
+            {isAuto
+              ? 'Automatic mode selects the highest-risk eligible adjacent target.'
+              : 'Choose a target to spread the attack.'}
+          </p>
+        </div>
+
+        {isAuto ? (
+          !selectedNodeId ? (
+            <p className="text-sm text-[var(--tn-muted)]">Select a node to inspect.</p>
+          ) : !sourceValid ? (
+            <p className="text-sm text-[var(--tn-muted)]">
+              Select an active anomaly node to see the auto target.
+            </p>
+          ) : !nextAutoTarget ? (
+            <p className="text-sm text-[var(--tn-muted)]">No eligible auto target right now.</p>
+          ) : (
+            <div className="rounded-md border border-[var(--tn-line)] bg-[var(--tn-elevated)] px-2.5 py-2">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--tn-muted)]">
+                Next auto target
+              </p>
+              <p className="mt-1 truncate text-sm font-medium text-[var(--tn-text)]">
+                {nextAutoTarget.label || nextAutoTarget.nodeId}
+              </p>
+              <p className="mt-0.5 text-[11px] text-[var(--tn-muted)]">
+                {nextAutoTarget.propagationRisk != null
+                  ? `Risk ${Math.round(nextAutoTarget.propagationRisk)}`
+                  : 'Risk —'}
+                {nextAutoTarget.peerExposed ? ' · Peer' : ''}
+                {' · Auto selected'}
+              </p>
+            </div>
+          )
+        ) : !selectedNodeId ? (
+          <p className="text-sm text-[var(--tn-muted)]">Select a node to spread.</p>
+        ) : !sourceValid ? (
+          <p className="text-sm text-[var(--tn-muted)]">
+            Select an active anomaly node to spread.
+          </p>
+        ) : displayTargets.length === 0 ? (
+          <p className="text-sm text-[var(--tn-muted)]">No eligible targets right now.</p>
+        ) : (
+          <ul className="space-y-1.5">
+            {displayTargets.map((t) => (
+              <li
+                key={t.nodeId}
+                className="flex items-center gap-2 rounded-md border border-[var(--tn-line)] bg-[var(--tn-elevated)] px-2 py-1.5"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-[var(--tn-text)]">
+                    {t.label || t.nodeId}
+                  </p>
+                  <p className="mt-0.5 truncate text-[11px] text-[var(--tn-muted)]">
+                    {t.propagationRisk != null
+                      ? `Risk ${Math.round(t.propagationRisk)}`
+                      : 'Risk —'}
+                    {t.peerExposed ? ' · Peer' : ''}
+                    {t.highestRiskCandidate ? ' · Highest' : ''}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={!canSpread}
+                  className="tn-btn shrink-0 px-2 py-1 text-xs disabled:opacity-35"
+                  onClick={() => {
+                    if (!canSpread) return
+                    onSpreadAttack(selectedNodeId, t.nodeId, spreadPresetId)
+                  }}
+                >
+                  Spread
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {onAbortCampaigns ? (
+        <div className="mt-auto border-t border-[var(--tn-line)] pt-3">
+          <button
+            type="button"
+            className="tn-btn w-full justify-start text-sm"
+            onClick={() => {
+              clearAllSpreadOrderLocks(orderBySourceRef.current)
+              onAbortCampaigns()
+            }}
+          >
+            Clear attacks
+          </button>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function AttackSpreadModePanel({
+  hackSimulator,
+  detection,
+  nodes,
+  edges,
+  autoSpreadSafety = null,
+  onSetAttackSpreadMode,
+}) {
+  const mode = getAttackSpreadMode(hackSimulator)
+  const isAuto = mode === ATTACK_SPREAD_MODE_AUTO
+  const cap =
+    Number.isFinite(Number(autoSpreadSafety?.cap)) && Number(autoSpreadSafety.cap) > 0
+      ? Math.floor(Number(autoSpreadSafety.cap))
+      : null
+  const count =
+    Number.isFinite(Number(autoSpreadSafety?.count)) && Number(autoSpreadSafety.count) >= 0
+      ? Math.floor(Number(autoSpreadSafety.count))
+      : 0
+  const limitReached = cap != null && count >= cap
+
+  const nextAuto = useMemo(() => {
+    if (!isAuto || limitReached) return null
+    const anomalyIds = detection?.anomalyNodeIds ?? []
+    for (const sourceId of anomalyIds) {
+      const eligible = listEligibleSpreadTargets(
+        { nodes, edges, detection, hackSimulator },
+        sourceId
+      )
+      if (eligible.length > 0) {
+        return { sourceId: String(sourceId), target: eligible[0] }
+      }
+    }
+    return null
+  }, [isAuto, limitReached, detection, nodes, edges, hackSimulator])
+
+  return (
+    <section className="space-y-2 rounded-md border border-[var(--tn-line)] bg-[var(--tn-elevated)] px-2.5 py-2">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--tn-muted)]">
+        Attack control
+      </p>
+      <p className="text-xs text-[var(--tn-muted)]">How should attacks spread?</p>
+      <div className="flex gap-1">
+        <button
+          type="button"
+          disabled={typeof onSetAttackSpreadMode !== 'function'}
+          onClick={() => onSetAttackSpreadMode?.(ATTACK_SPREAD_MODE_MANUAL)}
+          className={[
+            'tn-btn flex-1 px-2 py-1.5 text-xs disabled:opacity-35',
+            !isAuto ? 'ring-1 ring-[var(--tn-ink)]' : '',
+          ].join(' ')}
+        >
+          Manual
+        </button>
+        <button
+          type="button"
+          disabled={typeof onSetAttackSpreadMode !== 'function'}
+          onClick={() => onSetAttackSpreadMode?.(ATTACK_SPREAD_MODE_AUTO)}
+          className={[
+            'tn-btn flex-1 px-2 py-1.5 text-xs disabled:opacity-35',
+            isAuto ? 'ring-1 ring-[var(--tn-ink)]' : '',
+          ].join(' ')}
+        >
+          Auto
+        </button>
+      </div>
+      <p className="text-[11px] text-[var(--tn-muted)]">
+        {isAuto
+          ? 'System selects the highest-risk eligible target.'
+          : 'You choose each target.'}
+      </p>
+      <p className="text-sm">
+        <span className="text-[var(--tn-muted)]">Current </span>
+        <span className="font-medium text-[var(--tn-text)]">
+          {isAuto ? 'AUTOMATIC' : 'MANUAL'}
+        </span>
+      </p>
+      {isAuto && cap != null ? (
+        <p className="text-sm">
+          {limitReached ? (
+            <span className="font-medium text-[var(--tn-text)]">
+              AUTO SPREAD LIMIT REACHED
+            </span>
+          ) : (
+            <>
+              <span className="text-[var(--tn-muted)]">AUTO SPREAD </span>
+              <span className="font-medium text-[var(--tn-text)]">
+                {count} / {cap}
+              </span>
+            </>
+          )}
+        </p>
+      ) : null}
+      {isAuto && nextAuto ? (
+        <div className="border-t border-[var(--tn-line)] pt-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--tn-muted)]">
+            Next target
+          </p>
+          <p className="mt-0.5 truncate text-sm font-medium">
+            {nextAuto.target.label || nextAuto.target.nodeId}
+          </p>
+          <p className="text-[11px] text-[var(--tn-muted)]">
+            From {nextAuto.sourceId}
+            {nextAuto.target.propagationRisk != null
+              ? ` · Risk ${Math.round(nextAuto.target.propagationRisk)}`
+              : ''}
+          </p>
+        </div>
+      ) : null}
+    </section>
   )
 }
 
@@ -147,9 +538,17 @@ export default function SidebarAssets({
   showDevices = true,
   showAttackTools = false,
   selectedNodeId = null,
+  selectedNodeLabel = null,
   tgnnCalibrating = false,
+  nodes = [],
+  edges = [],
+  detection = null,
+  hackSimulator = null,
+  autoSpreadSafety = null,
   onApplyAttackPreset,
+  onSpreadAttack,
   onAbortCampaigns,
+  onSetAttackSpreadMode,
 }) {
   function handleDragStart(event, assetType, provenance = 'legitimate') {
     event.dataTransfer.setData(
@@ -165,42 +564,52 @@ export default function SidebarAssets({
       ? 'Drag a sector onto Bengaluru.'
       : role === 'defender' && !inLobby
         ? 'Add sectors or quarantine a node.'
-        : role === 'attacker' && !inLobby
-          ? tgnnCalibrating
-            ? 'Wait for the 15-tick idle window before injecting. Clear attacks if collection is paused.'
-            : 'Apply a preset on a selected node to inject telemetry anomalies.'
-          : null
+        : null
 
   const canUsePresets =
     showAttackTools && selectedNodeId && onApplyAttackPreset && !tgnnCalibrating
 
-  const [sideTab, setSideTab] = useState(showAttackTools ? 'inject' : 'devices')
+  const [sideTab, setSideTab] = useState(showAttackTools ? 'attack' : 'devices')
+  const [spreadPresetId, setSpreadPresetId] = useState(
+    ATTACK_PRESETS[0]?.id ?? 'traffic_flood'
+  )
+  const consoleEpochRef = useRef(0)
+  const [, bumpConsole] = useState(0)
 
   useEffect(() => {
-    if (showAttackTools) setSideTab('inject')
+    if (showAttackTools) setSideTab('attack')
   }, [showAttackTools])
+
+  useEffect(() => {
+    if (!showAttackTools || phase !== 'playing') {
+      consoleEpochRef.current += 1
+      bumpConsole((n) => n + 1)
+    }
+  }, [showAttackTools, phase])
+
+  const canSpread =
+    showAttackTools &&
+    selectedNodeId &&
+    typeof onSpreadAttack === 'function' &&
+    !tgnnCalibrating &&
+    Boolean(spreadPresetId) &&
+    getAttackSpreadMode(hackSimulator) !== ATTACK_SPREAD_MODE_AUTO
 
   const tabs = showAttackTools
     ? [
-        { id: 'inject', label: 'Rogue' },
-        { id: 'presets', label: 'Presets' },
+        { id: 'attack', label: 'Attack' },
+        { id: 'inject', label: 'Inject' },
       ]
     : [{ id: 'devices', label: 'Sectors' }]
 
   if (showDevices || showAttackTools) {
     return (
       <div className="flex h-full min-h-0 flex-col gap-3">
-        <p className="flex items-start gap-2 text-sm leading-snug text-[var(--tn-muted)]">
-          {showAttackTools ? (
-            <span className="tn-pip" style={{ background: 'var(--tn-crit)' }} />
-          ) : null}
-          {hint ??
-            (showAttackTools
-              ? tgnnCalibrating
-                ? 'Wait for the 15-tick idle window before injecting an anomaly.'
-                : 'Select a node, then apply a preset to inject telemetry anomalies.'
-              : 'Drag a sector onto the map.')}
-        </p>
+        {!showAttackTools && hint ? (
+          <p className="flex items-start gap-2 text-sm leading-snug text-[var(--tn-muted)]">
+            {hint}
+          </p>
+        ) : null}
 
         {tabs.length > 1 ? (
           <div className="flex rounded-md bg-[var(--tn-elevated)] p-0.5">
@@ -222,49 +631,38 @@ export default function SidebarAssets({
           </div>
         ) : null}
 
-        {showAttackTools && sideTab === 'presets' ? (
-          <div className="min-h-0 flex-1 space-y-2 overflow-y-auto">
-            {!selectedNodeId ? (
-              <p className="text-sm text-[var(--tn-muted)]">Select a node to apply a metric override.</p>
-            ) : (
-              <p className="text-sm text-[var(--tn-muted)]">
-                Presets only change telemetry on the selected node.
-              </p>
-            )}
-            <div className="grid grid-cols-1 gap-1">
-              {ATTACK_PRESETS.map((preset) => (
-                <button
-                  key={preset.id}
-                  type="button"
-                  disabled={!canUsePresets}
-                  title={preset.description}
-                  onClick={() => {
-                    if (!canUsePresets) return
-                    onApplyAttackPreset(preset.id)
-                  }}
-                  className="tn-btn w-full justify-start text-sm disabled:opacity-35"
-                >
-                  {preset.title}
-                </button>
-              ))}
-            </div>
-            {onAbortCampaigns ? (
-              <button
-                type="button"
-                className="tn-btn mt-1.5 w-full justify-start text-sm"
-                onClick={() => onAbortCampaigns()}
-              >
-                Clear attacks
-              </button>
-            ) : null}
-          </div>
-        ) : showAttackTools && sideTab === 'inject' ? (
-          <CompactDeviceList
-            assets={attackCatalog}
-            onDragStart={(e, asset) =>
-              handleDragStart(e, asset.type, asset.provenance ?? 'injected')
-            }
+        {showAttackTools && sideTab === 'attack' ? (
+          <AttackConsole
+            key={consoleEpochRef.current}
+            selectedNodeId={selectedNodeId}
+            selectedNodeLabel={selectedNodeLabel}
+            tgnnCalibrating={tgnnCalibrating}
+            nodes={nodes}
+            edges={edges}
+            detection={detection}
+            hackSimulator={hackSimulator}
+            autoSpreadSafety={autoSpreadSafety}
+            spreadPresetId={spreadPresetId}
+            setSpreadPresetId={setSpreadPresetId}
+            canUsePresets={canUsePresets}
+            canSpread={canSpread}
+            onApplyAttackPreset={onApplyAttackPreset}
+            onSpreadAttack={onSpreadAttack}
+            onAbortCampaigns={onAbortCampaigns}
+            onSetAttackSpreadMode={onSetAttackSpreadMode}
           />
+        ) : showAttackTools && sideTab === 'inject' ? (
+          <div className="flex min-h-0 flex-1 flex-col gap-2">
+            <p className="text-xs text-[var(--tn-muted)]">
+              Drag a rogue device onto the map.
+            </p>
+            <CompactDeviceList
+              assets={attackCatalog}
+              onDragStart={(e, asset) =>
+                handleDragStart(e, asset.type, asset.provenance ?? 'injected')
+              }
+            />
+          </div>
         ) : showDevices ? (
           <DomainAssetList
             assets={getLiveCityAssets()}

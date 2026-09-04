@@ -132,6 +132,10 @@ export function applyDefenderEdgeBaseline(room, edgeId, packetsPerSecond) {
   return true
 }
 
+/**
+ * @param {unknown[]} nodes
+ * @param {unknown[]} edges
+ */
 export function buildAttackLayerFromGraph(nodes, edges) {
   const nodeScenarioBaselines = Object.fromEntries(
     nodes.map((n) => [n.id, normalizeMetricSnapshot(n.data, n)])
@@ -152,5 +156,7 @@ export function buildAttackLayerFromGraph(nodes, edges) {
     edgeOverrides: {},
     nodeScenarioBaselines,
     edgeScenarioBaselines,
+    // Match start/reset: always manual unless set later by defender.
+    attackSpreadMode: 'manual',
   }
 }

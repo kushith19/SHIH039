@@ -212,6 +212,7 @@ export const DEFAULT_HACK_SIMULATOR = {
   edgeOverrides: {},
   nodeScenarioBaselines: undefined,
   edgeScenarioBaselines: undefined,
+  attackSpreadMode: 'manual',
 }
 
 export function getDefaultCanvasState() {

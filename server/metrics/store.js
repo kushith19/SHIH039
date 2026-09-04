@@ -70,16 +70,6 @@ const SCHEMA_SQL = `
       tick INTEGER NOT NULL,
       PRIMARY KEY (campaign_id, incident_id)
     );
-    CREATE TABLE IF NOT EXISTS attack_patterns (
-      fingerprint TEXT PRIMARY KEY,
-      title TEXT NOT NULL,
-      hit_count INTEGER NOT NULL,
-      first_seen_ms INTEGER NOT NULL,
-      last_seen_ms INTEGER NOT NULL,
-      last_room_id TEXT,
-      last_campaign_id TEXT,
-      signature_json TEXT NOT NULL
-    );
     CREATE TABLE IF NOT EXISTS incidents (
       incident_id TEXT PRIMARY KEY,
       live_incident_id TEXT NOT NULL,
@@ -438,40 +428,6 @@ export function linkCampaignIncident(campaignId, incidentId, endpointId, tick) {
   return info.changes > 0
 }
 
-export function upsertAttackPattern({ fingerprint, title, roomId, campaignId, signature }) {
-  if (!fingerprint) return null
-  const now = Date.now()
-  const conn = ensureDb()
-  const existing = conn
-    .prepare(`SELECT hit_count, first_seen_ms, last_campaign_id FROM attack_patterns WHERE fingerprint = ?`)
-    .get(fingerprint)
-  if (!existing) {
-    conn
-      .prepare(
-        `INSERT INTO attack_patterns (
-          fingerprint, title, hit_count, first_seen_ms, last_seen_ms, last_room_id, last_campaign_id, signature_json
-        ) VALUES (?, ?, 1, ?, ?, ?, ?, ?)`
-      )
-      .run(fingerprint, title, now, now, roomId ?? null, campaignId ?? null, JSON.stringify(signature ?? {}))
-    return { fingerprint, hitCount: 1, firstSeen: true }
-  }
-  const sameCampaign = existing.last_campaign_id === campaignId
-  const nextCount = sameCampaign ? existing.hit_count : existing.hit_count + 1
-  conn
-    .prepare(
-      `UPDATE attack_patterns
-       SET title = ?,
-           hit_count = ?,
-           last_seen_ms = ?,
-           last_room_id = ?,
-           last_campaign_id = ?,
-           signature_json = ?
-       WHERE fingerprint = ?`
-    )
-    .run(title, nextCount, now, roomId ?? null, campaignId ?? null, JSON.stringify(signature ?? {}), fingerprint)
-  return { fingerprint, hitCount: nextCount, firstSeen: false }
-}
-
 export function listCampaigns(roomId) {
   const rows = ensureDb()
     .prepare(
@@ -485,34 +441,4 @@ export function listCampaigns(roomId) {
       return null
     }
   }).filter(Boolean)
-}
-
-export function listAttackPatterns() {
-  return ensureDb()
-    .prepare(
-      `SELECT fingerprint, title, hit_count AS hitCount, first_seen_ms AS firstSeenMs,
-              last_seen_ms AS lastSeenMs, last_room_id AS lastRoomId, last_campaign_id AS lastCampaignId,
-              signature_json AS signatureJson
-       FROM attack_patterns
-       ORDER BY last_seen_ms DESC`
-    )
-    .all()
-    .map((row) => {
-      let signature = {}
-      try {
-        signature = JSON.parse(row.signatureJson)
-      } catch {
-        signature = {}
-      }
-      return {
-        fingerprint: row.fingerprint,
-        title: row.title,
-        hitCount: row.hitCount,
-        firstSeenMs: row.firstSeenMs,
-        lastSeenMs: row.lastSeenMs,
-        lastRoomId: row.lastRoomId,
-        lastCampaignId: row.lastCampaignId,
-        signature,
-      }
-    })
 }

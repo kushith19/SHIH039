@@ -231,9 +231,24 @@ export default function GamePage() {
     [selectedNode, actions]
   )
 
+  const onSpreadAttack = useCallback(
+    (sourceNodeId, targetNodeId, presetId) => {
+      if (!sourceNodeId || !targetNodeId || !presetId) return
+      void actions.spreadAttack?.(sourceNodeId, targetNodeId, presetId)
+    },
+    [actions]
+  )
+
   const onAbortCampaigns = useCallback(() => {
     void actions.abortCampaigns?.()
   }, [actions])
+
+  const onSetAttackSpreadMode = useCallback(
+    (mode) => {
+      void actions.setAttackSpreadMode?.(mode)
+    },
+    [actions]
+  )
 
   const waitingForOpponent =
     room.phase === 'lobby' &&
@@ -509,15 +524,31 @@ export default function GamePage() {
             showDevices={canDefenderManageNodes}
             showAttackTools={canUseAttackTools}
             selectedNodeId={selectedNode?.id ?? null}
+            selectedNodeLabel={selectedNode?.data?.label ?? null}
             tgnnCalibrating={tgnnCalibrating}
+            nodes={room.nodes ?? []}
+            edges={room.edges ?? []}
+            detection={room.detection ?? null}
+            hackSimulator={room.hackSimulator ?? null}
+            autoSpreadSafety={room.autoSpreadSafety ?? null}
             onApplyAttackPreset={
               role === 'attacker' && room.phase === 'playing' && !tgnnCalibrating
                 ? onApplyAttackPreset
                 : undefined
             }
+            onSpreadAttack={
+              role === 'attacker' && room.phase === 'playing' && !tgnnCalibrating
+                ? onSpreadAttack
+                : undefined
+            }
             onAbortCampaigns={
               role === 'attacker' && room.phase === 'playing'
                 ? onAbortCampaigns
+                : undefined
+            }
+            onSetAttackSpreadMode={
+              role === 'attacker' && room.phase === 'playing'
+                ? onSetAttackSpreadMode
                 : undefined
             }
           />

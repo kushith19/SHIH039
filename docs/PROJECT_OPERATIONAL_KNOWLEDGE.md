@@ -690,7 +690,7 @@ Purpose: explain, optional knowledge RAG, lab analyze LangGraph, provider abstra
 | Store | Technology | Holds | Survives refresh | Survives process restart |
 |---|---|---|---|---|
 | Room / live detection / players / tick | In-memory Map | Match runtime | If server room still alive | No |
-| Lookback, detection runs, incidents, campaigns tables, attack_patterns | SQLite `server/data/metrics.sqlite` | Operational + incident history | Yes via API | Yes (file) |
+| Lookback, detection runs, incidents, campaigns tables | SQLite `server/data/metrics.sqlite` | Operational + incident history | Yes via API | Yes (file) |
 | Telemetry time-series | TimescaleDB via tele-ingestion | Ingested metrics | Yes if DB up | Yes |
 | Qdrant vectors | Qdrant (+ local storage under ai-com-v1 when used) | Embeddings | N/A to browser | Yes if storage kept |
 | Explanation/knowledge caches | Process memory | Perf cache | N/A | No |

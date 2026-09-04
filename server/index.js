@@ -64,6 +64,7 @@ import {
   abortAndClearAttacks,
   applyManualPreset,
   attachOverrideNodes,
+  spreadAttack,
 } from './campaign/engine.js'
 import { answerCommanderQuestion } from '../shared/commanderAsk.js'
 import {
@@ -84,6 +85,14 @@ import {
   clearSpreadTargetLocks,
   invalidateSpreadLocksForNode,
 } from '../shared/spreadTargetLock.js'
+import {
+  clearAutoSpreadGuards,
+  evaluateAutoSpread,
+} from './attack/autoSpread.js'
+import {
+  isAttackSpreadMode,
+  normalizeAttackSpreadMode,
+} from '../shared/attackSpreadMode.js'
 import {
   fetchKnowledgeContext,
   askWithKnowledge,
@@ -547,9 +556,19 @@ function broadcastState(room) {
   io.to(room.id).emit('state:sync', publicRoomState(room))
 }
 
+/** After detection: optional auto-spread, then broadcast. */
+function afterTelemetryTick(room) {
+  try {
+    evaluateAutoSpread(room)
+  } catch (err) {
+    console.error('[auto-spread] evaluate failed', err)
+  }
+  broadcastState(room)
+}
+
 function syncWithTelemetry(room) {
   if (room.phase === 'playing') {
-    void emitTelemetryNow(room, broadcastState)
+    void emitTelemetryNow(room, afterTelemetryTick)
     return
   }
   broadcastState(room)
@@ -577,8 +596,9 @@ function startMatch(room) {
   room.matchNodeIds = room.nodes.map((n) => n.id)
   room.matchEdgeIds = room.edges.map((e) => e.id)
   room.hackSimulator = buildAttackLayerFromGraph(room.nodes, room.edges)
+  clearAutoSpreadGuards(room)
   resetTgnnCalibrator(room.id)
-  startTelemetryLoop(room, broadcastState)
+  startTelemetryLoop(room, afterTelemetryTick)
   return true
 }
 
@@ -587,6 +607,7 @@ function resetMatch(room) {
   abortAndClearAttacks(room)
   room.phase = 'lobby'
   room.hackSimulator = buildAttackLayerFromGraph(room.nodes, room.edges)
+  clearAutoSpreadGuards(room)
   room.simulationTick = 0
   room.detection = emptyDetectionResult()
   clearSpreadTargetLocks(room)
@@ -980,6 +1001,7 @@ io.on('connection', (socket) => {
       return emitError(socket, 'Scenario edits not allowed for your role now')
     }
     const sanitized = sanitizeHackSimulator(hackSimulator)
+    const priorMode = normalizeAttackSpreadMode(room.hackSimulator?.attackSpreadMode)
     if (isDefender(socket.id, room)) {
       room.hackSimulator = {
         ...room.hackSimulator,
@@ -988,6 +1010,7 @@ io.on('connection', (socket) => {
           sanitized.nodeScenarioBaselines ?? room.hackSimulator.nodeScenarioBaselines,
         edgeScenarioBaselines:
           sanitized.edgeScenarioBaselines ?? room.hackSimulator.edgeScenarioBaselines,
+        attackSpreadMode: priorMode,
       }
     } else {
       // Strip overrides aimed at quarantined nodes so stale client patches cannot
@@ -1002,6 +1025,7 @@ io.on('connection', (socket) => {
       room.hackSimulator = {
         ...sanitized,
         nodeOverrides,
+        attackSpreadMode: priorMode,
       }
       const nextIds = Object.keys(nodeOverrides)
       if (nextIds.length === 0 && nextEdges.length === 0) {
@@ -1011,6 +1035,7 @@ io.on('connection', (socket) => {
           ...room.hackSimulator,
           nodeOverrides: {},
           edgeOverrides: {},
+          attackSpreadMode: priorMode,
         }
       } else {
         attachOverrideNodes(room, nextIds)
@@ -1039,6 +1064,43 @@ io.on('connection', (socket) => {
     syncWithTelemetry(room)
   })
 
+  socket.on('attack:spread', (...args) => {
+    const ack = resolveAck(args)
+    const payload =
+      typeof args[0] === 'object' && args[0] !== null && typeof args[0] !== 'function'
+        ? args[0]
+        : {}
+    const room = getSocketRoom(socket)
+    if (!room) {
+      if (typeof ack === 'function') ack({ ok: false, message: 'Not in a room' })
+      return emitError(socket, 'Not in a room')
+    }
+    if (!isAttacker(socket.id, room) || room.phase !== 'playing') {
+      const message = 'Only the attacker can spread an attack during play'
+      if (typeof ack === 'function') ack({ ok: false, message })
+      return emitError(socket, message)
+    }
+    const result = spreadAttack(room, {
+      sourceNodeId: payload.sourceNodeId,
+      targetNodeId: payload.targetNodeId,
+      presetId: payload.presetId,
+    })
+    if (!result.ok) {
+      if (typeof ack === 'function') ack({ ok: false, message: result.message })
+      return emitError(socket, result.message)
+    }
+    if (typeof ack === 'function') {
+      ack({
+        ok: true,
+        sourceNodeId: result.sourceNodeId,
+        targetNodeId: result.targetNodeId,
+        edgeId: result.edgeId,
+        presetId: result.presetId,
+      })
+    }
+    syncWithTelemetry(room)
+  })
+
   socket.on('campaign:abort', (...args) => {
     const ack = resolveAck(args)
     const room = getSocketRoom(socket)
@@ -1061,6 +1123,45 @@ io.on('connection', (socket) => {
     if (!result.ok) return emitError(socket, 'Node not found')
     if (typeof ack === 'function') ack({ ok: true })
     syncWithTelemetry(room)
+  })
+
+  socket.on('attack:setSpreadMode', (...args) => {
+    const ack = resolveAck(args)
+    const payload =
+      typeof args[0] === 'object' && args[0] !== null && typeof args[0] !== 'function'
+        ? args[0]
+        : {}
+    const room = getSocketRoom(socket)
+    if (!room) {
+      if (typeof ack === 'function') ack({ ok: false, message: 'Not in a room' })
+      return emitError(socket, 'Not in a room')
+    }
+    if (!isAttacker(socket.id, room)) {
+      const message = 'Only the attacker can set attack spread mode'
+      if (typeof ack === 'function') ack({ ok: false, message })
+      return emitError(socket, message)
+    }
+    if (room.phase !== 'playing') {
+      const message = 'Spread mode can only be changed during play'
+      if (typeof ack === 'function') ack({ ok: false, message })
+      return emitError(socket, message)
+    }
+    const mode = payload.mode
+    if (!isAttackSpreadMode(mode)) {
+      const message = 'Invalid attack spread mode'
+      if (typeof ack === 'function') ack({ ok: false, message })
+      return emitError(socket, message)
+    }
+    const sim = room.hackSimulator ?? { ...DEFAULT_HACK_SIMULATOR }
+    room.hackSimulator = {
+      ...sim,
+      attackSpreadMode: normalizeAttackSpreadMode(mode),
+    }
+    if (typeof ack === 'function') {
+      ack({ ok: true, attackSpreadMode: room.hackSimulator.attackSpreadMode })
+    }
+    // Mode change alone must not force an immediate spread burst; next tick evaluates.
+    broadcastState(room)
   })
 
   socket.on('disconnect', () => {

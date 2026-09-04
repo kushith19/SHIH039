@@ -63,6 +63,7 @@ export function sanitizeHackSimulator(raw) {
       edgeOverrides[k] = clampNonNegative(v)
     }
   }
+  // Intentionally omit attackSpreadMode — clients cannot set it via sim:patch.
   const out = {
     active: raw.active === true,
     nodeOverrides,
