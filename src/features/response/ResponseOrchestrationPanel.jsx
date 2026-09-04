@@ -271,9 +271,27 @@ export default function ResponseOrchestrationPanel({
 
   const showApprovalScope =
     Boolean(state.approvalScope) && status !== ORCHESTRATION_STATUS.RECOVERED
+  const queueLabel =
+    state.orchestrationProgress?.label ||
+    (state.orchestrationQueue?.length > 0 &&
+    state.orchestrationCycleStatus &&
+    state.orchestrationCycleStatus !== 'IDLE'
+      ? `Orchestration: ${
+          state.orchestrationProgress?.position ||
+          (state.completedIncidentIds?.length || 0) + 1
+        } / ${state.orchestrationQueue.length}`
+      : null)
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
+      {queueLabel ? (
+        <p className="tn-meta shrink-0" data-testid="orchestration-queue-progress">
+          {queueLabel}
+          {state.orchestrationCycleStatus === 'AWAITING_APPROVAL'
+            ? ' · Waiting for human approval'
+            : ''}
+        </p>
+      ) : null}
       {showApprovalScope ? (
         <p className="tn-meta shrink-0">
           {ownership?.headline?.includes('Continuing') ||

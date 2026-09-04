@@ -58,13 +58,21 @@ export function logStatusTransition(room, {
   planId = null,
   iteration = null,
   source = null,
+  primaryIncidentId = null,
 } = {}) {
+  const state = room?.responseOrchestration
+  const resolvedPrimary =
+    primaryIncidentId ??
+    state?.plan?.primaryIncidentId ??
+    state?.currentIncidentId ??
+    null
   return pushWorkflowTrace(room, {
     kind: 'status_transition',
     previousStatus,
     newStatus,
     reason,
     planId,
+    primaryIncidentId: resolvedPrimary,
     iteration: iteration ?? room?.responseOrchestration?.autoIteration ?? 0,
     source,
   })

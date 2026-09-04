@@ -367,11 +367,6 @@ function runOrchestrationContinuationBody(room, {
         nowMs: Date.now(),
         reason: 'No active non-quarantined incidents remain',
       })
-      pushWorkflowTrace(room, {
-        kind: 'agent_loop',
-        phase: 'EPISODE_RECOVERED',
-        atMs: Date.now(),
-      })
       emit()
       if (typeof onCompleteSync === 'function') onCompleteSync(room)
       else flushTerminalSync()

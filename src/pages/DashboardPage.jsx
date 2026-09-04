@@ -294,6 +294,7 @@ export default function DashboardPage({
   if (panel === 'overview') {
     pageBody = (
       <OverviewPanel
+        roomId={roomId}
         detection={detection}
         nodes={nodes}
         edges={edges}
@@ -304,6 +305,7 @@ export default function DashboardPage({
         sampleTicks={sampleTicks}
         fetchError={fetchError}
         pps={lastValue(ppsSeries)}
+        responseOrchestration={responseOrchestration}
         onSelectEndpoint={setFilterId}
       />
     )
@@ -333,6 +335,7 @@ export default function DashboardPage({
       <MonitorTimelinePanel
         roomId={roomId}
         incidents={incidents}
+        responseOrchestration={responseOrchestration}
       />
     )
   } else if (panel === 'correlation') {
@@ -384,8 +387,9 @@ export default function DashboardPage({
       />
     )
   } else {
-    pageBody = (
+      pageBody = (
       <OverviewPanel
+        roomId={roomId}
         detection={detection}
         nodes={nodes}
         edges={edges}
@@ -396,6 +400,7 @@ export default function DashboardPage({
         sampleTicks={sampleTicks}
         fetchError={fetchError}
         pps={lastValue(ppsSeries)}
+        responseOrchestration={responseOrchestration}
         onSelectEndpoint={setFilterId}
       />
     )
@@ -439,7 +444,9 @@ export default function DashboardPage({
             panel === 'orchestrate' ||
             panel === 'response'
               ? 'flex min-h-0 flex-1 flex-col overflow-hidden p-4 md:px-6 md:py-5'
-              : 'min-h-0 flex-1 overflow-auto p-4 md:px-6 md:py-5'
+              : panel === 'overview'
+                ? 'min-h-0 flex-1 overflow-auto p-5 md:px-8 md:py-7'
+                : 'min-h-0 flex-1 overflow-auto p-4 md:px-6 md:py-5'
           }
         >
           <div
@@ -452,7 +459,7 @@ export default function DashboardPage({
               panel === 'response'
                 ? 'flex min-h-0 flex-1 flex-col gap-4'
                 : panel === 'overview'
-                  ? 'mx-auto w-full max-w-[80rem] space-y-4'
+                  ? 'mx-auto w-full max-w-[90rem]'
                   : 'mx-auto w-full max-w-6xl space-y-4'
             }
           >

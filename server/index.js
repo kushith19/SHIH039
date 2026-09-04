@@ -90,6 +90,7 @@ import {
 import {
   approveOrchestrationPlan,
   completeSelectedIncidentDummyRecovery,
+  continueOrchestrationQueueAfterRecovery,
   executeOrchestrationPlan,
   generateOrchestrationPlanMaybeLlm,
   refreshOrchestrationFreshness,
@@ -617,7 +618,7 @@ app.post('/rooms/:id/orchestration/approve', (req, res) => {
   })
 })
 
-app.post('/rooms/:id/orchestration/execute', (req, res) => {
+app.post('/rooms/:id/orchestration/execute', async (req, res) => {
   const id = String(req.params.id ?? '').toUpperCase()
   const room = getRoom(id)
   if (!room) {
@@ -639,14 +640,24 @@ app.post('/rooms/:id/orchestration/execute', (req, res) => {
     /no executable actions/i.test(String(result.message ?? ''))
   if ((result.ok || noExecutable) && incidentId) {
     const recovered = completeSelectedIncidentDummyRecovery(room, incidentId)
+    const advanced = await continueOrchestrationQueueAfterRecovery(room, {
+      recoveredIncidentId: incidentId,
+      resolveContext: resolveCommanderContext,
+      onProgress: () => broadcastState(room),
+    })
     if (typeof syncWithTelemetry === 'function') syncWithTelemetry(room)
     broadcastState(room)
     return res.json({
       ok: true,
       roomId: id,
-      orchestration: recovered.orchestration,
-      execution: recovered.orchestration?.execution ?? result.execution ?? null,
+      orchestration: advanced.orchestration ?? recovered.orchestration,
+      execution:
+        (advanced.orchestration ?? recovered.orchestration)?.execution ??
+        result.execution ??
+        null,
       recovered: true,
+      queueAdvanced: advanced.advanced === true,
+      queueCompleted: advanced.completed === true,
       incidentsClosed: false,
       autoRestored: false,
     })

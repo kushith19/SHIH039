@@ -33,6 +33,18 @@ export const ORCHESTRATION_STATUS = Object.freeze({
   LLM_ERROR: 'LLM_ERROR',
 })
 
+/**
+ * Sequential multi-incident cycle (wraps per-incident workflow; does not replace it).
+ * Human approval remains a per-incident gate.
+ */
+export const ORCHESTRATION_CYCLE_STATUS = Object.freeze({
+  IDLE: 'IDLE',
+  PROCESSING: 'PROCESSING',
+  AWAITING_APPROVAL: 'AWAITING_APPROVAL',
+  RECOVERING: 'RECOVERING',
+  COMPLETED: 'COMPLETED',
+})
+
 /** Allowed transitions for the orchestration state machine (authoritative). */
 export const ORCHESTRATION_TRANSITIONS = Object.freeze({
   [ORCHESTRATION_STATUS.IDLE]: Object.freeze([ORCHESTRATION_STATUS.ANALYZING]),
@@ -336,6 +348,11 @@ export function normalizeOrchestrationStatus(raw) {
   return ORCHESTRATION_STATUS[key] || ORCHESTRATION_STATUS.IDLE
 }
 
+export function normalizeOrchestrationCycleStatus(raw) {
+  const key = String(raw ?? '').trim().toUpperCase()
+  return ORCHESTRATION_CYCLE_STATUS[key] || ORCHESTRATION_CYCLE_STATUS.IDLE
+}
+
 export function canTransitionOrchestration(from, to) {
   const src = normalizeOrchestrationStatus(from)
   const dst = normalizeOrchestrationStatus(to)
@@ -402,6 +419,21 @@ export function createEmptyOrchestrationState(overrides = {}) {
       : 0,
     continuationReason: overrides.continuationReason ?? null,
     pausedForApprovalReason: overrides.pausedForApprovalReason ?? null,
+    /** Stable incident-id queue for one Analyze-started cycle */
+    orchestrationQueue: Array.isArray(overrides.orchestrationQueue)
+      ? overrides.orchestrationQueue.map(String)
+      : [],
+    currentIncidentId: overrides.currentIncidentId ?? null,
+    completedIncidentIds: Array.isArray(overrides.completedIncidentIds)
+      ? overrides.completedIncidentIds.map(String)
+      : [],
+    orchestrationCycleStatus: normalizeOrchestrationCycleStatus(
+      overrides.orchestrationCycleStatus
+    ),
+    /** Match-scoped forensic / Monitor timeline log — preserve across queue advances. */
+    workflowTrace: Array.isArray(overrides.workflowTrace)
+      ? overrides.workflowTrace
+      : [],
   }
 }
 

@@ -35,11 +35,13 @@ const INCIDENT_FOCUS_PANELS = new Set(['commander', 'orchestrate', 'response'])
 export const DASHBOARD_PANEL_COPY = {
   overview: {
     label: 'Overview',
-    blurb: 'Situational awareness: posture, primary threat, blast radius, and containment status.',
+    blurb:
+      'Command-center KPIs: attack volume, severity, sector impact, response funnel, and live threat status.',
   },
   timeline: {
     label: 'Timeline',
-    blurb: 'Chronology of detections this match. Clears with the match, not a global archive.',
+    blurb:
+      'Chronology of detections this match, plus response lifecycle when an incident is orchestrated.',
   },
   correlation: {
     label: 'Live Correlation',
@@ -60,7 +62,7 @@ export const DASHBOARD_PANEL_COPY = {
   orchestrate: {
     label: 'Orchestrate',
     blurb:
-      'Planner → human approval → Response Agent → recovered. Operates on the selected incident only.',
+      'Planner → human approval → Response Agent → recovered. Processes active incidents sequentially when a cycle is started.',
   },
   response: {
     label: 'Response',

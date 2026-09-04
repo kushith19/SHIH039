@@ -6,13 +6,22 @@
 
 import {
   AGENT_SLOT_STATUS,
+  ORCHESTRATION_CYCLE_STATUS,
   ORCHESTRATION_STATUS,
   PLAN_APPROVAL_STATUS,
   agentSlotsForStatus,
   canTransitionOrchestration,
   createEmptyOrchestrationState,
+  normalizeOrchestrationCycleStatus,
   normalizeOrchestrationStatus,
 } from '../../shared/response/orchestration.js'
+import {
+  buildStableOrchestrationQueue,
+  cycleStatusForWorkflow,
+  emptyOrchestrationQueueState,
+  nextQueuedIncidentId,
+  queueProgressView,
+} from '../../shared/response/orchestrationQueue.js'
 import { runtimeStateOf } from '../infrastructureNode.js'
 import { INCIDENT_STATUS } from '../../shared/incidentIntel.js'
 import { updateIncidentStatus } from '../metrics/incidents.js'
@@ -62,12 +71,285 @@ import {
 
 /** Prevent concurrent Response Agent runs per room. */
 const executionInFlight = new Set()
+/** Prevent overlapping queue advances (one Planner at a time). */
+const queueAdvanceInFlight = new Set()
 
 export function isOrchestrationExecutionInFlight(roomId) {
   return executionInFlight.has(String(roomId ?? '').toUpperCase())
 }
 
 export { isOrchestrationLoopInFlight }
+
+function shoutQueue(msg) {
+  console.log(msg)
+}
+
+function readQueueState(state) {
+  return {
+    orchestrationQueue: Array.isArray(state?.orchestrationQueue)
+      ? state.orchestrationQueue.map(String)
+      : [],
+    currentIncidentId: state?.currentIncidentId ?? null,
+    completedIncidentIds: Array.isArray(state?.completedIncidentIds)
+      ? state.completedIncidentIds.map(String)
+      : [],
+    orchestrationCycleStatus: normalizeOrchestrationCycleStatus(
+      state?.orchestrationCycleStatus
+    ),
+  }
+}
+
+function writeQueueFields(room, patch, { source = 'queue' } = {}) {
+  const prev = ensureRoomOrchestration(room)
+  const next = {
+    ...readQueueState(prev),
+    ...patch,
+  }
+  next.orchestrationCycleStatus = normalizeOrchestrationCycleStatus(
+    next.orchestrationCycleStatus
+  )
+  writeState(
+    room,
+    {
+      orchestrationQueue: next.orchestrationQueue,
+      currentIncidentId: next.currentIncidentId,
+      completedIncidentIds: next.completedIncidentIds,
+      orchestrationCycleStatus: next.orchestrationCycleStatus,
+      updatedAtMs: Date.now(),
+    },
+    { source }
+  )
+  return readQueueState(room.responseOrchestration)
+}
+
+/**
+ * Begin a stable multi-incident queue when Analyze starts a new cycle.
+ * Does not start Planner for every incident — only records the queue and current id.
+ */
+export function beginOrchestrationCycleQueue(room, { focusIncidentId = null } = {}) {
+  ensureRoomOrchestration(room)
+  const prev = readQueueState(room.responseOrchestration)
+  const cycle = prev.orchestrationCycleStatus
+  const running =
+    prev.orchestrationQueue.length > 0 &&
+    cycle !== ORCHESTRATION_CYCLE_STATUS.IDLE &&
+    cycle !== ORCHESTRATION_CYCLE_STATUS.COMPLETED
+
+  if (running) {
+    // Keep the initial queue stable; only refresh current if missing.
+    const current =
+      prev.currentIncidentId ||
+      focusIncidentId ||
+      prev.orchestrationQueue.find((id) => !prev.completedIncidentIds.includes(id)) ||
+      null
+    if (current && current !== prev.currentIncidentId) {
+      writeQueueFields(room, {
+        currentIncidentId: current,
+        orchestrationCycleStatus: ORCHESTRATION_CYCLE_STATUS.PROCESSING,
+      }, { source: 'beginOrchestrationCycleQueue:resume' })
+    }
+    return {
+      started: false,
+      resumed: true,
+      ...readQueueState(room.responseOrchestration),
+    }
+  }
+
+  const queue = buildStableOrchestrationQueue(room.detection, focusIncidentId)
+  if (!queue.length) {
+    writeQueueFields(room, emptyOrchestrationQueueState(), {
+      source: 'beginOrchestrationCycleQueue:empty',
+    })
+    shoutQueue('[ORCHESTRATION QUEUE] cycle skipped total=0')
+    return { started: false, resumed: false, ...emptyOrchestrationQueueState() }
+  }
+
+  const currentIncidentId = queue[0]
+  writeQueueFields(
+    room,
+    {
+      orchestrationQueue: queue,
+      currentIncidentId,
+      completedIncidentIds: [],
+      orchestrationCycleStatus: ORCHESTRATION_CYCLE_STATUS.PROCESSING,
+    },
+    { source: 'beginOrchestrationCycleQueue' }
+  )
+  shoutQueue(`[ORCHESTRATION QUEUE] cycle started total=${queue.length}`)
+  shoutQueue(
+    `[ORCHESTRATION QUEUE] starting incident=${currentIncidentId} position=1/${queue.length}`
+  )
+  return {
+    started: true,
+    resumed: false,
+    ...readQueueState(room.responseOrchestration),
+  }
+}
+
+function syncCycleStatusToWorkflow(room) {
+  const state = ensureRoomOrchestration(room)
+  const queue = readQueueState(state)
+  if (!queue.orchestrationQueue.length) return queue
+  if (queue.orchestrationCycleStatus === ORCHESTRATION_CYCLE_STATUS.COMPLETED) {
+    return queue
+  }
+  const nextStatus = cycleStatusForWorkflow(state.workflowStatus ?? state.status, queue)
+  if (nextStatus !== queue.orchestrationCycleStatus) {
+    writeQueueFields(
+      room,
+      { orchestrationCycleStatus: nextStatus },
+      { source: 'syncCycleStatusToWorkflow' }
+    )
+  }
+  return readQueueState(room.responseOrchestration)
+}
+
+/**
+ * After an incident reaches RECOVERED: mark complete and optionally start the next.
+ * Planner/LLM is invoked only for the next incident — never in parallel.
+ */
+export async function continueOrchestrationQueueAfterRecovery(
+  room,
+  {
+    recoveredIncidentId = null,
+    resolveContext = null,
+    nowMs = Date.now(),
+    onProgress = null,
+  } = {}
+) {
+  ensureRoomOrchestration(room)
+  const roomKey = String(room?.id ?? '').toUpperCase()
+  if (roomKey && queueAdvanceInFlight.has(roomKey)) {
+    return {
+      ok: false,
+      advanced: false,
+      message: 'Orchestration queue advance already in progress',
+      orchestration: publicOrchestrationState(room),
+    }
+  }
+  if (roomKey) queueAdvanceInFlight.add(roomKey)
+
+  try {
+    const prev = readQueueState(room.responseOrchestration)
+    if (!prev.orchestrationQueue.length) {
+      return {
+        ok: true,
+        advanced: false,
+        completed: false,
+        orchestration: publicOrchestrationState(room),
+      }
+    }
+
+    const recoveredId = String(
+      recoveredIncidentId ||
+        prev.currentIncidentId ||
+        room.responseOrchestration?.plan?.primaryIncidentId ||
+        ''
+    ).trim()
+
+    const completed = [...prev.completedIncidentIds]
+    if (recoveredId && !completed.includes(recoveredId)) {
+      completed.push(recoveredId)
+    }
+
+    writeQueueFields(
+      room,
+      {
+        completedIncidentIds: completed,
+        orchestrationCycleStatus: ORCHESTRATION_CYCLE_STATUS.RECOVERING,
+      },
+      { source: 'continueOrchestrationQueueAfterRecovery:complete' }
+    )
+
+    const nextId = nextQueuedIncidentId(room.detection, {
+      ...prev,
+      completedIncidentIds: completed,
+      currentIncidentId: recoveredId || prev.currentIncidentId,
+    })
+
+    if (!nextId) {
+      writeQueueFields(
+        room,
+        {
+          currentIncidentId: null,
+          completedIncidentIds: completed,
+          orchestrationCycleStatus: ORCHESTRATION_CYCLE_STATUS.COMPLETED,
+        },
+        { source: 'continueOrchestrationQueueAfterRecovery:done' }
+      )
+      shoutQueue('[ORCHESTRATION QUEUE] cycle completed')
+      if (typeof onProgress === 'function') onProgress(publicOrchestrationState(room))
+      return {
+        ok: true,
+        advanced: false,
+        completed: true,
+        orchestration: publicOrchestrationState(room),
+      }
+    }
+
+    const total = prev.orchestrationQueue.length
+    const position = prev.orchestrationQueue.indexOf(nextId) + 1
+    shoutQueue(
+      `[ORCHESTRATION QUEUE] starting incident=${nextId} position=${position}/${total}`
+    )
+
+    // Preserve queue + workflowTrace across RECOVERED → IDLE for the next incident.
+    const preserved = {
+      orchestrationQueue: prev.orchestrationQueue,
+      completedIncidentIds: completed,
+      currentIncidentId: nextId,
+      orchestrationCycleStatus: ORCHESTRATION_CYCLE_STATUS.PROCESSING,
+      workflowTrace: Array.isArray(room.responseOrchestration?.workflowTrace)
+        ? room.responseOrchestration.workflowTrace
+        : [],
+    }
+
+    const status = normalizeOrchestrationStatus(
+      room.responseOrchestration.workflowStatus
+    )
+    if (status === ORCHESTRATION_STATUS.RECOVERED) {
+      if (room.id) {
+        executionInFlight.delete(String(room.id).toUpperCase())
+        clearOrchestrationLoopInFlight(room.id)
+      }
+      room.responseOrchestration = createEmptyOrchestrationState({
+        workflowStatus: ORCHESTRATION_STATUS.IDLE,
+        updatedAtMs: nowMs,
+        ...preserved,
+      })
+    } else {
+      writeQueueFields(room, preserved, {
+        source: 'continueOrchestrationQueueAfterRecovery:next',
+      })
+    }
+
+    if (typeof onProgress === 'function') onProgress(publicOrchestrationState(room))
+
+    const planned = await generateOrchestrationPlanMaybeLlm(room, {
+      focusIncidentId: nextId,
+      resolveContext,
+      nowMs,
+      _queueAdvance: true,
+    })
+
+    syncCycleStatusToWorkflow(room)
+    if (typeof onProgress === 'function') onProgress(publicOrchestrationState(room))
+
+    return {
+      ok: planned.ok !== false,
+      advanced: true,
+      completed: false,
+      nextIncidentId: nextId,
+      statusCode: planned.statusCode,
+      message: planned.message,
+      orchestration: publicOrchestrationState(room),
+    }
+  } finally {
+    if (roomKey) queueAdvanceInFlight.delete(roomKey)
+  }
+}
+
+export { queueProgressView }
 
 export function ensureRoomOrchestration(room) {
   if (!room || typeof room !== 'object') return null
@@ -95,6 +377,8 @@ export function resetRoomOrchestration(room) {
 export function publicOrchestrationState(room) {
   const state = ensureRoomOrchestration(room)
   const status = normalizeOrchestrationStatus(state.workflowStatus ?? state.status)
+  const queue = readQueueState(state)
+  const progress = queueProgressView(queue)
   return {
     status,
     workflowStatus: status,
@@ -123,6 +407,11 @@ export function publicOrchestrationState(room) {
       : 0,
     continuationReason: state.continuationReason ?? null,
     pausedForApprovalReason: state.pausedForApprovalReason ?? null,
+    orchestrationQueue: queue.orchestrationQueue,
+    currentIncidentId: queue.currentIncidentId,
+    completedIncidentIds: queue.completedIncidentIds,
+    orchestrationCycleStatus: queue.orchestrationCycleStatus,
+    orchestrationProgress: progress,
     /** STEP 14 forensic workflow trace (latest iterations) */
     workflowTrace: publicWorkflowTrace(room),
     latestIterationTrace: latestIterationTrace(room),
@@ -196,6 +485,11 @@ function writeState(room, patch, { forceReplace = false, source = 'writeState' }
         patch.pausedForApprovalReason ??
         null,
       planId: (patch.plan ?? prev.plan)?.planId ?? null,
+      primaryIncidentId:
+        (patch.plan ?? prev.plan)?.primaryIncidentId ??
+        patch.currentIncidentId ??
+        prev.currentIncidentId ??
+        null,
       iteration: patch.autoIteration ?? prev.autoIteration ?? 0,
       source,
     })
@@ -337,9 +631,13 @@ export function startNewOrchestrationCycle(room, { nowMs = Date.now() } = {}) {
     executionInFlight.delete(String(room.id).toUpperCase())
     clearOrchestrationLoopInFlight(room.id)
   }
+  const priorTrace = Array.isArray(room.responseOrchestration?.workflowTrace)
+    ? room.responseOrchestration.workflowTrace
+    : []
   room.responseOrchestration = createEmptyOrchestrationState({
     workflowStatus: ORCHESTRATION_STATUS.IDLE,
     updatedAtMs: nowMs,
+    workflowTrace: priorTrace,
   })
   return {
     ok: true,
@@ -453,8 +751,33 @@ export function generateOrchestrationPlan(room, {
   nowMs = Date.now(),
   /** Server-validated LLM action IDs only — never trust client body */
   selectedActionIds = null,
+  /** Internal: queue already started / advancing — do not rebuild */
+  _queueAdvance = false,
+  /** Internal: PLANNER_STARTED already recorded (LLM path before Ollama) */
+  _plannerStarted = false,
 } = {}) {
   ensureRoomOrchestration(room)
+  if (_queueAdvance !== true) {
+    beginOrchestrationCycleQueue(room, { focusIncidentId })
+  }
+  const queueSnap = readQueueState(room.responseOrchestration)
+  const effectiveFocus =
+    focusIncidentId || queueSnap.currentIncidentId || null
+  if (
+    effectiveFocus &&
+    queueSnap.orchestrationQueue.length > 0 &&
+    queueSnap.currentIncidentId !== effectiveFocus
+  ) {
+    writeQueueFields(
+      room,
+      {
+        currentIncidentId: effectiveFocus,
+        orchestrationCycleStatus: ORCHESTRATION_CYCLE_STATUS.PROCESSING,
+      },
+      { source: 'generateOrchestrationPlan:current' }
+    )
+  }
+
   const current = normalizeOrchestrationStatus(room.responseOrchestration.workflowStatus)
 
   if (current === ORCHESTRATION_STATUS.REPLAN_REQUIRED) {
@@ -522,7 +845,7 @@ export function generateOrchestrationPlan(room, {
   const detection = room.detection ?? null
   const selected = selectPrimaryIncidentForPlanWithReason(
     detection,
-    focusIncidentId
+    effectiveFocus
   )
   const contextIncidentId =
     selected.incident?.persistentId || selected.incident?.id || null
@@ -538,6 +861,27 @@ export function generateOrchestrationPlan(room, {
       statusCode: 404,
       message: 'No open incident available for planning',
     }
+  }
+
+  if (
+    queueSnap.orchestrationQueue.length > 0 &&
+    String(room.responseOrchestration.currentIncidentId ?? '') !==
+      String(contextIncidentId)
+  ) {
+    writeQueueFields(
+      room,
+      { currentIncidentId: String(contextIncidentId) },
+      { source: 'generateOrchestrationPlan:bind' }
+    )
+  }
+
+  if (_plannerStarted !== true) {
+    pushWorkflowTrace(room, {
+      kind: 'agent_loop',
+      phase: 'PLANNER_STARTED',
+      primaryIncidentId: contextIncidentId,
+      atMs: nowMs,
+    })
   }
 
   if (typeof resolveContext !== 'function') {
@@ -613,6 +957,7 @@ export function generateOrchestrationPlan(room, {
     phase: 'COMMANDER_PLAN',
     planId: planReady.planId,
     primaryIncidentId: planReady.primaryIncidentId,
+    planSource: planReady.planSource ?? null,
     target: planReady.affectedNodeIds?.[0] ?? null,
     atMs: nowMs,
   })
@@ -626,6 +971,8 @@ export function generateOrchestrationPlan(room, {
       updatedAtMs: nowMs,
     })
   }
+
+  syncCycleStatusToWorkflow(room)
 
   return {
     ok: true,
@@ -674,11 +1021,18 @@ export async function generateOrchestrationPlanMaybeLlm(room, opts = {}) {
     focusIncidentId = null,
     resolveContext,
     nowMs = Date.now(),
+    _queueAdvance = false,
   } = opts
 
   shoutLlm(`[LLM ANALYZE] room=${room?.id ?? ''} focus=${focusIncidentId ?? ''}`)
 
   ensureRoomOrchestration(room)
+  if (_queueAdvance !== true) {
+    beginOrchestrationCycleQueue(room, { focusIncidentId })
+  }
+  const queueSnap = readQueueState(room.responseOrchestration)
+  const effectiveFocus =
+    focusIncidentId || queueSnap.currentIncidentId || null
 
   let current = normalizeOrchestrationStatus(room.responseOrchestration.workflowStatus)
   if (current === ORCHESTRATION_STATUS.RECOVERED) {
@@ -693,6 +1047,8 @@ export async function generateOrchestrationPlanMaybeLlm(room, opts = {}) {
         executed: false,
       }
     }
+    // New explicit Analyze after RECOVERED — rebuild queue for remaining actives.
+    beginOrchestrationCycleQueue(room, { focusIncidentId: effectiveFocus })
     current = ORCHESTRATION_STATUS.IDLE
   }
 
@@ -741,8 +1097,8 @@ export async function generateOrchestrationPlanMaybeLlm(room, opts = {}) {
 
   const detection = room.detection ?? null
   let selected
-  if (focusIncidentId) {
-    selected = selectActiveIncidentForAnalyze(detection, focusIncidentId)
+  if (effectiveFocus) {
+    selected = selectActiveIncidentForAnalyze(detection, effectiveFocus)
     if (!selected.focusOverride || !selected.incident) {
       writeState(room, {
         workflowStatus: ORCHESTRATION_STATUS.IDLE,
@@ -752,7 +1108,7 @@ export async function generateOrchestrationPlanMaybeLlm(room, opts = {}) {
       const message = 'Selected incident is not an active planning target'
       shoutLlm(`[LLM ANALYZE] result=INCIDENT_NOT_SELECTED ${message}`)
       recordLlmCommanderSkipped(message, {
-        incidentId: focusIncidentId,
+        incidentId: effectiveFocus,
         code: 'INCIDENT_NOT_SELECTED',
       })
       return {
@@ -768,6 +1124,20 @@ export async function generateOrchestrationPlanMaybeLlm(room, opts = {}) {
   }
   const contextIncidentId =
     selected.incident?.persistentId || selected.incident?.id || null
+
+  if (
+    contextIncidentId &&
+    readQueueState(room.responseOrchestration).orchestrationQueue.length > 0
+  ) {
+    writeQueueFields(
+      room,
+      {
+        currentIncidentId: String(contextIncidentId),
+        orchestrationCycleStatus: ORCHESTRATION_CYCLE_STATUS.PROCESSING,
+      },
+      { source: 'generateOrchestrationPlanMaybeLlm:bind' }
+    )
+  }
 
   if (!contextIncidentId || typeof resolveContext !== 'function') {
     writeState(room, {
@@ -791,6 +1161,13 @@ export async function generateOrchestrationPlanMaybeLlm(room, opts = {}) {
       message,
     }
   }
+
+  pushWorkflowTrace(room, {
+    kind: 'agent_loop',
+    phase: 'PLANNER_STARTED',
+    primaryIncidentId: contextIncidentId,
+    atMs: nowMs,
+  })
 
   const context = resolveContext(room, room.id, contextIncidentId)
   if (!context) {
@@ -816,6 +1193,7 @@ export async function generateOrchestrationPlanMaybeLlm(room, opts = {}) {
   shoutLlm(
     `[LLM ANALYZE] incident=${contextIncidentId} attackPreset=${attackHint ?? ''} result=LLM_INVOCATION`
   )
+  shoutLlm(`[LLM REQUEST] incident=${contextIncidentId}`)
 
   const llm = await requestLlmCommanderActions(context, { room })
   if (!llm.ok) {
@@ -826,6 +1204,7 @@ export async function generateOrchestrationPlanMaybeLlm(room, opts = {}) {
       pausedForApprovalReason: llm.error || 'LLM Commander planning failed',
       updatedAtMs: nowMs,
     })
+    syncCycleStatusToWorkflow(room)
     shoutLlm(
       `[LLM COMMANDER] LLM FAILED: ${llm.error || llm.code || 'unknown'}`
     )
@@ -855,6 +1234,8 @@ export async function generateOrchestrationPlanMaybeLlm(room, opts = {}) {
     focusIncidentId: contextIncidentId,
     selectedActionIds: llm.actions,
     nowMs,
+    _queueAdvance: true,
+    _plannerStarted: true,
   })
 
   // Separate merged LLM fields: summary/notes enrich reasoning only (never execute)
@@ -1533,6 +1914,8 @@ export function approveOrchestrationPlan(room, {
 
 function markEpisodeRecovered(room, { nowMs = Date.now(), reason = null } = {}) {
   const prev = ensureRoomOrchestration(room)
+  const primaryIncidentId =
+    prev.plan?.primaryIncidentId ?? prev.currentIncidentId ?? null
   writeState(room, {
     workflowStatus: ORCHESTRATION_STATUS.RECOVERED,
     plan: prev.plan,
@@ -1545,6 +1928,14 @@ function markEpisodeRecovered(room, { nowMs = Date.now(), reason = null } = {}) 
     continuationReason: reason || 'episode_complete',
     pausedForApprovalReason: null,
     updatedAtMs: nowMs,
+  })
+  pushWorkflowTrace(room, {
+    kind: 'agent_loop',
+    phase: 'EPISODE_RECOVERED',
+    primaryIncidentId,
+    planId: prev.plan?.planId ?? null,
+    reason: reason || 'episode_complete',
+    atMs: nowMs,
   })
 }
 
@@ -1624,6 +2015,20 @@ export function completeSelectedIncidentDummyRecovery(room, incidentId, {
   }
   const recovered = applyDummySelectedIncidentRecovery(room, incidentId)
   markEpisodeRecovered(room, { nowMs, reason: 'selected_incident_recovered' })
+  const queue = readQueueState(room.responseOrchestration)
+  if (queue.orchestrationQueue.length > 0) {
+    writeQueueFields(
+      room,
+      {
+        orchestrationCycleStatus: ORCHESTRATION_CYCLE_STATUS.RECOVERING,
+        currentIncidentId:
+          incidentId != null && String(incidentId).trim()
+            ? String(incidentId)
+            : queue.currentIncidentId,
+      },
+      { source: 'completeSelectedIncidentDummyRecovery' }
+    )
+  }
   return {
     ok: true,
     recovered: true,
@@ -1810,6 +2215,15 @@ export function executeOrchestrationPlan(room, {
     iteration: state.autoIteration ?? 0,
   })
 
+  pushWorkflowTrace(room, {
+    kind: 'agent_loop',
+    phase: 'RESPONSE_EXECUTING',
+    planId: plan.planId,
+    primaryIncidentId: plan.primaryIncidentId,
+    target: plan.affectedNodeIds?.[0] ?? null,
+    atMs: nowMs,
+  })
+
   if (typeof onProgress === 'function') {
     onProgress(publicOrchestrationState(room))
   }
@@ -1929,6 +2343,7 @@ export function executeOrchestrationPlan(room, {
       kind: 'agent_loop',
       phase: 'VERIFICATION_EVIDENCE',
       planId: plan.planId,
+      primaryIncidentId: plan.primaryIncidentId,
       controlFlow: 'ignored',
       atMs: Date.now(),
     })

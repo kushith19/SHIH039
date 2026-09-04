@@ -11,8 +11,13 @@ import { dashboardPanelHref } from './dashboardPanels.js'
 
 /**
  * Match chronology for Monitor. Selecting a live event opens Incidents.
+ * Includes response/orchestration lifecycle rows from room.responseOrchestration.
  */
-export default function MonitorTimelinePanel({ roomId = '', incidents = [] }) {
+export default function MonitorTimelinePanel({
+  roomId = '',
+  incidents = [],
+  responseOrchestration = null,
+}) {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { campaigns, incidents: historyIncidents, order, status } =
@@ -53,6 +58,7 @@ export default function MonitorTimelinePanel({ roomId = '', incidents = [] }) {
           <HistoryIncidentTimeline
             incidents={historyIncidents}
             campaigns={campaigns}
+            orchestration={responseOrchestration}
             order={order}
             selectedKey={selectedKey}
             selectedIncidentId={timelineFocusId}
