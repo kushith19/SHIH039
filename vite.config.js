@@ -16,6 +16,9 @@ export default defineConfig({
     },
   },
   server: {
+    // Bind 0.0.0.0 so defenders on other LAN devices can open http://<your-ip>:5173
+    host: true,
+    port: 5173,
     proxy: {
       '/socket.io': {
         target: 'http://localhost:3001',

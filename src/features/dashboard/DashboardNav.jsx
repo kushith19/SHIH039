@@ -1,6 +1,7 @@
 import { Link, useSearchParams } from 'react-router-dom'
 import {
   AlertTriangle,
+  GitBranch,
   LayoutDashboard,
   Server,
   Shield,
@@ -17,6 +18,7 @@ const ICONS = {
   incidents: AlertTriangle,
   fleet: Server,
   commander: Shield,
+  orchestrate: GitBranch,
   response: ShieldAlert,
 }
 
@@ -48,7 +50,8 @@ export default function DashboardNav({
                 const active = panel === id
                 const count = counts[id]
                 const showFocusPip =
-                  focusedIncident && (id === 'commander' || id === 'response')
+                  focusedIncident &&
+                  (id === 'commander' || id === 'orchestrate' || id === 'response')
                 return (
                   <li key={id}>
                     <Link

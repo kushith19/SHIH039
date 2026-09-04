@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import {
   dashboardCommanderIncidentHref,
+  dashboardOrchestrateIncidentHref,
   dashboardPanelHref,
   dashboardPanelMeta,
   dashboardResponseIncidentHref,
@@ -14,6 +15,7 @@ describe('dashboard panel routing', () => {
     assert.equal(resolveDashboardPanel('nope'), 'overview')
     assert.equal(resolveDashboardPanel('incidents'), 'incidents')
     assert.equal(resolveDashboardPanel('response'), 'response')
+    assert.equal(resolveDashboardPanel('orchestrate'), 'orchestrate')
   })
 
   it('omits panel query for overview and keeps view=dashboard', () => {
@@ -30,6 +32,7 @@ describe('dashboard panel routing', () => {
     assert.equal(next.get('panel'), 'commander')
     assert.equal(dashboardPanelMeta('commander').label, 'Commander')
     assert.equal(dashboardPanelMeta('response').label, 'Response')
+    assert.equal(dashboardPanelMeta('orchestrate').label, 'Orchestrate')
   })
 
   it('clears focused incident when leaving commander or response', () => {
@@ -46,13 +49,20 @@ describe('dashboard panel routing', () => {
     assert.equal(new URLSearchParams(fromResponse.replace(/^\?/, '')).get('incident'), null)
   })
 
-  it('preserves incident when moving between commander and response', () => {
-    const href = dashboardPanelHref(
+  it('preserves incident when moving between commander, orchestrate, and response', () => {
+    const toResponse = dashboardPanelHref(
       new URLSearchParams('view=dashboard&panel=commander&incident=inc-pay:1'),
       'response'
     )
-    const next = new URLSearchParams(href.replace(/^\?/, ''))
-    assert.equal(next.get('panel'), 'response')
+    assert.equal(new URLSearchParams(toResponse.replace(/^\?/, '')).get('panel'), 'response')
+    assert.equal(new URLSearchParams(toResponse.replace(/^\?/, '')).get('incident'), 'inc-pay:1')
+
+    const toOrchestrate = dashboardPanelHref(
+      new URLSearchParams('view=dashboard&panel=commander&incident=inc-pay:1'),
+      'orchestrate'
+    )
+    const next = new URLSearchParams(toOrchestrate.replace(/^\?/, ''))
+    assert.equal(next.get('panel'), 'orchestrate')
     assert.equal(next.get('incident'), 'inc-pay:1')
   })
 
@@ -67,6 +77,16 @@ describe('dashboard panel routing', () => {
     const href = dashboardResponseIncidentHref(new URLSearchParams('view=dashboard'), 'inc-pay:1')
     const next = new URLSearchParams(href.replace(/^\?/, ''))
     assert.equal(next.get('panel'), 'response')
+    assert.equal(next.get('incident'), 'inc-pay:1')
+  })
+
+  it('opens orchestrate with structured incident id', () => {
+    const href = dashboardOrchestrateIncidentHref(
+      new URLSearchParams('view=dashboard'),
+      'inc-pay:1'
+    )
+    const next = new URLSearchParams(href.replace(/^\?/, ''))
+    assert.equal(next.get('panel'), 'orchestrate')
     assert.equal(next.get('incident'), 'inc-pay:1')
   })
 })

@@ -1,9 +1,10 @@
-/** Visual / nav order follows SOC workflow. IDs are unchanged for URL contracts. */
+/** Visual / nav order follows SOC workflow. IDs are URL contracts — do not rename lightly. */
 export const DASHBOARD_PANEL_IDS = [
   'overview',
   'incidents',
   'fleet',
   'commander',
+  'orchestrate',
   'response',
 ]
 
@@ -22,12 +23,12 @@ export const DASHBOARD_NAV_GROUPS = [
   {
     id: 'act',
     label: 'Act',
-    panels: ['response'],
+    panels: ['orchestrate', 'response'],
   },
 ]
 
 /** Panels that keep ?incident= focus across navigation. */
-const INCIDENT_FOCUS_PANELS = new Set(['commander', 'response'])
+const INCIDENT_FOCUS_PANELS = new Set(['commander', 'orchestrate', 'response'])
 
 export const DASHBOARD_PANEL_COPY = {
   overview: {
@@ -45,6 +46,11 @@ export const DASHBOARD_PANEL_COPY = {
   commander: {
     label: 'Commander',
     blurb: 'Evidence-grounded assessment and safety-checked response plan. Advisory only — does not execute.',
+  },
+  orchestrate: {
+    label: 'Orchestrate',
+    blurb:
+      'Multi-agent response workflow shell. Plans require human approval before any future Response Agent execution.',
   },
   response: {
     label: 'Response',
@@ -82,6 +88,15 @@ export function dashboardResponseIncidentHref(searchParams, incidentId) {
   const next = new URLSearchParams(searchParams)
   next.set('view', 'dashboard')
   next.set('panel', 'response')
+  if (incidentId) next.set('incident', String(incidentId))
+  else next.delete('incident')
+  return `?${next.toString()}`
+}
+
+export function dashboardOrchestrateIncidentHref(searchParams, incidentId) {
+  const next = new URLSearchParams(searchParams)
+  next.set('view', 'dashboard')
+  next.set('panel', 'orchestrate')
   if (incidentId) next.set('incident', String(incidentId))
   else next.delete('incident')
   return `?${next.toString()}`

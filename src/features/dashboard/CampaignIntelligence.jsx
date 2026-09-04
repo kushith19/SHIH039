@@ -41,13 +41,15 @@ export default function CampaignIntelligence({ campaigns = [], compact = false }
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
       {!compact ? (
         <div className="shrink-0 border-b border-[var(--tn-line)] px-4 py-3">
-          <div className="tn-label">Campaign intelligence</div>
-          <p className="tn-meta mt-1">Backend-correlated campaigns from this match’s detections</p>
+          <div className="tn-label">History campaigns</div>
+          <p className="tn-meta mt-1">
+            Historical camp-h-* correlation from this match — not live correlation groups
+          </p>
         </div>
       ) : (
         <div className="shrink-0 border-b border-[var(--tn-line)] px-4 py-2">
           <p className="tn-meta text-[11px]">
-            Backend-correlated campaigns · display only, not a second detector
+            History campaigns (camp-h-*) · display only, not live correlation
           </p>
         </div>
       )}

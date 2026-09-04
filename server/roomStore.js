@@ -4,6 +4,8 @@ import { DETECTION_MODE_TGNN } from './detection/modes.js'
 import { parseCityContextOverride, resolveRoomCityContext, simHourAt } from '../shared/cityContext.js'
 import { composeCityPosture } from '../shared/commanderPosture.js'
 import { AUTO_ATTACK_MAX_SPREADS_PER_CAMPAIGN } from '../shared/attackSpreadMode.js'
+import { createEmptyOrchestrationState } from '../shared/response/orchestration.js'
+import { publicOrchestrationState } from './response/orchestrate.js'
 
 export { buildAttackLayerFromGraph }
 
@@ -44,6 +46,8 @@ export function createEmptyRoom(id = DEMO_ROOM_ID) {
     campaigns: [],
     incidentLedger: [],
     commanderBriefing: null,
+    /** Response orchestration (plan + approval). Not campaigns. */
+    responseOrchestration: createEmptyOrchestrationState(),
     riskHistory: [],
     neighborHistory: [],
     ingestionStatus: 'empty',
@@ -107,6 +111,7 @@ export function publicRoomState(room) {
     campaigns: [],
     commanderBriefing: room.commanderBriefing ?? null,
     cityPosture: composeCityPosture(room),
+    responseOrchestration: publicOrchestrationState(room),
     ingestionStatus: room.ingestionStatus ?? 'empty',
     liveTelemetryByNodeId: room.liveTelemetryByNodeId ?? {},
   }

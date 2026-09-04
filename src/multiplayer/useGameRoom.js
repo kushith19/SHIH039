@@ -22,6 +22,7 @@ const emptyRoom = {
   campaigns: [],
   commanderBriefing: null,
   cityPosture: null,
+  responseOrchestration: null,
   ingestionStatus: 'empty',
   liveTelemetryByNodeId: {},
 }
@@ -53,6 +54,7 @@ function roomFromState(state) {
     campaigns: Array.isArray(state.campaigns) ? state.campaigns : [],
     commanderBriefing: state.commanderBriefing ?? null,
     cityPosture: state.cityPosture ?? null,
+    responseOrchestration: state.responseOrchestration ?? null,
     ingestionStatus: state.ingestionStatus ?? 'empty',
     liveTelemetryByNodeId: state.liveTelemetryByNodeId ?? {},
   }

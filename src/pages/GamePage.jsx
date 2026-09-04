@@ -500,6 +500,7 @@ export default function GamePage() {
           hackSimulator={room.hackSimulator}
           commanderBriefing={room.commanderBriefing ?? null}
           cityPosture={room.cityPosture ?? null}
+          responseOrchestration={room.responseOrchestration ?? null}
         />
         </div>
       ) : null}

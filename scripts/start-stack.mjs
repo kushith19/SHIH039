@@ -7,6 +7,7 @@
  */
 import { spawn, spawnSync } from 'node:child_process'
 import { copyFileSync, existsSync, readFileSync } from 'node:fs'
+import { networkInterfaces } from 'node:os'
 import net from 'node:net'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -73,6 +74,18 @@ function modelPresent(names, model) {
   return names.some(
     (n) => n === model || n === `${model}:latest` || n.startsWith(`${model}:`)
   )
+}
+
+function lanIpv4() {
+  const ifaces = networkInterfaces()
+  for (const entries of Object.values(ifaces)) {
+    for (const e of entries ?? []) {
+      if (e.family !== 'IPv4' && e.family !== 4) continue
+      if (e.internal) continue
+      return e.address
+    }
+  }
+  return null
 }
 
 function portBusy(port, host = '127.0.0.1') {
@@ -416,7 +429,7 @@ async function main() {
   ensurePython()
   await ensureCommander()
 
-  log('starting web UI (:5173) and game API (:3001)')
+  log('starting web UI (:5173) and game API (:3001) — LAN host open')
   log('')
   log('  Ollama     http://localhost:11434')
   if (withRag) log('  Qdrant     http://localhost:6333/dashboard')
@@ -427,6 +440,12 @@ async function main() {
   log('  Commander  http://localhost:8000/health')
   log('  API        http://localhost:3001')
   log('  UI         http://localhost:5173')
+  const lan = lanIpv4()
+  if (lan) {
+    log('')
+    log(`  LAN UI     http://${lan}:5173  ← defenders on other devices use this`)
+    log(`  LAN API    http://${lan}:3001`)
+  }
   log('')
 
   spawnInherit(

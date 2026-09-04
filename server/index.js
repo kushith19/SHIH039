@@ -82,6 +82,16 @@ import { attachResponseClassification } from '../shared/responsePolicy.js'
 import { setNodeQuarantined } from './response/quarantineNode.js'
 import { executeResponseAction } from './response/executeAction.js'
 import {
+  approveOrchestrationPlan,
+  executeOrchestrationPlan,
+  generateOrchestrationPlan,
+  refreshOrchestrationFreshness,
+  replanOrchestrationPlan,
+  resetRoomOrchestration,
+  startNewOrchestrationCycle,
+  verifyOrchestrationPlan,
+} from './response/orchestrate.js'
+import {
   clearSpreadTargetLocks,
   invalidateSpreadLocksForNode,
 } from '../shared/spreadTargetLock.js'
@@ -106,7 +116,23 @@ import {
 } from './telemetry/ingestionClient.js'
 
 const PORT = Number(process.env.PORT) || 3001
+const HOST = process.env.HOST || '0.0.0.0'
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN ?? 'http://localhost:5173'
+
+/** Allow local Vite origins (localhost + any host on :5173) for multi-device demos. */
+function isAllowedClientOrigin(origin) {
+  if (!origin) return true
+  if (origin === CLIENT_ORIGIN || origin === 'http://127.0.0.1:5173') return true
+  try {
+    const u = new URL(origin)
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return false
+    const port = u.port || (u.protocol === 'https:' ? '443' : '80')
+    // Vite UI only — covers LAN / hotspot / campus IPs for now
+    return port === '5173'
+  } catch {
+    return false
+  }
+}
 
 /** Live-detection fallback when SQLite has no persistent row yet. */
 function liveCommanderContext(room, incidentId) {
@@ -192,7 +218,14 @@ if (cityModel && applyCityModelOverlay(cityModel)) {
 }
 
 const app = express()
-app.use(cors({ origin: [CLIENT_ORIGIN, 'http://127.0.0.1:5173'], credentials: true }))
+app.use(
+  cors({
+    origin(origin, cb) {
+      cb(null, isAllowedClientOrigin(origin))
+    },
+    credentials: true,
+  })
+)
 app.use(express.json({ limit: '512kb' }))
 async function probeUrl(url, timeoutMs = 800) {
   const ac = new AbortController()
@@ -460,6 +493,215 @@ app.post('/rooms/:id/commander/execute', (req, res) => {
   res.json(result)
 })
 
+app.post('/rooms/:id/orchestration/analyze', (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  const room = getRoom(id)
+  if (!room) {
+    return res.status(404).json({ ok: false, message: 'Room not found' })
+  }
+  const focusIncidentId = String(req.body?.incidentId ?? req.body?.focusIncidentId ?? '').trim() || null
+  // Client-supplied actionIds are intentionally ignored (injection protection).
+  const result = generateOrchestrationPlan(room, {
+    focusIncidentId,
+    resolveContext: resolveCommanderContext,
+  })
+  if (!result.ok) {
+    return res.status(result.statusCode ?? 400).json({
+      ok: false,
+      message: result.message ?? 'Analyze failed',
+      orchestration: result.orchestration ?? null,
+      executed: false,
+    })
+  }
+  broadcastState(room)
+  res.json({
+    ok: true,
+    roomId: id,
+    orchestration: result.orchestration,
+    executed: false,
+    executedActions: [],
+  })
+})
+
+app.post('/rooms/:id/orchestration/approve', (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  const room = getRoom(id)
+  if (!room) {
+    return res.status(404).json({ ok: false, message: 'Room not found' })
+  }
+  const result = approveOrchestrationPlan(room, {
+    resolveContext: resolveCommanderContext,
+    clientActionIds: req.body?.actionIds ?? req.body?.recommendedActions ?? null,
+    onProgress: () => broadcastState(room),
+    onCompleteSync: syncWithTelemetry,
+  })
+  if (!result.ok) {
+    broadcastState(room)
+    return res.status(result.statusCode ?? 400).json({
+      ok: false,
+      message: result.message ?? 'Approval failed',
+      orchestration: result.orchestration ?? null,
+      executed: false,
+    })
+  }
+  broadcastState(room)
+  res.json({
+    ok: true,
+    roomId: id,
+    orchestration: result.orchestration,
+    executed: result.executed === true,
+    executedActions: result.executedActions ?? [],
+    autoContinued: result.autoContinued === true,
+    episodeComplete: result.episodeComplete === true,
+    pausedForApproval: result.pausedForApproval === true,
+    recovered: result.recovered === true,
+    continuationLog: result.continuationLog ?? [],
+    mutatedQuarantine: false,
+    autoRestored: false,
+  })
+})
+
+app.post('/rooms/:id/orchestration/execute', (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  const room = getRoom(id)
+  if (!room) {
+    return res.status(404).json({ ok: false, message: 'Room not found' })
+  }
+  // Client plan/action payloads are intentionally ignored.
+  const result = executeOrchestrationPlan(room, {
+    resolveContext: resolveCommanderContext,
+    clientPlan: req.body?.plan ?? null,
+    clientActionIds: req.body?.actionIds ?? req.body?.recommendedActions ?? null,
+    onProgress: () => broadcastState(room),
+    onCompleteSync: syncWithTelemetry,
+  })
+  if (!result.ok) {
+    broadcastState(room)
+    return res.status(result.statusCode ?? 400).json({
+      ok: false,
+      message: result.message ?? 'Execution failed',
+      orchestration: result.orchestration ?? null,
+      execution: result.execution ?? null,
+    })
+  }
+  // onCompleteSync already broadcasts via telemetry path; ensure clients see VERIFYING
+  broadcastState(room)
+  res.json({
+    ok: true,
+    roomId: id,
+    orchestration: result.orchestration,
+    execution: result.execution,
+    recovered: false,
+    incidentsClosed: false,
+    autoRestored: false,
+  })
+})
+
+app.post('/rooms/:id/orchestration/verify', (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  const room = getRoom(id)
+  if (!room) {
+    return res.status(404).json({ ok: false, message: 'Room not found' })
+  }
+  const result = verifyOrchestrationPlan(room, {
+    resolveContext: resolveCommanderContext,
+    onProgress: () => broadcastState(room),
+    onCompleteSync: syncWithTelemetry,
+    autoContinue: true,
+  })
+  broadcastState(room)
+  if (!result.ok && result.stepVerified !== true && result.pausedForApproval !== true) {
+    return res.status(result.statusCode ?? 400).json({
+      ok: false,
+      message: result.message ?? 'Verification failed',
+      verdict: result.verdict ?? null,
+      orchestration: result.orchestration ?? null,
+      verification: result.verification ?? null,
+      recovered: false,
+      incidentsClosed: false,
+      autoRestored: false,
+      mutatedQuarantine: false,
+    })
+  }
+  res.json({
+    ok: true,
+    roomId: id,
+    verdict: result.verdict,
+    stepVerified: result.stepVerified === true,
+    episodeComplete: result.episodeComplete === true,
+    autoContinued: result.autoContinued === true,
+    pausedForApproval: result.pausedForApproval === true,
+    continuationLog: result.continuationLog ?? [],
+    orchestration: result.orchestration,
+    verification: result.verification,
+    recovered: result.recovered === true,
+    incidentsClosed: false,
+    autoRestored: false,
+    mutatedQuarantine: false,
+  })
+})
+
+app.post('/rooms/:id/orchestration/replan', (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  const room = getRoom(id)
+  if (!room) {
+    return res.status(404).json({ ok: false, message: 'Room not found' })
+  }
+  // Client-supplied actionIds / targets / plans are intentionally ignored.
+  const result = replanOrchestrationPlan(room, {
+    resolveContext: resolveCommanderContext,
+    clientActionIds: req.body?.actionIds ?? req.body?.recommendedActions ?? null,
+    clientTargets: req.body?.targets ?? req.body?.affectedNodeIds ?? null,
+    clientPlan: req.body?.plan ?? null,
+  })
+  broadcastState(room)
+  if (!result.ok) {
+    return res.status(result.statusCode ?? 400).json({
+      ok: false,
+      message: result.message ?? 'Re-plan failed',
+      orchestration: result.orchestration ?? null,
+      executed: false,
+      mutatedQuarantine: false,
+      mutatedOverrides: false,
+      autoApproved: false,
+    })
+  }
+  res.json({
+    ok: true,
+    roomId: id,
+    orchestration: result.orchestration,
+    executed: false,
+    executedActions: [],
+    mutatedQuarantine: false,
+    mutatedOverrides: false,
+    autoApproved: false,
+  })
+})
+
+app.post('/rooms/:id/orchestration/new-cycle', (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  const room = getRoom(id)
+  if (!room) {
+    return res.status(404).json({ ok: false, message: 'Room not found' })
+  }
+  const result = startNewOrchestrationCycle(room, {})
+  broadcastState(room)
+  if (!result.ok) {
+    return res.status(result.statusCode ?? 400).json({
+      ok: false,
+      message: result.message ?? 'New cycle failed',
+      orchestration: result.orchestration ?? null,
+      executed: false,
+    })
+  }
+  res.json({
+    ok: true,
+    roomId: id,
+    orchestration: result.orchestration,
+    executed: false,
+  })
+})
+
 app.patch('/rooms/:id/incidents/:incidentId', (req, res) => {
   const id = String(req.params.id ?? '').toUpperCase()
   const room = getRoom(id)
@@ -538,7 +780,7 @@ app.post('/rooms/:id/commander/ask', async (req, res) => {
 const httpServer = createServer(app)
 const io = new Server(httpServer, {
   cors: {
-    origin: [CLIENT_ORIGIN, 'http://127.0.0.1:5173'],
+    origin: isAllowedClientOrigin,
     methods: ['GET', 'POST'],
   },
   maxHttpBufferSize: 5e6,
@@ -556,12 +798,17 @@ function broadcastState(room) {
   io.to(room.id).emit('state:sync', publicRoomState(room))
 }
 
-/** After detection: optional auto-spread, then broadcast. */
+/** After detection: optional auto-spread, orchestration freshness, then broadcast. */
 function afterTelemetryTick(room) {
   try {
     evaluateAutoSpread(room)
   } catch (err) {
     console.error('[auto-spread] evaluate failed', err)
+  }
+  try {
+    refreshOrchestrationFreshness(room, resolveCommanderContext)
+  } catch (err) {
+    console.error('[orchestration] freshness check failed', err)
   }
   broadcastState(room)
 }
@@ -614,6 +861,7 @@ function resetMatch(room) {
   room.campaigns = []
   room.incidentLedger = []
   room.commanderBriefing = null
+  resetRoomOrchestration(room)
   resetTgnnCalibrator(room.id)
   startMatch(room)
   return true
@@ -1192,6 +1440,6 @@ httpServer.on('error', (err) => {
   throw err
 })
 
-httpServer.listen(PORT, () => {
-  console.log(`TrustNetAI game server on http://localhost:${PORT}`)
+httpServer.listen(PORT, HOST, () => {
+  console.log(`TrustNetAI game server on http://${HOST}:${PORT}`)
 })

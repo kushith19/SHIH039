@@ -94,6 +94,12 @@ export function emptyDetectionResult() {
     isolationScoresByNodeId: {},
     reasonsByNodeId: {},
     incidents: [],
+    liveCorrelation: {
+      groups: [],
+      generatedAt: null,
+      pairCount: 0,
+      linkedPairCount: 0,
+    },
     detectionMode: 'tgnn',
     tgnnCalibrating: false,
     tgnnWarmupCollected: 0,

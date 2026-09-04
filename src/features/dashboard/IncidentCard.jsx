@@ -18,6 +18,17 @@ import {
 } from './dashboardPanels.js'
 import { fmt } from './metrics'
 import { metricEvidenceHighlight } from './overviewView.js'
+import {
+  correlationGroupId,
+  correlationReasonLabels,
+  formatPriorityScore,
+  nodeLabelFromList,
+  recoveryImpactBand,
+  recoveryPriorityValue,
+  relatedLiveCount,
+  reliefCount,
+  reliefDependencyLabels,
+} from './incidentStreamView.js'
 
 function severityTone(severity) {
   if (severity === 'critical' || severity === 'high') return 'crit'
@@ -43,7 +54,13 @@ function severityRank(severity) {
   }
 }
 
-export default function IncidentCard({ inc, nodes = [], primarySpreadNodeId = null, onSelectEndpoint }) {
+export default function IncidentCard({
+  inc,
+  rank = null,
+  nodes = [],
+  primarySpreadNodeId = null,
+  onSelectEndpoint,
+}) {
   const [searchParams] = useSearchParams()
   const roomLike = { nodes }
   const path = primaryAttackPath(inc)
@@ -53,7 +70,7 @@ export default function IncidentCard({ inc, nodes = [], primarySpreadNodeId = nu
   const fin = inc.financialContext
   const money =
     fin?.simulated && fin.exposureLabel && fin.exposureLabel !== '₹0' ? fin.exposureLabel : null
-  const related = [...(Array.isArray(inc.relatedIncidents) ? inc.relatedIncidents : [])].sort(
+  const relatedHistory = [...(Array.isArray(inc.relatedIncidents) ? inc.relatedIncidents : [])].sort(
     (a, b) => {
       const d = severityRank(a.severity) - severityRank(b.severity)
       if (d !== 0) return d
@@ -65,6 +82,16 @@ export default function IncidentCard({ inc, nodes = [], primarySpreadNodeId = nu
   const signals = keySignals(inc)
   const commanderId = inc.persistentId || inc.id
   const status = inc.status || 'open'
+
+  const impact = inc.recoveryImpact
+  const priority = recoveryPriorityValue(inc)
+  const band = recoveryImpactBand(priority)
+  const relief = reliefCount(inc)
+  const relatedLive = relatedLiveCount(inc)
+  const groupId = correlationGroupId(inc)
+  const corrReasons = correlationReasonLabels(inc.correlation?.reasons)
+  const explanation = impact?.explanation
+  const dependencyChain = reliefDependencyLabels(inc, nodes)
 
   const nextTargetId =
     primarySpreadNodeId ??
@@ -94,9 +121,18 @@ export default function IncidentCard({ inc, nodes = [], primarySpreadNodeId = nu
 
   return (
     <div>
+      {/* LEVEL 1 — What needs attention */}
       <div className="flex flex-wrap items-center gap-2">
+        {rank != null ? (
+          <span className="font-mono text-xs tabular-nums text-[var(--tn-muted)]">
+            Priority #{rank}
+          </span>
+        ) : null}
         <StatusBadge tone={severityTone(inc.severity)}>{inc.severity || 'low'}</StatusBadge>
         <StatusBadge tone={status === 'open' ? 'warn' : 'muted'}>{status}</StatusBadge>
+        {groupId ? (
+          <StatusBadge tone="warn">Related · {relatedLive || '—'}</StatusBadge>
+        ) : null}
       </div>
       <h2 className="mt-2 text-lg font-medium">
         <button
@@ -108,6 +144,115 @@ export default function IncidentCard({ inc, nodes = [], primarySpreadNodeId = nu
         </button>
       </h2>
       <p className="tn-meta mt-0.5">{detectionTypeLabel(inc.detectionType)}</p>
+
+      {/* LEVEL 2 — Why important (recovery) */}
+      {impact || priority != null ? (
+        <div className="mt-4 border border-[var(--tn-line)] bg-[var(--tn-elevated)] px-3 py-3">
+          <div className="soc-zone-title">Why resolve first?</div>
+          <p className="mt-1.5 text-sm font-medium leading-snug">
+            {explanation?.headline || `Resolve ${inc.endpointLabel || inc.endpointId} first`}
+          </p>
+          <div className="mt-3 grid grid-cols-3 gap-3 font-mono tabular-nums">
+            <div>
+              <div className="tn-label">Priority</div>
+              <div className="mt-0.5 text-base">
+                {priority == null ? '—' : formatPriorityScore(priority)}
+                {band ? (
+                  <span className="ml-1 text-[11px] text-[var(--tn-muted)]">{band}</span>
+                ) : null}
+              </div>
+            </div>
+            <div>
+              <div className="tn-label">Potential relief</div>
+              <div className="mt-0.5 text-base">{relief}</div>
+            </div>
+            <div>
+              <div className="tn-label">Related</div>
+              <div className="mt-0.5 text-base">{relatedLive}</div>
+            </div>
+          </div>
+
+          {explanation ? (
+            <ul className="tn-meta mt-3 space-y-1 text-[12px]">
+              {explanation.certain?.count > 0 ? (
+                <li>
+                  ✓ {explanation.certain.count} confirmed incident endpoint addressed
+                  {explanation.certain.nodes?.[0]
+                    ? ` (${nodeLabelFromList(nodes, explanation.certain.nodes[0])})`
+                    : ''}
+                </li>
+              ) : null}
+              {explanation.exposureRelief?.count > 0 ? (
+                <li>
+                  ↳ {explanation.exposureRelief.count} downstream node
+                  {explanation.exposureRelief.count === 1 ? '' : 's'} may lose exposure
+                  {explanation.exposureRelief.criticalCount > 0
+                    ? ` · ${explanation.exposureRelief.criticalCount} critical`
+                    : ''}
+                </li>
+              ) : null}
+              {explanation.relatedMayEase?.count > 0 ? (
+                <li>
+                  ↳ {explanation.relatedMayEase.count} related incident
+                  {explanation.relatedMayEase.count === 1 ? '' : 's'} may become less exposed
+                </li>
+              ) : null}
+              {explanation.excludedIndependent?.count > 0 ? (
+                <li>
+                  Independent compromises excluded:{' '}
+                  {explanation.excludedIndependent.count} node
+                  {explanation.excludedIndependent.count === 1 ? '' : 's'}
+                </li>
+              ) : null}
+              {explanation.excludedQuarantined?.count > 0 ? (
+                <li>
+                  Already contained (quarantined):{' '}
+                  {explanation.excludedQuarantined.count} node
+                  {explanation.excludedQuarantined.count === 1 ? '' : 's'}
+                </li>
+              ) : null}
+            </ul>
+          ) : null}
+
+          {(explanation?.reasons ?? []).length > 0 ? (
+            <ul className="tn-meta mt-2 list-disc space-y-0.5 pl-4 text-[11px]">
+              {explanation.reasons.slice(0, 5).map((reason) => (
+                <li key={reason}>{reason}</li>
+              ))}
+            </ul>
+          ) : null}
+
+          {dependencyChain.length > 1 ? (
+            <div className="mt-3">
+              <div className="tn-label">Downstream dependency · potential exposure relief</div>
+              <ol className="mt-1 flex flex-wrap items-center gap-1.5">
+                {dependencyChain.map((label, i) => (
+                  <li key={`${label}-${i}`} className="flex items-center gap-1.5 text-sm">
+                    {i > 0 ? <span className="text-[var(--tn-muted)]">↓</span> : null}
+                    <span className={i === 0 ? 'font-medium' : 'text-[var(--tn-muted)]'}>
+                      {label}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+              <p className="tn-meta mt-1 text-[10px]">
+                Dependency topology — not a confirmed attack path. Potential relief ≠ restore.
+              </p>
+            </div>
+          ) : null}
+
+          {corrReasons.length > 0 ? (
+            <div className="mt-3">
+              <div className="tn-label">Related because</div>
+              <ul className="tn-meta mt-1 list-disc space-y-0.5 pl-4 text-[11px]">
+                {corrReasons.map((reason) => (
+                  <li key={reason}>{reason}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="mt-4 grid grid-cols-3 gap-3 border-y border-[var(--tn-line)] py-3 font-mono tabular-nums">
         <div>
@@ -173,7 +318,10 @@ export default function IncidentCard({ inc, nodes = [], primarySpreadNodeId = nu
       ) : null}
 
       <div className="mt-5">
-        <h3 className="soc-zone-title">Attack path</h3>
+        <h3 className="soc-zone-title">Assessment path</h3>
+        <p className="tn-meta mt-0.5 text-[10px]">
+          Exposure assessment — not confirmed attack movement
+        </p>
         {labels.length <= 1 ? (
           <p className="tn-meta mt-1.5">
             {labels[0] || inc.endpointLabel || inc.endpointId}
@@ -214,27 +362,17 @@ export default function IncidentCard({ inc, nodes = [], primarySpreadNodeId = nu
           </div>
           {spreadComponents ? (
             <ul className="tn-meta mt-2 space-y-0.5">
-              <li>
-                • Behavioral risk: {Math.round(spreadComponents.behavioralRisk)}
-              </li>
-              <li>
-                • Peer exposure/trust risk: {Math.round(spreadComponents.peerRisk)}
-              </li>
-              <li>
-                • TGNN residual: {Math.round(spreadComponents.residualRisk)}
-              </li>
+              <li>• Behavioral risk: {Math.round(spreadComponents.behavioralRisk)}</li>
+              <li>• Peer exposure/trust risk: {Math.round(spreadComponents.peerRisk)}</li>
+              <li>• TGNN residual: {Math.round(spreadComponents.residualRisk)}</li>
               <li>
                 • Graph relationship: {Math.round(spreadComponents.graphRelationshipRisk)}
               </li>
-              <li>
-                • Hop proximity: {Math.round(spreadComponents.hopProximityRisk)}
-              </li>
+              <li>• Hop proximity: {Math.round(spreadComponents.hopProximityRisk)}</li>
             </ul>
           ) : null}
           {spreadPathLabels.length > 1 ? (
-            <p className="tn-meta mt-1.5">
-              Path: {spreadPathLabels.join(' → ')}
-            </p>
+            <p className="tn-meta mt-1.5">Path: {spreadPathLabels.join(' → ')}</p>
           ) : null}
           <p className="tn-meta mt-1.5 text-[11px]">
             Assessment only — not a confirmed compromise or automatic attack target.
@@ -255,11 +393,11 @@ export default function IncidentCard({ inc, nodes = [], primarySpreadNodeId = nu
         )}
       </div>
 
-      {related.length > 0 ? (
+      {relatedHistory.length > 0 ? (
         <div className="mt-5">
-          <h3 className="soc-zone-title">Related</h3>
+          <h3 className="soc-zone-title">History relationships</h3>
           <ul className="tn-meta mt-1.5 space-y-1">
-            {related.slice(0, 3).map((r) => (
+            {relatedHistory.slice(0, 3).map((r) => (
               <li key={r.incidentId}>• {r.summary || r.incidentType || r.incidentId}</li>
             ))}
           </ul>

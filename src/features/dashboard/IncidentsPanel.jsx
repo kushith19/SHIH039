@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   DETECTION_TYPES,
   detectionTypeLabel,
-  formatEvidenceItem,
 } from '@shared/incidents.js'
 import IncidentCard from './IncidentCard'
 import CampaignIntelligence from './CampaignIntelligence'
+import LiveCorrelationPanel from './LiveCorrelationPanel'
 import HistoryIncidentTimeline from './HistoryIncidentTimeline'
 import Toolbar, { FilterChip } from '../../ui/Toolbar'
 import StatusBadge from '../../ui/StatusBadge'
@@ -14,6 +14,15 @@ import {
   liveIncidentMatchesTimelineEvent,
   timelineSelectionKey,
 } from './historyTimelineView.js'
+import {
+  correlationGroupId,
+  formatPriorityScore,
+  orderLiveIncidents,
+  recoveryImpactBand,
+  recoveryPriorityValue,
+  relatedLiveCount,
+  reliefCount,
+} from './incidentStreamView.js'
 
 function railColor(severity) {
   switch (severity) {
@@ -33,52 +42,16 @@ function severityTone(severity) {
   return 'muted'
 }
 
-function explanationPreview(inc) {
-  if (inc.explanationStatus === 'pending') return 'Generating…'
-  if (inc.explanationStatus === 'fallback') return 'Deterministic template — Commander offline'
-  if (inc.explanationStatus === 'error') return 'Commander could not explain this detection'
-  const t = String(inc.explanation ?? '').trim()
-  if (t) return t.length > 90 ? `${t.slice(0, 87)}…` : t
-  return 'No explanation yet'
-}
-
-function queueEvidencePreview(inc) {
-  const line = (Array.isArray(inc?.evidence) ? inc.evidence : [])
-    .map(formatEvidenceItem)
-    .find(Boolean)
-  if (line) return line.length > 90 ? `${line.slice(0, 87)}…` : line
-  return explanationPreview(inc)
-}
-
 function streamKey(inc) {
   return String(inc.endpointId || inc.id || '')
-}
-
-function severityRank(severity) {
-  switch (String(severity ?? '').toLowerCase()) {
-    case 'critical':
-      return 0
-    case 'high':
-      return 1
-    case 'medium':
-      return 2
-    default:
-      return 3
-  }
-}
-
-function compareBySeverity(a, b) {
-  const d = severityRank(a.severity) - severityRank(b.severity)
-  if (d !== 0) return d
-  const la = String(a.endpointLabel || a.endpointId || '')
-  const lb = String(b.endpointLabel || b.endpointId || '')
-  return la.localeCompare(lb)
 }
 
 export default function IncidentsPanel({
   roomId = '',
   incidents = [],
   nodes = [],
+  edges = [],
+  liveCorrelation = null,
   primarySpreadNodeId = null,
   onSelectEndpoint,
   hideHeader = false,
@@ -89,14 +62,12 @@ export default function IncidentsPanel({
   const [historyIncidents, setHistoryIncidents] = useState([])
   const [historyOrder, setHistoryOrder] = useState('newest-first')
   const [timelineFocusId, setTimelineFocusId] = useState(null)
-  const [secondaryTab, setSecondaryTab] = useState('timeline')
+  const [secondaryTab, setSecondaryTab] = useState('correlation')
 
   const nextTargetKey = primarySpreadNodeId ? String(primarySpreadNodeId) : null
+  const liveGroups = Array.isArray(liveCorrelation?.groups) ? liveCorrelation.groups : []
 
-  const orderedIncidents = useMemo(() => {
-    const list = Array.isArray(incidents) ? incidents : []
-    return [...list].sort(compareBySeverity)
-  }, [incidents])
+  const orderedIncidents = useMemo(() => orderLiveIncidents(incidents), [incidents])
 
   const rows = useMemo(() => {
     if (!typeFilter) return orderedIncidents
@@ -106,6 +77,14 @@ export default function IncidentsPanel({
         (inc.detectionTypes ?? []).includes(typeFilter)
     )
   }, [orderedIncidents, typeFilter])
+
+  const rankByKey = useMemo(() => {
+    const map = new Map()
+    orderedIncidents.forEach((inc, i) => {
+      map.set(streamKey(inc), i + 1)
+    })
+    return map
+  }, [orderedIncidents])
 
   useEffect(() => {
     if (!roomId) {
@@ -211,7 +190,10 @@ export default function IncidentsPanel({
           ))}
         </Toolbar>
         {hideHeader ? (
-          <p className="tn-meta mt-2">Live promoted detections this tick · history below.</p>
+          <p className="tn-meta mt-2">
+            Ranked by recovery impact — resolve the incident that recovers the most
+            infrastructure, not only the loudest severity.
+          </p>
         ) : null}
       </div>
 
@@ -219,8 +201,10 @@ export default function IncidentsPanel({
         <div className="soc-zone flex min-h-0 max-h-[40vh] flex-col overflow-hidden lg:max-h-none">
           <div className="flex shrink-0 items-baseline justify-between gap-2 border-b border-[var(--tn-line)] px-4 py-2.5">
             <div>
-              <div className="text-sm font-medium">Live queue</div>
-              <p className="tn-meta mt-0.5 text-[11px]">Promoted this tick</p>
+              <div className="text-sm font-medium">Incident stream</div>
+              <p className="tn-meta mt-0.5 text-[11px]">
+                Recovery priority · then severity
+              </p>
             </div>
             <span className="font-mono text-xs tabular-nums text-[var(--tn-muted)]">
               {rows.length}
@@ -238,6 +222,7 @@ export default function IncidentsPanel({
                   <QueueRow
                     key={streamKey(inc)}
                     inc={inc}
+                    rank={rankByKey.get(streamKey(inc)) ?? null}
                     selected={selectedKey === streamKey(inc)}
                     onSelect={() => setSelectedKey(streamKey(inc))}
                     isNextTarget={nextTargetKey != null && streamKey(inc) === nextTargetKey}
@@ -252,19 +237,20 @@ export default function IncidentsPanel({
           <div className="shrink-0 border-b border-[var(--tn-line)] px-4 py-2.5">
             <div className="text-sm font-medium">Investigation</div>
             <p className="tn-meta mt-0.5 text-[11px]">
-              Level-1 evidence · hand off to Commander (advisory) or Response (execute)
+              Why resolve first · evidence · Commander / Response
             </p>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto p-4">
             {selected ? (
               <IncidentCard
                 inc={selected}
+                rank={rankByKey.get(streamKey(selected)) ?? null}
                 nodes={nodes}
                 primarySpreadNodeId={primarySpreadNodeId}
                 onSelectEndpoint={onSelectEndpoint}
               />
             ) : (
-              <p className="tn-meta">Select an incident from the live queue to inspect evidence.</p>
+              <p className="tn-meta">Select an incident from the stream to inspect recovery impact.</p>
             )}
           </div>
         </div>
@@ -274,20 +260,35 @@ export default function IncidentsPanel({
         <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-[var(--tn-line)] px-4 py-2">
           <span className="soc-zone-title mr-2">Secondary</span>
           <FilterChip
+            active={secondaryTab === 'correlation'}
+            onClick={() => setSecondaryTab('correlation')}
+          >
+            Live correlation
+          </FilterChip>
+          <FilterChip
             active={secondaryTab === 'timeline'}
             onClick={() => setSecondaryTab('timeline')}
           >
             Timeline
           </FilterChip>
           <FilterChip
-            active={secondaryTab === 'campaigns'}
-            onClick={() => setSecondaryTab('campaigns')}
+            active={secondaryTab === 'history'}
+            onClick={() => setSecondaryTab('history')}
           >
-            Campaigns
+            History
           </FilterChip>
         </div>
         <div className="min-h-0 flex-1 overflow-hidden">
-          {secondaryTab === 'timeline' ? (
+          {secondaryTab === 'correlation' ? (
+            <LiveCorrelationPanel
+              groups={liveGroups}
+              incidents={incidents}
+              nodes={nodes}
+              edges={edges}
+              compact
+              onSelectIncident={(inc) => setSelectedKey(streamKey(inc))}
+            />
+          ) : secondaryTab === 'timeline' ? (
             <HistoryIncidentTimeline
               incidents={historyIncidents}
               campaigns={historyCampaigns}
@@ -306,12 +307,18 @@ export default function IncidentsPanel({
   )
 }
 
-function QueueRow({ inc, selected, onSelect, isNextTarget = false }) {
+function QueueRow({ inc, rank, selected, onSelect, isNextTarget = false }) {
+  const priority = recoveryPriorityValue(inc)
+  const band = recoveryImpactBand(priority)
+  const relief = reliefCount(inc)
+  const related = relatedLiveCount(inc)
+  const groupId = correlationGroupId(inc)
+
   return (
     <li>
       <button
         type="button"
-        className="flex w-full text-left"
+        className="flex w-full text-left transition-colors duration-150"
         style={selected ? { background: 'var(--tn-select-bg)' } : undefined}
         onClick={onSelect}
       >
@@ -321,9 +328,19 @@ function QueueRow({ inc, selected, onSelect, isNextTarget = false }) {
         />
         <div className="min-w-0 flex-1 px-3 py-2.5">
           <div className="flex items-center gap-2">
+            {rank != null ? (
+              <span className="shrink-0 font-mono text-[11px] tabular-nums text-[var(--tn-muted)]">
+                #{rank}
+              </span>
+            ) : null}
             <span className="truncate text-sm font-medium">
               {inc.endpointLabel || inc.endpointId}
             </span>
+            {rank === 1 ? (
+              <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-[var(--tn-warn)]">
+                Resolve first
+              </span>
+            ) : null}
             {isNextTarget ? (
               <span
                 className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold leading-tight"
@@ -341,8 +358,22 @@ function QueueRow({ inc, selected, onSelect, isNextTarget = false }) {
             <span className="text-xs text-[var(--tn-muted)]">
               {detectionTypeLabel(inc.detectionType)}
             </span>
+            {groupId ? (
+              <StatusBadge tone="warn">
+                Related · {related || '—'}
+              </StatusBadge>
+            ) : null}
           </div>
-          <p className="tn-meta mt-1 line-clamp-1 text-[12px]">{queueEvidencePreview(inc)}</p>
+          <div className="tn-meta mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px]">
+            {priority != null ? (
+              <span>
+                Recovery {formatPriorityScore(priority)}
+                {band ? ` · ${band}` : ''}
+              </span>
+            ) : null}
+            {relief > 0 ? <span>Relief {relief}</span> : null}
+            {related > 0 && !groupId ? <span>Related {related}</span> : null}
+          </div>
         </div>
       </button>
     </li>

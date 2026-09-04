@@ -18,6 +18,8 @@ import {
   saveDetectionRun,
 } from '../metrics/store.js'
 import { clearPersistedIncidentHistory, persistDetectionIncidents } from '../metrics/incidents.js'
+import { attachLiveCorrelation } from '../../shared/correlation/liveCorrelation.js'
+import { attachRecoveryImpact } from '../../shared/recovery/recoveryImpact.js'
 import { emptyDetectionResult } from '../detection/types.js'
 import { advanceRiskMomentum, resetRiskHistory } from '../detection/riskMomentum.js'
 import { deleteTgnnCalibrator } from '../detection/calibrator.js'
@@ -26,6 +28,7 @@ import {
   enqueueIncidentExplanations,
   clearExplanationCache,
 } from '../commander/client.js'
+import { resetRoomOrchestration } from '../response/orchestrate.js'
 import {
   ensureRoomInfrastructure,
   liveTelemetryByNodeId as mapLiveTelemetryByNodeId,
@@ -87,6 +90,27 @@ export async function ingestCitySnapshot(room, onAfter) {
   } catch (err) {
     console.error('[incidents] persist failed', err)
   }
+  // Live correlation: related OPEN incidents only (not causality, not recovery ranking).
+  // History camp-h-* campaigns remain separate and untouched.
+  try {
+    attachLiveCorrelation(detection, {
+      edges: room.edges ?? [],
+      nowMs: Date.now(),
+    })
+  } catch (err) {
+    console.error('[correlation] live correlation failed', err)
+    detection.liveCorrelation = { groups: [], generatedAt: Date.now(), pairCount: 0, linkedPairCount: 0 }
+  }
+  // Recovery impact / priority: counterfactual only — does not mutate quarantine/overrides.
+  try {
+    attachRecoveryImpact(detection, {
+      nodes: room.nodes ?? [],
+      edges: room.edges ?? [],
+      hackSimulator: room.hackSimulator ?? null,
+    })
+  } catch (err) {
+    console.error('[recovery] recovery impact failed', err)
+  }
   saveDetectionRun(room.id, input.simulationTick, input.tsMs, detection)
   room.detection = detection
   enqueueIncidentExplanations(room, onAfter)
@@ -131,6 +155,11 @@ export function startTelemetryLoop(room, onTick) {
   clearActiveAttackSequences(room)
   room.campaigns = []
   room.incidentLedger = []
+  try {
+    resetRoomOrchestration(room)
+  } catch {
+    // orchestration module always available; keep loop resilient
+  }
   try {
     deleteRoomLookbackSamples(room.id)
   } catch {

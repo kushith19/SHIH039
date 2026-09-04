@@ -16,6 +16,7 @@ import IncidentsPanel from '../features/dashboard/IncidentsPanel'
 import OverviewPanel from '../features/dashboard/OverviewPanel'
 import CommanderPanel from '../features/commander/CommanderPanel'
 import ResponseConsolePanel from '../features/response/ResponseConsolePanel'
+import ResponseOrchestrationPanel from '../features/response/ResponseOrchestrationPanel'
 import {
   holdAlignedPct,
   lastValue,
@@ -46,6 +47,7 @@ export default function DashboardPage({
   hackSimulator = null,
   commanderBriefing = null,
   cityPosture = null,
+  responseOrchestration = null,
 }) {
   const [searchParams] = useSearchParams()
   const panel = resolveDashboardPanel(searchParams.get('panel'))
@@ -318,6 +320,8 @@ export default function DashboardPage({
         roomId={roomId}
         incidents={incidents}
         nodes={nodes}
+        edges={edges}
+        liveCorrelation={detection?.liveCorrelation ?? null}
         primarySpreadNodeId={detection?.primarySpreadNodeId ?? null}
         onSelectEndpoint={setFilterId}
       />
@@ -332,6 +336,18 @@ export default function DashboardPage({
         focusIncidentId={searchParams.get('incident')}
         simulationTick={tick}
         detection={detection}
+      />
+    )
+  } else if (panel === 'orchestrate') {
+    pageBody = (
+      <ResponseOrchestrationPanel
+        roomId={roomId}
+        detection={detection}
+        nodes={nodes}
+        edges={edges}
+        incidents={incidents}
+        focusIncidentId={searchParams.get('incident')}
+        orchestrationState={responseOrchestration}
       />
     )
   } else if (panel === 'response') {
@@ -373,7 +389,7 @@ export default function DashboardPage({
             filterId || (isIncidentFocusPanel(panel) && focusLabel) ? (
               <div className="flex flex-wrap items-center gap-2">
                 {isIncidentFocusPanel(panel) && focusLabel ? (
-                  <span className="tn-badge" title="Incident focus kept on Commander and Response">
+                  <span className="tn-badge" title="Incident focus kept on Commander, Orchestrate, and Response">
                     Focused · {focusLabel}
                   </span>
                 ) : null}
@@ -390,14 +406,20 @@ export default function DashboardPage({
         />
         <main
           className={
-            panel === 'commander' || panel === 'incidents' || panel === 'response'
+            panel === 'commander' ||
+            panel === 'incidents' ||
+            panel === 'orchestrate' ||
+            panel === 'response'
               ? 'flex min-h-0 flex-1 flex-col overflow-hidden p-4 md:px-6 md:py-5'
               : 'min-h-0 flex-1 overflow-auto p-4 md:px-6 md:py-5'
           }
         >
           <div
             className={
-              panel === 'commander' || panel === 'incidents' || panel === 'response'
+              panel === 'commander' ||
+              panel === 'incidents' ||
+              panel === 'orchestrate' ||
+              panel === 'response'
                 ? 'flex min-h-0 flex-1 flex-col gap-4'
                 : panel === 'overview'
                   ? 'mx-auto w-full max-w-[80rem] space-y-4'
