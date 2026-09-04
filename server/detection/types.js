@@ -90,6 +90,7 @@ export function emptyDetectionResult() {
     atRiskEdgeIds: [],
     primarySpreadNodeId: null,
     primarySpreadEdgeId: null,
+    primarySpreadAssessment: null,
     isolationScoresByNodeId: {},
     reasonsByNodeId: {},
     incidents: [],

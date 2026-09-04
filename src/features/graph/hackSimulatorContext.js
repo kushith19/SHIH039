@@ -19,8 +19,9 @@ import { createContext, useContext } from 'react'
  *   compromisedNodeIds?: string[] — anomaly seeds + primary spread target
  *   atRiskNodeIds?: string[] — 1-hop neighbors of residual flags (peer exposed)
  *   atRiskEdgeIds?: string[] — real edges incident to a residual flag
- *   primarySpreadNodeId?: string | null — highest-risk spread target (red node)
- *   primarySpreadEdgeId?: string | null — link to primary target (red edge)
+ *   primarySpreadNodeId?: string | null — highest-risk spread target (purple assessment)
+ *   primarySpreadEdgeId?: string | null — link to primary target
+ *   primarySpreadAssessment?: object | null — component breakdown for ranking explainability
  *   simulationTick?: number
  *   cityContext?: string
  *   trustByNodeId?: Record<string, object>

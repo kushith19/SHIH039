@@ -33,6 +33,7 @@ import {
   refreshRoomIngestion,
   toIngestSnapshot,
 } from './ingestionClient.js'
+import { ensureSpreadTargetLocks, clearSpreadTargetLocks } from '../../shared/spreadTargetLock.js'
 
 const TICK_MS = 1000
 /** @type {Map<string, ReturnType<typeof setInterval>>} */
@@ -75,7 +76,8 @@ export async function ingestCitySnapshot(room, onAfter) {
   appendDetectionInput(input)
   const withMetrics = attachLookback(input, getLookback(room.id, LOOKBACK_TICKS, input.simulationTick))
   const withWindow = attachNeighborLookback(withMetrics, room.neighborHistory)
-  let detection = runDetection(withWindow)
+  const spreadLocks = ensureSpreadTargetLocks(room)
+  let detection = runDetection(withWindow, { spreadTargetBySeedId: spreadLocks })
   detection = advanceRiskMomentum(room, detection)
   room.neighborHistory = pushNeighborSnapshot(room.neighborHistory, withWindow, LOOKBACK_TICKS)
   attachExplanations(room, detection.incidents)
@@ -124,6 +126,7 @@ export function startTelemetryLoop(room, onTick) {
   stopTelemetryLoop(room.id)
   room.simulationTick = 0
   room.detection = emptyDetectionResult()
+  clearSpreadTargetLocks(room)
   room.campaigns = []
   room.incidentLedger = []
   try {

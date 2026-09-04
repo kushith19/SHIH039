@@ -269,7 +269,14 @@ test('one TGNN seed promotes exactly one confirmed incident; peer and propagatio
       }),
       ep('gw', { type: 'bank_gateway', sector: 'finance', label: 'Bank Gateway' }),
       ep('core', { type: 'banking_financial', sector: 'finance', label: 'Core Banking' }),
-      ep('hospital', { type: 'hospital_gateway', sector: 'healthcare', label: 'Hospital Gateway' }),
+      ep('hospital', {
+        type: 'hospital_gateway',
+        sector: 'healthcare',
+        label: 'Hospital Gateway',
+        // Elevated deviation so seed-scoped ranking prefers hospital over healthy gw.
+        telemetry: tel(2500, 200, 20, 15),
+        expectedTelemetry: tel(100, 20, 2, 1),
+      }),
       ep('auth', { type: 'hospital_auth', sector: 'healthcare', label: 'Hospital Auth' }),
       ep('emr', { type: 'hospital_emr', sector: 'healthcare', label: 'Hospital EMR' }),
     ],
@@ -296,7 +303,7 @@ test('one TGNN seed promotes exactly one confirmed incident; peer and propagatio
     primarySpreadNodeId: 'hospital',
     primarySpreadEdgeId: 'e-pay-hosp',
     reasonsByNodeId: { pay: ['tgnn_embed'] },
-    isolationScoresByNodeId: { pay: 0.9 },
+    isolationScoresByNodeId: { pay: 0.9, hospital: 0.45, gw: 0.05 },
     timestamp: input.timestamp,
   }
 
@@ -313,6 +320,10 @@ test('one TGNN seed promotes exactly one confirmed incident; peer and propagatio
   )
   assert.deepEqual(inc.propagationPaths.emr, ['pay', 'hospital', 'auth', 'emr'])
   assert.equal(inc.primarySpreadNodeId, 'hospital')
+  assert.ok(inc.primarySpreadAssessment)
+  assert.equal(inc.primarySpreadAssessment.nodeId, 'hospital')
+  assert.ok(inc.primarySpreadAssessment.score > 0)
+  assert.ok(inc.primarySpreadAssessment.components)
   assert.ok(inc.affectedDependencies.length > 0)
 })
 

@@ -3,6 +3,7 @@ import { isLiveCampaignStatus } from '../../shared/campaigns.js'
 import { runtimeStateOf } from '../infrastructureNode.js'
 import { clearPersistedIncidentHistory } from '../metrics/incidents.js'
 import { mergeMetrics, normalizeMetricPatch, normalizeMetricSnapshot } from '../nodeMetrics.js'
+import { clearSpreadTargetLocks } from '../../shared/spreadTargetLock.js'
 
 function nodeById(room, nodeId) {
   return room.nodes.find((n) => n.id === nodeId) ?? null
@@ -51,6 +52,7 @@ export function clearIncidentLedger(room) {
 export function abortAndClearAttacks(room) {
   expireRecognizedCampaigns(room)
   clearIncidentLedger(room)
+  clearSpreadTargetLocks(room)
   try {
     if (room?.id) clearPersistedIncidentHistory(room.id)
   } catch {

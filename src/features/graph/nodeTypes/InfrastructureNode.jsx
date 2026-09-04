@@ -39,7 +39,7 @@ const HACK_DRIFT = {
   bg: 'color-mix(in srgb, #f59e0b 18%, transparent)',
 }
 
-// Highest-risk next target based on peer trust + propagation risk
+// Highest-risk next target from post-detection propagation ranking (assessment only)
 const HACK_NEXT_TARGET = {
   base: '#a855f7',
   border: '#9333ea',

@@ -75,6 +75,17 @@ export default function IncidentCard({ inc, nodes = [], primarySpreadNodeId = nu
     ? nodes.find((n) => n.id === nextTargetId)
     : null
   const nextTargetLabel = nextTargetNode?.data?.label ?? nextTargetId
+  const spreadAssessment =
+    (inc.primarySpreadAssessment?.nodeId === nextTargetId
+      ? inc.primarySpreadAssessment
+      : null) ??
+    (inc.graphContext?.primarySpreadAssessment?.nodeId === nextTargetId
+      ? inc.graphContext.primarySpreadAssessment
+      : null)
+  const spreadComponents = spreadAssessment?.components
+  const spreadPathLabels = Array.isArray(spreadAssessment?.path)
+    ? labelPath(spreadAssessment.path, roomLike)
+    : []
   const metric = metricEvidenceHighlight(inc)
   const evidenceLines = (Array.isArray(inc.evidence) ? inc.evidence : [])
     .map(formatEvidenceItem)
@@ -194,8 +205,40 @@ export default function IncidentCard({ inc, nodes = [], primarySpreadNodeId = nu
             >
               {nextTargetLabel}
             </button>
+            {spreadAssessment?.score != null ? (
+              <span className="font-mono text-[11px] tabular-nums text-[#a855f7]">
+                {Math.round(spreadAssessment.score)}
+              </span>
+            ) : null}
             <span className="ml-auto text-[11px] text-[var(--tn-muted)]">assessment</span>
           </div>
+          {spreadComponents ? (
+            <ul className="tn-meta mt-2 space-y-0.5">
+              <li>
+                • Behavioral risk: {Math.round(spreadComponents.behavioralRisk)}
+              </li>
+              <li>
+                • Peer exposure/trust risk: {Math.round(spreadComponents.peerRisk)}
+              </li>
+              <li>
+                • TGNN residual: {Math.round(spreadComponents.residualRisk)}
+              </li>
+              <li>
+                • Graph relationship: {Math.round(spreadComponents.graphRelationshipRisk)}
+              </li>
+              <li>
+                • Hop proximity: {Math.round(spreadComponents.hopProximityRisk)}
+              </li>
+            </ul>
+          ) : null}
+          {spreadPathLabels.length > 1 ? (
+            <p className="tn-meta mt-1.5">
+              Path: {spreadPathLabels.join(' → ')}
+            </p>
+          ) : null}
+          <p className="tn-meta mt-1.5 text-[11px]">
+            Assessment only — not a confirmed compromise or automatic attack target.
+          </p>
         </div>
       ) : null}
 

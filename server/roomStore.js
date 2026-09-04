@@ -31,6 +31,7 @@ export function createEmptyRoom(id = DEMO_ROOM_ID) {
     cityContextOverride: null,
     detectionMode: DETECTION_MODE_TGNN,
     detection: emptyDetectionResult(),
+    spreadTargetBySeedId: {},
     campaigns: [],
     incidentLedger: [],
     commanderBriefing: null,

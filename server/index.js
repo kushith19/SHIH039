@@ -81,6 +81,10 @@ import { attachResponseClassification } from '../shared/responsePolicy.js'
 import { setNodeQuarantined } from './response/quarantineNode.js'
 import { executeResponseAction } from './response/executeAction.js'
 import {
+  clearSpreadTargetLocks,
+  invalidateSpreadLocksForNode,
+} from '../shared/spreadTargetLock.js'
+import {
   fetchKnowledgeContext,
   askWithKnowledge,
   toDetectionInput,
@@ -585,6 +589,7 @@ function resetMatch(room) {
   room.hackSimulator = buildAttackLayerFromGraph(room.nodes, room.edges)
   room.simulationTick = 0
   room.detection = emptyDetectionResult()
+  clearSpreadTargetLocks(room)
   room.campaigns = []
   room.incidentLedger = []
   room.commanderBriefing = null
@@ -851,6 +856,7 @@ io.on('connection', (socket) => {
     room.edges = room.edges.filter(
       (e) => e.source !== nodeId && e.target !== nodeId
     )
+    invalidateSpreadLocksForNode(room, nodeId)
     if (typeof ack === 'function') ack({ ok: true })
     syncWithTelemetry(room)
   })

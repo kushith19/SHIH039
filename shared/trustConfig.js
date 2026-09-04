@@ -69,6 +69,21 @@ export const TRUST_CONFIG = Object.freeze({
 
   spread: Object.freeze({
     trustCutoff: 65,
+    maxHops: 3,
+    decayFactor: 0.5,
+    /** Post-detection primarySpread ranking weights (must sum to 1). */
+    riskWeights: Object.freeze({
+      behavioral: 0.25,
+      peer: 0.25,
+      residual: 0.2,
+      graph: 0.2,
+      hop: 0.1,
+    }),
+    hopProximity: Object.freeze({
+      1: 100,
+      2: 60,
+      3: 30,
+    }),
   }),
 
   incident: Object.freeze({

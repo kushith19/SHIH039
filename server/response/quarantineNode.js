@@ -8,6 +8,7 @@
  */
 import { runtimeStateOf } from '../infrastructureNode.js'
 import { clearNodeAttackOverride } from '../campaign/engine.js'
+import { invalidateSpreadLocksForNode } from '../../shared/spreadTargetLock.js'
 
 /**
  * Set or clear runtimeState.quarantined on a room node.
@@ -46,6 +47,8 @@ export function setNodeQuarantined(room, nodeId, quarantined = true) {
     },
   }
   const overrideCleared = next ? clearNodeAttackOverride(room, id) : false
+  // Quarantining a locked next-target (or its seed) releases sticky spread locks.
+  if (next) invalidateSpreadLocksForNode(room, id)
   return {
     ok: true,
     already: false,

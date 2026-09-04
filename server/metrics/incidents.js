@@ -47,6 +47,8 @@ function graphContextFor(incident, room, detection) {
     propagationRiskByNode: detection?.propagationRiskByNode ?? {},
     primarySpreadNodeId: incident.primarySpreadNodeId ?? detection?.primarySpreadNodeId ?? null,
     primarySpreadEdgeId: incident.primarySpreadEdgeId ?? detection?.primarySpreadEdgeId ?? null,
+    primarySpreadAssessment:
+      incident.primarySpreadAssessment ?? detection?.primarySpreadAssessment ?? null,
   }
 }
 

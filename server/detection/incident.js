@@ -1,6 +1,8 @@
 import { TRUST_CONFIG } from '../../shared/trustConfig.js'
 import { blendTrust, peerExposureFromFlags } from '../../shared/trustModel.js'
 import { propagateGraphRisk } from '../../shared/graphPropagation.js'
+import { rankPropagationCandidates } from '../../shared/propagationRisk.js'
+import { publishedSpreadForSeed } from '../../shared/spreadTargetLock.js'
 import {
   confidenceFromSignals,
   evidenceFromReason,
@@ -255,20 +257,24 @@ function affectedDependenciesFor(epId, _input, result) {
 /**
  * Graph context for one confirmed seed. Detection-level union stays on `result`;
  * each incident only carries blast from this seed's own edges.
+ * Primary spread is ranked seed-scoped (no cross-seed hint leak).
  */
-function seedScopedGraph(epId, result, input) {
+function seedScopedGraph(epId, result, input, peerMetrics) {
   const seed = String(epId)
   const knownIds = new Set((input?.endpoints ?? []).map((e) => String(e.id)))
   const otherSeeds = new Set((result?.anomalyNodeIds ?? []).map(String))
   otherSeeds.delete(seed)
+
+  const maxHops = TRUST_CONFIG.spread?.maxHops ?? 3
+  const decayFactor = TRUST_CONFIG.spread?.decayFactor ?? 0.5
 
   const exposure = peerExposureFromFlags(input?.dependencies, [seed], knownIds)
   const propagation = propagateGraphRisk({
     edges: input?.dependencies,
     seedNodeIds: [seed],
     validNodeIds: knownIds,
-    maxHops: 3,
-    decayFactor: 0.5,
+    maxHops,
+    decayFactor,
   })
 
   const propagatedNodeIds = (propagation.propagatedNodeIds ?? []).filter(
@@ -279,24 +285,48 @@ function seedScopedGraph(epId, result, input) {
     if (otherSeeds.has(String(id))) continue
     propagationPaths[id] = path
   }
+
+  const ranked = rankPropagationCandidates({
+    edges: input?.dependencies,
+    seedNodeIds: [seed],
+    validNodeIds: knownIds,
+    maxHops,
+    peerMetricsByNodeId: peerMetrics,
+    isolationScoresByNodeId: result?.isolationScoresByNodeId ?? {},
+  })
+
+  // Drop other confirmed seeds from ranked outputs (they are not exposure targets).
   const propagationRiskByNode = {}
-  for (const [id, risk] of Object.entries(propagation.propagationRiskByNode ?? {})) {
+  for (const [id, risk] of Object.entries(ranked.propagationRiskByNode ?? {})) {
     if (otherSeeds.has(String(id))) continue
+    if (!propagatedNodeIds.includes(String(id))) continue
     propagationRiskByNode[id] = risk
   }
 
-  let primarySpreadNodeId = null
-  let bestRisk = -Infinity
-  for (const [nodeId, risk] of Object.entries(propagationRiskByNode)) {
-    if (risk > bestRisk) {
-      bestRisk = risk
-      primarySpreadNodeId = nodeId
+  let primarySpreadNodeId = ranked.primarySpreadNodeId
+  let primarySpreadAssessment = ranked.primarySpreadAssessment
+  if (primarySpreadNodeId && otherSeeds.has(String(primarySpreadNodeId))) {
+    primarySpreadNodeId = null
+    primarySpreadAssessment = null
+  }
+  if (primarySpreadNodeId && !propagatedNodeIds.includes(String(primarySpreadNodeId))) {
+    primarySpreadNodeId = null
+    primarySpreadAssessment = null
+  }
+
+  // Sticky seed lock is source of truth when present (same lifecycle as room).
+  const sticky = publishedSpreadForSeed(result?.spreadTargetBySeedId, seed, {
+    primarySpreadNodeId,
+    primarySpreadAssessment,
+  })
+  if (sticky?.primarySpreadNodeId) {
+    const lockedId = String(sticky.primarySpreadNodeId)
+    if (!otherSeeds.has(lockedId) && knownIds.has(lockedId)) {
+      primarySpreadNodeId = lockedId
+      primarySpreadAssessment = sticky.primarySpreadAssessment
     }
   }
-  const hinted = result?.primarySpreadNodeId
-  if (hinted && propagationRiskByNode[String(hinted)] != null) {
-    primarySpreadNodeId = String(hinted)
-  }
+
   let primarySpreadEdgeId = null
   if (primarySpreadNodeId) {
     const edge = (input?.dependencies ?? []).find(
@@ -304,15 +334,17 @@ function seedScopedGraph(epId, result, input) {
         (String(e.source ?? '') === seed && String(e.target ?? '') === primarySpreadNodeId) ||
         (String(e.target ?? '') === seed && String(e.source ?? '') === primarySpreadNodeId)
     )
-    primarySpreadEdgeId = edge?.id ?? result?.primarySpreadEdgeId ?? null
+    primarySpreadEdgeId = edge?.id ?? ranked.primarySpreadEdgeId ?? null
   }
 
   return {
     peerExposedNodeIds: exposure.atRiskNodeIds ?? [],
     propagatedNodeIds,
     propagationPaths,
+    propagationRiskByNode,
     primarySpreadNodeId,
     primarySpreadEdgeId,
+    primarySpreadAssessment,
   }
 }
 
@@ -353,7 +385,7 @@ function buildIncident({
   const expected = expectedTelemetryOf(ep)
   const drift = hasTelemetryDrift(expected, ep.telemetry)
   const metricFacts = metricFactsOf(ep)
-  const scoped = seedScopedGraph(ep.id, result, input)
+  const scoped = seedScopedGraph(ep.id, result, input, peerMetrics)
 
   const typesFromReasons = reasons.map(mapReasonToType).filter(Boolean)
   const detectionTypes = [...new Set([...typesFromReasons, ...extraTypes])]
@@ -411,6 +443,7 @@ function buildIncident({
     illustrativeImpact: illustrativeImpactOf(ep, metricFacts),
     primarySpreadNodeId: scoped.primarySpreadNodeId,
     primarySpreadEdgeId: scoped.primarySpreadEdgeId,
+    primarySpreadAssessment: scoped.primarySpreadAssessment,
   }
 }
 
