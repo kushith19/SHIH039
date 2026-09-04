@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import {
+  DASHBOARD_NAV_GROUPS,
   dashboardCommanderIncidentHref,
   dashboardOrchestrateIncidentHref,
   dashboardPanelHref,
@@ -14,6 +15,8 @@ describe('dashboard panel routing', () => {
     assert.equal(resolveDashboardPanel(null), 'overview')
     assert.equal(resolveDashboardPanel('nope'), 'overview')
     assert.equal(resolveDashboardPanel('incidents'), 'incidents')
+    assert.equal(resolveDashboardPanel('timeline'), 'timeline')
+    assert.equal(resolveDashboardPanel('correlation'), 'correlation')
     assert.equal(resolveDashboardPanel('response'), 'response')
     assert.equal(resolveDashboardPanel('orchestrate'), 'orchestrate')
   })
@@ -33,6 +36,23 @@ describe('dashboard panel routing', () => {
     assert.equal(dashboardPanelMeta('commander').label, 'Commander')
     assert.equal(dashboardPanelMeta('response').label, 'Response')
     assert.equal(dashboardPanelMeta('orchestrate').label, 'Orchestrate')
+    assert.equal(dashboardPanelMeta('timeline').label, 'Timeline')
+    assert.equal(dashboardPanelMeta('correlation').label, 'Live Correlation')
+  })
+
+  it('places incidents, timeline, and live correlation under Monitor', () => {
+    const monitor = DASHBOARD_NAV_GROUPS.find((g) => g.id === 'monitor')
+    assert.deepEqual(monitor.panels, [
+      'overview',
+      'incidents',
+      'timeline',
+      'correlation',
+      'fleet',
+    ])
+    assert.equal(
+      DASHBOARD_NAV_GROUPS.some((g) => g.id === 'incidents-group'),
+      false
+    )
   })
 
   it('clears focused incident when leaving commander or response', () => {

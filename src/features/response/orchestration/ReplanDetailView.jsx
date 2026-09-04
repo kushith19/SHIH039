@@ -13,7 +13,7 @@ export default function ReplanDetailView({
       <header>
         <h3 className="tn-section-title tracking-wide">Replan handoff</h3>
         <p className="tn-meta mt-1">
-          Verification failed. The workflow returns to Commander on the same
+          Verification failed. The workflow returns to Planner on the same
           rail — not a second tree. A new plan still requires human approval.
         </p>
       </header>
@@ -27,7 +27,7 @@ export default function ReplanDetailView({
           ↓
         </div>
         <p className="text-sm font-medium text-[var(--tn-text)]">
-          Commander Agent · re-analysis available
+          Planner · re-analysis available
         </p>
         {handoff?.commanderMessage ? (
           <p className="tn-meta mt-1">{handoff.commanderMessage}</p>
@@ -46,7 +46,7 @@ export default function ReplanDetailView({
           disabled={!replanEnabled}
           onClick={() => onReplan?.()}
         >
-          {busy === 'replan' ? 'Re-planning…' : 'Run Commander Re-analysis'}
+          {busy === 'replan' ? 'Re-planning…' : 'Retry Planner'}
         </button>
       </div>
 

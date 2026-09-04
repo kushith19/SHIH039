@@ -89,6 +89,7 @@ import {
 } from './response/llmCommanderClient.js'
 import {
   approveOrchestrationPlan,
+  completeSelectedIncidentDummyRecovery,
   executeOrchestrationPlan,
   generateOrchestrationPlanMaybeLlm,
   refreshOrchestrationFreshness,
@@ -540,9 +541,16 @@ app.post('/rooms/:id/orchestration/analyze', async (req, res) => {
     return res.status(404).json({ ok: false, message: 'Room not found' })
   }
   const focusIncidentId = String(req.body?.incidentId ?? req.body?.focusIncidentId ?? '').trim() || null
+  if (!focusIncidentId) {
+    return res.status(400).json({
+      ok: false,
+      message: 'Selected incident required',
+      executed: false,
+    })
+  }
   try {
     process.stderr.write(
-      `\n[LLM COMMANDER] POST /orchestration/analyze room=${id} LLM_RESPONSE_PLAN=${llmResponsePlanEnabled() ? 'ON' : 'OFF'}\n`
+      `\n[PLANNER] POST /orchestration/analyze room=${id} incidentId=${focusIncidentId} LLM_RESPONSE_PLAN=${llmResponsePlanEnabled() ? 'ON' : 'OFF'}\n`
     )
   } catch {
     /* ignore */
@@ -581,6 +589,7 @@ app.post('/rooms/:id/orchestration/approve', (req, res) => {
     clientActionIds: req.body?.actionIds ?? req.body?.recommendedActions ?? null,
     onProgress: () => broadcastState(room),
     onCompleteSync: syncWithTelemetry,
+    autoContinue: false,
   })
   if (!result.ok) {
     broadcastState(room)
@@ -621,7 +630,27 @@ app.post('/rooms/:id/orchestration/execute', (req, res) => {
     clientActionIds: req.body?.actionIds ?? req.body?.recommendedActions ?? null,
     onProgress: () => broadcastState(room),
     onCompleteSync: syncWithTelemetry,
+    autoContinue: false,
   })
+  const incidentId =
+    room.responseOrchestration?.plan?.primaryIncidentId ?? null
+  const noExecutable =
+    result.ok === false &&
+    /no executable actions/i.test(String(result.message ?? ''))
+  if ((result.ok || noExecutable) && incidentId) {
+    const recovered = completeSelectedIncidentDummyRecovery(room, incidentId)
+    if (typeof syncWithTelemetry === 'function') syncWithTelemetry(room)
+    broadcastState(room)
+    return res.json({
+      ok: true,
+      roomId: id,
+      orchestration: recovered.orchestration,
+      execution: recovered.orchestration?.execution ?? result.execution ?? null,
+      recovered: true,
+      incidentsClosed: false,
+      autoRestored: false,
+    })
+  }
   if (!result.ok) {
     broadcastState(room)
     return res.status(result.statusCode ?? 400).json({

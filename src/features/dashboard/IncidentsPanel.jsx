@@ -1,19 +1,13 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import {
   DETECTION_TYPES,
   detectionTypeLabel,
 } from '@shared/incidents.js'
 import IncidentCard from './IncidentCard'
-import CampaignIntelligence from './CampaignIntelligence'
-import LiveCorrelationPanel from './LiveCorrelationPanel'
-import HistoryIncidentTimeline from './HistoryIncidentTimeline'
 import Toolbar, { FilterChip } from '../../ui/Toolbar'
 import StatusBadge from '../../ui/StatusBadge'
 import EmptyState from '../../ui/EmptyState'
-import {
-  liveIncidentMatchesTimelineEvent,
-  timelineSelectionKey,
-} from './historyTimelineView.js'
 import {
   correlationGroupId,
   formatPriorityScore,
@@ -46,26 +40,30 @@ function streamKey(inc) {
   return String(inc.endpointId || inc.id || '')
 }
 
+function matchesSelectHint(inc, hint) {
+  if (!hint) return false
+  const h = String(hint)
+  return (
+    String(inc.persistentId || '') === h ||
+    String(inc.id || '') === h ||
+    streamKey(inc) === h
+  )
+}
+
 export default function IncidentsPanel({
   roomId = '',
   incidents = [],
   nodes = [],
-  edges = [],
-  liveCorrelation = null,
   primarySpreadNodeId = null,
   onSelectEndpoint,
   hideHeader = false,
 }) {
+  const location = useLocation()
   const [typeFilter, setTypeFilter] = useState(null)
   const [selectedKey, setSelectedKey] = useState(null)
-  const [historyCampaigns, setHistoryCampaigns] = useState([])
-  const [historyIncidents, setHistoryIncidents] = useState([])
-  const [historyOrder, setHistoryOrder] = useState('newest-first')
-  const [timelineFocusId, setTimelineFocusId] = useState(null)
-  const [secondaryTab, setSecondaryTab] = useState('correlation')
+  const appliedHint = useRef(null)
 
   const nextTargetKey = primarySpreadNodeId ? String(primarySpreadNodeId) : null
-  const liveGroups = Array.isArray(liveCorrelation?.groups) ? liveCorrelation.groups : []
 
   const orderedIncidents = useMemo(() => orderLiveIncidents(incidents), [incidents])
 
@@ -87,58 +85,23 @@ export default function IncidentsPanel({
   }, [orderedIncidents])
 
   useEffect(() => {
-    if (!roomId) {
-      setHistoryCampaigns([])
-      setHistoryIncidents([])
-      return undefined
-    }
-    let cancelled = false
-    const load = async () => {
-      try {
-        const [campRes, histRes] = await Promise.all([
-          fetch(`/rooms/${encodeURIComponent(roomId)}/incidents/campaigns`),
-          fetch(
-            `/rooms/${encodeURIComponent(roomId)}/incidents/history?order=${encodeURIComponent(historyOrder)}`
-          ),
-        ])
-        const campJson = await campRes.json()
-        const histJson = await histRes.json()
-        if (cancelled) return
-        setHistoryCampaigns(
-          campRes.ok && campJson.ok !== false && Array.isArray(campJson.campaigns)
-            ? campJson.campaigns
-            : []
-        )
-        if (histRes.ok && histJson.ok !== false) {
-          setHistoryIncidents(Array.isArray(histJson.incidents) ? histJson.incidents : [])
-          if (histJson.order) setHistoryOrder(histJson.order)
-        } else {
-          setHistoryIncidents([])
-        }
-      } catch {
-        if (!cancelled) {
-          setHistoryCampaigns([])
-          setHistoryIncidents([])
-        }
-      }
-    }
-    void load()
-    const id = window.setInterval(() => void load(), 2000)
-    return () => {
-      cancelled = true
-      window.clearInterval(id)
-    }
-  }, [roomId, incidents.length, historyOrder])
-
-  useEffect(() => {
     if (!rows.length) {
       setSelectedKey(null)
       return
     }
+    const hint = location.state?.selectIncidentId
+    if (hint && appliedHint.current !== hint) {
+      const match = rows.find((inc) => matchesSelectHint(inc, hint))
+      if (match) {
+        appliedHint.current = hint
+        setSelectedKey(streamKey(match))
+        return
+      }
+    }
     if (!selectedKey || !rows.some((inc) => streamKey(inc) === selectedKey)) {
       setSelectedKey(streamKey(rows[0]))
     }
-  }, [rows, selectedKey])
+  }, [rows, selectedKey, location.state])
 
   const presentTypes = useMemo(() => {
     const set = new Set()
@@ -152,19 +115,6 @@ export default function IncidentsPanel({
   const chipTypes = presentTypes.length > 0 ? presentTypes : DETECTION_TYPES
 
   const selected = rows.find((inc) => streamKey(inc) === selectedKey) ?? null
-
-  function selectFromTimeline(event) {
-    setTimelineFocusId(event?.incidentId ?? null)
-    const match = (incidents ?? []).find((inc) => liveIncidentMatchesTimelineEvent(inc, event))
-    if (match) setSelectedKey(streamKey(match))
-  }
-
-  const timelineSelectedKey =
-    timelineFocusId != null
-      ? timelineSelectionKey(
-          historyIncidents.find((row) => String(row.incidentId) === String(timelineFocusId))
-        ) || selectedKey
-      : selectedKey
 
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
@@ -237,7 +187,7 @@ export default function IncidentsPanel({
           <div className="shrink-0 border-b border-[var(--tn-line)] px-4 py-2.5">
             <div className="text-sm font-medium">Investigation</div>
             <p className="tn-meta mt-0.5 text-[11px]">
-              Why resolve first · evidence · Commander / Response
+              Why resolve first · evidence · Commander / Orchestrate
             </p>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto p-4">
@@ -254,54 +204,6 @@ export default function IncidentsPanel({
               <p className="tn-meta">Select an incident from the stream to inspect recovery impact.</p>
             )}
           </div>
-        </div>
-      </div>
-
-      <div className="soc-zone flex min-h-[12rem] max-h-[18rem] shrink-0 flex-col overflow-hidden lg:min-h-[14rem]">
-        <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-[var(--tn-line)] px-4 py-2">
-          <span className="soc-zone-title mr-2">Secondary</span>
-          <FilterChip
-            active={secondaryTab === 'correlation'}
-            onClick={() => setSecondaryTab('correlation')}
-          >
-            Live correlation
-          </FilterChip>
-          <FilterChip
-            active={secondaryTab === 'timeline'}
-            onClick={() => setSecondaryTab('timeline')}
-          >
-            Timeline
-          </FilterChip>
-          <FilterChip
-            active={secondaryTab === 'history'}
-            onClick={() => setSecondaryTab('history')}
-          >
-            History
-          </FilterChip>
-        </div>
-        <div className="min-h-0 flex-1 overflow-hidden">
-          {secondaryTab === 'correlation' ? (
-            <LiveCorrelationPanel
-              groups={liveGroups}
-              incidents={incidents}
-              nodes={nodes}
-              edges={edges}
-              compact
-              onSelectIncident={(inc) => setSelectedKey(streamKey(inc))}
-            />
-          ) : secondaryTab === 'timeline' ? (
-            <HistoryIncidentTimeline
-              incidents={historyIncidents}
-              campaigns={historyCampaigns}
-              order={historyOrder}
-              selectedKey={timelineSelectedKey}
-              selectedIncidentId={timelineFocusId}
-              onSelectEvent={selectFromTimeline}
-              compact
-            />
-          ) : (
-            <CampaignIntelligence campaigns={historyCampaigns} compact />
-          )}
         </div>
       </div>
     </section>

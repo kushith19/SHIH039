@@ -64,6 +64,7 @@ export default function OrchestrationDetailPanel({
         approveEnabled={approveEnabled}
         busy={busy}
         onApprove={onApprove}
+        planView={planView}
       />
     )
   } else if (selectedStepId === 'response') {
@@ -84,13 +85,10 @@ export default function OrchestrationDetailPanel({
         isRecovered={isRecovered}
       />
     )
-  } else if (selectedStepId === 'complete') {
+      } else if (selectedStepId === 'complete') {
     body = (
       <RecoveredDetailView
-        newCycleEnabled={newCycleEnabled}
-        busy={busy}
-        onNewCycle={onNewCycle}
-        verifyView={verifyView}
+        incidentId={planPrimaryIncidentId || focusIncidentId}
       />
     )
   } else if (selectedStepId === 'commander' && needsReplan) {
@@ -118,6 +116,7 @@ export default function OrchestrationDetailPanel({
           busy={busy}
           hasIncidents={hasIncidents}
           searchParams={searchParams}
+          plannerError={pausedForApprovalReason}
           onAnalyze={onAnalyze}
           onReplan={onReplan}
         />
@@ -140,25 +139,29 @@ export default function OrchestrationDetailPanel({
         busy={busy}
         hasIncidents={hasIncidents}
         searchParams={searchParams}
+        plannerError={pausedForApprovalReason}
         onAnalyze={onAnalyze}
         onReplan={onReplan}
       />
     )
   }
 
+  const isPlannerStep = selectedStepId === 'commander'
+  const isRecoveredStep = selectedStepId === 'complete'
   const showPrimaryCta =
     primaryAction?.enabled &&
     primaryAction.actionId &&
     !(selectedStepId === 'approval' && primaryAction.actionId === 'approve') &&
-    !(selectedStepId === 'complete' && primaryAction.actionId === 'new-cycle') &&
-    !(selectedStepId === 'commander' && primaryAction.actionId === 'replan') &&
-    !(selectedStepId === 'commander' && primaryAction.actionId === 'analyze')
+    !isRecoveredStep &&
+    !(isPlannerStep && primaryAction.actionId === 'replan') &&
+    !(isPlannerStep && primaryAction.actionId === 'analyze')
+  const showDebugChrome = !isPlannerStep && !isRecoveredStep
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-md border border-[var(--tn-line)] bg-[var(--tn-surface)]">
       <div className="flex items-center justify-between gap-2 border-b border-[var(--tn-line)] px-3 py-2">
         <div className="tn-label">Step detail</div>
-        {ownership?.headline ? (
+        {ownership?.headline && !isRecoveredStep ? (
           <StatusBadge tone="warn">{ownership.headline}</StatusBadge>
         ) : null}
       </div>
@@ -191,70 +194,75 @@ export default function OrchestrationDetailPanel({
           </div>
         ) : null}
 
+        {showDebugChrome ? (
         <div className="mt-4">
           <AgentWorkflowTraceView
             trace={latestIterationTrace}
             workflowTrace={workflowTrace}
           />
         </div>
+        ) : null}
 
-        {/* Response Action Repository — judge-visible capability surface */}
-        <section
-          className="mt-6 border-t border-[var(--tn-line)] pt-4"
-          aria-labelledby="orch-registry"
-        >
-          <h4 id="orch-registry" className="tn-label">
-            Response Action Repository
-          </h4>
-          <p className="tn-meta mt-1 mb-2">
-            Commander chooses only from registered capabilities. Unsupported
-            actions never execute.
-          </p>
-          <div className="space-y-3">
-            {(registry?.groups || []).map((group) => (
-              <div key={group.category}>
-                <div className="text-[11px] font-medium text-[var(--tn-muted)]">
-                  {group.categoryLabel || group.category}
-                </div>
-                <ul className="mt-1 space-y-1">
-                  {(group.items || []).map((item) => (
-                    <li
-                      key={item.capabilityId || item.actionId || item.label}
-                      className="flex items-center justify-between gap-2 text-sm text-[var(--tn-text)]"
-                    >
-                      <span>
-                        {item.supported ? '✓' : '○'} {item.label}
-                        {item.mutation === false ? ' · read-only' : ''}
-                      </span>
-                      <StatusBadge tone={item.supported ? 'ok' : 'muted'}>
-                        {item.availabilityLabel ||
-                          (item.supported ? 'SUPPORTED' : 'UNSUPPORTED')}
-                      </StatusBadge>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {(focusIncidentId || planPrimaryIncidentId) && (
-          <div className="mt-4 border-t border-[var(--tn-line)] pt-3">
-            <Link
-              to={dashboardResponseIncidentHref(
-                searchParams,
-                focusIncidentId || planPrimaryIncidentId
-              )}
-              replace
-              className="tn-btn inline-flex"
+        {showDebugChrome ? (
+          <>
+            <section
+              className="mt-6 border-t border-[var(--tn-line)] pt-4"
+              aria-labelledby="orch-registry"
             >
-              Open Response Console
-            </Link>
-            <p className="tn-meta mt-1 text-[11px]">
-              Direct-action surface — separate from orchestration workflow.
-            </p>
-          </div>
-        )}
+              <h4 id="orch-registry" className="tn-label">
+                Response Action Repository
+              </h4>
+              <p className="tn-meta mt-1 mb-2">
+                Commander chooses only from registered capabilities. Unsupported
+                actions never execute.
+              </p>
+              <div className="space-y-3">
+                {(registry?.groups || []).map((group) => (
+                  <div key={group.category}>
+                    <div className="text-[11px] font-medium text-[var(--tn-muted)]">
+                      {group.categoryLabel || group.category}
+                    </div>
+                    <ul className="mt-1 space-y-1">
+                      {(group.items || []).map((item) => (
+                        <li
+                          key={item.capabilityId || item.actionId || item.label}
+                          className="flex items-center justify-between gap-2 text-sm text-[var(--tn-text)]"
+                        >
+                          <span>
+                            {item.supported ? '✓' : '○'} {item.label}
+                            {item.mutation === false ? ' · read-only' : ''}
+                          </span>
+                          <StatusBadge tone={item.supported ? 'ok' : 'muted'}>
+                            {item.availabilityLabel ||
+                              (item.supported ? 'SUPPORTED' : 'UNSUPPORTED')}
+                          </StatusBadge>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {(focusIncidentId || planPrimaryIncidentId) && (
+              <div className="mt-4 border-t border-[var(--tn-line)] pt-3">
+                <Link
+                  to={dashboardResponseIncidentHref(
+                    searchParams,
+                    focusIncidentId || planPrimaryIncidentId
+                  )}
+                  replace
+                  className="tn-btn inline-flex"
+                >
+                  Open Response Console
+                </Link>
+                <p className="tn-meta mt-1 text-[11px]">
+                  Direct-action surface — separate from orchestration workflow.
+                </p>
+              </div>
+            )}
+          </>
+        ) : null}
       </div>
     </div>
   )

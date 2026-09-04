@@ -1,39 +1,61 @@
 /**
- * Episode recovered — only when server status is RECOVERED.
+ * Recovered step — compact agent workflow trace only.
  */
+const WORKFLOW_STEPS = [
+  {
+    id: 'planner',
+    title: 'Planner',
+    detail: 'Reviewed incident and generated response plan',
+  },
+  {
+    id: 'approval',
+    title: 'Human approval',
+    detail: 'Plan approved',
+  },
+  {
+    id: 'response',
+    title: 'Response Agent',
+    detail: 'Response actions executed',
+  },
+  {
+    id: 'recovered',
+    title: 'Recovered',
+    detail: 'Incident verified as recovered',
+  },
+]
+
 export default function RecoveredDetailView({
-  newCycleEnabled = false,
-  busy = null,
-  onNewCycle = null,
-  verifyView = null,
-}) {
+  incidentId = null,
+} = {}) {
   return (
     <div className="space-y-4">
       <header>
-        <h3 className="tn-section-title tracking-wide">Episode complete</h3>
-        <p className="tn-meta mt-1">
-          The response episode is recovered only when the server reports
-          RECOVERED — no active non-quarantined response incidents remain.
+        <h3 className="tn-section-title tracking-wide">Recovered</h3>
+        <p className="mt-1 text-sm font-medium text-[var(--tn-text)]">
+          ✓ Incident recovered
         </p>
+        <p className="tn-meta mt-1">
+          Incident: {incidentId || '—'}
+        </p>
+        <p className="tn-meta">Response: Completed</p>
       </header>
 
-      <div className="rounded-md border border-[var(--tn-ok)]/40 bg-[var(--tn-surface)] px-3 py-3">
-        <p className="text-sm text-[var(--tn-text)]">
-          ✓ Episode recovered. Quarantine held ≠ auto-restored. Start a new
-          cycle only for a completely new response episode.
-        </p>
-        {verifyView?.title ? (
-          <p className="tn-meta mt-2">Last verification: {verifyView.title}</p>
-        ) : null}
-        <button
-          type="button"
-          className="tn-btn-primary mt-3"
-          disabled={!newCycleEnabled}
-          onClick={() => onNewCycle?.()}
-        >
-          {busy === 'new-cycle' ? 'Starting…' : 'Start New Response Cycle'}
-        </button>
-      </div>
+      <ol className="space-y-2">
+        {WORKFLOW_STEPS.map((step) => (
+          <li
+            key={step.id}
+            className="rounded-md border border-[var(--tn-line)] px-3 py-3"
+          >
+            <p className="text-sm font-medium text-[var(--tn-text)]">
+              <span className="text-[var(--tn-ok)]" aria-hidden>
+                ✓
+              </span>{' '}
+              {step.title}
+            </p>
+            <p className="tn-meta mt-0.5">{step.detail}</p>
+          </li>
+        ))}
+      </ol>
     </div>
   )
 }

@@ -1,24 +1,27 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
   actionRegistrySplitView,
   activeAgentOwnershipView,
   approvalSpotlightView,
+  buildDemoResponseAgentExecution,
   canAnalyzeOrchestration,
   canApproveOrchestration,
   canReplanOrchestration,
   canStartNewOrchestrationCycle,
   correlatedGroupView,
-  createEmptyOrchestrationState,
+  DEMO_RESPONSE_AGENT_STEP_MS,
   focusedIncidentsView,
   orchestrationFlowRailView,
   planActionDetailsView,
   planEvolutionView,
   postOrchestrationAnalyze,
   postOrchestrationApprove,
+  postOrchestrationExecute,
   postOrchestrationNewCycle,
   postOrchestrationReplan,
   primaryOrchestrationActionView,
+  recommendedPlanActions,
   replanHandoffView,
   responsePlanView,
   responseTodoChecklistView,
@@ -34,10 +37,16 @@ import {
   notifyResponseAnalyzeStarted,
 } from './responseAnalyzeUi.js'
 
+function sleepMs(ms) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms)
+  })
+}
+
 /**
  * Response Orchestration panel (STEP 13 — compact flowchart + detail).
- * Presentation only over server orchestration state. Does not invent progress
- * or execute from approval in the UI layer.
+ * Presentation only over server orchestration state. Dummy Response Agent
+ * pacing is UI-only; execute/recovery still uses the existing API after playback.
  */
 export default function ResponseOrchestrationPanel({
   roomId = '',
@@ -53,9 +62,19 @@ export default function ResponseOrchestrationPanel({
   const [error, setError] = useState(null)
   const [localOverride, setLocalOverride] = useState(null)
   const [selectedStepId, setSelectedStepId] = useState('commander')
+  const [demoPlayback, setDemoPlayback] = useState(false)
+  const mountedRef = useRef(true)
 
   useEffect(() => {
-    // Drop localOverride once socket catches up to the same or newer revision
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
+
+  useEffect(() => {
+    // Drop localOverride once socket catches up, except during dummy playback
+    if (demoPlayback) return
     if (!localOverride || !orchestrationState) return
     const localTs = Number(localOverride.updatedAtMs ?? localOverride.lastUpdatedAt) || 0
     const socketTs =
@@ -75,6 +94,7 @@ export default function ResponseOrchestrationPanel({
     orchestrationState?.replanCount,
     orchestrationState?.continuationReason,
     orchestrationState?.previousPlanId,
+    demoPlayback,
   ])
 
   const state = selectAuthoritativeOrchestrationState(
@@ -156,8 +176,8 @@ export default function ResponseOrchestrationPanel({
       setError(result.message || 'Analyze failed')
       setLocalOverride({
         ...(result.orchestration || state),
-        workflowStatus: ORCHESTRATION_STATUS.IDLE,
-        status: ORCHESTRATION_STATUS.IDLE,
+        workflowStatus: ORCHESTRATION_STATUS.LLM_ERROR,
+        status: ORCHESTRATION_STATUS.LLM_ERROR,
         plan: null,
         execution: null,
         updatedAtMs: Date.now(),
@@ -200,13 +220,53 @@ export default function ResponseOrchestrationPanel({
     setBusy('approve')
     setError(null)
     const result = await postOrchestrationApprove(roomId)
-    setBusy(null)
     if (!result.ok) {
+      setBusy(null)
       setError(result.message || 'Approval failed')
       if (result.orchestration) setLocalOverride(result.orchestration)
       return
     }
-    setLocalOverride(result.orchestration)
+    const approved = result.orchestration || state
+    const plan = approved.plan
+    const actionCount = recommendedPlanActions(plan).length
+    setBusy('execute')
+    setDemoPlayback(true)
+    setLocalOverride({
+      ...approved,
+      workflowStatus: ORCHESTRATION_STATUS.EXECUTING,
+      status: ORCHESTRATION_STATUS.EXECUTING,
+      execution: buildDemoResponseAgentExecution(plan, 0),
+      updatedAtMs: Date.now(),
+    })
+    for (let completed = 0; completed < actionCount; completed += 1) {
+      if (!mountedRef.current) return
+      setLocalOverride({
+        ...approved,
+        workflowStatus: ORCHESTRATION_STATUS.EXECUTING,
+        status: ORCHESTRATION_STATUS.EXECUTING,
+        execution: buildDemoResponseAgentExecution(plan, completed),
+        updatedAtMs: Date.now(),
+      })
+      await sleepMs(DEMO_RESPONSE_AGENT_STEP_MS)
+      if (!mountedRef.current) return
+      setLocalOverride({
+        ...approved,
+        workflowStatus: ORCHESTRATION_STATUS.EXECUTING,
+        status: ORCHESTRATION_STATUS.EXECUTING,
+        execution: buildDemoResponseAgentExecution(plan, completed + 1),
+        updatedAtMs: Date.now(),
+      })
+    }
+    const executed = await postOrchestrationExecute(roomId)
+    if (!mountedRef.current) return
+    setDemoPlayback(false)
+    setBusy(null)
+    if (!executed.ok) {
+      setError(executed.message || 'Response Agent execution failed')
+      if (executed.orchestration) setLocalOverride(executed.orchestration)
+      return
+    }
+    setLocalOverride(executed.orchestration)
   }
 
   const showApprovalScope =

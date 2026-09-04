@@ -6,6 +6,7 @@ import {
   activeAgentOwnershipView,
   agentLaneView,
   approvalSpotlightView,
+  buildDemoResponseAgentExecution,
   canAnalyzeOrchestration,
   canApproveOrchestration,
   canExecuteOrchestration,
@@ -14,6 +15,7 @@ import {
   correlatedGroupView,
   createEmptyOrchestrationState,
   defaultOrchestrationSelectedStep,
+  DEMO_RESPONSE_AGENT_STEP_MS,
   executionProgressView,
   focusedIncidentsView,
   graphHealthView,
@@ -25,6 +27,7 @@ import {
   planActionDetailsView,
   planEvolutionView,
   primaryOrchestrationActionView,
+  recommendedPlanActions,
   replanHandoffView,
   responsePlanView,
   responseTodoChecklistView,
@@ -74,7 +77,7 @@ describe('orchestrationView', () => {
     const ownership = activeAgentOwnershipView(state)
     assert.equal(view.workflowStatus, ORCHESTRATION_STATUS.IDLE)
     assert.equal(view.lanes.length, 4)
-    assert.equal(view.lanes[0].label, 'Commander Agent')
+    assert.equal(view.lanes[0].label, 'Planner')
     assert.equal(view.lanes[1].slotLabel, 'Locked')
     assert.equal(view.lanes[2].slotLabel, 'Waiting')
     assert.equal(view.lanes[3].slotLabel, 'Locked')
@@ -638,7 +641,7 @@ describe('orchestrationView', () => {
     assert.equal(isGenuineReplanState(cont), false)
     assert.equal(isApprovedScopeContinuation(cont), true)
     const ownership = activeAgentOwnershipView(cont)
-    assert.match(ownership.headline, /Commander preparing next response/i)
+    assert.match(ownership.headline, /Planner preparing next response/i)
     assert.doesNotMatch(ownership.headline, /replan|Verification failed/i)
     const rail = orchestrationFlowRailView(cont)
     assert.equal(rail.suggestedStepId, 'commander')
@@ -665,5 +668,31 @@ describe('orchestrationView', () => {
     assert.equal(isGenuineReplanState(fail), true)
     assert.equal(defaultOrchestrationSelectedStep(fail), 'commander')
     assert.equal(orchestrationFlowRailView(fail).steps[2].phase, 'waiting')
+  })
+
+  it('demo Response Agent pacing follows recommendedActions length', () => {
+    assert.equal(DEMO_RESPONSE_AGENT_STEP_MS, 1000)
+    const plan = {
+      recommendedActions: [
+        { actionId: 'isolate-node', label: 'Isolate', target: { id: 'n2' } },
+        { actionId: 'capture-device-state', label: 'Capture', target: { id: 'n2' } },
+      ],
+    }
+    assert.equal(recommendedPlanActions(plan).length, 2)
+    const start = buildDemoResponseAgentExecution(plan, 0)
+    assert.equal(start.totalSteps, 2)
+    assert.equal(start.results[0].status, 'executing')
+    assert.equal(start.results[1].status, 'pending')
+    const mid = buildDemoResponseAgentExecution(plan, 1)
+    assert.equal(mid.results[0].status, 'completed')
+    assert.equal(mid.results[1].status, 'executing')
+    const done = buildDemoResponseAgentExecution(plan, 2)
+    assert.equal(done.results.every((r) => r.status === 'completed'), true)
+    const checklist = responseTodoChecklistView({
+      workflowStatus: ORCHESTRATION_STATUS.EXECUTING,
+      execution: mid,
+    })
+    assert.equal(checklist.items[0].mark, '✓')
+    assert.equal(checklist.items[1].mark, '●')
   })
 })

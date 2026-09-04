@@ -329,7 +329,7 @@ function AttackConsole({
           <p className="text-sm text-[var(--tn-muted)]">Select a node on the map.</p>
         ) : (
           <>
-            <div className="grid grid-cols-1 gap-1">
+            <div className="grid grid-cols-1 gap-1.5">
               {ATTACK_PRESETS.map((preset) => (
                 <button
                   key={preset.id}
@@ -342,12 +342,12 @@ function AttackConsole({
                     onApplyAttackPreset(preset.id)
                   }}
                   className={[
-                    'tn-btn w-full flex-col items-start justify-start gap-0.5 py-2 text-left text-sm disabled:opacity-35',
+                    'tn-btn h-auto min-h-[2.75rem] w-full flex-col items-start justify-center gap-0.5 whitespace-normal px-3 py-2.5 text-left text-sm leading-snug disabled:opacity-35',
                     spreadPresetId === preset.id ? 'ring-1 ring-[var(--tn-ink)]' : '',
                   ].join(' ')}
                 >
                   <span className="font-medium">{preset.title}</span>
-                  <span className="text-[11px] font-normal text-[var(--tn-muted)]">
+                  <span className="text-[11px] font-normal leading-snug text-[var(--tn-muted)]">
                     {preset.attackType}
                     {preset.stages?.length > 1 ? ` · ${preset.stages.length} stages` : ''}
                   </span>

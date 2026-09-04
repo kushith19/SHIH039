@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Crosshair, Radio } from 'lucide-react'
 import PageHeader from '../ui/PageHeader'
 import Banner from '../ui/Banner'
@@ -7,12 +7,15 @@ import EmptyState from '../ui/EmptyState'
 import { cityContextAt, expectedTelemetry } from '@shared/cityContext.js'
 import DashboardNav from '../features/dashboard/DashboardNav'
 import {
+  dashboardPanelHref,
   dashboardPanelMeta,
   isIncidentFocusPanel,
   resolveDashboardPanel,
 } from '../features/dashboard/dashboardPanels.js'
 import EndpointTable from '../features/dashboard/EndpointTable'
 import IncidentsPanel from '../features/dashboard/IncidentsPanel'
+import MonitorTimelinePanel from '../features/dashboard/MonitorTimelinePanel'
+import LiveCorrelationPanel from '../features/dashboard/LiveCorrelationPanel'
 import OverviewPanel from '../features/dashboard/OverviewPanel'
 import CommanderPanel from '../features/commander/CommanderPanel'
 import ResponseConsolePanel from '../features/response/ResponseConsolePanel'
@@ -50,6 +53,7 @@ export default function DashboardPage({
   responseOrchestration = null,
 }) {
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
   const panel = resolveDashboardPanel(searchParams.get('panel'))
   const panelMeta = dashboardPanelMeta(panel)
   const [samples, setSamples] = useState([])
@@ -320,10 +324,31 @@ export default function DashboardPage({
         roomId={roomId}
         incidents={incidents}
         nodes={nodes}
-        edges={edges}
-        liveCorrelation={detection?.liveCorrelation ?? null}
         primarySpreadNodeId={detection?.primarySpreadNodeId ?? null}
         onSelectEndpoint={setFilterId}
+      />
+    )
+  } else if (panel === 'timeline') {
+    pageBody = (
+      <MonitorTimelinePanel
+        roomId={roomId}
+        incidents={incidents}
+      />
+    )
+  } else if (panel === 'correlation') {
+    pageBody = (
+      <LiveCorrelationPanel
+        groups={Array.isArray(detection?.liveCorrelation?.groups) ? detection.liveCorrelation.groups : []}
+        incidents={incidents}
+        nodes={nodes}
+        edges={edges}
+        ready={detection != null}
+        onSelectIncident={(inc) => {
+          navigate(dashboardPanelHref(searchParams, 'incidents'), {
+            replace: true,
+            state: { selectIncidentId: inc?.persistentId || inc?.id || inc?.endpointId },
+          })
+        }}
       />
     )
   } else if (panel === 'commander') {
@@ -409,6 +434,8 @@ export default function DashboardPage({
           className={
             panel === 'commander' ||
             panel === 'incidents' ||
+            panel === 'timeline' ||
+            panel === 'correlation' ||
             panel === 'orchestrate' ||
             panel === 'response'
               ? 'flex min-h-0 flex-1 flex-col overflow-hidden p-4 md:px-6 md:py-5'
@@ -419,6 +446,8 @@ export default function DashboardPage({
             className={
               panel === 'commander' ||
               panel === 'incidents' ||
+              panel === 'timeline' ||
+              panel === 'correlation' ||
               panel === 'orchestrate' ||
               panel === 'response'
                 ? 'flex min-h-0 flex-1 flex-col gap-4'

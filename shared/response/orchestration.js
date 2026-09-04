@@ -30,6 +30,7 @@ export const ORCHESTRATION_STATUS = Object.freeze({
   VERIFYING: 'VERIFYING',
   RECOVERED: 'RECOVERED',
   REPLAN_REQUIRED: 'REPLAN_REQUIRED',
+  LLM_ERROR: 'LLM_ERROR',
 })
 
 /** Allowed transitions for the orchestration state machine (authoritative). */
@@ -43,6 +44,7 @@ export const ORCHESTRATION_TRANSITIONS = Object.freeze({
     ORCHESTRATION_STATUS.IDLE,
     ORCHESTRATION_STATUS.REPLAN_REQUIRED,
     ORCHESTRATION_STATUS.RECOVERED,
+    ORCHESTRATION_STATUS.LLM_ERROR,
   ]),
   [ORCHESTRATION_STATUS.PLAN_READY]: Object.freeze([
     ORCHESTRATION_STATUS.AWAITING_APPROVAL,
@@ -85,6 +87,10 @@ export const ORCHESTRATION_TRANSITIONS = Object.freeze({
     ORCHESTRATION_STATUS.ANALYZING,
     ORCHESTRATION_STATUS.IDLE,
     ORCHESTRATION_STATUS.AWAITING_APPROVAL,
+  ]),
+  [ORCHESTRATION_STATUS.LLM_ERROR]: Object.freeze([
+    ORCHESTRATION_STATUS.ANALYZING,
+    ORCHESTRATION_STATUS.IDLE,
   ]),
 })
 
@@ -305,6 +311,13 @@ export function agentSlotsForStatus(workflowStatus) {
         approval: AGENT_SLOT_STATUS.LOCKED,
         response: AGENT_SLOT_STATUS.WAITING,
         /** Observational evidence only — not a control-flow lane */
+        recovery: AGENT_SLOT_STATUS.LOCKED,
+      }
+    case ORCHESTRATION_STATUS.LLM_ERROR:
+      return {
+        commander: AGENT_SLOT_STATUS.IDLE,
+        approval: AGENT_SLOT_STATUS.LOCKED,
+        response: AGENT_SLOT_STATUS.WAITING,
         recovery: AGENT_SLOT_STATUS.LOCKED,
       }
     case ORCHESTRATION_STATUS.IDLE:

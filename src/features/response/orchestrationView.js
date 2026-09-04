@@ -31,10 +31,10 @@ import {
 } from './responseAnalyzeUi.js'
 
 const AGENT_LABELS = Object.freeze({
-  commander: 'Commander Agent',
+  commander: 'Planner',
   approval: 'Human Approval',
   response: 'Response Agent',
-  recovery: 'Verification',
+  recovery: 'Recovered',
 })
 
 const SLOT_COPY = Object.freeze({
@@ -256,6 +256,9 @@ export function agentLaneView(orchestrationState = null) {
         } else if (status === ORCHESTRATION_STATUS.REPLAN_REQUIRED) {
           slotLabel = 'Re-analysis available'
           statusKey = 're-planning'
+        } else if (status === ORCHESTRATION_STATUS.LLM_ERROR) {
+          slotLabel = 'Planner error'
+          statusKey = 'llm-error'
         } else {
           statusKey = 'idle'
         }
@@ -357,15 +360,15 @@ export function activeAgentOwnershipView(orchestrationState = null) {
       return {
         focusId: 'commander',
         headline: continuing
-          ? 'Commander preparing next response'
+          ? 'Planner preparing next response'
           : genuineReplan
-            ? 'Commander re-planning'
-            : 'Commander is analyzing…',
+            ? 'Planner re-planning'
+            : 'Planner is analyzing…',
         detail: continuing
           ? `Remaining approved incidents — automatic continuation (iteration ${autoIteration || 1}).${progressSuffix}`
           : genuineReplan
             ? 'Analyzing current graph state after execution failure.'
-            : 'Generating response plan with Qwen…',
+            : 'Reviewing selected incident and evidence. Nothing will be executed.',
         handoffFrom: continuing || genuineReplan ? 'response' : null,
       }
     case ORCHESTRATION_STATUS.PLAN_READY:
@@ -405,7 +408,7 @@ export function activeAgentOwnershipView(orchestrationState = null) {
       return {
         focusId: 'response',
         headline: 'Response Agent is executing…',
-        detail: 'Running approved actions via executeResponseAction.',
+        detail: 'Executing approved response…',
         handoffFrom: 'approval',
       }
     case ORCHESTRATION_STATUS.CONTINUING:
@@ -435,12 +438,21 @@ export function activeAgentOwnershipView(orchestrationState = null) {
           'Response execution failed or approved scope is no longer valid — human decision required.',
         handoffFrom: 'response',
       }
+    case ORCHESTRATION_STATUS.LLM_ERROR:
+      return {
+        focusId: 'commander',
+        headline: 'Planner error',
+        detail:
+          pausedReason ||
+          'A valid response plan could not be produced. Retry Planner. Nothing was executed.',
+        handoffFrom: null,
+      }
     case ORCHESTRATION_STATUS.IDLE:
     default:
       return {
         focusId: 'commander',
         headline: 'Waiting for Response',
-        detail: 'Press Response on an incident to generate a Qwen response plan.',
+        detail: 'Press Response on an incident to review evidence and propose a response plan.',
         handoffFrom: null,
       }
   }
@@ -453,7 +465,7 @@ export function responsePlanView(plan = null) {
       plan: createEmptyResponsePlan(),
       actions: [],
       expectedImpact: null,
-      summary: 'No active LLM response plan yet. Press Response on an incident to generate one.',
+      summary: 'No active response plan yet. Press Response on an incident to generate one.',
     }
   }
   const normalized = createEmptyResponsePlan(plan)
@@ -473,6 +485,7 @@ export function responsePlanView(plan = null) {
       normalized.reasoning ||
       'Plan present — execution gated on human approval.',
     attackInterpretation: normalized.attackInterpretation,
+    review: normalized.llmReview,
     strategy: normalized.strategy,
     riskAssessment: normalized.riskAssessment,
     uncertainty: normalized.llmUncertainty,
@@ -510,6 +523,7 @@ export function canAnalyzeOrchestration(orchestrationState = null, hasIncidents 
   if (status === ORCHESTRATION_STATUS.VERIFYING) return false
   if (status === ORCHESTRATION_STATUS.RECOVERED) return false
   if (status === ORCHESTRATION_STATUS.REPLAN_REQUIRED) return false
+  if (status === ORCHESTRATION_STATUS.ANALYZING) return false
   return true
 }
 
@@ -990,6 +1004,55 @@ export async function postOrchestrationExecute(roomId) {
   }
 }
 
+/** UI-only dummy Response Agent pacing (ms per approved plan action). */
+export const DEMO_RESPONSE_AGENT_STEP_MS = 1000
+
+export function recommendedPlanActions(plan = null) {
+  if (!Array.isArray(plan?.recommendedActions)) return []
+  return plan.recommendedActions.filter((action) => action && action.actionId)
+}
+
+/**
+ * Sequential dummy execution snapshot for Orchestrate UI.
+ * completedCount actions are done; the next (if any) is executing.
+ */
+export function buildDemoResponseAgentExecution(plan = null, completedCount = 0) {
+  const actions = recommendedPlanActions(plan)
+  const total = actions.length
+  const completed = Math.max(0, Math.min(Number(completedCount) || 0, total))
+  const executingIndex = completed < total ? completed : -1
+  return {
+    currentStep: executingIndex >= 0 ? executingIndex + 1 : total,
+    totalSteps: total,
+    completedSteps: completed,
+    activeAction:
+      executingIndex >= 0
+        ? {
+            actionId: actions[executingIndex].actionId,
+            label: actions[executingIndex].label || actions[executingIndex].actionId,
+          }
+        : null,
+    results: actions.map((action, index) => ({
+      stepId: action.stepId ?? action.actionId,
+      actionId: action.actionId,
+      actionType: action.actionType ?? null,
+      label: action.label || action.actionId,
+      target: action.target ?? null,
+      executionOrder: action.executionOrder ?? index + 1,
+      status:
+        index < completed
+          ? 'completed'
+          : index === executingIndex
+            ? 'executing'
+            : 'pending',
+      startedAtMs: null,
+      completedAtMs: null,
+      result: null,
+      error: null,
+    })),
+  }
+}
+
 export async function postOrchestrationVerify(roomId) {
   if (!roomId) {
     return { ok: false, message: 'Room required' }
@@ -1181,15 +1244,19 @@ export function whyResolveFirstView(incident = null, plan = null) {
     Number(expected?.certainRecoveryCount) ||
     0
   if (certainCount > 0) {
-    const label =
-      certainIds[0] ||
-      incident?.endpointLabel ||
-      incident?.endpointId ||
-      'seed endpoint'
+    const rawLabel = String(incident?.endpointLabel || '').trim()
+    const rawId = String(certainIds[0] || incident?.endpointId || '').trim()
+    const looksInternal =
+      !rawLabel ||
+      rawLabel === rawId ||
+      /^(ep-|inc-|node-)/i.test(rawLabel) ||
+      /[_:]/.test(rawLabel)
     bullets.push({
       key: 'certain',
       mark: '✓',
-      text: `Certain recovery: ${label}`,
+      text: looksInternal
+        ? 'Certain recovery: seed endpoint'
+        : `Certain recovery: ${rawLabel}`,
       tone: 'ok',
     })
   }
@@ -1297,6 +1364,8 @@ export function approvalSpotlightView(orchestrationState = null) {
       actionId: a.actionId,
       label: a.label || a.actionId,
       target: a.target?.name || a.target?.id || null,
+      rationale: a.reason || a.rationale || null,
+      expectedImpact: a.expectedImpact || null,
     })),
     expectedEffect:
       plan?.expectedImpact?.summaryLines?.[0] ||
@@ -1608,7 +1677,7 @@ export const ORCHESTRATION_FLOW_STEP_IDS = Object.freeze([
 ])
 
 const FLOW_STEP_LABELS = Object.freeze({
-  commander: 'Commander',
+  commander: 'Planner',
   approval: 'Human Approval',
   response: 'Response Agent',
   complete: 'Recovered',
@@ -1689,6 +1758,10 @@ export function orchestrationFlowRailView(orchestrationState = null) {
         phase = 'completed'
         statusLabel = 'Complete'
         tone = 'ok'
+      } else if (status === ORCHESTRATION_STATUS.LLM_ERROR) {
+        phase = 'failed'
+        statusLabel = 'Planner error'
+        tone = 'crit'
       } else {
         phase = 'idle'
         statusLabel = lane?.slotLabel || 'Idle'
@@ -1698,7 +1771,8 @@ export function orchestrationFlowRailView(orchestrationState = null) {
       if (
         status === ORCHESTRATION_STATUS.IDLE ||
         status === ORCHESTRATION_STATUS.ANALYZING ||
-        status === ORCHESTRATION_STATUS.REPLAN_REQUIRED
+        status === ORCHESTRATION_STATUS.REPLAN_REQUIRED ||
+        status === ORCHESTRATION_STATUS.LLM_ERROR
       ) {
         phase = 'locked'
         statusLabel = 'Locked'
@@ -1811,7 +1885,7 @@ export function primaryOrchestrationActionView(
   if (canReplanOrchestration(state)) {
     return {
       actionId: 'replan',
-      label: 'Run Commander Re-analysis',
+      label: 'Run Planner Re-analysis',
       enabled: true,
       liveProgress: false,
     }
@@ -1835,7 +1909,7 @@ export function primaryOrchestrationActionView(
   if (canAnalyzeOrchestration(state, hasIncidents)) {
     return {
       actionId: 'analyze',
-      label: 'Run Commander Analysis',
+      label: 'Run Planner',
       enabled: true,
       liveProgress: false,
     }
@@ -1864,9 +1938,9 @@ export function primaryOrchestrationActionView(
       liveMessage:
         status === ORCHESTRATION_STATUS.EXECUTING
           ? [
-              'AUTONOMOUS RESPONSE ACTIVE',
+              'RESPONSE AGENT',
               progress,
-              stepLabel ? `Executing ${stepLabel}` : 'Response Agent executing…',
+              'Executing approved response…',
             ]
               .filter(Boolean)
               .join(' · ')

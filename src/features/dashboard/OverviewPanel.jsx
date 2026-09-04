@@ -9,8 +9,8 @@ import {
 } from './overviewView.js'
 import {
   dashboardCommanderIncidentHref,
+  dashboardOrchestrateIncidentHref,
   dashboardPanelHref,
-  dashboardResponseIncidentHref,
 } from './dashboardPanels.js'
 import { RESIDUAL_BAND } from '../../../shared/financialExposure.js'
 
@@ -182,7 +182,7 @@ export default function OverviewPanel({
   const incidentId = primaryIncident?.persistentId || primaryIncident?.id || null
   const incidentsHref = dashboardPanelHref(searchParams, 'incidents')
   const commanderHref = dashboardCommanderIncidentHref(searchParams, incidentId)
-  const responseHref = dashboardResponseIncidentHref(searchParams, incidentId)
+  const responseHref = dashboardOrchestrateIncidentHref(searchParams, incidentId)
 
   const riskTone =
     risk.presentation === RISK_PRESENTATION.ACTIVE

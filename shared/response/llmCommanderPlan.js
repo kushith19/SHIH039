@@ -28,6 +28,7 @@ Use only provided actionIds. Do not invent actions, capabilities, or code. Do no
 {
   "summary": "...",
   "attackInterpretation": "...",
+  "review": "...",
   "strategy": "...",
   "actions": [
     {
@@ -45,6 +46,7 @@ export const LLM_COMMANDER_ACTIONS_SCHEMA = Object.freeze({
   properties: {
     summary: { type: 'string' },
     attackInterpretation: { type: 'string' },
+    review: { type: 'string' },
     strategy: { type: 'string' },
     actions: {
       type: 'array',
@@ -698,6 +700,10 @@ export function parseAndValidateLlmCommanderPlan(raw, context, opts = {}) {
     typeof parsed.value.uncertainty === 'string'
       ? parsed.value.uncertainty.trim() || null
       : null
+  const review =
+    typeof parsed.value.review === 'string'
+      ? parsed.value.review.trim() || null
+      : null
   const requireRich =
     opts.requireRich === true ||
     source === 'ollama-direct' ||
@@ -831,6 +837,7 @@ export function parseAndValidateLlmCommanderPlan(raw, context, opts = {}) {
     actionIds: validated.actionIds,
     summary: summary || null,
     attackInterpretation,
+    review,
     strategy,
     riskAssessment,
     confidence,

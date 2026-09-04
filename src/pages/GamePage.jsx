@@ -26,8 +26,8 @@ const leftPanelClass = (open) => {
   const base =
     'shrink-0 overflow-auto border-r border-[var(--tn-line)] bg-[var(--tn-surface)] transition-[width] duration-150 ease-out max-lg:fixed max-lg:top-14 max-lg:bottom-0 max-lg:left-0 max-lg:z-40 max-lg:max-w-[85vw]'
   return open
-    ? `${base} w-60 p-4 max-lg:translate-x-0 max-lg:w-60`
-    : `${base} w-0 overflow-hidden border-r-0 p-0 max-lg:-translate-x-full max-lg:w-60`
+    ? `${base} w-72 p-4 max-lg:translate-x-0 max-lg:w-72`
+    : `${base} w-0 overflow-hidden border-r-0 p-0 max-lg:-translate-x-full max-lg:w-72`
 }
 
 const rightPanelClass = (open) => {

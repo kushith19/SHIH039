@@ -16,8 +16,8 @@ export default function ResponseTodoView({
       <header>
         <h3 className="tn-section-title tracking-wide">Response Agent</h3>
         <p className="tn-meta mt-1">
-          Executes approved actions via the server Response Agent. Checklist
-          updates from live orchestration state only.
+          Executes the approved plan for the selected incident. During dummy
+          execution, each approved action is shown as it completes.
         </p>
       </header>
 
@@ -30,9 +30,9 @@ export default function ResponseTodoView({
         </div>
       ) : null}
 
-      {liveProgress && liveMessage ? (
+      {liveProgress ? (
         <p className="text-sm text-[var(--tn-text)]" aria-live="polite">
-          {liveMessage}
+          {liveMessage || 'Executing approved response...'}
         </p>
       ) : null}
 

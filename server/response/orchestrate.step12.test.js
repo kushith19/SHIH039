@@ -259,7 +259,7 @@ describe('STEP 12 continuation vs genuine replan', () => {
     assert.equal(uiFailureCopyPresent(continuingState), false)
 
     const ownership = activeAgentOwnershipView(continuingState)
-    assert.match(ownership.headline, /Commander preparing next response/i)
+    assert.match(ownership.headline, /Planner preparing next response/i)
     assert.doesNotMatch(ownership.headline, /replan|failed/i)
 
     const rail = orchestrationFlowRailView(continuingState)

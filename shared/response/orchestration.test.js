@@ -60,10 +60,17 @@ describe('response orchestration contract', () => {
     )
     assert.equal(
       canTransitionOrchestration(
-        ORCHESTRATION_STATUS.IDLE,
-        ORCHESTRATION_STATUS.EXECUTING
+        ORCHESTRATION_STATUS.ANALYZING,
+        ORCHESTRATION_STATUS.LLM_ERROR
       ),
-      false
+      true
+    )
+    assert.equal(
+      canTransitionOrchestration(
+        ORCHESTRATION_STATUS.LLM_ERROR,
+        ORCHESTRATION_STATUS.ANALYZING
+      ),
+      true
     )
   })
 

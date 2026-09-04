@@ -1,6 +1,8 @@
 /** Visual / nav order follows SOC workflow. IDs are URL contracts — do not rename lightly. */
 export const DASHBOARD_PANEL_IDS = [
   'overview',
+  'timeline',
+  'correlation',
   'incidents',
   'fleet',
   'commander',
@@ -13,7 +15,7 @@ export const DASHBOARD_NAV_GROUPS = [
   {
     id: 'monitor',
     label: 'Monitor',
-    panels: ['overview', 'incidents', 'fleet'],
+    panels: ['overview', 'incidents', 'timeline', 'correlation', 'fleet'],
   },
   {
     id: 'analyze',
@@ -35,9 +37,17 @@ export const DASHBOARD_PANEL_COPY = {
     label: 'Overview',
     blurb: 'Situational awareness: posture, primary threat, blast radius, and containment status.',
   },
+  timeline: {
+    label: 'Timeline',
+    blurb: 'Chronology of detections this match. Clears with the match, not a global archive.',
+  },
+  correlation: {
+    label: 'Live Correlation',
+    blurb: 'Related open incidents, assets, and dependency relationships. Triage context, not attribution.',
+  },
   incidents: {
     label: 'Incidents',
-    blurb: 'Promoted detections this tick. Inspect Level-1 evidence, then hand off to Commander or Response.',
+    blurb: 'Promoted detections this tick. Inspect Level-1 evidence, then hand off to Commander or Orchestrate.',
   },
   fleet: {
     label: 'Fleet',
@@ -50,11 +60,11 @@ export const DASHBOARD_PANEL_COPY = {
   orchestrate: {
     label: 'Orchestrate',
     blurb:
-      'Multi-agent response workflow shell. Plans require human approval before any future Response Agent execution.',
+      'Planner → human approval → Response Agent → recovered. Operates on the selected incident only.',
   },
   response: {
     label: 'Response',
-    blurb: 'Registered containment actions for the selected incident. Execute lives here — not on Overview or Commander.',
+    blurb: 'Registered containment actions for the selected incident. Execution is controlled from Orchestrate after approval.',
   },
 }
 

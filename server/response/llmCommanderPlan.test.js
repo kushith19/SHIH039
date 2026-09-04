@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { describe, it, before, after } from 'node:test'
 import { createEmptyRoom } from '../roomStore.js'
 import {
+  applyDummySelectedIncidentRecovery,
   approveOrchestrationPlan,
   generateOrchestrationPlan,
   generateOrchestrationPlanMaybeLlm,
@@ -313,7 +314,7 @@ describe('LLM Commander orchestration STEP 2', () => {
       assert.equal(room.responseOrchestration.plan, null)
       assert.equal(
         room.responseOrchestration.workflowStatus,
-        ORCHESTRATION_STATUS.IDLE
+        ORCHESTRATION_STATUS.LLM_ERROR
       )
     } finally {
       clearLlmCommanderTestCaller()
@@ -333,7 +334,7 @@ describe('LLM Commander orchestration STEP 2', () => {
       assert.match(result.message, /LLM Commander planning failed/)
       assert.equal(
         publicOrchestrationState(room).workflowStatus,
-        ORCHESTRATION_STATUS.IDLE
+        ORCHESTRATION_STATUS.LLM_ERROR
       )
       assert.equal(room.responseOrchestration.plan, null)
     } finally {
@@ -667,7 +668,7 @@ describe('LLM Commander orchestration STEP 2', () => {
       assert.notEqual(result.code, undefined)
       assert.equal(
         room.responseOrchestration.workflowStatus,
-        ORCHESTRATION_STATUS.IDLE
+        ORCHESTRATION_STATUS.LLM_ERROR
       )
     } finally {
       clearLlmCommanderTestCaller()
@@ -736,6 +737,133 @@ describe('LLM Commander orchestration STEP 2', () => {
         room.nodes.find((n) => n.id === 'pay')?.data?.runtimeState?.quarantined,
         false
       )
+    } finally {
+      clearLlmCommanderTestCaller()
+    }
+  })
+
+  it('plans only the explicitly selected incident among three active incidents', async () => {
+    let selectedIncidentId = null
+    setLlmCommanderTestCaller(async (payload) => {
+      selectedIncidentId = payload.incident.incidentId
+      return {
+        actions: [
+          {
+            actionId: 'isolate-node',
+            target: payload.serverAuthoritativeTarget,
+            rationale: 'Contain the selected incident only',
+          },
+        ],
+      }
+    })
+    try {
+      const room = createEmptyRoom('SEL1')
+      room.phase = 'playing'
+      room.nodes = [node('n1'), node('n2'), node('n3')]
+      room.edges = []
+      room.detection = {
+        incidents: [
+          seedIncident('inc-1', 'n1', { recoveryPriority: 90 }),
+          seedIncident('inc-2', 'n2', { recoveryPriority: 10 }),
+          seedIncident('inc-3', 'n3', { recoveryPriority: 50 }),
+        ],
+        anomalyNodeIds: ['n1', 'n2', 'n3'],
+      }
+      attachRecoveryImpact(room.detection, {
+        nodes: room.nodes,
+        edges: room.edges,
+        overrides: {},
+      })
+      const result = await generateOrchestrationPlanMaybeLlm(room, {
+        focusIncidentId: 'inc-2',
+        resolveContext,
+      })
+      assert.equal(result.ok, true)
+      assert.equal(selectedIncidentId, 'inc-2')
+      assert.equal(room.responseOrchestration.plan.primaryIncidentId, 'inc-2')
+      assert.equal(room.responseOrchestration.plan.affectedNodeIds?.[0], 'n2')
+    } finally {
+      clearLlmCommanderTestCaller()
+    }
+  })
+
+  it('dummy recovery clears only the selected incident', () => {
+    const room = createEmptyRoom('SEL2')
+    room.phase = 'playing'
+    room.nodes = [node('n1'), node('n2'), node('n3')]
+    room.detection = {
+      incidents: [
+        seedIncident('inc-1', 'n1'),
+        seedIncident('inc-2', 'n2'),
+        seedIncident('inc-3', 'n3'),
+      ],
+      anomalyNodeIds: ['n1', 'n2', 'n3'],
+    }
+    const recovered = applyDummySelectedIncidentRecovery(room, 'inc-2')
+    assert.equal(recovered.ok, true)
+    const ids = (room.detection.incidents ?? []).map((i) => i.id)
+    assert.deepEqual(ids, ['inc-1', 'inc-3'])
+    assert.deepEqual(room.detection.anomalyNodeIds, ['n1', 'n3'])
+    assert.equal(
+      room.nodes.find((n) => n.id === 'n2')?.data?.runtimeState?.quarantined,
+      true
+    )
+    assert.equal(
+      room.nodes.find((n) => n.id === 'n1')?.data?.runtimeState?.quarantined,
+      false
+    )
+    assert.equal(
+      room.nodes.find((n) => n.id === 'n3')?.data?.runtimeState?.quarantined,
+      false
+    )
+  })
+
+  it('a later Response on a different incident issues a new Planner call', async () => {
+    let selected = []
+    setLlmCommanderTestCaller(async (payload) => {
+      selected.push(payload.incident.incidentId)
+      return {
+        actions: [
+          {
+            actionId: 'isolate-node',
+            target: payload.serverAuthoritativeTarget,
+            rationale: 'Contain selected',
+          },
+        ],
+      }
+    })
+    try {
+      const room = createEmptyRoom('SEL3')
+      room.phase = 'playing'
+      room.nodes = [node('n1'), node('n2'), node('n3')]
+      room.detection = {
+        incidents: [
+          seedIncident('inc-1', 'n1'),
+          seedIncident('inc-2', 'n2'),
+          seedIncident('inc-3', 'n3'),
+        ],
+        anomalyNodeIds: ['n1', 'n2', 'n3'],
+      }
+      attachRecoveryImpact(room.detection, {
+        nodes: room.nodes,
+        edges: room.edges,
+        overrides: {},
+      })
+      const first = await generateOrchestrationPlanMaybeLlm(room, {
+        focusIncidentId: 'inc-2',
+        resolveContext,
+      })
+      assert.equal(first.ok, true)
+      applyDummySelectedIncidentRecovery(room, 'inc-2')
+      room.responseOrchestration.workflowStatus = ORCHESTRATION_STATUS.RECOVERED
+      room.responseOrchestration.status = ORCHESTRATION_STATUS.RECOVERED
+      const second = await generateOrchestrationPlanMaybeLlm(room, {
+        focusIncidentId: 'inc-3',
+        resolveContext,
+      })
+      assert.equal(second.ok, true)
+      assert.deepEqual(selected, ['inc-2', 'inc-3'])
+      assert.equal(room.responseOrchestration.plan.primaryIncidentId, 'inc-3')
     } finally {
       clearLlmCommanderTestCaller()
     }

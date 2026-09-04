@@ -309,6 +309,7 @@ async function postOllamaChat(body, {
   } catch (err) {
     say('[LLM RESPONSE PLAN] RESPONSE RECEIVED')
     say(`requestId=${requestId}`)
+    say(`incidentId=${incidentId}`)
     say(`httpStatus=${res.status}`)
     say(`durationMs=${durationMs}`)
     say('doneReason=n/a')
@@ -329,6 +330,7 @@ async function postOllamaChat(body, {
   } catch {
     say('[LLM RESPONSE PLAN] RESPONSE RECEIVED')
     say(`requestId=${requestId}`)
+    say(`incidentId=${incidentId}`)
     say(`httpStatus=${res.status}`)
     say(`durationMs=${durationMs}`)
     say('doneReason=n/a')
@@ -351,6 +353,7 @@ async function postOllamaChat(body, {
 
   say('[LLM RESPONSE PLAN] RESPONSE RECEIVED')
   say(`requestId=${requestId}`)
+  say(`incidentId=${incidentId}`)
   say(`httpStatus=${res.status}`)
   say(`durationMs=${durationMs}`)
   say(`doneReason=${doneReason ?? 'n/a'}`)
@@ -874,6 +877,7 @@ export async function requestLlmCommanderActions(
       ? {
           summary: validated.summary ?? null,
           attackInterpretation: validated.attackInterpretation ?? null,
+          review: validated.review ?? null,
           strategy: validated.strategy ?? null,
           actions: validated.actions ?? [],
           riskAssessment: validated.riskAssessment ?? null,

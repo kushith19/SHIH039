@@ -14,6 +14,9 @@ import {
   normalizeOrchestrationStatus,
 } from '../../shared/response/orchestration.js'
 import { runtimeStateOf } from '../infrastructureNode.js'
+import { INCIDENT_STATUS } from '../../shared/incidentIntel.js'
+import { updateIncidentStatus } from '../metrics/incidents.js'
+import { setNodeQuarantined } from './quarantineNode.js'
 import {
   buildResponsePlan,
   fingerprintFromPlanAndContext,
@@ -651,6 +654,8 @@ function selectActiveIncidentForAnalyze(detection, focusIncidentId = null) {
     return selected
   }
   const id = incident.persistentId || incident.id || null
+  shoutLlm('[PLANNER] INCIDENT_SELECTED')
+  shoutLlm(`incidentId=${id}`)
   shoutLlm(
     `[LLM COMMANDER] SELECTED INCIDENT: ${id} status=${incident.status ?? 'open'} reason=${selected.reason}`
   )
@@ -675,12 +680,25 @@ export async function generateOrchestrationPlanMaybeLlm(room, opts = {}) {
 
   ensureRoomOrchestration(room)
 
-  // Mirror early gates from generateOrchestrationPlan before spending an LLM call
-  const current = normalizeOrchestrationStatus(room.responseOrchestration.workflowStatus)
+  let current = normalizeOrchestrationStatus(room.responseOrchestration.workflowStatus)
+  if (current === ORCHESTRATION_STATUS.RECOVERED) {
+    const reset = startNewOrchestrationCycle(room, { nowMs })
+    if (reset.ok === false) {
+      shoutLlm(`[LLM ANALYZE] result=WORKFLOW_BLOCKED status=${current}`)
+      return {
+        ok: false,
+        statusCode: reset.statusCode ?? 409,
+        message: reset.message || 'Orchestration status blocks Analyze (RECOVERED)',
+        orchestration: publicOrchestrationState(room),
+        executed: false,
+      }
+    }
+    current = ORCHESTRATION_STATUS.IDLE
+  }
+
   if (
     current === ORCHESTRATION_STATUS.ANALYZING ||
     current === ORCHESTRATION_STATUS.REPLAN_REQUIRED ||
-    current === ORCHESTRATION_STATUS.RECOVERED ||
     current === ORCHESTRATION_STATUS.APPROVED ||
     current === ORCHESTRATION_STATUS.EXECUTING ||
     current === ORCHESTRATION_STATUS.CONTINUING ||
@@ -722,7 +740,32 @@ export async function generateOrchestrationPlanMaybeLlm(room, opts = {}) {
   })
 
   const detection = room.detection ?? null
-  const selected = selectActiveIncidentForAnalyze(detection, focusIncidentId)
+  let selected
+  if (focusIncidentId) {
+    selected = selectActiveIncidentForAnalyze(detection, focusIncidentId)
+    if (!selected.focusOverride || !selected.incident) {
+      writeState(room, {
+        workflowStatus: ORCHESTRATION_STATUS.IDLE,
+        plan: null,
+        updatedAtMs: nowMs,
+      })
+      const message = 'Selected incident is not an active planning target'
+      shoutLlm(`[LLM ANALYZE] result=INCIDENT_NOT_SELECTED ${message}`)
+      recordLlmCommanderSkipped(message, {
+        incidentId: focusIncidentId,
+        code: 'INCIDENT_NOT_SELECTED',
+      })
+      return {
+        ok: false,
+        statusCode: 404,
+        message,
+        orchestration: publicOrchestrationState(room),
+        executed: false,
+      }
+    }
+  } else {
+    selected = selectActiveIncidentForAnalyze(detection, null)
+  }
   const contextIncidentId =
     selected.incident?.persistentId || selected.incident?.id || null
 
@@ -777,7 +820,7 @@ export async function generateOrchestrationPlanMaybeLlm(room, opts = {}) {
   const llm = await requestLlmCommanderActions(context, { room })
   if (!llm.ok) {
     writeState(room, {
-      workflowStatus: ORCHESTRATION_STATUS.IDLE,
+      workflowStatus: ORCHESTRATION_STATUS.LLM_ERROR,
       plan: null,
       continuationReason: 'planning_failed',
       pausedForApprovalReason: llm.error || 'LLM Commander planning failed',
@@ -824,12 +867,22 @@ export async function generateOrchestrationPlanMaybeLlm(room, opts = {}) {
     plan.reasoning = parts.join(' · ') || plan.reasoning
     plan.llmSummary = llm.summary ?? null
     plan.attackInterpretation = llm.attackInterpretation ?? null
+    plan.llmReview = llm.review ?? null
     plan.strategy = llm.strategy ?? null
     plan.riskAssessment = llm.riskAssessment ?? null
     plan.llmConfidence = llm.confidence ?? null
     plan.llmUncertainty = llm.uncertainty ?? null
     plan.llmActions = llm.actions
     recordLlmCommanderFinalPlan(plan)
+    shoutLlm('[PLANNER] PLAN_READY')
+    shoutLlm(`incidentId=${contextIncidentId}`)
+    shoutLlm(
+      `actions=${JSON.stringify(
+        (plan.recommendedActions ?? [])
+          .filter((a) => a?.executable)
+          .map((a) => a.actionId)
+      )}`
+    )
   } else {
     recordLlmCommanderPlanningError(
       built?.message || 'ResponsePlan assembly failed'
@@ -1433,6 +1486,11 @@ export function approveOrchestrationPlan(room, {
     atMs: nowMs,
   })
 
+  shoutLlm('[HUMAN APPROVAL]')
+  shoutLlm(`incidentId=${approvedPlan.primaryIncidentId}`)
+  shoutLlm('approved=true')
+  shoutLlm(`planId=${approvedPlan.planId}`)
+
   if (autoContinue === false) {
     return {
       ok: true,
@@ -1488,6 +1546,91 @@ function markEpisodeRecovered(room, { nowMs = Date.now(), reason = null } = {}) 
     pausedForApprovalReason: null,
     updatedAtMs: nowMs,
   })
+}
+
+function incidentMatchesId(inc, incidentId) {
+  const want = String(incidentId ?? '')
+  if (!want || !inc) return false
+  return String(inc.id ?? '') === want || String(inc.persistentId ?? '') === want
+}
+
+/**
+ * Demo remediation: clear ONLY the selected incident's anomaly. Other incidents stay active.
+ */
+export function applyDummySelectedIncidentRecovery(room, incidentId) {
+  const id = String(incidentId ?? '').trim()
+  if (!id || !room) return { ok: false, cleared: false }
+  const detection = room.detection
+  const incidents = Array.isArray(detection?.incidents) ? detection.incidents : []
+  const selected = incidents.find((inc) => incidentMatchesId(inc, id)) ?? null
+  const nodeId = selected?.endpointId ? String(selected.endpointId) : null
+
+  if (nodeId) {
+    setNodeQuarantined(room, nodeId, true)
+  }
+  if (selected) {
+    selected.status = INCIDENT_STATUS.CLEARED
+  }
+  if (detection) {
+    detection.incidents = incidents.filter((inc) => !incidentMatchesId(inc, id))
+    if (nodeId && Array.isArray(detection.anomalyNodeIds)) {
+      detection.anomalyNodeIds = detection.anomalyNodeIds.filter(
+        (nid) => String(nid) !== nodeId
+      )
+    }
+  }
+  const persistentId = selected?.persistentId || selected?.id || id
+  if (room.id && persistentId) {
+    try {
+      updateIncidentStatus(room.id, persistentId, { status: INCIDENT_STATUS.CLEARED })
+    } catch {
+      /* SQLite row may not exist yet */
+    }
+  }
+  shoutLlm('[RECOVERY]')
+  shoutLlm(`incidentId=${id}`)
+  shoutLlm('status=recovered')
+  return { ok: true, cleared: true, incidentId: id, nodeId }
+}
+
+/**
+ * After Response Agent (or dummy) execution: recover the selected incident only.
+ */
+export function completeSelectedIncidentDummyRecovery(room, incidentId, {
+  nowMs = Date.now(),
+} = {}) {
+  ensureRoomOrchestration(room)
+  const status = normalizeOrchestrationStatus(room.responseOrchestration.workflowStatus)
+  if (status === ORCHESTRATION_STATUS.APPROVED) {
+    writeState(room, {
+      workflowStatus: ORCHESTRATION_STATUS.EXECUTING,
+      execution: {
+        currentStep: 1,
+        totalSteps: 1,
+        completedSteps: 1,
+        activeAction: null,
+        results: [
+          {
+            actionId: 'dummy-recover-selected',
+            status: 'completed',
+            startedAtMs: nowMs,
+            completedAtMs: nowMs,
+          },
+        ],
+      },
+      continuationReason: 'dummy_selected_recovery',
+      updatedAtMs: nowMs,
+    })
+  }
+  const recovered = applyDummySelectedIncidentRecovery(room, incidentId)
+  markEpisodeRecovered(room, { nowMs, reason: 'selected_incident_recovered' })
+  return {
+    ok: true,
+    recovered: true,
+    cleared: recovered.cleared === true,
+    incidentId,
+    orchestration: publicOrchestrationState(room),
+  }
 }
 
 /**
@@ -1568,6 +1711,11 @@ export function executeOrchestrationPlan(room, {
   }
 
   const steps = orderedExecutableSteps(plan)
+  shoutLlm('[RESPONSE AGENT]')
+  shoutLlm(`incidentId=${plan.primaryIncidentId}`)
+  shoutLlm(
+    `actions=${JSON.stringify(steps.map((s) => s.actionId))}`
+  )
   if (!steps.length) {
     return {
       ok: false,

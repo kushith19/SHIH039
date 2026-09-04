@@ -15,7 +15,7 @@ import {
 import StatusBadge from '../../ui/StatusBadge'
 import {
   dashboardCommanderIncidentHref,
-  dashboardResponseIncidentHref,
+  dashboardOrchestrateIncidentHref,
 } from './dashboardPanels.js'
 import { requestIncidentResponsePlan } from '../response/orchestrationView.js'
 import { fmt } from './metrics'
@@ -43,19 +43,6 @@ function trustFmt(n) {
   return String(Math.round(Number(n)))
 }
 
-function severityRank(severity) {
-  switch (String(severity ?? '').toLowerCase()) {
-    case 'critical':
-      return 0
-    case 'high':
-      return 1
-    case 'medium':
-      return 2
-    default:
-      return 3
-  }
-}
-
 export default function IncidentCard({
   inc,
   rank = null,
@@ -75,15 +62,6 @@ export default function IncidentCard({
   const fin = inc.financialContext
   const money =
     fin?.simulated && fin.exposureLabel && fin.exposureLabel !== '₹0' ? fin.exposureLabel : null
-  const relatedHistory = [...(Array.isArray(inc.relatedIncidents) ? inc.relatedIncidents : [])].sort(
-    (a, b) => {
-      const d = severityRank(a.severity) - severityRank(b.severity)
-      if (d !== 0) return d
-      return String(a.summary || a.incidentType || '').localeCompare(
-        String(b.summary || b.incidentType || '')
-      )
-    }
-  )
   const signals = keySignals(inc)
   const commanderId = inc.persistentId || inc.id
   const status = inc.status || 'open'
@@ -126,7 +104,7 @@ export default function IncidentCard({
 
   async function onPressResponse() {
     if (!commanderId) return
-    navigate(dashboardResponseIncidentHref(searchParams, commanderId))
+    navigate(dashboardOrchestrateIncidentHref(searchParams, commanderId))
     if (!roomId) return
     setPlanning(true)
     try {
@@ -410,21 +388,6 @@ export default function IncidentCard({
         )}
       </div>
 
-      {relatedHistory.length > 0 ? (
-        <div className="mt-5">
-          <h3 className="soc-zone-title">History relationships</h3>
-          <ul className="tn-meta mt-1.5 space-y-1">
-            {relatedHistory.slice(0, 3).map((r) => (
-              <li key={r.incidentId}>• {r.summary || r.incidentType || r.incidentId}</li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-
-      {inc.campaignId ? (
-        <p className="tn-meta mt-3 text-[11px]">History campaign {inc.campaignId}</p>
-      ) : null}
-
       <div className="mt-5 flex flex-wrap gap-2 border-t border-[var(--tn-line)] pt-4">
         <Link
           to={dashboardCommanderIncidentHref(searchParams, commanderId)}
@@ -441,8 +404,7 @@ export default function IncidentCard({
             void onPressResponse()
           }}
         >
-          {planning ? 'Generating response plan…' : 'Response'}
-          {!planning ? <span className="opacity-80"> (plan)</span> : null}
+          {planning ? 'Planner analyzing…' : 'Response'}
         </button>
       </div>
     </div>

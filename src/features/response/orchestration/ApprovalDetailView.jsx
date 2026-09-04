@@ -11,6 +11,7 @@ export default function ApprovalDetailView({
   approveEnabled = false,
   busy = null,
   onApprove = null,
+  planView = null,
 }) {
   if (!approval?.required && !approval?.approved) {
     return (
@@ -18,12 +19,12 @@ export default function ApprovalDetailView({
         <header>
           <h3 className="tn-section-title tracking-wide">Human Approval</h3>
           <p className="tn-meta mt-1">
-            One approval authorizes an autonomous response mission within a
-            bounded scope.
+            Review the Planner output for the selected incident. Nothing
+            executes until you click Approve Plan.
           </p>
         </header>
         <p className="text-sm text-[var(--tn-muted)]">
-          Waiting for a Commander plan. No approval decision is pending.
+          Waiting for a Planner plan. No approval decision is pending.
         </p>
       </div>
     )
@@ -35,13 +36,11 @@ export default function ApprovalDetailView({
         <header>
           <h3 className="tn-section-title tracking-wide">Human Approval</h3>
           <p className="tn-meta mt-1">
-            Response mission authorized. Autonomous continuation is active within
-            scope.
+            Plan approved. Response Agent executes this approved plan only.
           </p>
         </header>
         <p className="text-sm text-[var(--tn-text)]" aria-live="polite">
-          ✓ Approved — no further clicks required until recovery or scope
-          expansion.
+          ✓ Approved. Response Agent is next.
         </p>
         {approvalScope ? <ScopeSummary scope={approvalScope} approval={approval} /> : null}
       </div>
@@ -53,9 +52,8 @@ export default function ApprovalDetailView({
       <header>
         <h3 className="tn-section-title tracking-wide">Human Approval</h3>
         <p className="tn-meta mt-1">
-          Approving authorizes a bounded response mission. Inside that scope the
-          system plans, validates, executes, observes, and continues
-          automatically.
+          Approving authorizes the Planner response for the selected incident
+          only. The Response Agent does not run until you click Approve Plan.
         </p>
       </header>
 
@@ -67,7 +65,36 @@ export default function ApprovalDetailView({
           {approval.missionTitle || 'Response Mission'}
           {pausedForApprovalReason ? ' · expansion required' : ''}
         </h4>
-        <p className="tn-meta mt-1">Plan #{approval.planNumber}</p>
+        {Number(approval.planNumber) > 1 ? (
+          <p className="tn-meta mt-1">Plan {approval.planNumber}</p>
+        ) : null}
+
+        {planView?.summary ? (
+          <div className="mt-3">
+            <div className="tn-label">Planner assessment</div>
+            <p className="mt-1 text-sm text-[var(--tn-text)]">{planView.summary}</p>
+          </div>
+        ) : null}
+        {planView?.attackInterpretation ? (
+          <div className="mt-3">
+            <div className="tn-label">What happened</div>
+            <p className="mt-1 text-sm text-[var(--tn-text)]">
+              {planView.attackInterpretation}
+            </p>
+          </div>
+        ) : null}
+        {planView?.review ? (
+          <div className="mt-3">
+            <div className="tn-label">Evidence review</div>
+            <p className="mt-1 text-sm text-[var(--tn-text)]">{planView.review}</p>
+          </div>
+        ) : null}
+        {planView?.strategy ? (
+          <div className="mt-3">
+            <div className="tn-label">Recommended approach</div>
+            <p className="mt-1 text-sm text-[var(--tn-text)]">{planView.strategy}</p>
+          </div>
+        ) : null}
 
         {pausedForApprovalReason ? (
           <p className="mt-2 text-sm text-[var(--tn-warn)]" role="status">
@@ -83,8 +110,16 @@ export default function ApprovalDetailView({
             <ul className="mt-1 space-y-1 text-sm text-[var(--tn-text)]">
               {(approval.actionSummaries || []).map((a) => (
                 <li key={a.actionId}>
-                  {a.label}
-                  {a.target ? ` · ${a.target}` : ''}
+                  <div>
+                    {a.label}
+                    {a.target ? ` · ${a.target}` : ''}
+                  </div>
+                  {a.rationale ? (
+                    <p className="tn-meta">Why: {a.rationale}</p>
+                  ) : null}
+                  {a.expectedImpact ? (
+                    <p className="tn-meta">Expected outcome: {a.expectedImpact}</p>
+                  ) : null}
                 </li>
               ))}
             </ul>
@@ -92,12 +127,7 @@ export default function ApprovalDetailView({
         )}
 
         <div className="mt-3 flex flex-wrap gap-1.5">
-          <StatusBadge tone="ok">Automatic continuation: ON</StatusBadge>
-          <StatusBadge
-            tone={approval.policyStatus === 'ALLOWED' ? 'ok' : 'warn'}
-          >
-            Policy: {approval.policyStatus || '—'}
-          </StatusBadge>
+          <StatusBadge tone="warn">Execution waits for Approve Plan</StatusBadge>
         </div>
 
         <button
@@ -106,12 +136,14 @@ export default function ApprovalDetailView({
           disabled={!approveEnabled}
           onClick={() => onApprove?.()}
         >
-          {busy === 'approve'
+            {busy === 'approve'
             ? 'Approving…'
-            : approval.buttonLabel || 'Approve Response'}
+            : busy === 'execute'
+              ? 'Executing…'
+              : approval.buttonLabel || 'Approve Plan'}
         </button>
         <p className="tn-meta mt-2 text-[11px]">
-          One human decision. Does not execute containment directly.
+          Approval is required. Nothing executes until you click Approve Plan.
         </p>
       </div>
     </div>
