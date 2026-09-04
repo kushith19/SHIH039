@@ -47,6 +47,72 @@ test('mergeIncidentCorpus dedupes history vs live by liveIncidentId', () => {
   assert.equal(corpus[0].sector, 'Finance')
 })
 
+test('mergeIncidentCorpus prefers open episode when liveIncidentId repeats', () => {
+  const corpus = mergeIncidentCorpus({
+    history: [
+      {
+        incidentId: 'inc-pay:new',
+        liveIncidentId: 'inc-pay',
+        status: 'open',
+        severity: 'high',
+        detectedAtMs: NOW,
+        affectedNodeId: 'pay',
+      },
+      {
+        incidentId: 'inc-pay:old',
+        liveIncidentId: 'inc-pay',
+        status: 'cleared',
+        severity: 'high',
+        detectedAtMs: NOW - 60_000,
+        affectedNodeId: 'pay',
+      },
+    ],
+    live: [
+      {
+        id: 'inc-pay',
+        status: 'open',
+        severity: 'critical',
+        endpointLabel: 'Live Pay',
+        detectionType: 'behavioural_anomaly',
+      },
+    ],
+  })
+  assert.equal(corpus.length, 2)
+  const open = corpus.find((r) => r.incidentId === 'inc-pay:new')
+  assert.equal(open.status, 'open')
+  assert.equal(open.severity, 'critical')
+  assert.equal(open.endpointLabel, 'Live Pay')
+  assert.equal(corpus.find((r) => r.incidentId === 'inc-pay:old').status, 'cleared')
+})
+
+test('mergeIncidentCorpus dedupes when live uses persistentId', () => {
+  const corpus = mergeIncidentCorpus({
+    history: [
+      {
+        incidentId: 'inc-pay:100',
+        liveIncidentId: 'inc-pay',
+        incidentType: 'behavioural_anomaly',
+        severity: 'high',
+        status: 'open',
+        affectedNodeId: 'pay',
+        detectedAtMs: NOW - 10_000,
+      },
+    ],
+    live: [
+      {
+        id: 'inc-pay',
+        persistentId: 'inc-pay:100',
+        endpointId: 'pay',
+        severity: 'high',
+        status: 'open',
+        detectionType: 'behavioural_anomaly',
+      },
+    ],
+  })
+  assert.equal(corpus.length, 1)
+  assert.equal(corpus[0].incidentId, 'inc-pay:100')
+})
+
 test('KPIs derive from corpus without hardcoded totals', () => {
   const corpus = [
     { severity: 'critical', status: 'open', detectionType: 'behavioural_anomaly' },

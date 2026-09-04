@@ -47,6 +47,9 @@ export function createEmptyRoom(id = DEMO_ROOM_ID) {
     autoSpreadSuccessCount: 0,
     campaigns: [],
     incidentLedger: [],
+    /** Durable match/session id stamped onto new incident episodes (SQLite). */
+    currentMatchId: null,
+    matchStartedAtMs: null,
     commanderBriefing: null,
     /** Response orchestration (plan + approval). Not campaigns. */
     responseOrchestration: createEmptyOrchestrationState(),

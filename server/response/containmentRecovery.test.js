@@ -448,7 +448,7 @@ test('after isolate, incident clears and stays cleared across ticks (no reopen l
   assert.equal(reopenCount, 0)
 })
 
-test('clear attacks wipes persisted incident history for this match', () => {
+test('clear attacks preserves persisted incident history', () => {
   resetMetricsDbForTests()
   const room = makeFinanceRoom('CLEAR-HIST')
   persistDetectionIncidents(room, {
@@ -472,5 +472,5 @@ test('clear attacks wipes persisted incident history for this match', () => {
 
   abortAndClearAttacks(room)
 
-  assert.equal(listIncidentHistory('CLEAR-HIST').length, 0)
+  assert.equal(listIncidentHistory('CLEAR-HIST').length, 1)
 })

@@ -8,6 +8,9 @@ import {
   listHistoryCampaigns,
   listIncidents,
   clearPersistedIncidentHistory,
+  beginMatchSession,
+  closeOpenIncidentsForRoom,
+  aggregateIncidentHistory,
   listIncidentHistory,
   persistDetectionIncidents,
   updateIncidentStatus,
@@ -258,12 +261,104 @@ test('history is chronological and supports newest/oldest plus limit', async () 
   assert.equal(limited[0].incidentId, newestFirst[0].incidentId)
 })
 
-test('clearPersistedIncidentHistory wipes the room timeline', () => {
+test('clearPersistedIncidentHistory is admin wipe only (not used by match lifecycle)', () => {
   resetMetricsDbForTests()
   persistDetectionIncidents(payRoom(), payDetection())
   assert.equal(listIncidentHistory('DEMO').length, 1)
   clearPersistedIncidentHistory('DEMO')
   assert.equal(listIncidentHistory('DEMO').length, 0)
+})
+
+test('closeOpenIncidentsForRoom clears status without deleting history', () => {
+  resetMetricsDbForTests()
+  const room = payRoom()
+  beginMatchSession(room)
+  persistDetectionIncidents(room, payDetection())
+  assert.equal(listIncidentHistory('DEMO').length, 1)
+  assert.equal(listIncidentHistory('DEMO')[0].status, 'open')
+  const closed = closeOpenIncidentsForRoom('DEMO')
+  assert.equal(closed, 1)
+  const hist = listIncidentHistory('DEMO')
+  assert.equal(hist.length, 1)
+  assert.equal(hist[0].status, 'cleared')
+  assert.ok(hist[0].matchId)
+})
+
+test('new match session preserves history and stamps a new match_id', async () => {
+  resetMetricsDbForTests()
+  const room = payRoom()
+  const m1 = beginMatchSession(room)
+  persistDetectionIncidents(room, payDetection())
+  await new Promise((r) => setTimeout(r, 2))
+  persistDetectionIncidents(room, { ...payDetection(), incidents: [] })
+  const m2 = beginMatchSession(room)
+  assert.notEqual(m1, m2)
+  assert.equal(listIncidentHistory('DEMO').length, 1)
+  persistDetectionIncidents(room, payDetection())
+  const hist = listIncidentHistory('DEMO', { order: 'oldest-first' })
+  assert.equal(hist.length, 2)
+  assert.equal(hist[0].matchId, m1)
+  assert.equal(hist[1].matchId, m2)
+})
+
+test('listIncidentHistory works without an in-memory room and supports filters', () => {
+  resetMetricsDbForTests()
+  const room = payRoom()
+  room.currentMatchId = 'DEMO:m:1'
+  room.matchStartedAtMs = Date.now() - 1000
+  persistDetectionIncidents(room, payDetection())
+  const all = listIncidentHistory('DEMO')
+  assert.equal(all.length, 1)
+  const filtered = listIncidentHistory('DEMO', {
+    type: 'behavioural_anomaly',
+    severity: 'high',
+    matchId: 'DEMO:m:1',
+  })
+  assert.equal(filtered.length, 1)
+  const none = listIncidentHistory('DEMO', { matchId: 'nope' })
+  assert.equal(none.length, 0)
+})
+
+test('aggregateIncidentHistory counts today/week/month windows', () => {
+  resetMetricsDbForTests()
+  const room = payRoom()
+  room.currentMatchId = 'DEMO:m:agg'
+  room.matchStartedAtMs = Date.now()
+  persistDetectionIncidents(room, payDetection())
+  const now = Date.now()
+  const stats = aggregateIncidentHistory('DEMO', { nowMs: now })
+  assert.equal(stats.total, 1)
+  assert.equal(stats.today, 1)
+  assert.equal(stats.week, 1)
+  assert.equal(stats.month, 1)
+  assert.equal(stats.resolved, 0)
+})
+
+test('persistDetectionIncidents stores sector and resolved_at_ms for Overview history', () => {
+  resetMetricsDbForTests()
+  const room = payRoom()
+  room.nodes[0].data.sector = 'Finance'
+  room.currentMatchId = 'DEMO:m:sec'
+  room.matchStartedAtMs = Date.now()
+  const det = payDetection()
+  det.incidents[0].sector = 'Finance'
+  persistDetectionIncidents(room, det)
+  let hist = listIncidentHistory('DEMO')
+  assert.equal(hist.length, 1)
+  assert.equal(hist[0].sector, 'Finance')
+  assert.equal(hist[0].incidentType, 'behavioural_anomaly')
+  assert.equal(hist[0].resolvedAtMs, null)
+
+  persistDetectionIncidents(room, { ...det, incidents: [], anomalyNodeIds: [] })
+  hist = listIncidentHistory('DEMO')
+  assert.equal(hist[0].status, 'cleared')
+  assert.ok(Number(hist[0].resolvedAtMs) > 0)
+  assert.equal(hist[0].sector, 'Finance')
+
+  const stats = aggregateIncidentHistory('DEMO')
+  assert.equal(stats.resolved, 1)
+  assert.ok(stats.bySector.some((s) => s.sector === 'Finance' && s.count === 1))
+  assert.ok(stats.byType.some((t) => t.id === 'behavioural_anomaly' && t.count === 1))
 })
 
 test('separate live incidents stay separate historical records', () => {

@@ -5,7 +5,7 @@ import {
 import { validateSpreadAttack } from '../../shared/attackSpread.js'
 import { isLiveCampaignStatus } from '../../shared/campaigns.js'
 import { runtimeStateOf } from '../infrastructureNode.js'
-import { clearPersistedIncidentHistory } from '../metrics/incidents.js'
+import { clearAutoSpreadGuards } from '../attack/autoSpread.js'
 import { mergeMetrics, normalizeMetricPatch, normalizeMetricSnapshot } from '../nodeMetrics.js'
 import { clearSpreadTargetLocks } from '../../shared/spreadTargetLock.js'
 import {
@@ -14,7 +14,6 @@ import {
   recordSeedAttackEvent,
   recordSpreadAttackEvent,
 } from '../attack/events.js'
-import { clearAutoSpreadGuards } from '../attack/autoSpread.js'
 import { normalizeAttackSpreadMode } from '../../shared/attackSpreadMode.js'
 
 function nodeById(room, nodeId) {
@@ -88,11 +87,7 @@ export function abortAndClearAttacks(room) {
   clearSpreadTargetLocks(room)
   clearActiveAttackSequences(room)
   clearAutoSpreadGuards(room)
-  try {
-    if (room?.id) clearPersistedIncidentHistory(room.id)
-  } catch {
-    // store may not be initialized yet
-  }
+  // Live attack state only — durable SQLite incident history is retained.
   const sim = room.hackSimulator ?? {}
   room.hackSimulator = {
     ...sim,

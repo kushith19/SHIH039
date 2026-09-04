@@ -2,6 +2,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import {
   Activity,
   AlertTriangle,
+  ClipboardList,
   GitBranch,
   LayoutDashboard,
   Link2,
@@ -21,6 +22,7 @@ const ICONS = {
   correlation: Link2,
   incidents: AlertTriangle,
   fleet: Server,
+  'post-analysis': ClipboardList,
   commander: Shield,
   orchestrate: GitBranch,
   response: ShieldAlert,

@@ -55,6 +55,28 @@ describe('dashboard panel routing', () => {
     )
   })
 
+  it('places post-analysis and commander under Analyze (no Intel dashboard)', () => {
+    const analyze = DASHBOARD_NAV_GROUPS.find((g) => g.id === 'analyze')
+    assert.deepEqual(analyze.panels, ['post-analysis', 'commander'])
+    assert.equal(dashboardPanelMeta('post-analysis').label, 'Post-Analysis')
+    assert.equal(resolveDashboardPanel('post-analysis'), 'post-analysis')
+    assert.equal(resolveDashboardPanel('analyze'), 'overview')
+    assert.equal(dashboardPanelMeta('analyze').label, 'Overview')
+  })
+
+  it('Monitor Overview remains the sole overview panel id', () => {
+    const monitor = DASHBOARD_NAV_GROUPS.find((g) => g.id === 'monitor')
+    assert.ok(monitor.panels.includes('overview'))
+    assert.equal(
+      DASHBOARD_NAV_GROUPS.find((g) => g.id === 'analyze').panels.includes('overview'),
+      false
+    )
+    assert.equal(
+      DASHBOARD_NAV_GROUPS.find((g) => g.id === 'analyze').panels.includes('analyze'),
+      false
+    )
+  })
+
   it('clears focused incident when leaving commander or response', () => {
     const fromCommander = dashboardPanelHref(
       new URLSearchParams('view=dashboard&panel=commander&incident=inc-pay:1'),

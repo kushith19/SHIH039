@@ -1,6 +1,6 @@
 /**
  * Pure Overview dashboard metrics.
- * Derives presentation KPIs from live incidents, match history, detection,
+ * Derives presentation KPIs from live incidents, durable SQLite history, detection,
  * and orchestration state — no second detector or fabricated scores.
  */
 
@@ -85,11 +85,14 @@ function updatedMsOf(row) {
 }
 
 /**
- * Merge match history + live detection incidents without double-counting.
+ * Merge durable history + live detection incidents without double-counting.
  * History is authoritative for timestamps/status; live fills gaps and sector labels.
+ * Live-only rows (not yet polled from SQLite) are included once.
+ * Match keys: SQLite incidentId ↔ live.persistentId, and liveIncidentId ↔ live.id.
  */
 export function mergeIncidentCorpus({ live = [], history = [], nodes = [] } = {}) {
   const byLiveId = new Map()
+  const byIncidentId = new Map()
   const rows = []
 
   for (const h of history ?? []) {
@@ -109,17 +112,36 @@ export function mergeIncidentCorpus({ live = [], history = [], nodes = [] } = {}
       endpointId: String(h.affectedNodeId ?? h.endpointId ?? ''),
       endpointLabel: labelOf(h, nodes),
       sector: sectorOf(h, nodes),
+      matchId: h.matchId ?? null,
+      resolvedAtMs: Number(h.resolvedAtMs) > 0 ? Number(h.resolvedAtMs) : 0,
       source: 'history',
     }
     rows.push(row)
-    if (liveId) byLiveId.set(liveId, row)
+    if (id) byIncidentId.set(id, row)
+    if (liveId) {
+      const prev = byLiveId.get(liveId)
+      if (!prev) {
+        byLiveId.set(liveId, row)
+      } else {
+        const prevOpen = !isResolvedStatus(prev.status)
+        const rowOpen = !isResolvedStatus(row.status)
+        if (rowOpen && !prevOpen) byLiveId.set(liveId, row)
+        else if (rowOpen === prevOpen && (row.detectedAtMs || 0) >= (prev.detectedAtMs || 0)) {
+          byLiveId.set(liveId, row)
+        }
+      }
+    }
   }
 
   for (const inc of live ?? []) {
     if (!inc) continue
-    const liveId = String(inc.persistentId || inc.id || '')
-    if (!liveId) continue
-    const existing = byLiveId.get(liveId)
+    const persistentId = inc.persistentId ? String(inc.persistentId) : null
+    const liveId = String(inc.id || '')
+    if (!persistentId && !liveId) continue
+    const existing =
+      (persistentId && byIncidentId.get(persistentId)) ||
+      (liveId && byLiveId.get(liveId)) ||
+      null
     if (existing) {
       const liveLabel = String(inc.endpointLabel ?? '').trim()
       if (liveLabel) existing.endpointLabel = liveLabel
@@ -139,9 +161,9 @@ export function mergeIncidentCorpus({ live = [], history = [], nodes = [] } = {}
       continue
     }
     const row = {
-      key: liveId,
-      incidentId: null,
-      liveIncidentId: liveId,
+      key: persistentId || liveId,
+      incidentId: persistentId,
+      liveIncidentId: liveId || null,
       detectedAtMs: detectedMsOf(inc),
       updatedAtMs: updatedMsOf(inc),
       detectionType: typeOf(inc),
@@ -150,11 +172,14 @@ export function mergeIncidentCorpus({ live = [], history = [], nodes = [] } = {}
       endpointId: String(inc.endpointId ?? ''),
       endpointLabel: labelOf(inc, nodes),
       sector: sectorOf(inc, nodes),
+      matchId: inc.matchId ?? null,
+      resolvedAtMs: Number(inc.resolvedAtMs) > 0 ? Number(inc.resolvedAtMs) : 0,
       source: 'live',
       live: inc,
     }
     rows.push(row)
-    byLiveId.set(liveId, row)
+    if (liveId) byLiveId.set(liveId, row)
+    if (persistentId) byIncidentId.set(persistentId, row)
   }
 
   return rows
@@ -219,8 +244,9 @@ function bucketLabelFor(ms, mode) {
 }
 
 /**
- * Adaptive activity series from detection timestamps.
- * Match demos are usually minutes long — bucket by minute/hour when span is short.
+ * Adaptive activity series from persisted detection timestamps (detectedAtMs).
+ * Today / Week / Month are wall-clock windows over the durable historical corpus —
+ * not limited to the current match session.
  */
 export function buildAttackActivitySeries(corpus = [], { rangeId = 'today', nowMs = Date.now() } = {}) {
   const range = ACTIVITY_RANGES[rangeId] || ACTIVITY_RANGES.today
@@ -619,7 +645,7 @@ export function buildResponsePerformance(corpus = []) {
   const durations = []
   for (const r of resolved) {
     const start = Number(r.detectedAtMs)
-    const end = Number(r.updatedAtMs)
+    const end = Number(r.resolvedAtMs) > 0 ? Number(r.resolvedAtMs) : Number(r.updatedAtMs)
     if (Number.isFinite(start) && start > 0 && Number.isFinite(end) && end > start) {
       durations.push(end - start)
     }

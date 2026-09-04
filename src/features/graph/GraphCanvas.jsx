@@ -866,7 +866,7 @@ function GraphCanvasInner({
             onClick={clearAttacks}
             disabled={!hasAttackOverrides && !anyQuarantined}
             className="tn-btn pointer-events-auto"
-            title="Clear attack overrides and quarantine (match-start baseline unchanged)"
+            title="Clear live attack overrides and quarantine — historical incidents are kept"
           >
             <span className="sm:hidden">Clear</span>
             <span className="hidden sm:inline">Clear attacks</span>

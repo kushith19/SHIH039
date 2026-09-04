@@ -87,7 +87,11 @@ const SCHEMA_SQL = `
       campaign_id TEXT,
       actions_taken_json TEXT,
       detected_at_ms INTEGER NOT NULL,
-      updated_at_ms INTEGER NOT NULL
+      updated_at_ms INTEGER NOT NULL,
+      match_id TEXT,
+      session_started_at_ms INTEGER,
+      sector TEXT,
+      resolved_at_ms INTEGER
     );
     CREATE INDEX IF NOT EXISTS idx_incidents_room_status
       ON incidents (room_id, status, updated_at_ms);
@@ -108,6 +112,91 @@ const SCHEMA_SQL = `
     );
     CREATE INDEX IF NOT EXISTS idx_incident_rel_target
       ON incident_relationships (target_incident_id);
+
+    /* Post-Analysis Framework — global archive; NEVER wiped with match history. */
+    CREATE TABLE IF NOT EXISTS post_analysis_incidents (
+      archive_id TEXT PRIMARY KEY,
+      persistent_incident_id TEXT,
+      live_incident_id TEXT NOT NULL,
+      room_id TEXT NOT NULL,
+      first_detected_at_ms INTEGER NOT NULL,
+      last_seen_at_ms INTEGER NOT NULL,
+      attack_type TEXT,
+      attack_category TEXT,
+      affected_asset_id TEXT,
+      affected_node_id TEXT,
+      affected_label TEXT,
+      severity TEXT,
+      status TEXT,
+      detection_signals_json TEXT,
+      evidence_json TEXT,
+      telemetry_summary_json TEXT,
+      trust_score REAL,
+      anomaly_score REAL,
+      drift_json TEXT,
+      graph_context_json TEXT,
+      propagation_json TEXT,
+      orchestration_performed INTEGER NOT NULL DEFAULT 0,
+      response_actions_json TEXT,
+      recovery_status TEXT,
+      post_analysis_status TEXT NOT NULL DEFAULT 'pending',
+      post_analysis_at_ms INTEGER,
+      post_analysis_error TEXT,
+      source TEXT NOT NULL DEFAULT 'live',
+      payload_json TEXT,
+      created_at_ms INTEGER NOT NULL,
+      updated_at_ms INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_pa_incidents_room_detected
+      ON post_analysis_incidents (room_id, first_detected_at_ms);
+    CREATE INDEX IF NOT EXISTS idx_pa_incidents_asset
+      ON post_analysis_incidents (affected_asset_id, attack_category);
+    CREATE INDEX IF NOT EXISTS idx_pa_incidents_live
+      ON post_analysis_incidents (room_id, live_incident_id, last_seen_at_ms);
+    CREATE INDEX IF NOT EXISTS idx_pa_incidents_status
+      ON post_analysis_incidents (post_analysis_status);
+
+    CREATE TABLE IF NOT EXISTS post_analysis_recommendations (
+      recommendation_id TEXT PRIMARY KEY,
+      fingerprint TEXT NOT NULL,
+      room_id TEXT NOT NULL,
+      title TEXT NOT NULL,
+      problem TEXT,
+      recommendation TEXT NOT NULL,
+      reason TEXT,
+      priority TEXT NOT NULL,
+      category TEXT NOT NULL,
+      status TEXT NOT NULL,
+      software_only INTEGER NOT NULL DEFAULT 1,
+      occurrence_count INTEGER NOT NULL DEFAULT 1,
+      first_seen_at_ms INTEGER NOT NULL,
+      last_seen_at_ms INTEGER NOT NULL,
+      completed_at_ms INTEGER,
+      dismissed_at_ms INTEGER,
+      recurred_at_ms INTEGER,
+      attack_category TEXT,
+      affected_asset_id TEXT,
+      source TEXT NOT NULL DEFAULT 'llm',
+      prior_completion_note TEXT,
+      created_at_ms INTEGER NOT NULL,
+      updated_at_ms INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_pa_recs_fingerprint
+      ON post_analysis_recommendations (room_id, fingerprint, status);
+    CREATE INDEX IF NOT EXISTS idx_pa_recs_status
+      ON post_analysis_recommendations (room_id, status, priority);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_pa_recs_open_fingerprint
+      ON post_analysis_recommendations (room_id, fingerprint)
+      WHERE status IN ('open', 'in_progress', 'recurred');
+
+    CREATE TABLE IF NOT EXISTS post_analysis_recommendation_incidents (
+      recommendation_id TEXT NOT NULL,
+      archive_id TEXT NOT NULL,
+      linked_at_ms INTEGER NOT NULL,
+      PRIMARY KEY (recommendation_id, archive_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_pa_rec_inc_archive
+      ON post_analysis_recommendation_incidents (archive_id);
 `
 
 function migrate(conn) {
@@ -147,6 +236,10 @@ function migrate(conn) {
   alterIfMissing('incidents', 'actions_taken_json', 'TEXT')
   alterIfMissing('incidents', 'detected_at_ms', 'INTEGER NOT NULL DEFAULT 0')
   alterIfMissing('incidents', 'updated_at_ms', 'INTEGER NOT NULL DEFAULT 0')
+  alterIfMissing('incidents', 'match_id', 'TEXT')
+  alterIfMissing('incidents', 'session_started_at_ms', 'INTEGER')
+  alterIfMissing('incidents', 'sector', 'TEXT')
+  alterIfMissing('incidents', 'resolved_at_ms', 'INTEGER')
 
   // incident_relationships — added in the same module.
   alterIfMissing('incident_relationships', 'source_incident_id', 'TEXT NOT NULL DEFAULT ""')
@@ -165,12 +258,97 @@ function migrate(conn) {
   }
   try {
     conn.exec(
+      `CREATE INDEX IF NOT EXISTS idx_incidents_room_match
+       ON incidents (room_id, match_id, detected_at_ms)`
+    )
+  } catch (err) {
+    console.warn('[store] migrate idx_incidents_room_match skipped:', err.message)
+  }
+  try {
+    conn.exec(
       `CREATE UNIQUE INDEX IF NOT EXISTS idx_incidents_one_open_live
        ON incidents (room_id, live_incident_id)
        WHERE status = 'open'`
     )
   } catch (err) {
     console.warn('[store] migrate idx_incidents_one_open_live skipped:', err.message)
+  }
+
+  // Post-analysis archive columns (incremental for older DBs).
+  const paIncidentCols = [
+    ['archive_id', 'TEXT'],
+    ['persistent_incident_id', 'TEXT'],
+    ['live_incident_id', 'TEXT NOT NULL DEFAULT ""'],
+    ['room_id', 'TEXT NOT NULL DEFAULT ""'],
+    ['first_detected_at_ms', 'INTEGER NOT NULL DEFAULT 0'],
+    ['last_seen_at_ms', 'INTEGER NOT NULL DEFAULT 0'],
+    ['attack_type', 'TEXT'],
+    ['attack_category', 'TEXT'],
+    ['affected_asset_id', 'TEXT'],
+    ['affected_node_id', 'TEXT'],
+    ['affected_label', 'TEXT'],
+    ['severity', 'TEXT'],
+    ['status', 'TEXT'],
+    ['detection_signals_json', 'TEXT'],
+    ['evidence_json', 'TEXT'],
+    ['telemetry_summary_json', 'TEXT'],
+    ['trust_score', 'REAL'],
+    ['anomaly_score', 'REAL'],
+    ['drift_json', 'TEXT'],
+    ['graph_context_json', 'TEXT'],
+    ['propagation_json', 'TEXT'],
+    ['orchestration_performed', 'INTEGER NOT NULL DEFAULT 0'],
+    ['response_actions_json', 'TEXT'],
+    ['recovery_status', 'TEXT'],
+    ['post_analysis_status', 'TEXT NOT NULL DEFAULT "pending"'],
+    ['post_analysis_at_ms', 'INTEGER'],
+    ['post_analysis_error', 'TEXT'],
+    ['source', 'TEXT NOT NULL DEFAULT "live"'],
+    ['payload_json', 'TEXT'],
+    ['created_at_ms', 'INTEGER NOT NULL DEFAULT 0'],
+    ['updated_at_ms', 'INTEGER NOT NULL DEFAULT 0'],
+  ]
+  for (const [col, def] of paIncidentCols) {
+    alterIfMissing('post_analysis_incidents', col, def)
+  }
+
+  const paRecCols = [
+    ['recommendation_id', 'TEXT'],
+    ['fingerprint', 'TEXT NOT NULL DEFAULT ""'],
+    ['room_id', 'TEXT NOT NULL DEFAULT ""'],
+    ['title', 'TEXT NOT NULL DEFAULT ""'],
+    ['problem', 'TEXT'],
+    ['recommendation', 'TEXT NOT NULL DEFAULT ""'],
+    ['reason', 'TEXT'],
+    ['priority', 'TEXT NOT NULL DEFAULT "medium"'],
+    ['category', 'TEXT NOT NULL DEFAULT "other_software"'],
+    ['status', 'TEXT NOT NULL DEFAULT "open"'],
+    ['software_only', 'INTEGER NOT NULL DEFAULT 1'],
+    ['occurrence_count', 'INTEGER NOT NULL DEFAULT 1'],
+    ['first_seen_at_ms', 'INTEGER NOT NULL DEFAULT 0'],
+    ['last_seen_at_ms', 'INTEGER NOT NULL DEFAULT 0'],
+    ['completed_at_ms', 'INTEGER'],
+    ['dismissed_at_ms', 'INTEGER'],
+    ['recurred_at_ms', 'INTEGER'],
+    ['attack_category', 'TEXT'],
+    ['affected_asset_id', 'TEXT'],
+    ['source', 'TEXT NOT NULL DEFAULT "llm"'],
+    ['prior_completion_note', 'TEXT'],
+    ['created_at_ms', 'INTEGER NOT NULL DEFAULT 0'],
+    ['updated_at_ms', 'INTEGER NOT NULL DEFAULT 0'],
+  ]
+  for (const [col, def] of paRecCols) {
+    alterIfMissing('post_analysis_recommendations', col, def)
+  }
+
+  try {
+    conn.exec(
+      `CREATE UNIQUE INDEX IF NOT EXISTS idx_pa_recs_open_fingerprint
+       ON post_analysis_recommendations (room_id, fingerprint)
+       WHERE status IN ('open', 'in_progress', 'recurred')`
+    )
+  } catch (err) {
+    console.warn('[store] migrate idx_pa_recs_open_fingerprint skipped:', err.message)
   }
 }
 
@@ -345,7 +523,10 @@ export function getLatestDetection(roomId) {
   }
 }
 
-/** Drop incident rows for one room. Does not touch lookback samples or calibrator windows. */
+/**
+ * Hard-delete incident rows for one room. Test / admin only.
+ * Production match lifecycle must NOT call this — incidents are durable history.
+ */
 export function deleteRoomIncidents(roomId) {
   const id = String(roomId ?? '')
   if (!id) return
@@ -376,9 +557,12 @@ export function deleteRoomLookbackSamples(roomId) {
   tx()
 }
 
+/**
+ * Clear operational telemetry lookback for a room.
+ * Does NOT delete durable incident history or relationships.
+ */
 export function deleteRoomMetrics(roomId) {
   deleteRoomLookbackSamples(roomId)
-  deleteRoomIncidents(roomId)
 }
 
 export function upsertCampaign(campaign) {

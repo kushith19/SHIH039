@@ -274,7 +274,7 @@ export default function OverviewPanel({
           value={kpis.totalAttacks}
           hint={
             historyStatus === 'ready'
-              ? 'This match (history + live)'
+              ? 'All-time persisted history'
               : 'Live detections'
           }
           hot={kpis.totalAttacks > 0}
@@ -314,7 +314,7 @@ export default function OverviewPanel({
         <KpiCell
           label="Response success"
           value={kpis.responseSuccessLabel ?? '—'}
-          hint="Resolved ÷ detected this match"
+          hint="Resolved ÷ detected (persisted)"
         />
       </section>
 
@@ -403,8 +403,8 @@ export default function OverviewPanel({
               {activity.peakLabel ||
                 activity.volumeHint ||
                 (activity.total === 0
-                  ? 'Waiting for promoted detections this match.'
-                  : 'Volume derived from match incident history.')}
+                  ? 'Waiting for promoted detections.'
+                  : 'Volume derived from persisted incident history.')}
             </p>
           </div>
         </div>
@@ -719,7 +719,7 @@ export default function OverviewPanel({
           <div className="soc-overview-card-body">
             <SectionLabel>Response performance</SectionLabel>
             <h3 id="perf-heading" className="sr-only">
-              Operational timings from match history
+              Operational timings from persisted history
             </h3>
             <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-5">
               <div>
@@ -770,7 +770,7 @@ export default function OverviewPanel({
           <div>
             <SectionLabel>Recent threat activity</SectionLabel>
             <h3 id="recent-heading" className="mt-1 text-base font-medium">
-              Latest detections this match
+              Latest detections
             </h3>
           </div>
           <Link to={incidentsHref} replace className="tn-btn text-[12px]">
@@ -826,7 +826,7 @@ export default function OverviewPanel({
           </div>
         ) : (
           <p className="px-6 py-8 text-sm text-[var(--tn-muted)]">
-            No threat activity recorded for this match yet.
+            No threat activity recorded yet.
           </p>
         )}
       </section>

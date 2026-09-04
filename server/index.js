@@ -52,8 +52,21 @@ import {
   listHistoryCampaigns,
   listIncidents,
   normalizeHistoryOrder,
+  aggregateIncidentHistory,
   updateIncidentStatus,
 } from './metrics/incidents.js'
+import {
+  buildAnalyzeOverview,
+  getArchiveIncident,
+  getRecommendation,
+  listArchiveIncidents,
+  listIncidentIdsForRecommendation,
+  listRecommendations,
+  listRecommendationsForArchive,
+  patchRecommendationStatus,
+} from './postAnalysis/store.js'
+import { runPostAnalysisForArchive } from './postAnalysis/pipeline.js'
+import { seedPostAnalysisDemo } from './postAnalysis/seed.js'
 import {
   computeFinancialExposure,
   currentExposureForIncident,
@@ -359,16 +372,30 @@ app.get('/rooms/:id/incidents', (req, res) => {
 
 app.get('/rooms/:id/incidents/history', (req, res) => {
   const id = String(req.params.id ?? '').toUpperCase()
-  const room = getRoom(id)
-  if (!room) {
-    return res.status(404).json({ ok: false, message: 'Room not found' })
-  }
+  // Durable history is SQLite-backed — do not require an in-memory room.
   const order = String(req.query.order ?? 'desc')
   const limitRaw = req.query.limit
   const limit = limitRaw == null || limitRaw === '' ? undefined : Number(limitRaw)
+  const fromMs = req.query.fromMs != null && req.query.fromMs !== '' ? Number(req.query.fromMs) : undefined
+  const toMs = req.query.toMs != null && req.query.toMs !== '' ? Number(req.query.toMs) : undefined
+  const status = req.query.status != null && req.query.status !== '' ? String(req.query.status) : undefined
+  const type = req.query.type != null && req.query.type !== '' ? String(req.query.type) : undefined
+  const severity =
+    req.query.severity != null && req.query.severity !== '' ? String(req.query.severity) : undefined
+  const matchId =
+    req.query.matchId != null && req.query.matchId !== '' ? String(req.query.matchId) : undefined
   let incidents = []
   try {
-    incidents = listIncidentHistory(id, { order, limit })
+    incidents = listIncidentHistory(id, {
+      order,
+      limit,
+      fromMs,
+      toMs,
+      status,
+      type,
+      severity,
+      matchId,
+    })
   } catch (err) {
     console.error('[incidents] history failed', err)
     return res.status(500).json({ ok: false, message: 'History query failed' })
@@ -381,15 +408,63 @@ app.get('/rooms/:id/incidents/history', (req, res) => {
   })
 })
 
+/** Room-independent alias for durable incident history (survives API restart). */
+app.get('/incidents/history', (req, res) => {
+  const id = String(req.query.roomId ?? 'DEMO').toUpperCase()
+  const order = String(req.query.order ?? 'desc')
+  const limitRaw = req.query.limit
+  const limit = limitRaw == null || limitRaw === '' ? undefined : Number(limitRaw)
+  const fromMs = req.query.fromMs != null && req.query.fromMs !== '' ? Number(req.query.fromMs) : undefined
+  const toMs = req.query.toMs != null && req.query.toMs !== '' ? Number(req.query.toMs) : undefined
+  const status = req.query.status != null && req.query.status !== '' ? String(req.query.status) : undefined
+  const type = req.query.type != null && req.query.type !== '' ? String(req.query.type) : undefined
+  const severity =
+    req.query.severity != null && req.query.severity !== '' ? String(req.query.severity) : undefined
+  const matchId =
+    req.query.matchId != null && req.query.matchId !== '' ? String(req.query.matchId) : undefined
+  let incidents = []
+  try {
+    incidents = listIncidentHistory(id, {
+      order,
+      limit,
+      fromMs,
+      toMs,
+      status,
+      type,
+      severity,
+      matchId,
+    })
+  } catch (err) {
+    console.error('[incidents] history failed', err)
+    return res.status(500).json({ ok: false, message: 'History query failed' })
+  }
+  res.json({
+    ok: true,
+    roomId: id,
+    order: normalizeHistoryOrder(order),
+    incidents,
+  })
+})
+
+app.get('/rooms/:id/incidents/stats', (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  try {
+    const stats = aggregateIncidentHistory(id)
+    res.json({ ok: true, ...stats })
+  } catch (err) {
+    console.error('[incidents] stats failed', err)
+    return res.status(500).json({ ok: false, message: 'Stats query failed' })
+  }
+})
+
 app.get('/rooms/:id/incidents/campaigns', (req, res) => {
   const id = String(req.params.id ?? '').toUpperCase()
   const room = getRoom(id)
-  if (!room) {
-    return res.status(404).json({ ok: false, message: 'Room not found' })
-  }
+  // Campaigns need edges for correlation when available; history itself is durable.
+  const graph = room || { id, edges: [], nodes: [] }
   let campaigns = []
   try {
-    campaigns = listHistoryCampaigns(room)
+    campaigns = listHistoryCampaigns(graph)
   } catch (err) {
     console.error('[incidents] history campaigns failed', err)
     return res.status(500).json({ ok: false, message: 'Campaign query failed' })
@@ -431,6 +506,143 @@ app.get('/rooms/:id/incidents/:incidentId/commander-context', (req, res) => {
     return res.status(404).json({ ok: false, message: 'Incident not found' })
   }
   res.json({ ok: true, roomId: id, context })
+})
+
+/* ── Post-Analysis Framework (durable archive; survives match wipe) ── */
+
+app.get('/rooms/:id/analyze/overview', (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  try {
+    const overview = buildAnalyzeOverview(id)
+    res.json({ ok: true, roomId: id, overview })
+  } catch (err) {
+    console.error('[POST-ANALYSIS] overview failed', err)
+    res.status(500).json({ ok: false, message: 'Overview query failed' })
+  }
+})
+
+app.get('/rooms/:id/analyze/incidents', (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  try {
+    const incidents = listArchiveIncidents(id, {
+      order: req.query.order,
+      limit: req.query.limit,
+      attackCategory: req.query.attackCategory || req.query.type,
+      severity: req.query.severity,
+      status: req.query.status,
+      q: req.query.q,
+    })
+    res.json({ ok: true, roomId: id, incidents })
+  } catch (err) {
+    console.error('[POST-ANALYSIS] list incidents failed', err)
+    res.status(500).json({ ok: false, message: 'Archive query failed' })
+  }
+})
+
+app.get('/rooms/:id/analyze/incidents/:archiveId', (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  const archiveId = String(req.params.archiveId ?? '')
+  try {
+    const incident = getArchiveIncident(archiveId)
+    if (!incident || incident.roomId !== id) {
+      return res.status(404).json({ ok: false, message: 'Archive incident not found' })
+    }
+    const recommendations = listRecommendationsForArchive(archiveId)
+    res.json({ ok: true, roomId: id, incident, recommendations })
+  } catch (err) {
+    console.error('[POST-ANALYSIS] get incident failed', err)
+    res.status(500).json({ ok: false, message: 'Archive query failed' })
+  }
+})
+
+app.get('/rooms/:id/analyze/recommendations', (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  try {
+    const status = req.query.status
+      ? String(req.query.status).includes(',')
+        ? String(req.query.status).split(',').map((s) => s.trim())
+        : String(req.query.status)
+      : undefined
+    const recommendations = listRecommendations(id, {
+      status,
+      priority: req.query.priority,
+      limit: req.query.limit,
+    }).map((rec) => ({
+      ...rec,
+      linkedIncidents: listIncidentIdsForRecommendation(rec.recommendationId),
+    }))
+    res.json({ ok: true, roomId: id, recommendations })
+  } catch (err) {
+    console.error('[POST-ANALYSIS] list recommendations failed', err)
+    res.status(500).json({ ok: false, message: 'Recommendations query failed' })
+  }
+})
+
+app.patch('/rooms/:id/analyze/recommendations/:recommendationId', (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  const recommendationId = String(req.params.recommendationId ?? '')
+  const status = String(req.body?.status ?? '').trim()
+  if (!status) {
+    return res.status(400).json({ ok: false, message: 'status required' })
+  }
+  try {
+    const existing = getRecommendation(recommendationId)
+    if (!existing || existing.roomId !== id) {
+      return res.status(404).json({ ok: false, message: 'Recommendation not found' })
+    }
+    const result = patchRecommendationStatus(recommendationId, status)
+    if (!result.ok) {
+      return res.status(400).json({ ok: false, message: result.message })
+    }
+    res.json({
+      ok: true,
+      roomId: id,
+      recommendation: {
+        ...result.recommendation,
+        linkedIncidents: listIncidentIdsForRecommendation(recommendationId),
+      },
+    })
+  } catch (err) {
+    console.error('[POST-ANALYSIS] patch recommendation failed', err)
+    res.status(500).json({ ok: false, message: 'Update failed' })
+  }
+})
+
+app.post('/rooms/:id/analyze/incidents/:archiveId/post-analysis', async (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  const archiveId = String(req.params.archiveId ?? '')
+  const incident = getArchiveIncident(archiveId)
+  if (!incident || incident.roomId !== id) {
+    return res.status(404).json({ ok: false, message: 'Archive incident not found' })
+  }
+  const force = Boolean(req.body?.force)
+  try {
+    const result = await runPostAnalysisForArchive(archiveId, { force })
+    const status = result.ok ? 200 : result.status === 'running' ? 409 : 502
+    res.status(status).json({
+      ok: Boolean(result.ok),
+      roomId: id,
+      message: result.message,
+      skipped: result.skipped === true,
+      results: result.results ?? [],
+      rejected: result.rejected ?? [],
+      archive: result.archive ?? getArchiveIncident(archiveId),
+    })
+  } catch (err) {
+    console.error('[POST-ANALYSIS] manual run failed', err)
+    res.status(500).json({ ok: false, message: String(err?.message ?? err) })
+  }
+})
+
+app.post('/rooms/:id/analyze/seed', (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  try {
+    const result = seedPostAnalysisDemo(id, { force: Boolean(req.body?.force) })
+    res.json({ ok: true, roomId: id, ...result })
+  } catch (err) {
+    console.error('[POST-ANALYSIS] seed failed', err)
+    res.status(500).json({ ok: false, message: String(err?.message ?? err) })
+  }
 })
 
 app.post('/rooms/:id/commander/incident-intel', async (req, res) => {
@@ -1543,4 +1755,7 @@ httpServer.on('error', (err) => {
 httpServer.listen(PORT, HOST, () => {
   console.log(`TrustNetAI game server on http://${HOST}:${PORT}`)
   logLlmCommanderBootBanner()
+  // Post-analysis demo seed is opt-in via POST /rooms/:id/analyze/seed.
+  // Do not auto-seed DEMO — demo archive rows must never feed Overview/Analyze analytics
+  // (those use SQLite `incidents` only).
 })

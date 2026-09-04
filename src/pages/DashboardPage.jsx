@@ -17,6 +17,7 @@ import IncidentsPanel from '../features/dashboard/IncidentsPanel'
 import MonitorTimelinePanel from '../features/dashboard/MonitorTimelinePanel'
 import LiveCorrelationPanel from '../features/dashboard/LiveCorrelationPanel'
 import OverviewPanel from '../features/dashboard/OverviewPanel'
+import PostAnalysisPanel from '../features/dashboard/PostAnalysisPanel'
 import CommanderPanel from '../features/commander/CommanderPanel'
 import ResponseConsolePanel from '../features/response/ResponseConsolePanel'
 import ResponseOrchestrationPanel from '../features/response/ResponseOrchestrationPanel'
@@ -290,8 +291,11 @@ export default function DashboardPage({
     )
   }
 
+  // Monitor → Overview is the sole attack-analytics surface.
+  const isOverviewSurface = panel === 'overview'
+
   let pageBody = null
-  if (panel === 'overview') {
+  if (isOverviewSurface) {
     pageBody = (
       <OverviewPanel
         roomId={roomId}
@@ -354,6 +358,8 @@ export default function DashboardPage({
         }}
       />
     )
+  } else if (panel === 'post-analysis') {
+    pageBody = <PostAnalysisPanel roomId={roomId} />
   } else if (panel === 'commander') {
     pageBody = (
       <CommanderPanel
@@ -444,7 +450,7 @@ export default function DashboardPage({
             panel === 'orchestrate' ||
             panel === 'response'
               ? 'flex min-h-0 flex-1 flex-col overflow-hidden p-4 md:px-6 md:py-5'
-              : panel === 'overview'
+              : isOverviewSurface
                 ? 'min-h-0 flex-1 overflow-auto p-5 md:px-8 md:py-7'
                 : 'min-h-0 flex-1 overflow-auto p-4 md:px-6 md:py-5'
           }
@@ -458,12 +464,12 @@ export default function DashboardPage({
               panel === 'orchestrate' ||
               panel === 'response'
                 ? 'flex min-h-0 flex-1 flex-col gap-4'
-                : panel === 'overview'
+                : isOverviewSurface
                   ? 'mx-auto w-full max-w-[90rem]'
                   : 'mx-auto w-full max-w-6xl space-y-4'
             }
           >
-            {panel === 'overview' ? statusBanners : null}
+            {isOverviewSurface ? statusBanners : null}
             {pageBody}
           </div>
         </main>

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 
 /**
- * Persisted match incident chronology + history campaigns.
- * Used by Monitor Timeline. Does not create incidents.
+ * Persisted incident chronology + history campaigns (SQLite).
+ * Survives match restart / Clear Attacks / API restart.
+ * Used by Overview and Monitor Timeline. Does not create incidents.
  */
 export default function useIncidentHistory(roomId, { order = 'newest-first', pollMs = 2000 } = {}) {
   const [campaigns, setCampaigns] = useState([])

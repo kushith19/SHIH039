@@ -17,7 +17,11 @@ import {
   getLookback,
   saveDetectionRun,
 } from '../metrics/store.js'
-import { clearPersistedIncidentHistory, persistDetectionIncidents } from '../metrics/incidents.js'
+import {
+  beginMatchSession,
+  persistDetectionIncidents,
+} from '../metrics/incidents.js'
+import { archiveDetectionIncidents } from '../postAnalysis/archive.js'
 import { attachLiveCorrelation } from '../../shared/correlation/liveCorrelation.js'
 import { attachRecoveryImpact } from '../../shared/recovery/recoveryImpact.js'
 import { emptyDetectionResult } from '../detection/types.js'
@@ -89,6 +93,11 @@ export async function ingestCitySnapshot(room, onAfter) {
     persistDetectionIncidents(room, detection)
   } catch (err) {
     console.error('[incidents] persist failed', err)
+  }
+  try {
+    archiveDetectionIncidents(room, detection)
+  } catch (err) {
+    console.error('[POST-ANALYSIS] archive failed', err?.message ?? err)
   }
   // Live correlation: related OPEN incidents only (not causality, not recovery ranking).
   // History camp-h-* campaigns remain separate and untouched.
@@ -165,8 +174,10 @@ export function startTelemetryLoop(room, onTick) {
   } catch {
     // store may not be initialized yet
   }
+  // Durable history: close prior open episodes and stamp a new match_id.
+  // Do NOT delete SQLite incident rows.
   try {
-    clearPersistedIncidentHistory(room.id)
+    beginMatchSession(room)
   } catch {
     // store may not be initialized yet
   }
@@ -197,6 +208,7 @@ export function teardownRoomTelemetry(roomId) {
   clearExplanationCache(roomId)
   deleteTgnnCalibrator(roomId)
   try {
+    // Lookback only — durable incident history must survive room teardown.
     deleteRoomMetrics(roomId)
   } catch {
     // store may not be initialized yet

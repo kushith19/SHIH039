@@ -25,6 +25,7 @@ import {
 import { runtimeStateOf } from '../infrastructureNode.js'
 import { INCIDENT_STATUS } from '../../shared/incidentIntel.js'
 import { updateIncidentStatus } from '../metrics/incidents.js'
+import { schedulePostAnalysisAfterRecovery } from '../postAnalysis/pipeline.js'
 import { setNodeQuarantined } from './quarantineNode.js'
 import {
   buildResponsePlan,
@@ -1937,6 +1938,23 @@ function markEpisodeRecovered(room, { nowMs = Date.now(), reason = null } = {}) 
     reason: reason || 'episode_complete',
     atMs: nowMs,
   })
+
+  // Async post-analysis — never blocks recovery / queue advance.
+  try {
+    const actions = Array.isArray(prev.execution?.executedActions)
+      ? prev.execution.executedActions
+      : Array.isArray(prev.plan?.recommendedActions)
+        ? prev.plan.recommendedActions
+        : []
+    schedulePostAnalysisAfterRecovery(room, {
+      liveIncidentId: primaryIncidentId,
+      persistentIncidentId: primaryIncidentId,
+      responseActions: actions,
+      recoveryStatus: 'recovered',
+    })
+  } catch (err) {
+    console.error('[POST-ANALYSIS] recovery hook failed', err?.message ?? err)
+  }
 }
 
 function incidentMatchesId(inc, incidentId) {
