@@ -495,14 +495,15 @@ test('fetchKnowledgeContext soft-fails without opening global circuit', async ()
     assert.equal(kc.retrieved, false)
 
     // Health/knowledge path must remain usable after soft-fail (circuit not latched).
-    let healthHits = 0
+    // Health may be TTL-cached from the first call — assert knowledge recovers instead.
+    let knowledgeHits = 0
     globalThis.fetch = async (url) => {
       const u = String(url)
       if (u.includes('/health')) {
-        healthHits += 1
         return { ok: true, text: async () => JSON.stringify({ status: 'ok' }) }
       }
       if (u.includes('/commander/knowledge')) {
+        knowledgeHits += 1
         return {
           ok: true,
           text: async () =>
@@ -524,7 +525,7 @@ test('fetchKnowledgeContext soft-fails without opening global circuit', async ()
       fingerprint: 'fp-soft-2',
     })
     assert.equal(recovered.retrieved, true)
-    assert.ok(healthHits >= 1)
+    assert.ok(knowledgeHits >= 1)
   } finally {
     globalThis.fetch = orig
     _resetCommanderCircuitForTests()

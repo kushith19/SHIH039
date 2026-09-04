@@ -30,6 +30,14 @@ function commitNumberInput(e, fallback, onCommit) {
   if (next !== fallback) onCommit(next)
 }
 
+/** Interactive numeric input — commits on blur / Enter. */
+const editableInputClass =
+  'tn-input mt-1.5 px-3 text-sm tabular-nums disabled:cursor-not-allowed disabled:opacity-55'
+
+/** Observational / locked display — not mutatable. */
+const readOnlyInputClass =
+  'mt-1.5 h-[var(--tn-control-h)] w-full cursor-not-allowed rounded-[var(--radius-md)] border border-[var(--tn-line)] bg-[color-mix(in_srgb,var(--tn-muted)_12%,var(--tn-surface))] px-3 text-sm tabular-nums text-[var(--tn-text)] opacity-90 outline-none focus:border-[var(--tn-line)] focus:shadow-none'
+
 /** Uncontrolled field — commits on blur so multiplayer sync does not steal focus each keystroke. */
 function InspectorNumberField({
   inputKey,
@@ -38,7 +46,6 @@ function InspectorNumberField({
   readOnly,
   disabled,
   onCommit,
-  compact = false,
 }) {
   const inputRef = useRef(null)
 
@@ -71,8 +78,20 @@ function InspectorNumberField({
           e.currentTarget.blur()
         }
       }}
-      className={compact ? compactInputClass : 'tn-input mt-1 px-3 py-2 text-sm disabled:opacity-60'}
+      className={readOnly ? readOnlyInputClass : editableInputClass}
     />
+  )
+}
+
+function MetricMetaRow({ expectedLabel, driftPct }) {
+  if (expectedLabel == null && driftPct == null) return null
+  return (
+    <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-xs tabular-nums text-[var(--tn-muted)]">
+      {expectedLabel != null ? <span>{expectedLabel}</span> : null}
+      {driftPct != null ? (
+        <span className="text-[var(--tn-warn)]">+{driftPct.toFixed(0)}%</span>
+      ) : null}
+    </div>
   )
 }
 
@@ -102,9 +121,6 @@ const METRIC_FIELDS = [
     attackLabel: 'Failed/min',
   },
 ]
-
-const compactInputClass =
-  'tn-input mt-0.5 px-2 py-1.5 text-sm disabled:opacity-60'
 
 function useNodeRiskMomentum(nodeId, isolationScore, tick, calibrating) {
   const [samples, setSamples] = useState([])
@@ -244,6 +260,14 @@ export default function InspectorPanel({
   )
   const compactLayout = gameRole === 'attacker' || gameRole === 'defender'
   const isDefender = gameRole === 'defender'
+  const gameMetricsLocked = readOnly && !canEditAttackMetrics && !canEditScenarioMetrics
+
+  const cityModelKeys = useMemo(() => {
+    if (!selectedNode || !baselineMetrics) return []
+    return inspectorMetricKeys(baselineMetrics, telemetryOf(selectedNode.data)).filter(
+      (key) => !isGameMetricKey(key)
+    )
+  }, [selectedNode, baselineMetrics])
 
   return (
     <div className="h-full min-h-0 flex flex-col">
@@ -264,14 +288,16 @@ export default function InspectorPanel({
       ) : null}
 
       {selectedNode ? (
-        <div className="mt-4 min-h-0 flex-1 overflow-y-auto">
-          <div className="flex items-start justify-between gap-2">
+        <div className="mt-4 min-h-0 flex-1 space-y-3 overflow-y-auto pr-0.5">
+          <div className="space-y-2">
             <div className="min-w-0">
-              <div className="truncate text-sm font-medium">
+              <div className="truncate text-base font-medium leading-snug tracking-tight">
                 {selectedNode.data?.label ?? 'Node'}
               </div>
-              {selectedNode.data?.sector || selectedNode.data?.type || selectedNode.data?.criticality ? (
-                <p className="mt-0.5 truncate text-xs text-[var(--tn-muted)]">
+              {selectedNode.data?.sector ||
+              selectedNode.data?.type ||
+              selectedNode.data?.criticality ? (
+                <p className="mt-1 break-words text-xs leading-relaxed text-[var(--tn-muted)]">
                   {[selectedNode.data?.sector, selectedNode.data?.type, selectedNode.data?.criticality]
                     .filter(Boolean)
                     .join(' · ')}
@@ -280,12 +306,13 @@ export default function InspectorPanel({
               {(String(selectedNode.data?.sector ?? '').toLowerCase().includes('finance') ||
                 String(selectedNode.data?.type ?? '').toLowerCase().includes('bank') ||
                 String(selectedNode.data?.type ?? '').toLowerCase().includes('payment')) ? (
-                <p className="mt-0.5 text-xs text-[var(--tn-muted)]">
-                  Failed logins and HTTP are simulated auth / API-abuse proxies, not live payment YAML metrics.
+                <p className="mt-1.5 text-xs leading-relaxed text-[var(--tn-muted)]">
+                  Failed logins and HTTP are simulated auth / API-abuse proxies, not live payment YAML
+                  metrics.
                 </p>
               ) : null}
               {compactLayout ? (
-                <p className="mt-0.5 text-xs text-[var(--tn-muted)]">
+                <p className="mt-1.5 text-xs text-[var(--tn-muted)]">
                   {isAttackerPlaying
                     ? lockAttackTelemetry
                       ? 'Idle window — wait 15/15 or clear attacks to edit telemetry'
@@ -298,14 +325,11 @@ export default function InspectorPanel({
                 </p>
               ) : null}
             </div>
+
             {compactLayout && nodeTrust && (hackModeActive || gamePhase === 'lobby') ? (
-              <div className="flex flex-wrap justify-end gap-1 shrink-0 max-w-[55%]">
-                <span className="tn-badge">
-                  Trust {Math.round(nodeTrust.trustScore)}%
-                </span>
-                <span className="tn-badge">
-                  Peer {Math.round(nodeTrust.peerTrust)}%
-                </span>
+              <div className="flex flex-wrap gap-1.5">
+                <span className="tn-badge">Trust {Math.round(nodeTrust.trustScore)}%</span>
+                <span className="tn-badge">Peer {Math.round(nodeTrust.peerTrust)}%</span>
                 {hackModeActive && !calibrating ? (
                   <span className="tn-badge">
                     Residual{' '}
@@ -337,120 +361,135 @@ export default function InspectorPanel({
             ) : null}
           </div>
 
-          <div
-            className={[
-              'tn-surface mt-3 space-y-4',
-              compactLayout ? 'p-4' : 'p-5',
-            ].join(' ')}
-          >
-            <div className={compactLayout ? 'space-y-2' : 'space-y-3'}>
-              <div
-                className={
-                  compactLayout ? 'grid grid-cols-2 gap-x-2 gap-y-2' : 'space-y-3'
-                }
-              >
-              {METRIC_FIELDS.map((field) => {
-                const baseline = baselineMetrics?.[field.key] ?? 0
-                const value = Number.isFinite(Number(telemetryOf(selectedNode.data)[field.key]))
-                  ? Number(telemetryOf(selectedNode.data)[field.key])
-                  : 0
-                const fieldDriftPct =
-                  hackModeActive && baseline !== value
-                    ? computeDeviationMetrics({
-                        baselinePps: baseline,
-                        effectivePps: value,
-                      }).deviationPercent
-                    : null
-                return (
-                  <div key={field.key}>
-                    <div className="flex items-center justify-between gap-1">
-                      <span className="text-xs font-medium text-[var(--tn-muted)]">
-                        {compactLayout ? field.attackLabel : field.label}
-                      </span>
-                      {hackModeActive && baseline !== value ? (
-                        <span className="text-xs tabular-nums text-[var(--tn-muted)]">
-                          {formatMetric(baseline)}
-                          {hackModeActive &&
-                          !isDefender &&
-                          fieldDriftPct != null
-                            ? ` +${fieldDriftPct.toFixed(0)}%`
-                            : ''}
-                        </span>
-                      ) : null}
-                    </div>
-                    {readOnly && !canEditAttackMetrics && !canEditScenarioMetrics ? (
-                      <input
-                        type="number"
-                        readOnly
-                        value={formatMetric(value) || '0.00'}
-                        className={compactInputClass}
-                      />
-                    ) : (
-                      <InspectorNumberField
-                        inputKey={`node-metric:${selectedNode.id}:${field.key}`}
-                        defaultValue={value}
-                        step={field.step}
-                        readOnly={false}
-                        disabled={lockAttackTelemetry}
-                        compact={compactLayout}
-                        onCommit={(n) =>
-                          onUpdateNodeData?.(selectedNode.id, { [field.key]: n })
-                        }
-                      />
-                    )}
-                  </div>
-                )
-              })}
-              {inspectorMetricKeys(baselineMetrics, telemetryOf(selectedNode.data))
-                .filter((key) => !isGameMetricKey(key))
-                .map((key) => {
-                  const baseline = baselineMetrics?.[key]
-                  const live = telemetryOf(selectedNode.data)[key]
-                  const value = Number.isFinite(Number(live)) ? Number(live) : null
-                  const expected = Number.isFinite(Number(baseline)) ? Number(baseline) : null
-                  const display = value ?? expected
+          <div className="tn-surface space-y-5 p-4">
+            <section className="space-y-3">
+              <div className="space-y-0.5">
+                <div className="tn-label">Controllable telemetry</div>
+                <p className="text-xs text-[var(--tn-muted)]">
+                  {isAttackerPlaying
+                    ? 'Attack overrides for this node'
+                    : isDefender
+                      ? 'Scenario baseline for this node'
+                      : 'Editable game metrics'}
+                </p>
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {METRIC_FIELDS.map((field) => {
+                  const baseline = baselineMetrics?.[field.key] ?? 0
+                  const value = Number.isFinite(Number(telemetryOf(selectedNode.data)[field.key]))
+                    ? Number(telemetryOf(selectedNode.data)[field.key])
+                    : 0
                   const fieldDriftPct =
-                    hackModeActive && expected != null && value != null && expected !== value
+                    hackModeActive && baseline !== value
                       ? computeDeviationMetrics({
-                          baselinePps: expected,
+                          baselinePps: baseline,
                           effectivePps: value,
                         }).deviationPercent
                       : null
+                  const showExpected = hackModeActive && baseline !== value
+                  const showAttackerDrift =
+                    hackModeActive && !isDefender && fieldDriftPct != null
                   return (
-                    <div key={key}>
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="text-xs font-medium text-[var(--tn-muted)]">
-                          {key.replace(/_/g, ' ')}
-                        </span>
-                        {hackModeActive && expected != null && value != null && expected !== value ? (
-                          <span className="text-xs tabular-nums text-[var(--tn-muted)]">
-                            {formatMetric(expected)}
-                            {fieldDriftPct != null ? ` +${fieldDriftPct.toFixed(0)}%` : ''}
-                          </span>
-                        ) : expected != null && value != null ? (
-                          <span className="text-xs tabular-nums text-[var(--tn-muted)]">
-                            exp {formatMetric(expected)}
-                          </span>
-                        ) : null}
+                    <div key={field.key} className="min-w-0">
+                      <div className="text-xs font-medium text-[var(--tn-text)]">
+                        {compactLayout ? field.attackLabel : field.label}
                       </div>
-                      <input
-                        type="number"
-                        readOnly
-                        value={display != null ? formatMetric(display) : ''}
-                        className={compactInputClass}
+                      <MetricMetaRow
+                        expectedLabel={showExpected ? formatMetric(baseline) : null}
+                        driftPct={showAttackerDrift ? fieldDriftPct : null}
                       />
+                      {gameMetricsLocked ? (
+                        <input
+                          type="number"
+                          readOnly
+                          tabIndex={-1}
+                          value={formatMetric(value) || '0.00'}
+                          className={readOnlyInputClass}
+                        />
+                      ) : (
+                        <InspectorNumberField
+                          inputKey={`node-metric:${selectedNode.id}:${field.key}`}
+                          defaultValue={value}
+                          step={field.step}
+                          readOnly={false}
+                          disabled={lockAttackTelemetry}
+                          onCommit={(n) =>
+                            onUpdateNodeData?.(selectedNode.id, { [field.key]: n })
+                          }
+                        />
+                      )}
                     </div>
                   )
                 })}
               </div>
-            </div>
+            </section>
+
+            {cityModelKeys.length > 0 ? (
+              <section className="space-y-3 border-t border-[var(--tn-line)] pt-4">
+                <div className="space-y-0.5">
+                  <div className="tn-label">City-model telemetry</div>
+                  <p className="text-xs text-[var(--tn-muted)]">Observational · read-only</p>
+                </div>
+                <div className="grid grid-cols-1 gap-3">
+                  {cityModelKeys.map((key) => {
+                    const baseline = baselineMetrics?.[key]
+                    const live = telemetryOf(selectedNode.data)[key]
+                    const value = Number.isFinite(Number(live)) ? Number(live) : null
+                    const expected = Number.isFinite(Number(baseline)) ? Number(baseline) : null
+                    const display = value ?? expected
+                    const fieldDriftPct =
+                      hackModeActive &&
+                      expected != null &&
+                      value != null &&
+                      expected !== value
+                        ? computeDeviationMetrics({
+                            baselinePps: expected,
+                            effectivePps: value,
+                          }).deviationPercent
+                        : null
+                    const showDrift =
+                      hackModeActive &&
+                      expected != null &&
+                      value != null &&
+                      expected !== value
+                    const showExpEqual =
+                      !showDrift && expected != null && value != null
+                    return (
+                      <div key={key} className="min-w-0">
+                        <div className="break-words text-xs font-medium capitalize text-[var(--tn-muted)]">
+                          {key.replace(/_/g, ' ')}
+                        </div>
+                        <MetricMetaRow
+                          expectedLabel={
+                            showDrift
+                              ? formatMetric(expected)
+                              : showExpEqual
+                                ? `exp ${formatMetric(expected)}`
+                                : null
+                          }
+                          driftPct={showDrift ? fieldDriftPct : null}
+                        />
+                        <input
+                          type="number"
+                          readOnly
+                          tabIndex={-1}
+                          value={display != null ? formatMetric(display) : ''}
+                          className={readOnlyInputClass}
+                        />
+                      </div>
+                    )
+                  })}
+                </div>
+              </section>
+            ) : null}
 
             {nodeTrust ? (
-              <div className="space-y-1.5">
+              <section className="space-y-2 border-t border-[var(--tn-line)] pt-4">
+                <div className="tn-label">Trust breakdown</div>
                 <div className="flex flex-wrap items-center gap-1.5 text-xs text-[var(--tn-muted)]">
                   <span>
                     Expected activity:{' '}
-                    <span className="font-medium capitalize">
+                    <span className="font-medium capitalize text-[var(--tn-text)]">
                       {nodeTrust.expectedActivity ?? 'normal'}
                     </span>
                   </span>
@@ -464,29 +503,30 @@ export default function InspectorPanel({
                           ? 'text-[var(--tn-crit)]'
                           : nodeTrust.observedActivity === 'elevated'
                             ? 'text-[var(--tn-warn)]'
-                            : '',
+                            : 'text-[var(--tn-text)]',
                       ].join(' ')}
                     >
                       {nodeTrust.observedActivity ?? 'normal'}
                     </span>
                   </span>
                 </div>
-                <div className="grid grid-cols-2 gap-1 text-xs tabular-nums text-[var(--tn-muted)]">
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs tabular-nums text-[var(--tn-muted)]">
                   <span>Intrinsic {Math.round(nodeTrust.intrinsicTrust)}%</span>
                   <span>Peer {Math.round(nodeTrust.peerTrust)}%</span>
                   <span>Behavioural {Math.round(nodeTrust.behavioralComponent)}%</span>
                   <span>Interaction {Math.round(nodeTrust.interactionComponent)}%</span>
                 </div>
                 {nodeTrust.atRisk ? (
-                  <p className="text-xs text-[var(--tn-muted)]">
-                    Peer dropped because a graph neighbor is flagged. Assessment, not a confirmed kill-chain.
+                  <p className="text-xs leading-relaxed text-[var(--tn-muted)]">
+                    Peer dropped because a graph neighbor is flagged. Assessment, not a confirmed
+                    kill-chain.
                   </p>
                 ) : null}
-              </div>
+              </section>
             ) : null}
 
             {tgnnUi ? (
-              <div className="space-y-3">
+              <section className="space-y-3 border-t border-[var(--tn-line)] pt-4">
                 <div className="flex flex-wrap items-center gap-1.5 text-xs">
                   <span className="font-medium">Residual score</span>
                   {tgnnUi.calibrating ? (
@@ -504,7 +544,8 @@ export default function InspectorPanel({
                         vs idle embeddings · {Math.round(TGNN_FLAG_THRESHOLD * 100)}% to flag
                       </span>
                       <span className="tn-meta">
-                        Directed GNN residual, not Isolation Forest. Node residual below is not city risk.
+                        Directed GNN residual, not Isolation Forest. Node residual below is not city
+                        risk.
                       </span>
                     </>
                   )}
@@ -516,7 +557,7 @@ export default function InspectorPanel({
                     scoreCaption="This node's residual × 100, not city mesh risk."
                   />
                 ) : null}
-              </div>
+              </section>
             ) : null}
 
             {runtimeStateOf(selectedNode.data).provenance === 'injected' ? (
@@ -525,83 +566,77 @@ export default function InspectorPanel({
               </div>
             ) : null}
 
-            {onQuarantine &&
-            gameRole === 'defender' &&
-            gamePhase === 'playing' &&
-            !runtimeStateOf(selectedNode.data).quarantined ? (
-              <button
-                type="button"
-                onClick={() => onQuarantine(selectedNode.id, true)}
-                className="tn-btn-primary w-full py-2 text-sm"
-              >
-                Quarantine node
-              </button>
-            ) : null}
-            {onQuarantine &&
-            gameRole === 'defender' &&
-            gamePhase === 'playing' &&
-            runtimeStateOf(selectedNode.data).quarantined ? (
-              <button
-                type="button"
-                onClick={() => onQuarantine(selectedNode.id, false)}
-                className="tn-btn w-full py-2 text-sm"
-              >
-                Unquarantine
-              </button>
-            ) : null}
-            {runtimeStateOf(selectedNode.data).quarantined ? (
-              <div className="text-xs font-medium text-[var(--tn-muted)]">
-                Segmented from spread (trust cutoff). Not a physical shutdown.
-              </div>
-            ) : null}
-            {onDeleteNodeById ? (
-              <button
-                type="button"
-                onClick={() => onDeleteNodeById(selectedNode.id)}
-                className={
-                  compactLayout
-                    ? isDefender
-                    ? 'tn-btn w-full py-2 text-sm'
+            <div className="space-y-2 border-t border-[var(--tn-line)] pt-4">
+              {onQuarantine &&
+              gameRole === 'defender' &&
+              gamePhase === 'playing' &&
+              !runtimeStateOf(selectedNode.data).quarantined ? (
+                <button
+                  type="button"
+                  onClick={() => onQuarantine(selectedNode.id, true)}
+                  className="tn-btn-primary w-full py-2 text-sm"
+                >
+                  Quarantine node
+                </button>
+              ) : null}
+              {onQuarantine &&
+              gameRole === 'defender' &&
+              gamePhase === 'playing' &&
+              runtimeStateOf(selectedNode.data).quarantined ? (
+                <button
+                  type="button"
+                  onClick={() => onQuarantine(selectedNode.id, false)}
+                  className="tn-btn w-full py-2 text-sm"
+                >
+                  Unquarantine
+                </button>
+              ) : null}
+              {runtimeStateOf(selectedNode.data).quarantined ? (
+                <div className="text-xs font-medium text-[var(--tn-muted)]">
+                  Segmented from spread (trust cutoff). Not a physical shutdown.
+                </div>
+              ) : null}
+              {onDeleteNodeById ? (
+                <button
+                  type="button"
+                  onClick={() => onDeleteNodeById(selectedNode.id)}
+                  className={
+                    compactLayout
+                      ? isDefender
+                        ? 'tn-btn w-full py-2 text-sm'
+                        : 'tn-btn w-full py-2 text-sm text-[var(--tn-crit)]'
                       : 'tn-btn w-full py-2 text-sm text-[var(--tn-crit)]'
-                    : 'tn-btn w-full py-2 text-sm text-[var(--tn-crit)]'
-                }
-              >
-                Delete node
-              </button>
-            ) : null}
+                  }
+                >
+                  Delete node
+                </button>
+              ) : null}
+            </div>
           </div>
         </div>
       ) : null}
 
       {selectedEdge ? (
         <div className="mt-4 min-h-0 flex-1 overflow-y-auto">
-          <div className="truncate text-sm font-medium">
+          <div className="truncate text-base font-medium tracking-tight">
             {selectedEdge.data?.label ?? 'Edge'}
           </div>
-          <p className="mt-0.5 text-xs text-[var(--tn-muted)]">
-            Link telemetry
-          </p>
+          <p className="mt-1 text-xs text-[var(--tn-muted)]">Link telemetry</p>
 
-          <div
-            className={[
-              'tn-surface mt-3 space-y-3',
-              compactLayout ? 'p-4' : 'p-5 space-y-4',
-            ].join(' ')}
-          >
-            <div>
-              <span className="text-xs font-medium text-[var(--tn-muted)]">
-                PPS
-              </span>
+          <div className="tn-surface mt-3 space-y-3 p-4">
+            <div className="min-w-0">
+              <span className="text-xs font-medium text-[var(--tn-text)]">PPS</span>
               {readOnly && !canEditScenarioMetrics ? (
                 <input
                   type="number"
                   readOnly
+                  tabIndex={-1}
                   value={
                     Number.isFinite(Number(selectedEdge.data?.packetsPerSecond))
                       ? Number(selectedEdge.data.packetsPerSecond)
                       : 0
                   }
-                  className={compactInputClass}
+                  className={readOnlyInputClass}
                 />
               ) : (
                 <InspectorNumberField
@@ -614,7 +649,6 @@ export default function InspectorPanel({
                   step={100}
                   readOnly={false}
                   disabled={false}
-                  compact={compactLayout}
                   onCommit={(n) =>
                     onUpdateEdgeData?.(selectedEdge.id, { packetsPerSecond: n })
                   }

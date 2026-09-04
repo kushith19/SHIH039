@@ -6,6 +6,7 @@ import {
   detectionTags,
   meshPosture,
   metricEvidenceHighlight,
+  RISK_PRESENTATION,
   responseLifecycle,
   riskTrajectoryCopy,
   selectPrimaryIncident,
@@ -91,6 +92,105 @@ test('riskTrajectoryCopy uses operator narrative not ML jargon as primary', () =
   assert.match(recovering.narrative, /recovering/)
 })
 
+test('score 100 with confirmed anomalies may use active critical / plateau language', () => {
+  const active = riskTrajectoryCopy(
+    {
+      available: true,
+      score: 100,
+      delta: 0,
+      trajectory: 'critical',
+      series: [{ tick: 1, score: 100, value: 100 }],
+      windowTicks: 10,
+    },
+    { anomalyCount: 1, openIncidentCount: 1 }
+  )
+  assert.equal(active.score, 100)
+  assert.equal(active.headline, 'PLATEAUED')
+  assert.equal(active.presentation, RISK_PRESENTATION.ACTIVE)
+  assert.match(active.narrative, /active anomalous activity/)
+})
+
+test('score 100 with no anomalies or open incidents must not claim active anomalous activity', () => {
+  const residual = riskTrajectoryCopy(
+    {
+      available: true,
+      score: 100,
+      delta: 0,
+      trajectory: 'critical',
+      series: [{ tick: 1, score: 100, value: 100 }],
+      windowTicks: 10,
+    },
+    { anomalyCount: 0, openIncidentCount: 0 }
+  )
+  assert.equal(residual.score, 100)
+  assert.equal(residual.peak, 100)
+  assert.equal(residual.headline, 'ELEVATED RESIDUAL')
+  assert.equal(residual.presentation, RISK_PRESENTATION.RESIDUAL)
+  assert.equal(residual.confirmedThreat, false)
+  assert.match(residual.narrative, /Residual remains elevated after containment/)
+  assert.equal(/active anomalous activity/i.test(residual.narrative), false)
+  assert.notEqual(residual.headline, 'PLATEAUED')
+})
+
+test('falling residual with no confirmed anomalies uses recovery language', () => {
+  const recovering = riskTrajectoryCopy(
+    {
+      available: true,
+      score: 55,
+      delta: -20,
+      trajectory: 'stable',
+      series: [],
+      windowTicks: 10,
+    },
+    { anomalyCount: 0, openIncidentCount: 0 }
+  )
+  assert.equal(recovering.headline, 'RECOVERING')
+  assert.equal(recovering.presentation, RISK_PRESENTATION.RECOVERING)
+  assert.match(recovering.narrative, /recovering/)
+  assert.equal(/active anomalous activity/i.test(recovering.narrative), false)
+})
+
+test('score 100 and near-zero delta with anomalies gone is post-containment residual', () => {
+  const post = riskTrajectoryCopy(
+    {
+      available: true,
+      score: 100,
+      delta: 0,
+      trajectory: 'critical',
+      series: [
+        { tick: 10, score: 100, value: 100 },
+        { tick: 20, score: 100, value: 100 },
+      ],
+      windowTicks: 10,
+    },
+    { anomalyCount: 0, openIncidentCount: 0 }
+  )
+  assert.equal(post.presentation, RISK_PRESENTATION.RESIDUAL)
+  assert.equal(post.headline, 'ELEVATED RESIDUAL')
+  assert.match(post.narrative, /no confirmed anomalous activity/)
+})
+
+test('Peak remains recent-series maximum when current residual falls', () => {
+  const copy = riskTrajectoryCopy(
+    {
+      available: true,
+      score: 35,
+      delta: -65,
+      trajectory: 'stable',
+      series: [
+        { tick: 1, score: 100, value: 100 },
+        { tick: 2, score: 80, value: 80 },
+        { tick: 3, score: 35, value: 35 },
+      ],
+      windowTicks: 10,
+    },
+    { anomalyCount: 0, openIncidentCount: 0 }
+  )
+  assert.equal(copy.score, 35)
+  assert.equal(copy.peak, 100)
+  assert.equal(copy.presentation, RISK_PRESENTATION.RECOVERING)
+})
+
 test('attackPathView distinguishes confirmed vs exposed', () => {
   const view = attackPathView(
     {
@@ -161,6 +261,94 @@ test('telemetryHealthView does not invent device counts', () => {
   assert.equal(live.reportingLabel, '1 / 2')
   assert.equal(live.pipeline, 'HEALTHY')
   assert.equal(live.quarantinedCount, 2)
+})
+
+test('buildOverviewModel residual high without anomalies is not an active-threat copy', () => {
+  const model = buildOverviewModel({
+    detection: {
+      anomalyNodeIds: [],
+      atRiskNodeIds: [],
+      incidents: [],
+      riskMomentum: {
+        available: true,
+        score: 100,
+        delta: 0,
+        trajectory: 'critical',
+        series: [{ tick: 1, score: 100, value: 100 }],
+        windowTicks: 10,
+      },
+    },
+    nodes: [{ id: 'pay', data: { type: 'payment_processing_system', label: 'Pay' } }],
+    edges: [],
+    phase: 'playing',
+    feedStatus: 'ok',
+  })
+  assert.equal(model.posture.label, 'HEALTHY')
+  assert.equal(model.stats.confirmedAnomalies, 0)
+  assert.equal(model.stats.activeIncidents, 0)
+  assert.equal(model.risk.score, 100)
+  assert.equal(model.risk.peak, 100)
+  assert.equal(model.risk.headline, 'ELEVATED RESIDUAL')
+  assert.equal(/active anomalous activity/i.test(model.risk.narrative), false)
+})
+
+test('buildOverviewModel attack uses current gated residual as active threat copy', () => {
+  const model = buildOverviewModel({
+    detection: {
+      anomalyNodeIds: ['pay'],
+      atRiskNodeIds: ['gw'],
+      incidents: [{ endpointId: 'pay', severity: 'critical', status: 'open', anomalyScore: 0.99 }],
+      riskMomentum: {
+        available: true,
+        score: 100,
+        delta: 0,
+        trajectory: 'critical',
+        series: [{ tick: 1, score: 100, value: 100 }],
+        windowTicks: 10,
+      },
+    },
+    nodes: [{ id: 'pay', data: { type: 'payment_processing_system', label: 'Pay' } }],
+    edges: [],
+    phase: 'playing',
+    feedStatus: 'ok',
+  })
+  assert.equal(model.stats.confirmedAnomalies, 1)
+  assert.equal(model.risk.score, 100)
+  assert.equal(model.risk.peak, 100)
+  assert.equal(model.risk.presentation, RISK_PRESENTATION.ACTIVE)
+  assert.match(model.risk.narrative, /active anomalous activity/)
+})
+
+test('buildOverviewModel after clear is current 0 with historical peak, not active-threat copy', () => {
+  const model = buildOverviewModel({
+    detection: {
+      anomalyNodeIds: [],
+      atRiskNodeIds: [],
+      incidents: [],
+      riskMomentum: {
+        available: true,
+        score: 0,
+        delta: -100,
+        trajectory: 'stable',
+        series: [
+          { tick: 1, score: 100, value: 100 },
+          { tick: 2, score: 0, value: 0 },
+        ],
+        windowTicks: 10,
+      },
+    },
+    nodes: [{ id: 'pay', data: { type: 'payment_processing_system', label: 'Pay' } }],
+    edges: [],
+    phase: 'playing',
+    feedStatus: 'ok',
+  })
+  assert.equal(model.posture.label, 'HEALTHY')
+  assert.equal(model.stats.confirmedAnomalies, 0)
+  assert.equal(model.stats.activeIncidents, 0)
+  assert.equal(model.risk.score, 0)
+  assert.equal(model.risk.peak, 100)
+  assert.equal(model.risk.presentation, RISK_PRESENTATION.RECOVERING)
+  assert.equal(/active anomalous activity/i.test(model.risk.narrative), false)
 })
 
 test('buildOverviewModel reuses computeFinancialExposure and zero exposure is calm', () => {

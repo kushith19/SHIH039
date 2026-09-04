@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import StatusBadge from '../../ui/StatusBadge'
 import {
   RESPONSE_ACTION_UI_STATUS,
@@ -30,11 +30,31 @@ export default function ResponseConsole({
 }) {
   /** @type {Record<string, { uiStatus: string, result?: object, message?: string }>} */
   const [localByAction, setLocalByAction] = useState({})
+  const actionListRef = useRef(null)
+  const scrollToAvailableRef = useRef(false)
 
   const actions = useMemo(
     () => responseActionRows(context, localByAction),
     [context, localByAction]
   )
+
+  useEffect(() => {
+    if (!scrollToAvailableRef.current) return
+    const available = actions.find(
+      (action) => action.uiStatus === RESPONSE_ACTION_UI_STATUS.AVAILABLE
+    )
+    if (!available) return
+    scrollToAvailableRef.current = false
+    const id =
+      typeof CSS !== 'undefined' && typeof CSS.escape === 'function'
+        ? CSS.escape(available.actionId)
+        : available.actionId
+    const list = actionListRef.current
+    const el = list?.querySelector(`[data-action-id="${id}"]`)
+    if (!list || !el) return
+    const top = el.offsetTop - list.offsetTop
+    list.scrollTo({ top: Math.max(0, top - 8), behavior: 'smooth' })
+  }, [actions])
 
   const primaryExecution = useMemo(() => {
     for (const action of actions) {
@@ -86,8 +106,8 @@ export default function ResponseConsole({
 
   if (loading) {
     return (
-      <section className="tn-surface px-5 py-5">
-        <div className="tn-label">Response Console</div>
+      <section className="soc-zone px-5 py-5">
+        <div className="soc-zone-title">Response Console</div>
         <p className="mt-3 text-sm text-[var(--tn-muted)]">Loading incident context…</p>
       </section>
     )
@@ -95,8 +115,8 @@ export default function ResponseConsole({
 
   if (error) {
     return (
-      <section className="tn-surface px-5 py-5">
-        <div className="tn-label">Response Console</div>
+      <section className="soc-zone px-5 py-5">
+        <div className="soc-zone-title">Response Console</div>
         <p className="mt-3 text-sm text-[var(--tn-crit)]">{error}</p>
       </section>
     )
@@ -104,10 +124,10 @@ export default function ResponseConsole({
 
   if (!context) {
     return (
-      <section className="tn-surface px-5 py-5">
-        <div className="tn-label">Response Console</div>
+      <section className="soc-zone px-5 py-5">
+        <div className="soc-zone-title">Response Console</div>
         <p className="mt-3 text-sm text-[var(--tn-muted)]">
-          Select an incident to open the operational response console.
+          Select an incident to open the execution console.
         </p>
       </section>
     )
@@ -182,6 +202,7 @@ export default function ResponseConsole({
           result,
         },
       }))
+      scrollToAvailableRef.current = true
       if (typeof onRefreshContext === 'function') {
         await onRefreshContext()
       }
@@ -197,13 +218,20 @@ export default function ResponseConsole({
   }
 
   return (
-    <div className="space-y-4">
-      <section className="tn-surface overflow-hidden">
-        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[var(--tn-line)] px-5 py-4">
+    <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
+      <div className="flex shrink-0 flex-wrap items-center gap-2">
+        <span className="soc-role-chip soc-role-execution">Execution</span>
+        <span className="tn-meta text-[12px]">
+          Registered containment actions · not advisory recommendations
+        </span>
+      </div>
+
+      <section className="soc-zone soc-zone-accent flex min-h-0 flex-1 flex-col overflow-hidden">
+        <div className="flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-[var(--tn-line)] px-5 py-3">
           <div>
-            <div className="tn-label">Response Console</div>
+            <div className="soc-zone-title">Response Console</div>
             <h2 className="mt-1 text-lg font-medium text-[var(--tn-text)]">{asset}</h2>
-            <p className="tn-meta mt-1">
+            <p className="tn-meta mt-0.5 text-[12px]">
               {context.severity || 'unknown'} severity
               {context.incidentId ? ` · ${context.incidentId}` : ''}
             </p>
@@ -218,60 +246,68 @@ export default function ResponseConsole({
           </div>
         </div>
 
-        <div className="grid gap-0 lg:grid-cols-2">
-          <div className="border-b border-[var(--tn-line)] px-5 py-5 lg:border-r lg:border-b-0">
-            <h3 className="tn-section-title">Current state</h3>
-            <dl className="mt-4 grid grid-cols-2 gap-4 font-mono tabular-nums sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
+        <div className="grid min-h-0 flex-1 overflow-y-auto lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:overflow-hidden">
+          <div className="min-h-0 border-b border-[var(--tn-line)] px-5 py-4 lg:overflow-y-auto lg:border-r lg:border-b-0">
+            <h3 className="soc-zone-title">Current state</h3>
+            <dl className="mt-3 grid grid-cols-2 gap-3 font-mono tabular-nums sm:grid-cols-3 lg:grid-cols-2">
               <div>
                 <dt className="tn-label">Risk</dt>
-                <dd className="mt-1 text-base">{risk == null ? '—' : risk}</dd>
+                <dd className="mt-0.5 text-base">{risk == null ? '—' : risk}</dd>
               </div>
               <div>
                 <dt className="tn-label">Trust</dt>
-                <dd className="mt-1 text-base">{trust == null ? '—' : trust}</dd>
+                <dd className="mt-0.5 text-base">{trust == null ? '—' : trust}</dd>
               </div>
               <div>
                 <dt className="tn-label">Blast radius</dt>
-                <dd className="mt-1 text-base">{blast == null ? '—' : blast}</dd>
+                <dd className="mt-0.5 text-base">{blast == null ? '—' : blast}</dd>
               </div>
               <div>
                 <dt className="tn-label">Exposure</dt>
-                <dd className="mt-1 text-base">{exposure || '—'}</dd>
+                <dd className="mt-0.5 flex items-center gap-1.5 text-base">
+                  <span>{exposure || '—'}</span>
+                  {exposure ? (
+                    <span className="soc-role-chip soc-role-simulated">Sim</span>
+                  ) : null}
+                </dd>
               </div>
               <div>
                 <dt className="tn-label">Peer exposed</dt>
-                <dd className="mt-1 text-base">{peerCount}</dd>
+                <dd className="mt-0.5 text-base">{peerCount}</dd>
               </div>
               <div>
                 <dt className="tn-label">Propagated</dt>
-                <dd className="mt-1 text-base">{propCount}</dd>
+                <dd className="mt-0.5 text-base">{propCount}</dd>
               </div>
             </dl>
             {exposure ? (
-              <p className="tn-meta mt-3">
+              <p className="tn-meta mt-2 text-[11px]">
                 Simulated exposure from incident context — not a loss forecast.
               </p>
             ) : null}
             {context.incidentType ? (
-              <p className="tn-meta mt-2">Type · {context.incidentType}</p>
+              <p className="tn-meta mt-1 text-[11px]">Type · {context.incidentType}</p>
             ) : null}
           </div>
 
-          <div className="px-5 py-5">
-            <h3 className="tn-section-title">Response actions</h3>
+          <div className="flex min-h-0 flex-col overflow-hidden px-5 py-4">
+            <h3 className="soc-zone-title shrink-0">Response actions</h3>
             {actions.length === 0 ? (
-              <div className="mt-4">
+              <div className="mt-3">
                 {emptyActions.title ? (
                   <div className="text-sm font-medium uppercase tracking-wide">
                     {emptyActions.title}
                   </div>
                 ) : null}
-                <p className={`tn-meta ${emptyActions.title ? 'mt-2' : 'mt-4'}`}>
+                <p className={`tn-meta ${emptyActions.title ? 'mt-2' : 'mt-3'}`}>
                   {emptyActions.detail}
                 </p>
               </div>
             ) : (
-              <ul className="mt-4 space-y-4">
+              <ul
+                ref={actionListRef}
+                className="mt-3 min-h-0 flex-1 space-y-3 overflow-y-auto pr-1"
+              >
                 {actions.map((action) => {
                   const disabled = isExecuteDisabled(action.uiStatus)
                   const badgeTone =
@@ -283,59 +319,90 @@ export default function ResponseConsole({
                         : action.uiStatus === RESPONSE_ACTION_UI_STATUS.EXECUTING
                           ? 'warn'
                           : 'muted'
+                  const executed =
+                    action.uiStatus === RESPONSE_ACTION_UI_STATUS.EXECUTED ||
+                    action.uiStatus === RESPONSE_ACTION_UI_STATUS.ALREADY_EXECUTED
                   return (
                     <li
                       key={action.actionId}
-                      className="rounded-md border border-[var(--tn-line)] px-4 py-4"
+                      data-action-id={action.actionId}
+                      data-action-available={
+                        action.uiStatus === RESPONSE_ACTION_UI_STATUS.AVAILABLE
+                          ? 'true'
+                          : undefined
+                      }
+                      className="scroll-mt-3 rounded-md border border-[var(--tn-line)] px-4 py-3"
                     >
-                      <div className="flex flex-wrap items-start justify-between gap-2">
-                        <div>
-                          {action.profileLabel ? (
-                            <div className="tn-label">{action.profileLabel}</div>
-                          ) : null}
-                          <div
-                            className={`text-sm font-medium uppercase tracking-wide ${
-                              action.profileLabel ? 'mt-1' : ''
-                            }`}
-                          >
-                            {action.label}
+                      {executed ? (
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="text-sm font-medium uppercase tracking-wide">
+                              {action.label}
+                            </div>
+                            <p className="tn-meta mt-0.5 text-[12px]">
+                              {action.targetName || action.targetId || '—'}
+                              {action.actionType ? ` · ${action.actionType}` : ''}
+                            </p>
                           </div>
-                          <p className="tn-meta mt-1">
-                            {action.rationale || action.description}
-                          </p>
-                        </div>
-                        <StatusBadge tone={badgeTone}>{action.uiStatus}</StatusBadge>
-                      </div>
-                      <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
-                        <div className="text-sm">
-                          <span className="tn-label">Target</span>
-                          <div className="mt-0.5 font-medium">
-                            {action.targetName || action.targetId || '—'}
+                          <div className="flex flex-wrap items-center gap-2">
+                            <StatusBadge tone={badgeTone}>{action.uiStatus}</StatusBadge>
+                            <span className="text-sm font-medium text-[var(--tn-ok)]">
+                              {executeButtonLabel(action.uiStatus)}
+                            </span>
                           </div>
-                          {action.actionType ? (
-                            <p className="tn-meta mt-1">{action.actionType}</p>
-                          ) : null}
                         </div>
-                        <button
-                          type="button"
-                          className="tn-btn-primary"
-                          disabled={disabled}
-                          aria-busy={
-                            action.uiStatus === RESPONSE_ACTION_UI_STATUS.EXECUTING
-                          }
-                          onClick={() => {
-                            void handleExecute(action)
-                          }}
-                        >
-                          {executeButtonLabel(action.uiStatus)}
-                        </button>
-                      </div>
-                      {action.uiStatus === RESPONSE_ACTION_UI_STATUS.FAILED &&
-                      localByAction[action.actionId]?.message ? (
-                        <p className="mt-2 text-sm text-[var(--tn-crit)]">
-                          {localByAction[action.actionId].message}
-                        </p>
-                      ) : null}
+                      ) : (
+                        <>
+                          <div className="flex flex-wrap items-start justify-between gap-2">
+                            <div>
+                              {action.profileLabel ? (
+                                <div className="tn-label">{action.profileLabel}</div>
+                              ) : null}
+                              <div
+                                className={`text-sm font-medium uppercase tracking-wide ${
+                                  action.profileLabel ? 'mt-1' : ''
+                                }`}
+                              >
+                                {action.label}
+                              </div>
+                              <p className="tn-meta mt-1 text-[12px]">
+                                {action.rationale || action.description}
+                              </p>
+                            </div>
+                            <StatusBadge tone={badgeTone}>{action.uiStatus}</StatusBadge>
+                          </div>
+                          <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
+                            <div className="text-sm">
+                              <span className="tn-label">Target</span>
+                              <div className="mt-0.5 font-medium">
+                                {action.targetName || action.targetId || '—'}
+                              </div>
+                              {action.actionType ? (
+                                <p className="tn-meta mt-0.5 text-[11px]">{action.actionType}</p>
+                              ) : null}
+                            </div>
+                            <button
+                              type="button"
+                              className="tn-btn-primary"
+                              disabled={disabled}
+                              aria-busy={
+                                action.uiStatus === RESPONSE_ACTION_UI_STATUS.EXECUTING
+                              }
+                              onClick={() => {
+                                void handleExecute(action)
+                              }}
+                            >
+                              {executeButtonLabel(action.uiStatus)}
+                            </button>
+                          </div>
+                          {action.uiStatus === RESPONSE_ACTION_UI_STATUS.FAILED &&
+                          localByAction[action.actionId]?.message ? (
+                            <p className="mt-2 text-sm text-[var(--tn-crit)]">
+                              {localByAction[action.actionId].message}
+                            </p>
+                          ) : null}
+                        </>
+                      )}
                     </li>
                   )
                 })}
@@ -345,10 +412,10 @@ export default function ResponseConsole({
         </div>
       </section>
 
-      <section className="tn-surface px-5 py-4">
-        <h3 className="tn-section-title">Response status</h3>
-        <p className="mt-2 text-sm font-medium">{statusCopy.title}</p>
-        <p className="tn-meta mt-1">{statusCopy.detail}</p>
+      <section className="soc-zone shrink-0 px-5 py-3">
+        <h3 className="soc-zone-title">Response status</h3>
+        <p className="mt-1.5 text-sm font-medium">{statusCopy.title}</p>
+        <p className="tn-meta mt-0.5 text-[12px]">{statusCopy.detail}</p>
       </section>
     </div>
   )

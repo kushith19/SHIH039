@@ -97,5 +97,8 @@ describe('commanderKnowledgeQuery', () => {
     const facts = liveFactsFromContext(payContext())
     assert.match(facts.observed, /Payment/)
     assert.ok(facts.evidence.some((e) => /packetsPerSecond/.test(e)))
+    assert.equal(facts.incidentId, 'inc-1')
+    assert.ok(Array.isArray(facts.primaryPathLabels))
+    assert.equal(facts.financialExposure, null)
   })
 })

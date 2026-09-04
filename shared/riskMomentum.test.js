@@ -5,6 +5,7 @@ import {
   TRAJECTORY,
   appendRiskSample,
   classifyTrajectory,
+  currentResidualScore,
   exposedSetCount,
   formatMomentumLine,
   formatScoreOver100,
@@ -23,13 +24,93 @@ test('peak residual maps to 0–100 and clamps', () => {
 
 test('score is null while the idle-window calibrator is running', () => {
   assert.equal(
+    currentResidualScore({
+      tgnnCalibrating: true,
+      anomalyNodeIds: ['a'],
+      isolationScoresByNodeId: { a: 0.9 },
+    }),
+    null
+  )
+  assert.equal(
     scoreFromDetection({
       tgnnCalibrating: true,
       isolationScoresByNodeId: { a: 0.9 },
     }),
     null
   )
-  assert.equal(scoreFromDetection({ isolationScoresByNodeId: { a: 0.81 } }), 81)
+})
+
+test('current residual ignores ungated isolation scores when no nodes are anomalous', () => {
+  assert.equal(
+    currentResidualScore({
+      anomalyNodeIds: [],
+      isolationScoresByNodeId: { 'node-a': 0.98, 'node-b': 0.04 },
+    }),
+    0
+  )
+  assert.equal(
+    scoreFromDetection({
+      isolationScoresByNodeId: { 'node-a': 0.98, 'node-b': 0.04 },
+    }),
+    0
+  )
+  assert.equal(peakResidualScore({ 'node-a': 0.98, 'node-b': 0.04 }), 98)
+})
+
+test('current residual is the peak among currently gated anomalous nodes', () => {
+  assert.equal(
+    currentResidualScore({
+      anomalyNodeIds: ['node-a'],
+      isolationScoresByNodeId: { 'node-a': 0.98, 'node-b': 0.04 },
+    }),
+    98
+  )
+  assert.equal(
+    currentResidualScore({
+      anomalyNodeIds: ['node-a', 'node-b'],
+      isolationScoresByNodeId: { 'node-a': 0.7, 'node-b': 0.92, 'node-c': 0.3 },
+    }),
+    92
+  )
+})
+
+test('contained node explainability residual does not keep Current at the ceiling', () => {
+  let history = []
+  const attack = {
+    simulationTick: 1,
+    anomalyNodeIds: ['node-a'],
+    isolationScoresByNodeId: { 'node-a': 1, 'node-b': 0.04 },
+  }
+  history = appendRiskSample(history, {
+    tick: 1,
+    score: currentResidualScore(attack),
+    exposedCount: 1,
+  })
+  const afterClear = {
+    simulationTick: 2,
+    anomalyNodeIds: [],
+    isolationScoresByNodeId: { 'node-a': 0.95, 'node-b': 0.04 },
+  }
+  history = appendRiskSample(history, {
+    tick: 2,
+    score: currentResidualScore(afterClear),
+    exposedCount: 0,
+  })
+  const snap = momentumFromHistory(history)
+  assert.equal(snap.score, 0)
+  assert.equal(Math.max(...snap.series.map((p) => p.score)), 100)
+})
+
+test('historical peak is the recent-series maximum, not the current gated residual', () => {
+  const snap = momentumFromHistory([
+    { tick: 1, score: 10, exposedCount: 0 },
+    { tick: 2, score: 20, exposedCount: 0 },
+    { tick: 3, score: 80, exposedCount: 1 },
+    { tick: 4, score: 100, exposedCount: 1 },
+    { tick: 5, score: 3, exposedCount: 0 },
+  ])
+  assert.equal(snap.score, 3)
+  assert.equal(Math.max(...snap.series.map((p) => p.score)), 100)
 })
 
 test('exposed set is the unique union of anomaly, compromised, and at-risk ids', () => {

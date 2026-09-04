@@ -1,10 +1,10 @@
 import {
   RISK_HISTORY_CAP,
   appendRiskSample,
+  currentResidualScore,
   emptyRiskMomentum,
   exposedSetCount,
   momentumFromHistory,
-  scoreFromDetection,
 } from '../../shared/riskMomentum.js'
 
 export function resetRiskHistory(room) {
@@ -19,7 +19,7 @@ export function advanceRiskMomentum(room, detection) {
   }
   const sample = {
     tick: Number(detection.simulationTick) || 0,
-    score: scoreFromDetection(detection),
+    score: currentResidualScore(detection),
     exposedCount: exposedSetCount(detection),
   }
   room.riskHistory = appendRiskSample(room.riskHistory, sample, RISK_HISTORY_CAP)

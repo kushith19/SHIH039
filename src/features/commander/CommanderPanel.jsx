@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import ThreatSummary from './ThreatSummary'
 import RiskBreakdown from './RiskBreakdown'
 import EvidenceCards from './EvidenceCards'
@@ -9,6 +10,7 @@ import KnowledgeCitation from './KnowledgeCitation'
 import InvestigationQueue from './InvestigationQueue'
 import CommanderInput from './CommanderInput'
 import IncidentCommanderAgent from './IncidentCommanderAgent'
+import CommanderKnowledgeDrawer from './CommanderKnowledgeDrawer'
 import { FilterChip } from '../../ui/Toolbar'
 import { normalizeBriefing } from './commanderBriefing.js'
 import {
@@ -21,11 +23,12 @@ import {
   mergeIntelKnowledge,
   shouldApplyIntelUpdate,
 } from './commanderIntelApply.js'
+import { dashboardResponseIncidentHref } from '../dashboard/dashboardPanels.js'
 
 const SECTIONS = [
   { id: 'evidence', label: 'Evidence' },
   { id: 'graph', label: 'Graph' },
-  { id: 'response', label: 'Response' },
+  { id: 'response', label: 'Plan' },
   { id: 'sources', label: 'Sources' },
 ]
 
@@ -39,18 +42,19 @@ export default function CommanderPanel({
   simulationTick: _simulationTick = null,
   detection = null,
 }) {
+  const [searchParams] = useSearchParams()
   const briefing = normalizeBriefing(briefingProp)
   const mitre = briefing?.mitreCandidates || []
   const plan = briefing?.responsePlan || []
   const citations = briefing?.citations?.length ? briefing.citations : briefing?.evidence || []
   const [section, setSection] = useState('evidence')
+  const [isKnowledgeOpen, setIsKnowledgeOpen] = useState(false)
   const [incidentContext, setIncidentContext] = useState(null)
   const [mode, setMode] = useState(COMMANDER_MODES.INVESTIGATE)
   const [intel, setIntel] = useState(null)
   const requestSeqRef = useRef(0)
   const identityRef = useRef('')
 
-  // Refresh when flagged sets / incidents change (exposure recovery), not every telemetry tick.
   const intelSyncKey = commanderIntelSyncKey(detection)
 
   useEffect(() => {
@@ -91,7 +95,6 @@ export default function CommanderPanel({
     }
 
     const load = async () => {
-      // Phase 1: fast commander-context so the UI is not blank while RAG runs.
       try {
         const ctxRes = await fetch(
           `/rooms/${encodeURIComponent(roomId)}/incidents/${encodeURIComponent(focusIncidentId)}/commander-context`
@@ -105,7 +108,6 @@ export default function CommanderPanel({
         /* phase-2 may still succeed */
       }
 
-      // Phase 2: enriched intel including knowledgeContext (RAG).
       try {
         const res = await fetch(
           `/rooms/${encodeURIComponent(roomId)}/commander/incident-intel`,
@@ -137,59 +139,84 @@ export default function CommanderPanel({
   if (focusIncidentId) {
     return (
       <div className="flex min-h-0 flex-1 flex-col">
-        <div className="min-h-0 flex-1 space-y-6 overflow-auto pr-1">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <span className="soc-role-chip soc-role-advisory">Advisory</span>
+          <span className="tn-meta text-[12px]">
+            Decision support only · does not execute infrastructure actions
+          </span>
+          <Link
+            to={dashboardResponseIncidentHref(searchParams, focusIncidentId)}
+            replace
+            className="tn-btn-primary ml-auto"
+          >
+            Open Response →
+          </Link>
+        </div>
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {incidentContext ? (
             <IncidentCommanderAgent
               context={incidentContext}
               mode={mode}
               onModeChange={setMode}
               intel={intel}
+              roomId={roomId}
+              incidentId={focusIncidentId}
+              responseHref={dashboardResponseIncidentHref(searchParams, focusIncidentId)}
             />
           ) : (
-            <section className="tn-surface px-5 py-5">
-              <div className="tn-label">AI Commander</div>
+            <section className="soc-zone px-5 py-5">
+              <div className="soc-zone-title">AI Commander</div>
               <p className="mt-3 text-sm">Loading structured incident context…</p>
             </section>
           )}
-        </div>
-        <div className="sticky bottom-0 mt-4 shrink-0 border-t border-[var(--tn-line)] bg-[var(--tn-canvas)] pt-4">
-          <CommanderInput
-            roomId={roomId}
-            incidentId={focusIncidentId}
-            focused
-            mode={mode}
-          />
         </div>
       </div>
     )
   }
 
+  const graphBlurb =
+    briefing?.graphContext?.localSummary ||
+    briefing?.graphContext?.summary ||
+    briefing?.assessment?.graphNote ||
+    null
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="min-h-0 flex-1 space-y-6 overflow-auto pr-1">
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-          <ThreatSummary
-            assessment={briefing?.assessment}
-            knowledgeStatus={briefing?.knowledgeStatus}
-            campaignId={briefing?.campaignId}
-          />
-          {posture ? (
-            <section className="tn-surface grid grid-cols-2 px-1 py-1">
-              <HeroStat label="City posture" value={posture.overallRisk} />
-              <HeroStat label="Trend" value={posture.riskTrend} />
-              <HeroStat label="Priority asset" value={posture.priorityAsset || '—'} />
-              <HeroStat
-                label="Finance"
-                value={
-                  posture.financeRelevant
-                    ? 'Finance-tagged assets in set'
-                    : 'No finance-tagged assets'
-                }
-              />
-            </section>
-          ) : null}
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <span className="soc-role-chip soc-role-advisory">Advisory</span>
+        <span className="tn-meta text-[12px]">
+          Room briefing · select an incident for full investigate / respond
+        </span>
+      </div>
+      <div className="relative flex min-h-0 min-w-0 flex-1">
+      <div className="min-h-0 min-w-0 flex-1 space-y-4 overflow-auto pr-12">
+        <div className="soc-zone overflow-hidden">
+          <div className="grid gap-0 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+            <ThreatSummary
+              assessment={briefing?.assessment}
+              knowledgeStatus={briefing?.knowledgeStatus}
+              campaignId={briefing?.campaignId}
+              embedded
+            />
+            {posture ? (
+              <div className="grid grid-cols-2 border-t border-[var(--tn-line)] lg:border-t-0 lg:border-l">
+                <HeroStat label="City posture" value={posture.overallRisk} />
+                <HeroStat label="Trend" value={posture.riskTrend} />
+                <HeroStat label="Priority asset" value={posture.priorityAsset || '—'} />
+                <HeroStat
+                  label="Finance"
+                  value={
+                    posture.financeRelevant
+                      ? 'Finance-tagged assets in set'
+                      : 'No finance-tagged assets'
+                  }
+                />
+              </div>
+            ) : null}
+          </div>
         </div>
-        <RiskBreakdown risk={briefing?.risk || posture?.risk} />
+
+        <RiskBreakdown risk={briefing?.risk || posture?.risk} compact />
 
         <div className="flex flex-wrap gap-2">
           {SECTIONS.map((s) => (
@@ -204,8 +231,8 @@ export default function CommanderPanel({
         </div>
 
         {section === 'evidence' ? (
-          <div className="space-y-6">
-            <EvidenceCards incidents={incidents} />
+          <div className="space-y-4">
+            <EvidenceCards incidents={incidents} compact />
             <MitreCandidateCard
               candidates={
                 Array.isArray(mitre) && mitre.length && typeof mitre[0] === 'string'
@@ -220,25 +247,28 @@ export default function CommanderPanel({
         ) : null}
 
         {section === 'graph' ? (
-          <GraphImpactPanel graphContext={briefing?.graphContext} />
+          <GraphImpactPanel localBlurb={graphBlurb} />
         ) : null}
 
         {section === 'response' ? (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <ResponsePlan steps={plan} />
             <InvestigationQueue steps={briefing?.investigationSteps} />
             {briefing?.financialImpact ? (
-              <section className="tn-surface px-5 py-5">
-                <h2 className="tn-section-title">Financial / operational impact</h2>
-                <p className="mt-3 text-sm leading-relaxed">{briefing.financialImpact}</p>
+              <section className="soc-zone px-5 py-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="soc-zone-title">Financial / operational impact</h2>
+                  <span className="soc-role-chip soc-role-simulated">Simulated</span>
+                </div>
+                <p className="mt-2 text-sm leading-relaxed">{briefing.financialImpact}</p>
               </section>
             ) : null}
           </div>
         ) : null}
 
         {section === 'sources' ? (
-          <div className="space-y-6">
-            <details className="tn-surface px-5 py-5" open>
+          <div className="space-y-4">
+            <details className="soc-zone px-5 py-4" open>
               <summary className="cursor-pointer text-sm font-medium">Rationale</summary>
               <p className="tn-meta mt-3 leading-relaxed">
                 {briefing?.epistemic?.inference ||
@@ -257,8 +287,18 @@ export default function CommanderPanel({
           </div>
         ) : null}
       </div>
-      <div className="sticky bottom-0 mt-4 shrink-0 border-t border-[var(--tn-line)] bg-[var(--tn-canvas)] pt-4">
-        <CommanderInput roomId={roomId} />
+      <CommanderKnowledgeDrawer
+        open={isKnowledgeOpen}
+        onToggle={() => setIsKnowledgeOpen((open) => !open)}
+        onClose={() => setIsKnowledgeOpen(false)}
+      >
+        <div className="min-h-0 flex-1 space-y-4 overflow-auto p-3">
+          <KnowledgeCitation citations={citations} knowledgeStatus={briefing?.knowledgeStatus} />
+        </div>
+        <div className="shrink-0 border-t border-[var(--tn-line)] bg-[var(--tn-canvas)] p-3">
+          <CommanderInput roomId={roomId} />
+        </div>
+      </CommanderKnowledgeDrawer>
       </div>
     </div>
   )
@@ -266,9 +306,9 @@ export default function CommanderPanel({
 
 function HeroStat({ label, value }) {
   return (
-    <div className="px-4 py-4">
+    <div className="border-t border-[var(--tn-line)] px-4 py-3 odd:border-r">
       <div className="tn-label">{label}</div>
-      <div className="mt-1 truncate text-sm font-medium capitalize">{value}</div>
+      <div className="mt-0.5 truncate text-sm font-medium capitalize">{value}</div>
     </div>
   )
 }

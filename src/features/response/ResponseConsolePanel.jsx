@@ -69,7 +69,7 @@ export default function ResponseConsolePanel({
     return (
       <EmptyState
         title="No incident selected"
-        body="Open an incident from the Incidents panel, then use Response Console to review registered containment actions."
+        body="Select an incident to open the execution console."
         action={
           <Link
             to={dashboardPanelHref(searchParams, 'incidents')}
@@ -84,12 +84,14 @@ export default function ResponseConsolePanel({
   }
 
   return (
-    <ResponseConsole
-      roomId={roomId}
-      context={context}
-      loading={loading && !context}
-      error={error}
-      onRefreshContext={loadContext}
-    />
+    <div className="flex min-h-0 flex-1 flex-col">
+      <ResponseConsole
+        roomId={roomId}
+        context={context}
+        loading={loading && !context}
+        error={error}
+        onRefreshContext={loadContext}
+      />
+    </div>
   )
 }

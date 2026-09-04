@@ -295,15 +295,23 @@ function GraphCanvasInner({
 
   const [anomalyToast, setAnomalyToast] = useState(null)
   const anomalySigRef = useRef('')
+  const anomalyToastShownRef = useRef(false)
 
   useEffect(() => {
+    // Anomaly alerts are defender SOC UX — attackers do not get this toast.
+    if (mpRole !== 'defender') {
+      setAnomalyToast(null)
+      return
+    }
     if (!hackSimulator.active) {
       anomalySigRef.current = ''
+      anomalyToastShownRef.current = false
       setAnomalyToast(null)
       return
     }
     if (securityScan.tgnnCalibrating && (securityScan.anomalyNodeIds ?? []).length === 0) {
       anomalySigRef.current = ''
+      anomalyToastShownRef.current = false
       setAnomalyToast(null)
       return
     }
@@ -315,20 +323,23 @@ function GraphCanvasInner({
       .join('|')
     if (!sig) {
       anomalySigRef.current = ''
+      anomalyToastShownRef.current = false
       setAnomalyToast(null)
       return
     }
-    if (sig !== anomalySigRef.current) {
-      anomalySigRef.current = sig
-      const nodeNames = securityScan.nodes.map((n) => n.label).filter(Boolean)
-      setAnomalyToast({
-        detail:
-          nodeNames.length > 0
-            ? nodeNames.slice(0, 6).join(', ') + (nodeNames.length > 6 ? '…' : '')
-            : undefined,
-      })
-    }
-  }, [hackSimulator.active, securityScan])
+    // One toast per anomaly episode: after dismiss/timeout, do not reappear
+    // until anomalies fully clear and a new wave starts.
+    if (anomalyToastShownRef.current) return
+    anomalySigRef.current = sig
+    anomalyToastShownRef.current = true
+    const nodeNames = securityScan.nodes.map((n) => n.label).filter(Boolean)
+    setAnomalyToast({
+      detail:
+        nodeNames.length > 0
+          ? nodeNames.slice(0, 6).join(', ') + (nodeNames.length > 6 ? '…' : '')
+          : undefined,
+    })
+  }, [hackSimulator.active, securityScan, mpRole])
 
   useEffect(() => {
     if (!anomalyToast) return undefined

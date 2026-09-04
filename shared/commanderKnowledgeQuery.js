@@ -161,14 +161,49 @@ export function liveFactsFromContext(context) {
         return ev?.detail || String(metric)
       })
     : []
+  const path =
+    (Array.isArray(context.primaryPathLabels) && context.primaryPathLabels) ||
+    (Array.isArray(context.primaryPath) && context.primaryPath) ||
+    []
+  const fin = context.financialExposure
+  const financial =
+    fin && fin.simulated === true
+      ? {
+          simulated: true,
+          exposureLabel: fin.exposureLabel ?? null,
+          breakdown: Array.isArray(fin.breakdown)
+            ? fin.breakdown.slice(0, 8).map((row) => ({
+                id: row?.id ?? null,
+                label: row?.label ?? null,
+                exposureLabel: row?.exposureLabel ?? null,
+              }))
+            : [],
+        }
+      : null
   const summary = `${asset} flagged as ${context.incidentType || 'anomaly'} at severity ${context.severity || '—'}`
   return {
     observed: summary,
     summary,
     evidence: evidence.slice(0, 8),
     asset,
+    incidentId: context.incidentId ?? null,
+    incidentType: context.incidentType ?? null,
     severity: context.severity ?? null,
     riskScore: context.riskScore ?? null,
+    trustScore: context.trustScore ?? null,
+    anomalyScore: context.anomalyScore ?? context.isolationScore ?? null,
+    primaryPathLabels: path.map(String).slice(0, 8),
+    propagatedNodeIds: Array.isArray(context.propagatedNodeIds)
+      ? context.propagatedNodeIds.map(String).slice(0, 12)
+      : [],
+    peerNodeIds: Array.isArray(context.peerNodeIds)
+      ? context.peerNodeIds.map(String).slice(0, 12)
+      : Array.isArray(context.peerExposedNodeIds)
+        ? context.peerExposedNodeIds.map(String).slice(0, 12)
+        : [],
+    financialExposure: financial,
+    responseClassification:
+      context.responseClassification ?? context.classification ?? null,
   }
 }
 

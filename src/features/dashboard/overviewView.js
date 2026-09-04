@@ -208,31 +208,67 @@ export function meshPosture({
   }
 }
 
-export function riskTrajectoryCopy(riskMomentum = null, { anomalyCount = 0 } = {}) {
+/** Presentation kind for Overview Risk — copy only, not a second score. */
+export const RISK_PRESENTATION = Object.freeze({
+  WAITING: 'waiting',
+  ACTIVE: 'active',
+  RESIDUAL: 'residual',
+  RECOVERING: 'recovering',
+  STABLE: 'stable',
+})
+
+function hasConfirmedThreat({ anomalyCount = 0, openIncidentCount = 0 } = {}) {
+  return Number(anomalyCount) > 0 || Number(openIncidentCount) > 0
+}
+
+export function riskTrajectoryCopy(
+  riskMomentum = null,
+  { anomalyCount = 0, openIncidentCount = 0 } = {}
+) {
   const rm = riskMomentum ?? {}
   const available = rm.available === true && rm.score != null
   const traj = String(rm.trajectory ?? 'stable').toLowerCase()
   const score = available ? Number(rm.score) : null
   const plateau = isPlateauAtCeiling(rm)
+  const confirmedThreat = hasConfirmedThreat({ anomalyCount, openIncidentCount })
+  const delta = Number(rm.delta)
+  const falling = Number.isFinite(delta) && delta < -3
 
   let headline = trajectoryLabel(rm.trajectory)
   let narrative = 'Waiting for residual score samples from the live detection pipeline.'
+  let presentation = RISK_PRESENTATION.WAITING
   if (available) {
     if (traj === 'escalating' || traj === 'rising') {
-      narrative =
-        'Risk is accelerating as new anomalous activity is detected.'
-    } else if (Number(rm.delta) < -3 && anomalyCount === 0) {
+      if (confirmedThreat) {
+        narrative = 'Risk is accelerating as new anomalous activity is detected.'
+        presentation = RISK_PRESENTATION.ACTIVE
+      } else {
+        headline = 'ELEVATED RESIDUAL'
+        narrative =
+          'Residual is rising, but no confirmed anomalous activity is present on this tick.'
+        presentation = RISK_PRESENTATION.RESIDUAL
+      }
+    } else if (falling && !confirmedThreat) {
       narrative = 'Risk is recovering as confirmed anomalies decrease.'
       headline = 'RECOVERING'
-    } else if (Number(rm.delta) < -3) {
+      presentation = RISK_PRESENTATION.RECOVERING
+    } else if (falling && confirmedThreat) {
       narrative = 'Risk is falling, but confirmed anomalous activity is still present.'
-    } else if (traj === 'critical' || (score != null && score >= 70)) {
+      presentation = RISK_PRESENTATION.ACTIVE
+    } else if (confirmedThreat && (traj === 'critical' || (score != null && score >= 70))) {
       narrative = plateau
         ? 'Risk remains critical — active anomalous activity is still present at the residual ceiling.'
         : 'Risk remains critical because active anomalous activity is still present.'
       if (plateau) headline = 'PLATEAUED'
+      presentation = RISK_PRESENTATION.ACTIVE
+    } else if (!confirmedThreat && score != null && score >= 70) {
+      headline = 'ELEVATED RESIDUAL'
+      narrative =
+        'Residual remains elevated after containment — no confirmed anomalous activity on this tick.'
+      presentation = RISK_PRESENTATION.RESIDUAL
     } else {
       narrative = 'Risk is stable for the current observation window.'
+      presentation = RISK_PRESENTATION.STABLE
     }
   }
 
@@ -247,13 +283,15 @@ export function riskTrajectoryCopy(riskMomentum = null, { anomalyCount = 0 } = {
     scoreLabel: available ? formatScoreOver100(score) : '— / 100',
     headline,
     narrative,
+    presentation,
+    confirmedThreat,
     delta: available ? rm.delta : null,
     deltaLabel: formatMomentumLine(available ? rm.delta : null, Number(rm.windowTicks) || 10),
     windowTicks: Number(rm.windowTicks) || 10,
     peak: peak != null && Number.isFinite(Number(peak)) ? Math.round(Number(peak)) : null,
     series,
     techHint:
-      'Score is peak graph residual × 100 from the live detector. Momentum is the change over the last residual window (~10 s). Assessment only — not a confirmed kill-chain.',
+      'Current score is peak graph residual × 100 among currently gated anomalous nodes. Contained or unflagged nodes keep explainability residuals but do not hold Current at the ceiling. Peak is the maximum in the recent residual series. Momentum is the change over the last residual window (~10 s). Assessment only — not a confirmed kill-chain.',
   }
 }
 
@@ -547,7 +585,7 @@ export function buildOverviewModel({
   const primary = selectPrimaryIncident(incidentList, anomalyNodeIds)
   const finance = computeFinancialExposure({ detection, nodes, edges })
   const rm = detection?.riskMomentum ?? null
-  const risk = riskTrajectoryCopy(rm, { anomalyCount })
+  const risk = riskTrajectoryCopy(rm, { anomalyCount, openIncidentCount })
   const posture = meshPosture({
     incidents: incidentList,
     anomalyCount,

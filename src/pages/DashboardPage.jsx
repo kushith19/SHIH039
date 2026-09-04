@@ -8,6 +8,7 @@ import { cityContextAt, expectedTelemetry } from '@shared/cityContext.js'
 import DashboardNav from '../features/dashboard/DashboardNav'
 import {
   dashboardPanelMeta,
+  isIncidentFocusPanel,
   resolveDashboardPanel,
 } from '../features/dashboard/dashboardPanels.js'
 import EndpointTable from '../features/dashboard/EndpointTable'
@@ -217,29 +218,50 @@ export default function DashboardPage({
     setFilterId((cur) => (cur === id ? null : id))
   }
 
+  const criticalFeed =
+    Boolean(fetchError) ||
+    (phase === 'playing' && (feedStatus === 'down' || feedStatus === 'empty'))
+
   const statusBanners = (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {fetchError ? <Banner tone="crit">{fetchError}</Banner> : null}
-      {phase === 'playing' && (feedStatus === 'down' || feedStatus === 'empty') ? (
-        <Banner tone={feedStatus === 'down' ? 'warn' : 'info'}>
-          {feedStatus === 'down'
-            ? 'Waiting for tele-ingestion. Start the Timescale service on port 3000 (see README).'
-            : 'tele-ingestion is up but has no recent snapshots. Run the telemetry generator against POST /ingest/snapshot.'}
+      {phase === 'playing' && feedStatus === 'down' ? (
+        <Banner tone="warn">
+          Waiting for tele-ingestion. Start the Timescale service on port 3000 (see README).
         </Banner>
       ) : null}
-      {phase === 'playing' && feedStatus === 'ok' && sampleTicks === 0 && !fetchError ? (
-        <Banner>
+      {phase === 'playing' && feedStatus === 'empty' ? (
+        <Banner tone="info">
+          tele-ingestion is up but has no recent snapshots. Run the telemetry generator against
+          POST /ingest/snapshot.
+        </Banner>
+      ) : null}
+      {!criticalFeed && phase === 'playing' && feedStatus === 'ok' && sampleTicks === 0 ? (
+        <div className="soc-feed-strip" role="status">
           Ingest is up but this match has no tick-aligned Timescale samples. Fleet rows show
           catalog baseline, not live PPS.
-        </Banner>
+        </div>
       ) : null}
-      {phase !== 'playing' ? (
-        <Banner>
+      {!criticalFeed && phase !== 'playing' ? (
+        <div className="soc-feed-strip" role="status">
           Time-series samples start when both players are in and the match is live.
-        </Banner>
+        </div>
       ) : null}
     </div>
   )
+
+  const focusIncidentId = searchParams.get('incident')
+  const focusIncident =
+    focusIncidentId &&
+    incidents.find(
+      (inc) =>
+        String(inc.persistentId || '') === String(focusIncidentId) ||
+        String(inc.id || '') === String(focusIncidentId)
+    )
+  const focusLabel =
+    focusIncident?.endpointLabel ||
+    focusIncident?.endpointId ||
+    (focusIncidentId ? String(focusIncidentId) : null)
 
   if (!roomId) {
     return (
@@ -348,33 +370,38 @@ export default function DashboardPage({
           title={panelMeta.label}
           subtitle={panelMeta.blurb}
           actions={
-            filterId ? (
-              <button type="button" className="tn-btn" onClick={() => setFilterId(null)}>
-                <Crosshair className="h-4 w-4" />
-                {filterLabel}
-                <span className="text-[var(--tn-muted)]">Clear</span>
-              </button>
-            ) : (
-              <p className="hidden max-w-xs text-right text-sm text-[var(--tn-muted)] lg:block">
-                Select a fleet row or incident to isolate a node
-              </p>
-            )
+            filterId || (isIncidentFocusPanel(panel) && focusLabel) ? (
+              <div className="flex flex-wrap items-center gap-2">
+                {isIncidentFocusPanel(panel) && focusLabel ? (
+                  <span className="tn-badge" title="Incident focus kept on Commander and Response">
+                    Focused · {focusLabel}
+                  </span>
+                ) : null}
+                {filterId ? (
+                  <button type="button" className="tn-btn" onClick={() => setFilterId(null)}>
+                    <Crosshair className="h-4 w-4" />
+                    {filterLabel}
+                    <span className="text-[var(--tn-muted)]">Clear</span>
+                  </button>
+                ) : null}
+              </div>
+            ) : null
           }
         />
         <main
           className={
-            panel === 'commander'
-              ? 'flex min-h-0 flex-1 flex-col overflow-hidden p-5 md:px-8 md:py-6'
-              : 'min-h-0 flex-1 overflow-auto p-5 md:px-8 md:py-6'
+            panel === 'commander' || panel === 'incidents' || panel === 'response'
+              ? 'flex min-h-0 flex-1 flex-col overflow-hidden p-4 md:px-6 md:py-5'
+              : 'min-h-0 flex-1 overflow-auto p-4 md:px-6 md:py-5'
           }
         >
           <div
             className={
-              panel === 'commander'
-                ? 'flex min-h-0 flex-1 flex-col gap-6'
+              panel === 'commander' || panel === 'incidents' || panel === 'response'
+                ? 'flex min-h-0 flex-1 flex-col gap-4'
                 : panel === 'overview'
-                  ? 'mx-auto w-full max-w-7xl space-y-5'
-                  : 'mx-auto w-full max-w-6xl space-y-6'
+                  ? 'mx-auto w-full max-w-[80rem] space-y-4'
+                  : 'mx-auto w-full max-w-6xl space-y-4'
             }
           >
             {panel === 'overview' ? statusBanners : null}

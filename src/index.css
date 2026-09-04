@@ -252,6 +252,108 @@ code,
   background: var(--tn-canvas);
 }
 
+/* Dashboard SOC command-center zones (scoped; does not alter Map chrome) */
+.soc-zone {
+  background: var(--tn-surface);
+  border: 1px solid var(--tn-line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.soc-zone-accent {
+  border-left: 3px solid var(--tn-muted);
+}
+
+.soc-zone-accent-ok {
+  border-left-color: var(--tn-ok);
+}
+
+.soc-zone-accent-warn {
+  border-left-color: var(--tn-warn);
+}
+
+.soc-zone-accent-crit {
+  border-left-color: var(--tn-crit);
+}
+
+.soc-zone-accent-info {
+  border-left-color: var(--tn-info);
+}
+
+.soc-zone-pad {
+  padding: var(--tn-space-5);
+}
+
+.soc-zone-title {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tn-muted);
+}
+
+.soc-role-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.soc-role-advisory {
+  background: color-mix(in srgb, var(--tn-info) 12%, var(--tn-surface));
+  color: var(--tn-info);
+}
+
+.soc-role-execution {
+  background: color-mix(in srgb, var(--tn-ink) 10%, var(--tn-surface));
+  color: var(--tn-text);
+  border: 1px solid var(--tn-line);
+}
+
+.soc-role-simulated {
+  background: var(--tn-elevated);
+  color: var(--tn-muted);
+}
+
+.soc-feed-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tn-space-3);
+  border: 1px solid var(--tn-line);
+  border-radius: var(--radius-md);
+  background: var(--tn-elevated);
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--tn-muted);
+}
+
+.soc-nav-group {
+  display: none;
+  padding: 10px 12px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tn-muted);
+}
+
+@media (min-width: 768px) {
+  .soc-nav-group {
+    display: block;
+  }
+}
+
+.soc-dense-row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
 .city-map-flow.react-flow {
   background: var(--tn-canvas) !important;
 }

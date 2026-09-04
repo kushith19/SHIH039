@@ -1,6 +1,7 @@
 import { Link, useSearchParams } from 'react-router-dom'
 import {
   detectionTypeLabel,
+  formatEvidenceItem,
 } from '@shared/incidents.js'
 import {
   hopDistanceOf,
@@ -15,6 +16,8 @@ import {
   dashboardCommanderIncidentHref,
   dashboardResponseIncidentHref,
 } from './dashboardPanels.js'
+import { fmt } from './metrics'
+import { metricEvidenceHighlight } from './overviewView.js'
 
 function severityTone(severity) {
   if (severity === 'critical' || severity === 'high') return 'crit'
@@ -63,7 +66,6 @@ export default function IncidentCard({ inc, nodes = [], primarySpreadNodeId = nu
   const commanderId = inc.persistentId || inc.id
   const status = inc.status || 'open'
 
-  // Highest-risk next target derived from peer trust + propagation scoring
   const nextTargetId =
     primarySpreadNodeId ??
     inc.primarySpreadNodeId ??
@@ -73,6 +75,11 @@ export default function IncidentCard({ inc, nodes = [], primarySpreadNodeId = nu
     ? nodes.find((n) => n.id === nextTargetId)
     : null
   const nextTargetLabel = nextTargetNode?.data?.label ?? nextTargetId
+  const metric = metricEvidenceHighlight(inc)
+  const evidenceLines = (Array.isArray(inc.evidence) ? inc.evidence : [])
+    .map(formatEvidenceItem)
+    .filter(Boolean)
+    .slice(0, 4)
 
   return (
     <div>
@@ -80,7 +87,7 @@ export default function IncidentCard({ inc, nodes = [], primarySpreadNodeId = nu
         <StatusBadge tone={severityTone(inc.severity)}>{inc.severity || 'low'}</StatusBadge>
         <StatusBadge tone={status === 'open' ? 'warn' : 'muted'}>{status}</StatusBadge>
       </div>
-      <h2 className="mt-3 text-lg font-medium">
+      <h2 className="mt-2 text-lg font-medium">
         <button
           type="button"
           className="text-left hover:underline"
@@ -89,51 +96,86 @@ export default function IncidentCard({ inc, nodes = [], primarySpreadNodeId = nu
           {inc.endpointLabel || inc.endpointId}
         </button>
       </h2>
-      <p className="tn-meta mt-1">{detectionTypeLabel(inc.detectionType)}</p>
+      <p className="tn-meta mt-0.5">{detectionTypeLabel(inc.detectionType)}</p>
 
-      <div className="mt-5 grid grid-cols-3 gap-4 font-mono tabular-nums">
+      <div className="mt-4 grid grid-cols-3 gap-3 border-y border-[var(--tn-line)] py-3 font-mono tabular-nums">
         <div>
           <div className="tn-label">Risk</div>
-          <div className="mt-1 text-base">{risk == null ? '—' : risk}</div>
+          <div className="mt-0.5 text-base">{risk == null ? '—' : risk}</div>
         </div>
         <div>
           <div className="tn-label">Trust</div>
-          <div className="mt-1 text-base">{trustFmt(inc.trustScore)}</div>
+          <div className="mt-0.5 text-base">{trustFmt(inc.trustScore)}</div>
         </div>
         <div>
           <div className="tn-label">Exposure</div>
-          <div className="mt-1 text-base">{money || '—'}</div>
+          <div className="mt-0.5 flex items-center gap-1.5 text-base">
+            <span>{money || '—'}</span>
+            {money ? <span className="soc-role-chip soc-role-simulated">Sim</span> : null}
+          </div>
         </div>
       </div>
       {money ? (
-        <p className="tn-meta mt-2">Simulated exposure — demo mapping, not a loss forecast.</p>
+        <p className="tn-meta mt-1.5 text-[11px]">Simulated exposure — not a loss forecast.</p>
       ) : null}
 
-      <div className="mt-6">
-        <h3 className="tn-section-title">Why it matters</h3>
-        <p className="mt-2 text-sm leading-relaxed">{whyItMatters(inc)}</p>
+      <div className="mt-5">
+        <h3 className="soc-zone-title">Why it matters</h3>
+        <p className="mt-1.5 text-sm leading-relaxed">{whyItMatters(inc)}</p>
       </div>
 
-      <div className="mt-6">
-        <h3 className="tn-section-title">Attack path</h3>
+      {metric || evidenceLines.length ? (
+        <div className="mt-5">
+          <h3 className="soc-zone-title">Level-1 evidence</h3>
+          {metric ? (
+            <div className="mt-2 grid grid-cols-3 gap-3 border border-[var(--tn-line)] bg-[var(--tn-elevated)] px-3 py-2.5">
+              <div>
+                <div className="tn-label">{metric.label}</div>
+                <div className="mt-0.5 font-mono text-sm tabular-nums text-[var(--tn-crit)]">
+                  {fmt(metric.observed)}
+                </div>
+              </div>
+              <div>
+                <div className="tn-label">Expected</div>
+                <div className="mt-0.5 font-mono text-sm tabular-nums">
+                  ~{fmt(metric.expected)}
+                </div>
+              </div>
+              <div>
+                <div className="tn-label">Deviation</div>
+                <div className="mt-0.5 font-mono text-sm tabular-nums text-[var(--tn-crit)]">
+                  {metric.deviationPct == null
+                    ? '—'
+                    : `${metric.deviationPct > 0 ? '+' : ''}${Math.round(metric.deviationPct)}%`}
+                </div>
+              </div>
+            </div>
+          ) : null}
+          {evidenceLines.length ? (
+            <ul className="tn-meta mt-2 space-y-1">
+              {evidenceLines.map((line, i) => (
+                <li key={`${i}-${line.slice(0, 24)}`}>• {line}</li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className="mt-5">
+        <h3 className="soc-zone-title">Attack path</h3>
         {labels.length <= 1 ? (
-          <p className="tn-meta mt-2">
+          <p className="tn-meta mt-1.5">
             {labels[0] || inc.endpointLabel || inc.endpointId}
             {hops === 0 ? ' · no observed downstream path this tick' : ''}
           </p>
         ) : (
-          <ol className="mt-2 space-y-1">
+          <ol className="mt-1.5 flex flex-wrap items-center gap-1.5">
             {labels.map((label, i) => (
-              <li key={`${path[i]}-${i}`} className="text-sm">
+              <li key={`${path[i]}-${i}`} className="flex items-center gap-1.5 text-sm">
+                {i > 0 ? <span className="text-[var(--tn-muted)]">→</span> : null}
                 <span className={i === 0 ? 'font-medium text-[var(--tn-crit)]' : 'text-[var(--tn-warn)]'}>
                   {label}
                 </span>
-                {i === 0 ? (
-                  <span className="tn-meta"> confirmed anomaly</span>
-                ) : (
-                  <span className="tn-meta"> propagated</span>
-                )}
-                {i < labels.length - 1 ? <div className="pl-1 text-[var(--tn-muted)]">↓</div> : null}
               </li>
             ))}
           </ol>
@@ -141,9 +183,9 @@ export default function IncidentCard({ inc, nodes = [], primarySpreadNodeId = nu
       </div>
 
       {nextTargetId ? (
-        <div className="mt-6">
-          <h3 className="tn-section-title">Highest-risk next target</h3>
-          <div className="mt-2 flex items-center gap-2 rounded-md border border-[color-mix(in_srgb,#a855f7_35%,transparent)] bg-[color-mix(in_srgb,#a855f7_10%,transparent)] px-3 py-2">
+        <div className="mt-5">
+          <h3 className="soc-zone-title">Highest-risk next target</h3>
+          <div className="mt-1.5 flex items-center gap-2 rounded-md border border-[color-mix(in_srgb,#a855f7_35%,transparent)] bg-[color-mix(in_srgb,#a855f7_10%,transparent)] px-3 py-2">
             <span className="h-2 w-2 shrink-0 rounded-full bg-[#a855f7]" />
             <button
               type="button"
@@ -152,22 +194,17 @@ export default function IncidentCard({ inc, nodes = [], primarySpreadNodeId = nu
             >
               {nextTargetLabel}
             </button>
-            <span className="ml-auto text-[11px] text-[var(--tn-muted)]">
-              peer trust · propagation risk
-            </span>
+            <span className="ml-auto text-[11px] text-[var(--tn-muted)]">assessment</span>
           </div>
-          <p className="tn-meta mt-1.5">
-            Predicted highest-risk spread target based on peer trust scores and graph propagation. Assessment only — not a confirmed attack path.
-          </p>
         </div>
       ) : null}
 
-      <div className="mt-6">
-        <h3 className="tn-section-title">Key signals</h3>
+      <div className="mt-5">
+        <h3 className="soc-zone-title">Key signals</h3>
         {signals.length === 0 ? (
-          <p className="tn-meta mt-2">No compact signals beyond the residual flag.</p>
+          <p className="tn-meta mt-1.5">No compact signals beyond the residual flag.</p>
         ) : (
-          <ul className="tn-meta mt-2 space-y-1.5">
+          <ul className="tn-meta mt-1.5 space-y-1">
             {signals.map((s) => (
               <li key={s}>• {s}</li>
             ))}
@@ -176,10 +213,9 @@ export default function IncidentCard({ inc, nodes = [], primarySpreadNodeId = nu
       </div>
 
       {related.length > 0 ? (
-        <div className="mt-6">
-          <h3 className="tn-section-title">Related</h3>
-          <p className="tn-meta mt-2">{related.length} related</p>
-          <ul className="tn-meta mt-1 space-y-1">
+        <div className="mt-5">
+          <h3 className="soc-zone-title">Related</h3>
+          <ul className="tn-meta mt-1.5 space-y-1">
             {related.slice(0, 3).map((r) => (
               <li key={r.incidentId}>• {r.summary || r.incidentType || r.incidentId}</li>
             ))}
@@ -188,23 +224,23 @@ export default function IncidentCard({ inc, nodes = [], primarySpreadNodeId = nu
       ) : null}
 
       {inc.campaignId ? (
-        <p className="tn-meta mt-4">History campaign {inc.campaignId}</p>
+        <p className="tn-meta mt-3 text-[11px]">History campaign {inc.campaignId}</p>
       ) : null}
 
-      <div className="mt-6 flex flex-wrap gap-3">
+      <div className="mt-5 flex flex-wrap gap-2 border-t border-[var(--tn-line)] pt-4">
         <Link
           to={dashboardCommanderIncidentHref(searchParams, commanderId)}
           replace
-          className="tn-btn-primary inline-flex"
+          className="tn-btn inline-flex"
         >
-          Open in AI Commander →
+          Commander <span className="text-[var(--tn-muted)]">(advisory)</span>
         </Link>
         <Link
           to={dashboardResponseIncidentHref(searchParams, commanderId)}
           replace
-          className="tn-btn inline-flex"
+          className="tn-btn-primary inline-flex"
         >
-          Response Console →
+          Response <span className="opacity-80">(execute)</span>
         </Link>
       </div>
     </div>

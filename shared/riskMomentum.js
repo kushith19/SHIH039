@@ -37,6 +37,26 @@ export function residualToScore(isolationScore) {
   return Math.max(0, Math.min(100, Math.round(n * 100)))
 }
 
+/**
+ * Current city risk: peak residual among currently gated anomalous nodes.
+ * Ungated isolationScoresByNodeId (including quarantined / cleared nodes) are
+ * explainability residuals and must not hold Current at the ceiling.
+ */
+export function currentResidualScore(detection) {
+  if (detection?.tgnnCalibrating === true) return null
+  const ids = Array.isArray(detection?.anomalyNodeIds) ? detection.anomalyNodeIds : []
+  if (!ids.length) return 0
+  const scores = detection?.isolationScoresByNodeId ?? {}
+  const vals = []
+  for (const id of ids) {
+    if (id == null || id === '') continue
+    const n = Number(scores[id])
+    if (Number.isFinite(n)) vals.push(n)
+  }
+  if (!vals.length) return 0
+  return Math.max(0, Math.min(100, Math.round(Math.max(...vals) * 100)))
+}
+
 export function exposedSetCount(detection) {
   const ids = new Set()
   for (const list of [
@@ -52,8 +72,7 @@ export function exposedSetCount(detection) {
 }
 
 export function scoreFromDetection(detection) {
-  if (detection?.tgnnCalibrating === true) return null
-  return peakResidualScore(detection?.isolationScoresByNodeId)
+  return currentResidualScore(detection)
 }
 
 export function classifyTrajectory({ score, delta, exposedDelta } = {}) {

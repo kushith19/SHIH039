@@ -6,8 +6,8 @@ import EmptyState from '../../ui/EmptyState'
 
 function Sparkline({ data = [], color = 'var(--tn-text)', yDomain = [-10, 20] }) {
   if (!data.length) return <span className="font-mono text-sm text-[var(--tn-muted)]">—</span>
-  const w = 88
-  const h = 28
+  const w = 72
+  const h = 22
   const y0 = yDomain[0]
   const y1 = yDomain[1]
   const span = y1 - y0 || 1
@@ -23,7 +23,7 @@ function Sparkline({ data = [], color = 'var(--tn-text)', yDomain = [-10, 20] })
       width={w}
       height={h}
       viewBox={`0 0 ${w} ${h}`}
-      className="h-7 w-[5.5rem]"
+      className="h-[1.375rem] w-[4.5rem]"
       aria-hidden="true"
     >
       <polyline fill="none" stroke={color} strokeWidth="1.5" points={pts} />
@@ -32,7 +32,7 @@ function Sparkline({ data = [], color = 'var(--tn-text)', yDomain = [-10, 20] })
 }
 
 function rowBadge({ quarantined, anomaly, catalogBaseline, drift }) {
-  if (catalogBaseline) return <StatusBadge>Catalog baseline</StatusBadge>
+  if (catalogBaseline) return <StatusBadge>Catalog</StatusBadge>
   if (quarantined) return <StatusBadge>Hold</StatusBadge>
   if (anomaly) return <StatusBadge tone="crit">Flag</StatusBadge>
   if (drift) return <StatusBadge tone="warn">Drift</StatusBadge>
@@ -76,8 +76,8 @@ export default function EndpointTable({
   }, [rows, q])
 
   return (
-    <section className="tn-surface overflow-hidden">
-      <div className="px-5 py-4">
+    <section className="soc-zone overflow-hidden">
+      <div className="border-b border-[var(--tn-line)] px-4 py-3">
         <Toolbar
           trailing={
             <span className="font-mono text-sm tabular-nums text-[var(--tn-muted)]">
@@ -92,26 +92,45 @@ export default function EndpointTable({
             placeholder="Search endpoints"
             className="tn-input max-w-xs px-3 text-sm"
           />
-          {hideHeader ? (
-            <p className="tn-meta">Missing samples show as catalog baseline, not live PPS.</p>
-          ) : (
-            <p className="tn-meta">PPS vs expected load when Timescale samples exist.</p>
-          )}
+          <div className="flex flex-wrap items-center gap-2 text-[11px] text-[var(--tn-muted)]">
+            <span className="inline-flex items-center gap-1">
+              <span className="tn-pip bg-[var(--tn-ok)]" /> Ok
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span className="tn-pip bg-[var(--tn-warn)]" /> Drift
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span className="tn-pip bg-[var(--tn-crit)]" /> Flag
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span className="tn-pip bg-[var(--tn-muted)]" /> Hold
+            </span>
+            <span>Catalog = baseline</span>
+          </div>
         </Toolbar>
+        {hideHeader ? (
+          <p className="tn-meta mt-2 text-[11px]">
+            Missing samples show as catalog baseline, not live PPS.
+          </p>
+        ) : (
+          <p className="tn-meta mt-2 text-[11px]">
+            PPS vs expected load when Timescale samples exist.
+          </p>
+        )}
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="sticky top-0 bg-[var(--tn-surface)]">
-            <tr className="text-left text-sm font-medium text-[var(--tn-muted)]">
-              <th className="px-4 py-3 pl-5">Node</th>
-              <th className="px-4 py-3">Type</th>
+            <tr className="text-left text-xs font-medium text-[var(--tn-muted)]">
+              <th className="px-3 py-2.5 pl-4">Node</th>
+              <th className="px-3 py-2.5">Type</th>
               {METRIC_KEYS.map((m) => (
-                <th key={m.key} className="px-4 py-3 text-right">
+                <th key={m.key} className="px-3 py-2.5 text-right">
                   {m.short}
                 </th>
               ))}
-              <th className="px-4 py-3">Trend vs expected</th>
-              <th className="px-4 py-3 pr-5">State</th>
+              <th className="px-3 py-2.5">Trend</th>
+              <th className="px-3 py-2.5 pr-4">State</th>
             </tr>
           </thead>
           <tbody>
@@ -132,7 +151,11 @@ export default function EndpointTable({
               ordered.map((row) => {
                 const selected = filterId === row.id
                 const drift = rowHasDrift(row)
-                const sparkColor = row.anomaly ? 'var(--tn-crit)' : drift ? 'var(--tn-warn)' : 'var(--tn-text)'
+                const sparkColor = row.anomaly
+                  ? 'var(--tn-crit)'
+                  : drift
+                    ? 'var(--tn-warn)'
+                    : 'var(--tn-text)'
                 return (
                   <tr
                     key={row.id}
@@ -141,40 +164,53 @@ export default function EndpointTable({
                       selected
                         ? { background: 'var(--tn-select-bg)' }
                         : row.anomaly
-                          ? { background: 'color-mix(in srgb, var(--tn-crit) 6%, transparent)' }
+                          ? {
+                              background:
+                                'color-mix(in srgb, var(--tn-crit) 6%, transparent)',
+                            }
                           : drift
-                            ? { background: 'color-mix(in srgb, var(--tn-warn) 6%, transparent)' }
+                            ? {
+                                background:
+                                  'color-mix(in srgb, var(--tn-warn) 6%, transparent)',
+                              }
                             : undefined
                     }
                     onClick={() => onSelect?.(row.id)}
                   >
-                    <td className="relative px-4 py-2.5 pl-5 font-medium">
-                      <span className={`absolute inset-y-0 left-0 w-0.5 ${railClass({ ...row, drift })}`} />
+                    <td className="relative soc-dense-row px-3 pl-4 font-medium">
+                      <span
+                        className={`absolute inset-y-0 left-0 w-0.5 ${railClass({ ...row, drift })}`}
+                      />
                       {row.label}
                     </td>
-                    <td className="px-4 py-2.5">
+                    <td className="soc-dense-row px-3">
                       <StatusBadge>{row.type}</StatusBadge>
                     </td>
-                    <td className="px-4 py-2.5 text-right font-mono tabular-nums">
+                    <td className="soc-dense-row px-3 text-right font-mono text-[13px] tabular-nums">
                       {row.catalogBaseline ? '—' : fmt(row.pps)}
                     </td>
-                    <td className="px-4 py-2.5 text-right font-mono tabular-nums">
+                    <td className="soc-dense-row px-3 text-right font-mono text-[13px] tabular-nums">
                       {row.catalogBaseline ? '—' : fmt(row.http)}
                     </td>
-                    <td className="px-4 py-2.5 text-right font-mono tabular-nums">
+                    <td className="soc-dense-row px-3 text-right font-mono text-[13px] tabular-nums">
                       {row.catalogBaseline ? '—' : fmt(row.files)}
                     </td>
-                    <td className="px-4 py-2.5 text-right font-mono tabular-nums">
+                    <td className="soc-dense-row px-3 text-right font-mono text-[13px] tabular-nums">
                       {row.catalogBaseline ? '—' : fmt(row.logins)}
                     </td>
-                    <td className="px-4 py-2.5">
-                      <div className="flex items-center gap-3">
-                        <Sparkline data={row.spark} color={sparkColor} yDomain={sparkDomain} />
+                    <td className="soc-dense-row px-3">
+                      <div className="flex items-center gap-2">
+                        <Sparkline
+                          data={row.spark}
+                          color={sparkColor}
+                          yDomain={sparkDomain}
+                        />
                         <span
-                          className="font-mono text-sm tabular-nums"
+                          className="font-mono text-[12px] tabular-nums"
                           style={{
                             color:
-                              row.ppsVsExpected == null || Math.round(row.ppsVsExpected) === 0
+                              row.ppsVsExpected == null ||
+                              Math.round(row.ppsVsExpected) === 0
                                 ? 'var(--tn-muted)'
                                 : row.ppsVsExpected > 0
                                   ? 'var(--tn-crit)'
@@ -185,7 +221,9 @@ export default function EndpointTable({
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-2.5 pr-5">{rowBadge({ ...row, drift })}</td>
+                    <td className="soc-dense-row px-3 pr-4">
+                      {rowBadge({ ...row, drift })}
+                    </td>
                   </tr>
                 )
               })

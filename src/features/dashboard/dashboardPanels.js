@@ -1,9 +1,29 @@
+/** Visual / nav order follows SOC workflow. IDs are unchanged for URL contracts. */
 export const DASHBOARD_PANEL_IDS = [
   'overview',
-  'commander',
-  'fleet',
   'incidents',
+  'fleet',
+  'commander',
   'response',
+]
+
+/** Non-interactive nav groupings (layout only). */
+export const DASHBOARD_NAV_GROUPS = [
+  {
+    id: 'monitor',
+    label: 'Monitor',
+    panels: ['overview', 'incidents', 'fleet'],
+  },
+  {
+    id: 'analyze',
+    label: 'Analyze',
+    panels: ['commander'],
+  },
+  {
+    id: 'act',
+    label: 'Act',
+    panels: ['response'],
+  },
 ]
 
 /** Panels that keep ?incident= focus across navigation. */
@@ -12,23 +32,23 @@ const INCIDENT_FOCUS_PANELS = new Set(['commander', 'response'])
 export const DASHBOARD_PANEL_COPY = {
   overview: {
     label: 'Overview',
-    blurb: 'Command-center posture: active threat, blast radius, business impact, and containment status.',
+    blurb: 'Situational awareness: posture, primary threat, blast radius, and containment status.',
   },
-  commander: {
-    label: 'Commander',
-    blurb: 'Evidence-grounded assessment and safety-checked response plan. Not the detector.',
+  incidents: {
+    label: 'Incidents',
+    blurb: 'Promoted detections this tick. Inspect Level-1 evidence, then hand off to Commander or Response.',
   },
   fleet: {
     label: 'Fleet',
     blurb: 'Per-endpoint telemetry vs expected load. Catalog baseline is not live PPS.',
   },
-  incidents: {
-    label: 'Incidents',
-    blurb: 'Promoted detections this tick. Evidence tags, not extra models.',
+  commander: {
+    label: 'Commander',
+    blurb: 'Evidence-grounded assessment and safety-checked response plan. Advisory only — does not execute.',
   },
   response: {
     label: 'Response',
-    blurb: 'Registered containment actions for the selected incident. Execute lives here — not on Overview.',
+    blurb: 'Registered containment actions for the selected incident. Execute lives here — not on Overview or Commander.',
   },
 }
 
@@ -70,4 +90,8 @@ export function dashboardResponseIncidentHref(searchParams, incidentId) {
 export function dashboardPanelMeta(panelId) {
   const id = resolveDashboardPanel(panelId)
   return DASHBOARD_PANEL_COPY[id]
+}
+
+export function isIncidentFocusPanel(panelId) {
+  return INCIDENT_FOCUS_PANELS.has(resolveDashboardPanel(panelId))
 }

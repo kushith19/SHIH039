@@ -40,11 +40,13 @@ function answerFromIncidentContext(q, ctx) {
   ) {
     const downstream = Array.isArray(path) && path.length > 1 ? path.slice(1).join(', ') : null
     return {
-      answer: `Only ${asset || 'the origin'} is a confirmed anomaly from this incident context. ${
+      answer: [
+        `Only ${asset || 'the origin'} is a confirmed anomaly from this incident context.`,
         downstream
-          ? `${downstream} appear as propagated / exposed dependencies — monitor and protect them, do not treat them as independently compromised without separate detection evidence.`
-          : 'Propagated and peer-exposed nodes are exposure, not extra confirmed anomalies.'
-      } Recommended action remains advisory; Commander does not execute isolation.`,
+          ? `${downstream} show up as propagated / exposed dependencies. Monitor and protect them, but don’t treat them as independently compromised without separate detection evidence.`
+          : 'Propagated and peer-exposed nodes are exposure, not extra confirmed anomalies.',
+        'Any recommended action stays advisory — Commander does not execute isolation.',
+      ].join('\n\n'),
       insufficient: false,
     }
   }
@@ -61,11 +63,15 @@ function answerFromIncidentContext(q, ctx) {
     if (!fin || fin.simulated !== true) return insufficient()
     const label = fin.exposureLabel || '—'
     return {
-      answer: `SIMULATED EXPOSURE ${label} attached to ${asset || 'this incident'}. Scenario-based demo estimate — not actual financial loss. ${
+      answer: [
+        `SIMULATED EXPOSURE ${label} is attached to ${asset || 'this incident'}.`,
+        'That figure is a scenario-based demo estimate — not actual financial loss.',
         Array.isArray(path) && path.length > 1
-          ? `Propagation path ${path.join(' → ')} increases potential business impact along financially critical dependencies.`
-          : ''
-      }`.trim(),
+          ? `The path ${path.join(' → ')} is why the exposure looks high: impact can spread along financially critical dependencies.`
+          : null,
+      ]
+        .filter(Boolean)
+        .join('\n\n'),
       insufficient: false,
     }
   }
@@ -75,8 +81,17 @@ function answerFromIncidentContext(q, ctx) {
     (q.includes('what') || q.includes('why') || q.includes('show') || q.includes('behind'))
   ) {
     if (evidence.length === 0) return insufficient()
+    const items = evidence.slice(0, 8)
+    const evidenceBody =
+      items.length === 1
+        ? items[0]
+        : items.map((line) => `• ${line}`).join('\n')
     return {
-      answer: `Observed on ${asset || 'origin'}: ${evidence.slice(0, 8).join('; ')}. Assessment from residual detection — not a confirmed attack attribution.`,
+      answer: [
+        `The anomaly on ${asset || 'origin'} was triggered by observed metric deviations.`,
+        evidenceBody,
+        'That’s an assessment from residual detection — not a confirmed attack attribution.',
+      ].join('\n\n'),
       insufficient: false,
     }
   }
@@ -88,13 +103,20 @@ function answerFromIncidentContext(q, ctx) {
   ) {
     if (Array.isArray(path) && path.length > 1) {
       return {
-        answer: `${path[path.length - 1]} is in the propagation path from confirmed anomaly ${path[0]}: ${path.join(' → ')}. This is propagated risk / exposure on existing graph edges — not an independent confirmed anomaly unless a related detection says so.`,
+        answer: [
+          `${path[path.length - 1]} is at risk because it sits on the propagation path from the confirmed anomaly at ${path[0]}.`,
+          `The path is ${path.join(' → ')}.`,
+          'That’s propagated exposure on existing graph edges — not an independent confirmed anomaly unless a related detection says so.',
+        ].join('\n\n'),
         insufficient: false,
       }
     }
     if (Array.isArray(ctx.propagatedNodeIds) && ctx.propagatedNodeIds.length) {
       return {
-        answer: `${ctx.propagatedNodeIds.length} propagated node(s) from ${asset || 'origin'}. Exposure along existing edges, not extra confirmed anomalies.`,
+        answer: [
+          `${ctx.propagatedNodeIds.length} propagated node(s) sit downstream from ${asset || 'origin'}.`,
+          'That’s exposure along existing edges, not extra confirmed anomalies.',
+        ].join('\n\n'),
         insufficient: false,
       }
     }

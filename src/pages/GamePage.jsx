@@ -34,8 +34,8 @@ const rightPanelClass = (open) => {
   const base =
     'shrink-0 overflow-auto border-l border-[var(--tn-line)] bg-[var(--tn-surface)] transition-[width] duration-150 ease-out max-lg:fixed max-lg:top-14 max-lg:bottom-0 max-lg:right-0 max-lg:z-40 max-lg:max-w-[90vw]'
   return open
-    ? `${base} w-[19rem] p-4 max-lg:translate-x-0 max-lg:w-[19rem]`
-    : `${base} w-0 overflow-hidden border-l-0 p-0 max-lg:translate-x-full max-lg:w-[19rem]`
+    ? `${base} w-[25rem] p-4 max-lg:translate-x-0 max-lg:w-[25rem]`
+    : `${base} w-0 overflow-hidden border-l-0 p-0 max-lg:translate-x-full max-lg:w-[25rem]`
 }
 
 function StatusPip({ ok, warn, muted, label, title }) {
@@ -127,10 +127,21 @@ export default function GamePage() {
     ]
   )
 
+  const selectionIdsRef = useRef({ nodeId: null, edgeId: null })
   const onSelectionChange = useCallback(({ selectedNode, selectedEdge }) => {
+    const nodeId = selectedNode?.id ?? null
+    const edgeId = selectedEdge?.id ?? null
+    const prev = selectionIdsRef.current
+    const selectionChanged = nodeId !== prev.nodeId || edgeId !== prev.edgeId
+    selectionIdsRef.current = { nodeId, edgeId }
+
     setSelectedNode(selectedNode)
     setSelectedEdge(selectedEdge)
-    if (selectedNode || selectedEdge) setInspectorOpen(true)
+    // Only auto-open on a real selection change — live graph/sim re-emits
+    // must not reopen the panel after the operator closes it.
+    if (selectionChanged && (selectedNode || selectedEdge)) {
+      setInspectorOpen(true)
+    }
   }, [])
 
   const multiplayer = useMemo(
@@ -196,13 +207,14 @@ export default function GamePage() {
 
   const autoInspectorRef = useRef(false)
   useEffect(() => {
+    if (role !== 'defender') return
     const n = (room.detection?.anomalyNodeIds ?? []).length
     if (n > 0 && !autoInspectorRef.current) {
       autoInspectorRef.current = true
       setInspectorOpen(true)
     }
     if (n === 0) autoInspectorRef.current = false
-  }, [room.detection?.anomalyNodeIds])
+  }, [role, room.detection?.anomalyNodeIds])
 
   const onQuarantine = useCallback(
     (nodeId, quarantined = true) => {
