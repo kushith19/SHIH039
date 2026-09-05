@@ -53,6 +53,12 @@ export function createEmptyRoom(id = DEMO_ROOM_ID) {
     commanderBriefing: null,
     /** Response orchestration (plan + approval). Not campaigns. */
     responseOrchestration: createEmptyOrchestrationState(),
+    /** Parallel group runs — each is a full orchestration FSM. */
+    orchestrationGroupRuns: {},
+    orchestrationGroupsMeta: [],
+    focusedGroupId: null,
+    /** sector | none | link — city-model sector grouping by default */
+    orchestrationGroupMode: null,
     riskHistory: [],
     neighborHistory: [],
     ingestionStatus: 'empty',

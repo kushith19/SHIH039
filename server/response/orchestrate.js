@@ -16,7 +16,6 @@ import {
   normalizeOrchestrationStatus,
 } from '../../shared/response/orchestration.js'
 import {
-  buildStableOrchestrationQueue,
   cycleStatusForWorkflow,
   emptyOrchestrationQueueState,
   nextQueuedIncidentId,
@@ -57,6 +56,14 @@ import {
   hasRemainingResponseWork,
 } from '../../shared/response/approvalScope.js'
 import {
+  buildOrchestrationGroups,
+  logOrchestrationGroupCompleted,
+  logOrchestrationGroupStarting,
+  logOrchestrationGroups,
+  resolveOrchestrationGroupMode,
+  ORCHESTRATION_GROUP_MODES,
+} from '../../shared/response/orchestrationGroups.js'
+import {
   clearOrchestrationLoopInFlight,
   isOrchestrationLoopInFlight,
   recordObservationalVerification,
@@ -70,19 +77,184 @@ import {
   latestIterationTrace,
 } from './workflowTrace.js'
 
-/** Prevent concurrent Response Agent runs per room. */
+/** Prevent concurrent Response Agent runs per room+group. */
 const executionInFlight = new Set()
-/** Prevent overlapping queue advances (one Planner at a time). */
+/** Prevent overlapping queue advances (one Planner at a time per group). */
 const queueAdvanceInFlight = new Set()
 
-export function isOrchestrationExecutionInFlight(roomId) {
-  return executionInFlight.has(String(roomId ?? '').toUpperCase())
+function orchestrationLockKey(roomOrId, groupId = null) {
+  const roomId =
+    typeof roomOrId === 'object' && roomOrId
+      ? String(roomOrId.id ?? '').toUpperCase()
+      : String(roomOrId ?? '').toUpperCase()
+  if (!roomId) return ''
+  const gid =
+    groupId != null && String(groupId).trim()
+      ? String(groupId).trim()
+      : typeof roomOrId === 'object' && roomOrId?.responseOrchestration?.groupId
+        ? String(roomOrId.responseOrchestration.groupId)
+        : 'default'
+  return `${roomId}::${gid}`
+}
+
+function clearAllOrchestrationLocks(room) {
+  if (!room?.id) return
+  const roomId = String(room.id).toUpperCase()
+  executionInFlight.delete(roomId)
+  queueAdvanceInFlight.delete(roomId)
+  clearOrchestrationLoopInFlight(roomId)
+  const keys = new Set(['default'])
+  for (const gid of Object.keys(room.orchestrationGroupRuns || {})) keys.add(gid)
+  if (room.responseOrchestration?.groupId) keys.add(String(room.responseOrchestration.groupId))
+  for (const gid of keys) {
+    const k = `${roomId}::${gid}`
+    executionInFlight.delete(k)
+    queueAdvanceInFlight.delete(k)
+    clearOrchestrationLoopInFlight(k)
+  }
+}
+
+export function isOrchestrationExecutionInFlight(roomId, groupId = null) {
+  if (groupId != null) {
+    return executionInFlight.has(orchestrationLockKey(roomId, groupId))
+  }
+  const id = String(roomId ?? '').toUpperCase()
+  if (executionInFlight.has(id)) return true
+  for (const k of executionInFlight) {
+    if (k === id || k.startsWith(`${id}::`)) return true
+  }
+  return false
 }
 
 export { isOrchestrationLoopInFlight }
 
 function shoutQueue(msg) {
   console.log(msg)
+}
+
+function groupIncidentAllowlist(room) {
+  const queue = room?.responseOrchestration?.orchestrationQueue
+  if (Array.isArray(queue) && queue.length > 0) return queue.map(String)
+  return null
+}
+
+function ensureGroupRunStore(room) {
+  if (!room.orchestrationGroupRuns || typeof room.orchestrationGroupRuns !== 'object') {
+    room.orchestrationGroupRuns = {}
+  }
+  if (!Array.isArray(room.orchestrationGroupsMeta)) {
+    room.orchestrationGroupsMeta = []
+  }
+  return room
+}
+
+/**
+ * Room view that redirects responseOrchestration to one group run.
+ * Enables parallel planning without shared-state races.
+ */
+export function roomViewForGroup(room, groupId) {
+  ensureGroupRunStore(room)
+  const gid = String(groupId)
+  if (!room.orchestrationGroupRuns[gid]) {
+    throw new Error(`Unknown orchestration group ${gid}`)
+  }
+  return new Proxy(room, {
+    get(target, prop, receiver) {
+      if (prop === 'responseOrchestration') {
+        return target.orchestrationGroupRuns[gid]
+      }
+      return Reflect.get(target, prop, receiver)
+    },
+    set(target, prop, value, receiver) {
+      if (prop === 'responseOrchestration') {
+        target.orchestrationGroupRuns[gid] = value
+        return true
+      }
+      return Reflect.set(target, prop, value, receiver)
+    },
+  })
+}
+
+export function focusOrchestrationGroup(room, groupId) {
+  ensureRoomOrchestration(room)
+  ensureGroupRunStore(room)
+  const gid = String(groupId ?? '').trim()
+  if (!gid || !room.orchestrationGroupRuns[gid]) {
+    return {
+      ok: false,
+      statusCode: 404,
+      message: `Orchestration group not found: ${gid || '(empty)'}`,
+      orchestration: publicOrchestrationState(room),
+    }
+  }
+  room.focusedGroupId = gid
+  room.responseOrchestration = room.orchestrationGroupRuns[gid]
+  room.responseOrchestration.focusedGroupId = gid
+  room.responseOrchestration.orchestrationGroups = room.orchestrationGroupsMeta || []
+  room.responseOrchestration.groupId = gid
+  return {
+    ok: true,
+    focusedGroupId: gid,
+    orchestration: publicOrchestrationState(room),
+  }
+}
+
+/**
+ * Change how incidents are grouped for the next Analyze cycle.
+ * Modes: sector (city model, default) | none (all parallel) | link (edge/campaign rules).
+ * Does not interrupt an in-flight group run — takes effect on next analyze / new cycle.
+ */
+export function setOrchestrationGroupMode(room, mode) {
+  ensureRoomOrchestration(room)
+  const next = resolveOrchestrationGroupMode(mode)
+  room.orchestrationGroupMode = next
+  return {
+    ok: true,
+    groupMode: next,
+    modes: Object.values(ORCHESTRATION_GROUP_MODES),
+    orchestration: publicOrchestrationState(room),
+    message: `Group mode set to ${next} — applies on next Analyze`,
+  }
+}
+
+function groupProgressSummaries(room) {
+  ensureGroupRunStore(room)
+  const meta = room.orchestrationGroupsMeta || []
+  const runs = room.orchestrationGroupRuns || {}
+  return meta.map((g) => {
+    const run = runs[g.groupId] || null
+    const status = normalizeOrchestrationStatus(run?.workflowStatus ?? run?.status)
+    const cycle = normalizeOrchestrationCycleStatus(run?.orchestrationCycleStatus)
+    return {
+      groupId: g.groupId,
+      index: g.index,
+      label: g.label,
+      reason: g.reason,
+      incidentIds: g.incidentIds,
+      labels: g.labels,
+      workflowStatus: status,
+      orchestrationCycleStatus: cycle,
+      currentIncidentId: run?.currentIncidentId ?? g.incidentIds?.[0] ?? null,
+      completedIncidentIds: Array.isArray(run?.completedIncidentIds)
+        ? run.completedIncidentIds.map(String)
+        : [],
+      queueTotal: Array.isArray(g.incidentIds) ? g.incidentIds.length : 0,
+      focused: room.focusedGroupId === g.groupId,
+    }
+  })
+}
+
+function allGroupCyclesCompleted(room) {
+  ensureGroupRunStore(room)
+  const meta = room.orchestrationGroupsMeta || []
+  if (!meta.length) return false
+  const runs = room.orchestrationGroupRuns || {}
+  return meta.every((g) => {
+    const cycle = normalizeOrchestrationCycleStatus(
+      runs[g.groupId]?.orchestrationCycleStatus
+    )
+    return cycle === ORCHESTRATION_CYCLE_STATUS.COMPLETED
+  })
 }
 
 function readQueueState(state) {
@@ -124,66 +296,102 @@ function writeQueueFields(room, patch, { source = 'queue' } = {}) {
 }
 
 /**
- * Begin a stable multi-incident queue when Analyze starts a new cycle.
- * Does not start Planner for every incident — only records the queue and current id.
+ * Begin parallel orchestration groups when Analyze starts a new cycle.
+ * Each group gets its own sequential incident queue; independent groups may
+ * run concurrently. Does not invoke Planner — only records group runs.
  */
 export function beginOrchestrationCycleQueue(room, { focusIncidentId = null } = {}) {
   ensureRoomOrchestration(room)
-  const prev = readQueueState(room.responseOrchestration)
-  const cycle = prev.orchestrationCycleStatus
-  const running =
-    prev.orchestrationQueue.length > 0 &&
-    cycle !== ORCHESTRATION_CYCLE_STATUS.IDLE &&
-    cycle !== ORCHESTRATION_CYCLE_STATUS.COMPLETED
+  ensureGroupRunStore(room)
 
-  if (running) {
-    // Keep the initial queue stable; only refresh current if missing.
-    const current =
-      prev.currentIncidentId ||
-      focusIncidentId ||
-      prev.orchestrationQueue.find((id) => !prev.completedIncidentIds.includes(id)) ||
+  const meta = room.orchestrationGroupsMeta || []
+  const anyRunning = meta.some((g) => {
+    const run = room.orchestrationGroupRuns?.[g.groupId]
+    const cycle = normalizeOrchestrationCycleStatus(run?.orchestrationCycleStatus)
+    return (
+      Array.isArray(run?.orchestrationQueue) &&
+      run.orchestrationQueue.length > 0 &&
+      cycle !== ORCHESTRATION_CYCLE_STATUS.IDLE &&
+      cycle !== ORCHESTRATION_CYCLE_STATUS.COMPLETED
+    )
+  })
+
+  if (anyRunning) {
+    const focused =
+      room.focusedGroupId ||
+      meta.find((g) => g.incidentIds?.includes(String(focusIncidentId ?? '')))?.groupId ||
+      meta[0]?.groupId ||
       null
-    if (current && current !== prev.currentIncidentId) {
-      writeQueueFields(room, {
-        currentIncidentId: current,
-        orchestrationCycleStatus: ORCHESTRATION_CYCLE_STATUS.PROCESSING,
-      }, { source: 'beginOrchestrationCycleQueue:resume' })
-    }
+    if (focused) focusOrchestrationGroup(room, focused)
     return {
       started: false,
       resumed: true,
       ...readQueueState(room.responseOrchestration),
+      groups: groupProgressSummaries(room),
     }
   }
 
-  const queue = buildStableOrchestrationQueue(room.detection, focusIncidentId)
-  if (!queue.length) {
+  const built = buildOrchestrationGroups({
+    detection: room.detection,
+    edges: room.edges,
+    nodes: room.nodes,
+    focusIncidentId,
+    groupMode: room.orchestrationGroupMode ?? null,
+  })
+  logOrchestrationGroups(built)
+  room.orchestrationGroupMode = built.groupMode
+
+  if (!built.groups.length) {
+    room.orchestrationGroupRuns = {}
+    room.orchestrationGroupsMeta = []
+    room.focusedGroupId = null
     writeQueueFields(room, emptyOrchestrationQueueState(), {
       source: 'beginOrchestrationCycleQueue:empty',
     })
     shoutQueue('[ORCHESTRATION QUEUE] cycle skipped total=0')
-    return { started: false, resumed: false, ...emptyOrchestrationQueueState() }
+    return { started: false, resumed: false, ...emptyOrchestrationQueueState(), groups: [] }
   }
 
-  const currentIncidentId = queue[0]
-  writeQueueFields(
-    room,
-    {
-      orchestrationQueue: queue,
-      currentIncidentId,
+  const priorTrace = Array.isArray(room.responseOrchestration?.workflowTrace)
+    ? room.responseOrchestration.workflowTrace
+    : []
+  const focusedGroupId = built.groups[0].groupId
+  room.orchestrationGroupsMeta = built.groups
+  room.orchestrationGroupRuns = {}
+  room.focusedGroupId = focusedGroupId
+
+  for (const g of built.groups) {
+    room.orchestrationGroupRuns[g.groupId] = createEmptyOrchestrationState({
+      workflowStatus: ORCHESTRATION_STATUS.IDLE,
+      updatedAtMs: Date.now(),
+      orchestrationQueue: g.incidentIds,
+      currentIncidentId: g.incidentIds[0] ?? null,
       completedIncidentIds: [],
       orchestrationCycleStatus: ORCHESTRATION_CYCLE_STATUS.PROCESSING,
-    },
-    { source: 'beginOrchestrationCycleQueue' }
-  )
-  shoutQueue(`[ORCHESTRATION QUEUE] cycle started total=${queue.length}`)
+      groupId: g.groupId,
+      focusedGroupId,
+      orchestrationGroups: built.groups,
+      workflowTrace: g.groupId === focusedGroupId ? priorTrace : [],
+    })
+  }
+
+  focusOrchestrationGroup(room, focusedGroupId)
+
+  const totalIncidents = built.groups.reduce((n, g) => n + g.incidentIds.length, 0)
   shoutQueue(
-    `[ORCHESTRATION QUEUE] starting incident=${currentIncidentId} position=1/${queue.length}`
+    `[ORCHESTRATION QUEUE] cycle started groups=${built.groups.length} incidents=${totalIncidents}`
   )
+  for (const g of built.groups) {
+    shoutQueue(
+      `[ORCHESTRATION QUEUE] group=${g.groupId} queue=${g.incidentIds.join(',')} reason=${g.reason}`
+    )
+  }
+
   return {
     started: true,
     resumed: false,
     ...readQueueState(room.responseOrchestration),
+    groups: groupProgressSummaries(room),
   }
 }
 
@@ -206,8 +414,8 @@ function syncCycleStatusToWorkflow(room) {
 }
 
 /**
- * After an incident reaches RECOVERED: mark complete and optionally start the next.
- * Planner/LLM is invoked only for the next incident — never in parallel.
+ * After an incident reaches RECOVERED: mark complete and optionally start the next
+ * incident in THIS group. Independent groups advance on their own timelines.
  */
 export async function continueOrchestrationQueueAfterRecovery(
   room,
@@ -219,8 +427,8 @@ export async function continueOrchestrationQueueAfterRecovery(
   } = {}
 ) {
   ensureRoomOrchestration(room)
-  const roomKey = String(room?.id ?? '').toUpperCase()
-  if (roomKey && queueAdvanceInFlight.has(roomKey)) {
+  const lockKey = orchestrationLockKey(room)
+  if (lockKey && queueAdvanceInFlight.has(lockKey)) {
     return {
       ok: false,
       advanced: false,
@@ -228,7 +436,7 @@ export async function continueOrchestrationQueueAfterRecovery(
       orchestration: publicOrchestrationState(room),
     }
   }
-  if (roomKey) queueAdvanceInFlight.add(roomKey)
+  if (lockKey) queueAdvanceInFlight.add(lockKey)
 
   try {
     const prev = readQueueState(room.responseOrchestration)
@@ -278,12 +486,23 @@ export async function continueOrchestrationQueueAfterRecovery(
         },
         { source: 'continueOrchestrationQueueAfterRecovery:done' }
       )
-      shoutQueue('[ORCHESTRATION QUEUE] cycle completed')
+      const groupMeta = (room.orchestrationGroupsMeta || []).find(
+        (g) => g.groupId === room.responseOrchestration?.groupId
+      )
+      if (groupMeta) logOrchestrationGroupCompleted(groupMeta)
+      else shoutQueue('[ORCHESTRATION QUEUE] cycle completed')
+
+      if (allGroupCyclesCompleted(room)) {
+        shoutQueue('[ORCHESTRATION] all groups completed')
+      }
+
       if (typeof onProgress === 'function') onProgress(publicOrchestrationState(room))
       return {
         ok: true,
         advanced: false,
         completed: true,
+        groupCompleted: true,
+        allGroupsCompleted: allGroupCyclesCompleted(room),
         orchestration: publicOrchestrationState(room),
       }
     }
@@ -291,7 +510,7 @@ export async function continueOrchestrationQueueAfterRecovery(
     const total = prev.orchestrationQueue.length
     const position = prev.orchestrationQueue.indexOf(nextId) + 1
     shoutQueue(
-      `[ORCHESTRATION QUEUE] starting incident=${nextId} position=${position}/${total}`
+      `[ORCHESTRATION QUEUE] starting incident=${nextId} position=${position}/${total} group=${room.responseOrchestration?.groupId ?? 'default'}`
     )
 
     // Preserve queue + workflowTrace across RECOVERED → IDLE for the next incident.
@@ -300,6 +519,9 @@ export async function continueOrchestrationQueueAfterRecovery(
       completedIncidentIds: completed,
       currentIncidentId: nextId,
       orchestrationCycleStatus: ORCHESTRATION_CYCLE_STATUS.PROCESSING,
+      groupId: room.responseOrchestration?.groupId ?? null,
+      focusedGroupId: room.focusedGroupId ?? room.responseOrchestration?.focusedGroupId ?? null,
+      orchestrationGroups: room.orchestrationGroupsMeta || room.responseOrchestration?.orchestrationGroups || [],
       workflowTrace: Array.isArray(room.responseOrchestration?.workflowTrace)
         ? room.responseOrchestration.workflowTrace
         : [],
@@ -310,14 +532,19 @@ export async function continueOrchestrationQueueAfterRecovery(
     )
     if (status === ORCHESTRATION_STATUS.RECOVERED) {
       if (room.id) {
-        executionInFlight.delete(String(room.id).toUpperCase())
-        clearOrchestrationLoopInFlight(room.id)
+        executionInFlight.delete(orchestrationLockKey(room))
+        clearOrchestrationLoopInFlight(orchestrationLockKey(room))
       }
-      room.responseOrchestration = createEmptyOrchestrationState({
+      const nextState = createEmptyOrchestrationState({
         workflowStatus: ORCHESTRATION_STATUS.IDLE,
         updatedAtMs: nowMs,
         ...preserved,
       })
+      room.responseOrchestration = nextState
+      const gid = preserved.groupId
+      if (gid && room.orchestrationGroupRuns) {
+        room.orchestrationGroupRuns[gid] = nextState
+      }
     } else {
       writeQueueFields(room, preserved, {
         source: 'continueOrchestrationQueueAfterRecovery:next',
@@ -346,7 +573,7 @@ export async function continueOrchestrationQueueAfterRecovery(
       orchestration: publicOrchestrationState(room),
     }
   } finally {
-    if (roomKey) queueAdvanceInFlight.delete(roomKey)
+    if (lockKey) queueAdvanceInFlight.delete(lockKey)
   }
 }
 
@@ -354,6 +581,7 @@ export { queueProgressView }
 
 export function ensureRoomOrchestration(room) {
   if (!room || typeof room !== 'object') return null
+  ensureGroupRunStore(room)
   if (!room.responseOrchestration || typeof room.responseOrchestration !== 'object') {
     room.responseOrchestration = createEmptyOrchestrationState({
       updatedAtMs: Date.now(),
@@ -364,10 +592,10 @@ export function ensureRoomOrchestration(room) {
 
 export function resetRoomOrchestration(room) {
   if (!room || typeof room !== 'object') return null
-  if (room.id) {
-    executionInFlight.delete(String(room.id).toUpperCase())
-    clearOrchestrationLoopInFlight(room.id)
-  }
+  clearAllOrchestrationLocks(room)
+  room.orchestrationGroupRuns = {}
+  room.orchestrationGroupsMeta = []
+  room.focusedGroupId = null
   room.responseOrchestration = createEmptyOrchestrationState({
     updatedAtMs: Date.now(),
   })
@@ -380,6 +608,7 @@ export function publicOrchestrationState(room) {
   const status = normalizeOrchestrationStatus(state.workflowStatus ?? state.status)
   const queue = readQueueState(state)
   const progress = queueProgressView(queue)
+  const groups = groupProgressSummaries(room)
   return {
     status,
     workflowStatus: status,
@@ -413,6 +642,15 @@ export function publicOrchestrationState(room) {
     completedIncidentIds: queue.completedIncidentIds,
     orchestrationCycleStatus: queue.orchestrationCycleStatus,
     orchestrationProgress: progress,
+    /** Parallel orchestration groups (focused run projected above). */
+    orchestrationGroups: groups,
+    focusedGroupId: room.focusedGroupId ?? state.focusedGroupId ?? null,
+    groupId: state.groupId ?? null,
+    parallelGroupCount: groups.length,
+    groupMode:
+      room.orchestrationGroupMode ??
+      resolveOrchestrationGroupMode(null),
+    groupModes: Object.values(ORCHESTRATION_GROUP_MODES),
     /** STEP 14 forensic workflow trace (latest iterations) */
     workflowTrace: publicWorkflowTrace(room),
     latestIterationTrace: latestIterationTrace(room),
@@ -525,6 +763,10 @@ function writeState(room, patch, { forceReplace = false, source = 'writeState' }
     updatedAtMs: now,
     lastUpdatedAt: now,
   }
+  const gid = room.responseOrchestration.groupId
+  if (gid && room.orchestrationGroupRuns && typeof room.orchestrationGroupRuns === 'object') {
+    room.orchestrationGroupRuns[String(gid)] = room.responseOrchestration
+  }
   return room.responseOrchestration
 }
 
@@ -629,12 +871,14 @@ export function startNewOrchestrationCycle(room, { nowMs = Date.now() } = {}) {
     }
   }
   if (room.id) {
-    executionInFlight.delete(String(room.id).toUpperCase())
-    clearOrchestrationLoopInFlight(room.id)
+    clearAllOrchestrationLocks(room)
   }
   const priorTrace = Array.isArray(room.responseOrchestration?.workflowTrace)
     ? room.responseOrchestration.workflowTrace
     : []
+  room.orchestrationGroupRuns = {}
+  room.orchestrationGroupsMeta = []
+  room.focusedGroupId = null
   room.responseOrchestration = createEmptyOrchestrationState({
     workflowStatus: ORCHESTRATION_STATUS.IDLE,
     updatedAtMs: nowMs,
@@ -756,10 +1000,39 @@ export function generateOrchestrationPlan(room, {
   _queueAdvance = false,
   /** Internal: PLANNER_STARTED already recorded (LLM path before Ollama) */
   _plannerStarted = false,
+  /** Internal: member of parallel group bootstrap */
+  _parallelMember = false,
 } = {}) {
   ensureRoomOrchestration(room)
-  if (_queueAdvance !== true) {
+  if (_queueAdvance !== true && _parallelMember !== true) {
     beginOrchestrationCycleQueue(room, { focusIncidentId })
+    const groups = room.orchestrationGroupsMeta || []
+    if (groups.length > 1) {
+      const focusedId = room.focusedGroupId || groups[0].groupId
+      for (const g of groups) {
+        logOrchestrationGroupStarting(g)
+        const view = roomViewForGroup(room, g.groupId)
+        generateOrchestrationPlan(view, {
+          focusIncidentId: g.incidentIds[0] ?? null,
+          resolveContext,
+          nowMs,
+          selectedActionIds: null,
+          _queueAdvance: true,
+          _parallelMember: true,
+          _plannerStarted: false,
+        })
+      }
+      focusOrchestrationGroup(room, focusedId)
+      return {
+        ok: true,
+        orchestration: publicOrchestrationState(room),
+        executed: false,
+        parallelGroupsStarted: groups.length,
+      }
+    }
+    if (groups.length === 1) {
+      logOrchestrationGroupStarting(groups[0])
+    }
   }
   const queueSnap = readQueueState(room.responseOrchestration)
   const effectiveFocus =
@@ -1023,13 +1296,40 @@ export async function generateOrchestrationPlanMaybeLlm(room, opts = {}) {
     resolveContext,
     nowMs = Date.now(),
     _queueAdvance = false,
+    _parallelMember = false,
   } = opts
 
   shoutLlm(`[LLM ANALYZE] room=${room?.id ?? ''} focus=${focusIncidentId ?? ''}`)
 
   ensureRoomOrchestration(room)
-  if (_queueAdvance !== true) {
+  if (_queueAdvance !== true && _parallelMember !== true) {
     beginOrchestrationCycleQueue(room, { focusIncidentId })
+    const groups = room.orchestrationGroupsMeta || []
+    if (groups.length > 1) {
+      const focusedId = room.focusedGroupId || groups[0].groupId
+      await Promise.all(
+        groups.map(async (g) => {
+          logOrchestrationGroupStarting(g)
+          const view = roomViewForGroup(room, g.groupId)
+          return generateOrchestrationPlanMaybeLlm(view, {
+            ...opts,
+            focusIncidentId: g.incidentIds[0] ?? null,
+            _queueAdvance: true,
+            _parallelMember: true,
+          })
+        })
+      )
+      focusOrchestrationGroup(room, focusedId)
+      return {
+        ok: true,
+        orchestration: publicOrchestrationState(room),
+        executed: false,
+        parallelGroupsStarted: groups.length,
+      }
+    }
+    if (groups.length === 1) {
+      logOrchestrationGroupStarting(groups[0])
+    }
   }
   const queueSnap = readQueueState(room.responseOrchestration)
   const effectiveFocus =
@@ -1692,8 +1992,14 @@ export function approveOrchestrationPlan(room, {
   stepDelayMs = null,
   onProgress = null,
   onCompleteSync = null,
+  /** Optional: focus a parallel orchestration group before approving */
+  groupId = null,
 } = {}) {
   ensureRoomOrchestration(room)
+  if (groupId) {
+    const focused = focusOrchestrationGroup(room, groupId)
+    if (!focused.ok) return { ...focused, executed: false }
+  }
   refreshOrchestrationFreshness(room, resolveContext)
 
   const state = room.responseOrchestration
@@ -1821,6 +2127,7 @@ export function approveOrchestrationPlan(room, {
     plan: approvedPlan,
     detection: room.detection,
     approvedAtMs: nowMs,
+    incidentIdAllowlist: groupIncidentAllowlist(room),
   })
   const prior = state.approvalScope
   const approvalScope = prior
@@ -2076,9 +2383,15 @@ export function executeOrchestrationPlan(room, {
   /** When true (default for HTTP), start Commander continuation after success */
   autoContinue = true,
   stepDelayMs = null,
+  /** Optional: focus a parallel orchestration group before execute */
+  groupId = null,
 } = {}) {
   ensureRoomOrchestration(room)
-  const roomKey = String(room.id ?? '').toUpperCase()
+  if (groupId) {
+    const focused = focusOrchestrationGroup(room, groupId)
+    if (!focused.ok) return focused
+  }
+  const roomKey = orchestrationLockKey(room)
 
   if (clientPlan != null || clientActionIds != null) {
     // Explicit no-op: server plan is the only authority
@@ -2517,7 +2830,7 @@ export function verifyOrchestrationPlan(room, {
     (nextStatus === ORCHESTRATION_STATUS.CONTINUING ||
       nextStatus === ORCHESTRATION_STATUS.VERIFYING)
 
-  if (shouldContinue && hasRemainingResponseWork(room)) {
+  if (shouldContinue && hasRemainingResponseWork(room, { incidentIdAllowlist: groupIncidentAllowlist(room) })) {
     const continued = runOrchestrationContinuation(room, {
       resolveContext,
       onProgress,
@@ -2552,7 +2865,7 @@ export function verifyOrchestrationPlan(room, {
 
   if (
     shouldContinue &&
-    !hasRemainingResponseWork(room) &&
+    !hasRemainingResponseWork(room, { incidentIdAllowlist: groupIncidentAllowlist(room) }) &&
     nextStatus !== ORCHESTRATION_STATUS.RECOVERED
   ) {
     markEpisodeRecovered(room, {
@@ -2578,7 +2891,9 @@ export function verifyOrchestrationPlan(room, {
     recovered:
       normalizeOrchestrationStatus(room.responseOrchestration.workflowStatus) ===
       ORCHESTRATION_STATUS.RECOVERED,
-    remainingWork: hasRemainingResponseWork(room),
+    remainingWork: hasRemainingResponseWork(room, {
+      incidentIdAllowlist: groupIncidentAllowlist(room),
+    }),
     incidentsClosed: false,
     autoRestored: false,
     mutatedQuarantine: false,

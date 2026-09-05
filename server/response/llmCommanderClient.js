@@ -1,6 +1,6 @@
 /**
  * LLM Commander client — planner only.
- * Direct Ollama POST /api/chat (one planner generation). Never executes actions.
+ * xAI Grok primary → local Ollama fallback. Never executes actions.
  */
 
 import { mkdirSync, writeFileSync } from 'node:fs'
@@ -22,6 +22,12 @@ import {
   summarizeRetrievedKnowledgeForDebug,
 } from '../../shared/response/llmCommanderPlan.js'
 import { fetchKnowledgeContext } from '../commander/client.js'
+import {
+  chatGrokOrThrow,
+  xaiApiKeyConfigured,
+  xaiModel,
+  resolveCloudLlmConfig,
+} from '../llm/chatProvider.js'
 
 const AI_COMMANDER_URL = process.env.AI_COMMANDER_URL ?? 'http://localhost:8000'
 const OLLAMA_URL = process.env.OLLAMA_URL ?? 'http://localhost:11434'
@@ -313,6 +319,7 @@ export function recordLlmCommanderPlanningError(reason, {
 
 function classifyFetchError(err) {
   const msg = String(err?.message ?? err)
+  if (err?.code === 'MISSING_XAI_API_KEY') return 'MISSING_XAI_API_KEY'
   if (
     err?.name === 'AbortError' ||
     err?.code === 'ABORT_ERR' ||
@@ -320,10 +327,16 @@ function classifyFetchError(err) {
   ) {
     return 'LLM_TIMEOUT'
   }
-  if (err?.code === 'OLLAMA_HTTP_ERROR' || /^\d{3}\s/.test(msg)) {
+  if (
+    err?.code === 'OLLAMA_HTTP_ERROR' ||
+    err?.code === 'HTTP_ERROR' ||
+    /^\d{3}\s/.test(msg)
+  ) {
     return 'OLLAMA_HTTP_ERROR'
   }
-  if (err?.code === 'MALFORMED_JSON') return 'MALFORMED_JSON'
+  if (err?.code === 'MALFORMED_JSON' || err?.code === 'EMPTY_RESPONSE') {
+    return err.code === 'EMPTY_RESPONSE' ? 'MALFORMED_JSON' : 'MALFORMED_JSON'
+  }
   return 'LLM_UNAVAILABLE'
 }
 
@@ -625,6 +638,107 @@ async function readConfiguredContextAfterChat() {
   }
 }
 
+function plannerMessages(payload) {
+  return [
+    {
+      role: 'system',
+      content: LLM_COMMANDER_MERGED_SYSTEM_PROMPT,
+    },
+    {
+      role: 'user',
+      content: JSON.stringify(payload),
+    },
+  ]
+}
+
+async function callGrokPlan(payload, meta = {}) {
+  const cloud = resolveCloudLlmConfig()
+  if (!cloud) {
+    const err = new Error('Cloud LLM API key not configured')
+    err.code = 'MISSING_XAI_API_KEY'
+    throw err
+  }
+  const url = `${cloud.baseUrl}/chat/completions`
+  const userContent = JSON.stringify(payload)
+  const promptChars =
+    LLM_COMMANDER_MERGED_SYSTEM_PROMPT.length + userContent.length
+  const estimatedTokens = estimateCommanderPromptTokens(
+    LLM_COMMANDER_MERGED_SYSTEM_PROMPT,
+    payload
+  )
+  const started = Date.now()
+  llmLine('[LLM REQUEST START]', [
+    `requestId=${meta.requestId ?? ''}`,
+    `model=${cloud.model}`,
+    `provider=${cloud.name}`,
+    `url=${url}`,
+    `incident=${meta.incidentId ?? ''}`,
+    `attackPreset=${meta.attackPreset ?? ''}`,
+    `actionCount=${meta.actionCount ?? 0}`,
+    `promptChars=${promptChars}`,
+    `estimatedTokens=${estimatedTokens}`,
+  ].join(' '))
+  stampPlanFile({
+    status: `calling_${cloud.name}`,
+    source: cloud.name,
+    model: cloud.model,
+    url,
+    promptChars,
+    estimatedTokens,
+    numPredict: OLLAMA_NUM_PREDICT,
+  })
+  llmLine('[LLM REQUEST SENT]', `requestId=${meta.requestId ?? ''} POST ${url}`)
+  const grok = await chatGrokOrThrow(plannerMessages(payload), {
+    temperature: 0,
+    jsonMode: true,
+    timeoutMs: PLAN_TIMEOUT_MS,
+    maxTokens: OLLAMA_NUM_PREDICT,
+  })
+  const durationMs = grok.durationMs ?? Date.now() - started
+  const content = grok.content ?? null
+  const rawChars = typeof content === 'string' ? content.length : 0
+  say(`[LLM] provider=${cloud.name}`)
+  llmLine(
+    '[LLM RESPONSE RECEIVED]',
+    [
+      `requestId=${meta.requestId ?? ''}`,
+      `provider=${cloud.name}`,
+      `status=${grok.httpStatus ?? 200}`,
+      `durationMs=${durationMs}`,
+      `doneReason=${grok.doneReason ?? 'n/a'}`,
+      `prompt_eval_count=${grok.promptEvalCount ?? 'n/a'}`,
+      `eval_count=${grok.evalCount ?? 'n/a'}`,
+      `rawChars=${rawChars}`,
+    ].join(' ')
+  )
+  stampPlanFile({
+    status: `${cloud.name}_raw`,
+    source: cloud.name,
+    model: cloud.model,
+    httpStatus: grok.httpStatus ?? 200,
+    durationMs,
+    doneReason: grok.doneReason ?? null,
+    promptEvalCount: grok.promptEvalCount ?? null,
+    evalCount: grok.evalCount ?? null,
+    rawResponseChars: rawChars,
+    rawResponse: typeof content === 'string' ? content.slice(0, 12_000) : null,
+    fallbackUsed: false,
+  })
+  return {
+    content,
+    doneReason: grok.doneReason ?? null,
+    configuredContext: null,
+    httpStatus: grok.httpStatus ?? 200,
+    durationMs,
+    evalCount: grok.evalCount ?? null,
+    promptEvalCount: grok.promptEvalCount ?? null,
+    source: cloud.name,
+    model: cloud.model,
+    fallbackUsed: false,
+    fallbackReason: null,
+  }
+}
+
 async function callOllamaPlan(payload, meta = {}) {
   const url = `${OLLAMA_URL}/api/chat`
   const userContent = JSON.stringify(payload)
@@ -638,6 +752,7 @@ async function callOllamaPlan(payload, meta = {}) {
   llmLine('[LLM REQUEST START]', [
     `requestId=${meta.requestId ?? ''}`,
     `model=${OLLAMA_MODEL}`,
+    `provider=ollama`,
     `url=${url}`,
     `incident=${meta.incidentId ?? ''}`,
     `attackPreset=${meta.attackPreset ?? ''}`,
@@ -668,16 +783,7 @@ async function callOllamaPlan(payload, meta = {}) {
       num_ctx: OLLAMA_NUM_CTX,
       num_predict: OLLAMA_NUM_PREDICT,
     },
-    messages: [
-      {
-        role: 'system',
-        content: LLM_COMMANDER_MERGED_SYSTEM_PROMPT,
-      },
-      {
-        role: 'user',
-        content: userContent,
-      },
-    ],
+    messages: plannerMessages(payload),
   }
   llmLine('[LLM REQUEST SENT]', `requestId=${meta.requestId ?? ''} POST ${url}`)
 
@@ -700,6 +806,7 @@ async function callOllamaPlan(payload, meta = {}) {
     '[LLM RESPONSE RECEIVED]',
     [
       `requestId=${meta.requestId ?? ''}`,
+      `provider=ollama`,
       `status=${status}`,
       `durationMs=${durationMs}`,
       `doneReason=${doneReason ?? 'n/a'}`,
@@ -731,6 +838,45 @@ async function callOllamaPlan(payload, meta = {}) {
     durationMs,
     evalCount,
     promptEvalCount,
+    source: 'ollama-direct',
+    model: OLLAMA_MODEL,
+  }
+}
+
+/**
+ * Grok primary → existing Ollama planner path on any Grok failure / missing key.
+ */
+async function callPlannerLlm(payload, meta = {}) {
+  if (!xaiApiKeyConfigured()) {
+    say('[LLM] provider=ollama_fallback reason=missing_xai_api_key')
+    const ollama = await callOllamaPlan(payload, meta)
+    return {
+      ...ollama,
+      fallbackUsed: true,
+      fallbackReason: 'missing_xai_api_key',
+    }
+  }
+  try {
+    return await callGrokPlan(payload, meta)
+  } catch (grokErr) {
+    const reason = classifyFetchError(grokErr)
+    const detail = String(grokErr?.message ?? grokErr).slice(0, 180)
+    say(`[LLM] provider=ollama_fallback reason=${reason} detail=${detail}`)
+    stampPlanFile({
+      status: 'grok_failed',
+      source: resolveCloudLlmConfig()?.name ?? 'grok',
+      model: xaiModel(),
+      error: detail,
+      fallbackUsed: true,
+      ollamaError: null,
+      httpStatus: grokErr?.httpStatus ?? null,
+    })
+    const ollama = await callOllamaPlan(payload, meta)
+    return {
+      ...ollama,
+      fallbackUsed: true,
+      fallbackReason: reason,
+    }
   }
 }
 
@@ -785,8 +931,13 @@ export async function requestLlmCommanderActions(
     contextTokens,
     requestedContext: OLLAMA_NUM_CTX,
     numPredict: OLLAMA_NUM_PREDICT,
-    model: OLLAMA_MODEL,
-    url: `${OLLAMA_URL}/api/chat`,
+    model: xaiApiKeyConfigured() ? xaiModel() : OLLAMA_MODEL,
+    url: (() => {
+      const cloud = resolveCloudLlmConfig()
+      return cloud
+        ? `${cloud.baseUrl}/chat/completions`
+        : `${OLLAMA_URL}/api/chat`
+    })(),
     rawResponse: null,
     parsedActions: [],
     validationResult: null,
@@ -843,6 +994,9 @@ export async function requestLlmCommanderActions(
   let durationMs = null
   let promptEvalCount = null
   let evalCount = null
+  let fallbackUsed = false
+  let fallbackReason = null
+  let usedModel = OLLAMA_MODEL
   try {
     if (testCaller) {
       source = 'test'
@@ -866,22 +1020,28 @@ export async function requestLlmCommanderActions(
     } else {
       try {
         say('[LLM PLANNER] request sent')
-        const ollama = await callOllamaPlan(payload, {
+        const planned = await callPlannerLlm(payload, {
           requestId,
           incidentId,
           attackPreset,
           actionCount: availableActionIds.length,
         })
-        source = 'ollama-direct'
-        raw = ollama?.content ?? null
-        doneReason = ollama?.doneReason ?? null
-        configuredContext = ollama?.configuredContext ?? null
-        httpStatus = ollama?.httpStatus ?? 200
-        durationMs = ollama?.durationMs ?? null
-        promptEvalCount = ollama?.promptEvalCount ?? null
-        evalCount = ollama?.evalCount ?? null
+        source = planned?.source ?? 'ollama-direct'
+        usedModel = planned?.model ?? (source === 'grok' || source === 'groq' ? xaiModel() : OLLAMA_MODEL)
+        raw = planned?.content ?? null
+        doneReason = planned?.doneReason ?? null
+        configuredContext = planned?.configuredContext ?? null
+        httpStatus = planned?.httpStatus ?? 200
+        durationMs = planned?.durationMs ?? null
+        promptEvalCount = planned?.promptEvalCount ?? null
+        evalCount = planned?.evalCount ?? null
+        fallbackUsed = planned?.fallbackUsed === true
+        fallbackReason = planned?.fallbackReason ?? null
         say('[LLM PLANNER] response received')
         say(`[LLM PLANNER] RAG context included=${ragUsed}`)
+        say(
+          `[LLM PLANNER] provider=${source === 'grok' || source === 'groq' ? source : 'ollama'} fallbackUsed=${fallbackUsed}`
+        )
       } catch (ollamaErr) {
         const ollamaCode = classifyFetchError(ollamaErr)
         const ollamaMsg = String(ollamaErr?.message ?? ollamaErr)
@@ -893,7 +1053,8 @@ export async function requestLlmCommanderActions(
           error: ollamaMsg,
           httpStatus: ollamaErr?.httpStatus ?? null,
           ollamaError: ollamaMsg,
-          fallbackUsed: false,
+          fallbackUsed,
+          fallbackReason,
           ragUsed,
           ragChunkCount,
           ragSources,
@@ -986,6 +1147,7 @@ export async function requestLlmCommanderActions(
   stampPlanFile({
     status: validated.ok ? 'ok' : 'failed',
     source,
+    model: usedModel,
     isTest: source === 'test',
     code: validated.code ?? null,
     error: validated.error ?? null,
@@ -1030,6 +1192,8 @@ export async function requestLlmCommanderActions(
       code: validated.code ?? null,
       error: validated.error ?? null,
     },
+    fallbackUsed,
+    fallbackReason,
     ragUsed,
     ragChunkCount,
     ragSources,
@@ -1043,20 +1207,23 @@ export function logLlmCommanderBootBanner() {
   sessionId = `sess-${Date.now().toString(36)}`
   const on = llmResponsePlanEnabled()
   const startedAt = new Date().toISOString()
+  const primary = resolveCloudLlmConfig()?.name ?? 'ollama'
   stampPlanFile({
     status: 'session_reset',
     sessionId,
     requestId: null,
     startedAt,
     completedAt: startedAt,
-    model: OLLAMA_MODEL,
+    model: primary === 'ollama' ? OLLAMA_MODEL : xaiModel(),
     error: 'No Analyze yet this process',
     rawResponse: null,
   })
   say('')
   say('============================================================')
   say(`[LLM COMMANDER] session=${sessionId} LLM_RESPONSE_PLAN=${on ? 'ON' : 'OFF'}`)
-  say(`[LLM COMMANDER] model=${OLLAMA_MODEL} url=${OLLAMA_URL}/api/chat`)
+  say(
+    `[LLM COMMANDER] primary=${primary} cloudModel=${xaiModel()} ollama=${OLLAMA_MODEL} url=${OLLAMA_URL}/api/chat`
+  )
   say(`[LLM COMMANDER] debug: GET http://localhost:3001/debug/llm-response`)
   say('============================================================')
   say('')

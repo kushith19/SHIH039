@@ -1,5 +1,6 @@
 /**
- * Post-analysis LLM client — reuses Ollama /api/chat (same stack as response planner).
+ * Post-analysis LLM client — xAI Grok primary → Ollama fallback
+ * (same stack as response planner).
  */
 
 import {
@@ -7,9 +8,11 @@ import {
   buildPostAnalysisUserPrompt,
 } from '../../shared/postAnalysis/prompt.js'
 import { parseAndValidateLlmRecommendations } from '../../shared/postAnalysis/parseLlmRecommendations.js'
+import { chatWithGrokPrimaryOllamaFallback } from '../llm/chatProvider.js'
 
-const OLLAMA_URL = process.env.OLLAMA_URL ?? 'http://localhost:11434'
-export const POST_ANALYSIS_MODEL = process.env.OLLAMA_MODEL ?? 'qwen2.5:7b-instruct'
+export const POST_ANALYSIS_MODEL = process.env.XAI_API_KEY
+  ? process.env.XAI_MODEL ?? 'grok-4.6'
+  : process.env.OLLAMA_MODEL ?? 'qwen2.5:7b-instruct'
 const TIMEOUT_MS = Number(process.env.POST_ANALYSIS_LLM_TIMEOUT_MS ?? 90_000) || 90_000
 
 /** @type {null | ((payload: object) => Promise<{ content: string, httpStatus?: number }>)} */
@@ -23,50 +26,25 @@ export function clearPostAnalysisLlmTestCaller() {
   testCaller = null
 }
 
-async function postOllamaChat(messages, { archiveId } = {}) {
-  const url = `${OLLAMA_URL}/api/chat`
-  const body = {
-    model: POST_ANALYSIS_MODEL,
-    stream: false,
-    format: 'json',
-    options: {
-      temperature: 0.2,
-      num_predict: 1024,
-    },
-    messages,
-  }
-
-  console.log(`[POST-ANALYSIS] incident=${archiveId} LLM_REQUEST model=${POST_ANALYSIS_MODEL}`)
-
-  const ctrl = new AbortController()
-  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS)
-  try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      signal: ctrl.signal,
-    })
-    const text = await res.text()
-    console.log(
-      `[POST-ANALYSIS] incident=${archiveId} LLM_RESPONSE status=${res.status}`
-    )
-    if (!res.ok) {
-      const err = new Error(`Ollama HTTP ${res.status}`)
-      err.httpStatus = res.status
-      err.body = text
-      throw err
-    }
-    let data = {}
-    try {
-      data = text ? JSON.parse(text) : {}
-    } catch {
-      throw new Error('Malformed Ollama JSON envelope')
-    }
-    const content = data?.message?.content ?? data?.response ?? ''
-    return { content: String(content ?? ''), httpStatus: res.status, raw: data }
-  } finally {
-    clearTimeout(timer)
+async function postLlmChat(messages, { archiveId } = {}) {
+  console.log(
+    `[POST-ANALYSIS] incident=${archiveId} LLM_REQUEST primary=grok fallback=ollama`
+  )
+  const result = await chatWithGrokPrimaryOllamaFallback(messages, {
+    temperature: 0.2,
+    jsonMode: true,
+    timeoutMs: TIMEOUT_MS,
+    maxTokens: 1024,
+    logLabel: `post-analysis archive=${archiveId}`,
+  })
+  console.log(
+    `[POST-ANALYSIS] incident=${archiveId} LLM_RESPONSE status=${result.httpStatus} provider=${result.provider} fallbackUsed=${result.fallbackUsed}`
+  )
+  return {
+    content: String(result.content ?? ''),
+    httpStatus: result.httpStatus,
+    raw: result.raw,
+    provider: result.provider,
   }
 }
 
@@ -89,7 +67,7 @@ export async function requestPostAnalysisRecommendations(context, { archiveId = 
         `[POST-ANALYSIS] incident=${archiveId} LLM_RESPONSE status=${result?.httpStatus ?? 200} (test)`
       )
     } else {
-      const result = await postOllamaChat(messages, { archiveId })
+      const result = await postLlmChat(messages, { archiveId })
       content = result.content
     }
   } catch (err) {
@@ -134,7 +112,7 @@ export async function requestPostAnalysisRecommendations(context, { archiveId = 
         })
         corrected = String(result?.content ?? '')
       } else {
-        const result = await postOllamaChat(correctionMessages, { archiveId })
+        const result = await postLlmChat(correctionMessages, { archiveId })
         corrected = result.content
       }
       parsed = parseAndValidateLlmRecommendations(corrected)

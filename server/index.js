@@ -105,10 +105,12 @@ import {
   completeSelectedIncidentDummyRecovery,
   continueOrchestrationQueueAfterRecovery,
   executeOrchestrationPlan,
+  focusOrchestrationGroup,
   generateOrchestrationPlanMaybeLlm,
   refreshOrchestrationFreshness,
   replanOrchestrationPlanMaybeLlm,
   resetRoomOrchestration,
+  setOrchestrationGroupMode,
   startNewOrchestrationCycle,
   verifyOrchestrationPlan,
 } from './response/orchestrate.js'
@@ -797,12 +799,14 @@ app.post('/rooms/:id/orchestration/approve', (req, res) => {
   if (!room) {
     return res.status(404).json({ ok: false, message: 'Room not found' })
   }
+  const groupId = String(req.body?.groupId ?? '').trim() || null
   const result = approveOrchestrationPlan(room, {
     resolveContext: resolveCommanderContext,
     clientActionIds: req.body?.actionIds ?? req.body?.recommendedActions ?? null,
     onProgress: () => broadcastState(room),
     onCompleteSync: syncWithTelemetry,
     autoContinue: false,
+    groupId,
   })
   if (!result.ok) {
     broadcastState(room)
@@ -830,12 +834,56 @@ app.post('/rooms/:id/orchestration/approve', (req, res) => {
   })
 })
 
+app.post('/rooms/:id/orchestration/focus-group', (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  const room = getRoom(id)
+  if (!room) {
+    return res.status(404).json({ ok: false, message: 'Room not found' })
+  }
+  const groupId = String(req.body?.groupId ?? '').trim()
+  const result = focusOrchestrationGroup(room, groupId)
+  if (!result.ok) {
+    return res.status(result.statusCode ?? 400).json({
+      ok: false,
+      message: result.message ?? 'Focus failed',
+      orchestration: result.orchestration ?? null,
+    })
+  }
+  broadcastState(room)
+  res.json({
+    ok: true,
+    roomId: id,
+    focusedGroupId: result.focusedGroupId,
+    orchestration: result.orchestration,
+  })
+})
+
+app.post('/rooms/:id/orchestration/group-mode', (req, res) => {
+  const id = String(req.params.id ?? '').toUpperCase()
+  const room = getRoom(id)
+  if (!room) {
+    return res.status(404).json({ ok: false, message: 'Room not found' })
+  }
+  const mode = req.body?.mode ?? req.body?.groupMode ?? null
+  const result = setOrchestrationGroupMode(room, mode)
+  broadcastState(room)
+  res.json({
+    ok: true,
+    roomId: id,
+    groupMode: result.groupMode,
+    modes: result.modes,
+    message: result.message,
+    orchestration: result.orchestration,
+  })
+})
+
 app.post('/rooms/:id/orchestration/execute', async (req, res) => {
   const id = String(req.params.id ?? '').toUpperCase()
   const room = getRoom(id)
   if (!room) {
     return res.status(404).json({ ok: false, message: 'Room not found' })
   }
+  const groupId = String(req.body?.groupId ?? '').trim() || null
   // Client plan/action payloads are intentionally ignored.
   const result = executeOrchestrationPlan(room, {
     resolveContext: resolveCommanderContext,
@@ -844,6 +892,7 @@ app.post('/rooms/:id/orchestration/execute', async (req, res) => {
     onProgress: () => broadcastState(room),
     onCompleteSync: syncWithTelemetry,
     autoContinue: false,
+    groupId,
   })
   const incidentId =
     room.responseOrchestration?.plan?.primaryIncidentId ?? null

@@ -434,6 +434,18 @@ export function createEmptyOrchestrationState(overrides = {}) {
     workflowTrace: Array.isArray(overrides.workflowTrace)
       ? overrides.workflowTrace
       : [],
+    /** Parallel orchestration groups (deterministic coupling). */
+    orchestrationGroups: Array.isArray(overrides.orchestrationGroups)
+      ? overrides.orchestrationGroups
+      : [],
+    focusedGroupId:
+      overrides.focusedGroupId != null && String(overrides.focusedGroupId).trim()
+        ? String(overrides.focusedGroupId)
+        : null,
+    groupId:
+      overrides.groupId != null && String(overrides.groupId).trim()
+        ? String(overrides.groupId)
+        : null,
   }
 }
 

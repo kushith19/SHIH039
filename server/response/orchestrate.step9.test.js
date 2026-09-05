@@ -105,9 +105,9 @@ function roomMulti(id = 'S9') {
   ]
   room.detection = {
     incidents: [
-      seedIncident('inc-a', 'pay', { recoveryPriority: 30 }),
-      seedIncident('inc-b', 'water', { recoveryPriority: 20 }),
-      seedIncident('inc-c', 'traffic', { recoveryPriority: 10 }),
+      seedIncident('inc-a', 'pay', { recoveryPriority: 30, campaignId: 's9-coupled' }),
+      seedIncident('inc-b', 'water', { recoveryPriority: 20, campaignId: 's9-coupled' }),
+      seedIncident('inc-c', 'traffic', { recoveryPriority: 10, campaignId: 's9-coupled' }),
     ],
     anomalyNodeIds: ['pay', 'water', 'traffic'],
     atRiskNodeIds: ['gw'],
@@ -146,6 +146,15 @@ function roomSingle(id = 'S9-1') {
 }
 
 describe('STEP 9 multi-incident autonomous orchestration', () => {
+  const prevMode = process.env.ORCHESTRATION_GROUP_MODE
+  before(() => {
+    process.env.ORCHESTRATION_GROUP_MODE = 'link'
+  })
+  after(() => {
+    if (prevMode === undefined) delete process.env.ORCHESTRATION_GROUP_MODE
+    else process.env.ORCHESTRATION_GROUP_MODE = prevMode
+  })
+
   it('1: A+B+C approve once → agents process remaining → RECOVERED', () => {
     const room = roomMulti('ABC')
     generateOrchestrationPlan(room, {

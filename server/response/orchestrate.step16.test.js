@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { describe, it } from 'node:test'
+import { describe, it, before, after } from 'node:test'
 import { createEmptyRoom } from '../roomStore.js'
 import {
   approveOrchestrationPlan,
@@ -100,7 +100,10 @@ function roomFive(id = 'S16') {
   ]
   room.detection = {
     incidents: ids.map((nid, i) =>
-      seedIncident(`inc-${i + 1}`, nid, { recoveryPriority: 50 - i })
+      seedIncident(`inc-${i + 1}`, nid, {
+        recoveryPriority: 50 - i,
+        campaignId: 's16-coupled',
+      })
     ),
     anomalyNodeIds: [...ids],
     atRiskNodeIds: ['gw'],
@@ -128,6 +131,15 @@ function roomFive(id = 'S16') {
 }
 
 describe('STEP 16 — Commander + Response Agent only', () => {
+  const prevMode = process.env.ORCHESTRATION_GROUP_MODE
+  before(() => {
+    process.env.ORCHESTRATION_GROUP_MODE = 'link'
+  })
+  after(() => {
+    if (prevMode === undefined) delete process.env.ORCHESTRATION_GROUP_MODE
+    else process.env.ORCHESTRATION_GROUP_MODE = prevMode
+  })
+
   it('A: 5 incidents + one approval → all execute → RECOVERED; no REPLAN', () => {
     const room = roomFive('S16-A')
     const statuses = []

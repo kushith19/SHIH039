@@ -6,9 +6,13 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000
     log_level: str = "INFO"
-    llm_provider: str = "ollama"
+    # grok (default) | ollama | groq | auto — Grok uses XAI_API_KEY with Ollama fallback
+    llm_provider: str = "grok"
     llm_model: str = "qwen2.5:7b-instruct"
     llm_api_key: str = ""
+    xai_api_key: str = ""
+    xai_model: str = "grok-4.6"
+    xai_base_url: str = "https://api.x.ai/v1"
     groq_api_key: str = ""
     groq_model: str = "openai/gpt-oss-20b"
     ollama_model: str = "qwen2.5:7b-instruct"

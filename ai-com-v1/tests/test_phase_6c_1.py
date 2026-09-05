@@ -2,8 +2,37 @@ import pytest
 from unittest.mock import patch, MagicMock
 from langchain_core.messages import HumanMessage
 
-from src.agent.llm_provider import get_llm_provider, GroqProvider, OllamaProvider, ProviderFallbackWrapper
+from src.agent.llm_provider import (
+    get_llm_provider,
+    GrokProvider,
+    GroqProvider,
+    OllamaProvider,
+    ProviderFallbackWrapper,
+)
 from src.config.settings import settings
+
+def test_factory_selects_grok_when_key_present(monkeypatch):
+    monkeypatch.setattr(settings, "llm_provider", "grok")
+    monkeypatch.setattr(settings, "xai_api_key", "test_key")
+    monkeypatch.setattr(settings, "xai_model", "grok-4.6")
+    monkeypatch.setattr(settings, "xai_base_url", "https://api.x.ai/v1")
+
+    provider = get_llm_provider()
+    assert isinstance(provider, GrokProvider)
+
+    model = provider.get_model()
+    assert isinstance(model, ProviderFallbackWrapper)
+    assert model.primary_name == "grok"
+    assert model.fallback_name == "ollama"
+
+def test_factory_grok_without_key_uses_ollama(monkeypatch):
+    monkeypatch.setattr(settings, "llm_provider", "grok")
+    monkeypatch.setattr(settings, "xai_api_key", "")
+    monkeypatch.setattr(settings, "ollama_base_url", "http://test")
+    monkeypatch.setattr(settings, "ollama_model", "test_model")
+
+    provider = get_llm_provider()
+    assert isinstance(provider, OllamaProvider)
 
 def test_factory_selects_groq(monkeypatch):
     monkeypatch.setattr(settings, "llm_provider", "groq")
@@ -80,7 +109,7 @@ def test_provider_fallback_wrapper_bind_format():
     primary = MagicMock()
     fallback = MagicMock()
     
-    wrapper = ProviderFallbackWrapper(primary, fallback, "groq", "ollama")
+    wrapper = ProviderFallbackWrapper(primary, fallback, "grok", "ollama")
     
     # Simulate calling bind with format="json" (as done in graph.py for structured output)
     wrapper.bind(format="json")

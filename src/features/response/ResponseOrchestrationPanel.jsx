@@ -16,6 +16,8 @@ import {
   postOrchestrationAnalyze,
   postOrchestrationApprove,
   postOrchestrationExecute,
+  postOrchestrationFocusGroup,
+  postOrchestrationGroupMode,
   postOrchestrationNewCycle,
   postOrchestrationReplan,
   primaryOrchestrationActionView,
@@ -24,6 +26,7 @@ import {
   responsePlanView,
   responseTodoChecklistView,
   selectAuthoritativeOrchestrationState,
+  orchestrationGroupsView,
   verificationView,
   whyResolveFirstView,
 } from './orchestrationView.js'
@@ -115,6 +118,7 @@ export default function ResponseOrchestrationPanel({
   const whyFirst = whyResolveFirstView(focused.primary, state.plan)
   const actionDetails = planActionDetailsView(state.plan, state.execution)
   const todo = responseTodoChecklistView(state)
+  const groupsView = orchestrationGroupsView(state)
 
   const hasIncidents = Array.isArray(incidents) && incidents.length > 0
   const approveEnabled = canApproveOrchestration(state) && !busy
@@ -126,6 +130,8 @@ export default function ResponseOrchestrationPanel({
     ...primaryActionRaw,
     enabled: primaryActionRaw.enabled === true && !busy,
   }
+
+  const focusedGroupId = state.focusedGroupId || groupsView.focusedGroupId || null
 
   const primaryLabel =
     focused.primary?.endpointLabel ||
@@ -140,6 +146,32 @@ export default function ResponseOrchestrationPanel({
   useEffect(() => {
     setSelectedStepId(suggestedStepId)
   }, [suggestedStepId])
+
+  const onFocusGroup = async (groupId) => {
+    if (!roomId || !groupId || busy) return
+    setBusy('focus')
+    setError(null)
+    const result = await postOrchestrationFocusGroup(roomId, groupId)
+    setBusy(null)
+    if (!result.ok) {
+      setError(result.message || 'Could not focus group')
+      return
+    }
+    if (result.orchestration) setLocalOverride(result.orchestration)
+  }
+
+  const onChangeGroupMode = async (mode) => {
+    if (!roomId || !mode || busy) return
+    setBusy('group-mode')
+    setError(null)
+    const result = await postOrchestrationGroupMode(roomId, mode)
+    setBusy(null)
+    if (!result.ok) {
+      setError(result.message || 'Could not change group mode')
+      return
+    }
+    if (result.orchestration) setLocalOverride(result.orchestration)
+  }
 
   const onAnalyze = async () => {
     if (!roomId || !analyzeEnabled) return
@@ -210,7 +242,7 @@ export default function ResponseOrchestrationPanel({
     if (!roomId || !approveEnabled) return
     setBusy('approve')
     setError(null)
-    const result = await postOrchestrationApprove(roomId)
+    const result = await postOrchestrationApprove(roomId, { groupId: focusedGroupId })
     if (!result.ok) {
       setBusy(null)
       setError(result.message || 'Approval failed')
@@ -248,7 +280,7 @@ export default function ResponseOrchestrationPanel({
         updatedAtMs: Date.now(),
       })
     }
-    const executed = await postOrchestrationExecute(roomId)
+    const executed = await postOrchestrationExecute(roomId, { groupId: focusedGroupId })
     if (!mountedRef.current) return
     setDemoPlayback(false)
     setBusy(null)
@@ -275,6 +307,64 @@ export default function ResponseOrchestrationPanel({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
+      <div
+        className="shrink-0 flex flex-wrap items-center gap-2"
+        data-testid="orchestration-group-mode"
+      >
+        <label className="tn-meta" htmlFor="orch-group-mode">
+          Group by
+        </label>
+        <select
+          id="orch-group-mode"
+          className="tn-meta border border-[var(--tn-line)] bg-[var(--tn-elevated)] px-2 py-1"
+          disabled={Boolean(busy)}
+          value={groupsView.groupMode || 'sector'}
+          onChange={(e) => onChangeGroupMode(e.target.value)}
+        >
+          <option value="sector">City sector (parallel)</option>
+          <option value="none">Each incident (all parallel)</option>
+          <option value="link">Linked assets / campaign</option>
+        </select>
+        <span className="tn-meta opacity-70">
+          Change anytime — applies on next Analyze / Respond
+        </span>
+      </div>
+      {groupsView.visible ? (
+        <div
+          className="shrink-0 space-y-1"
+          data-testid="orchestration-parallel-groups"
+        >
+          <p className="tn-meta">
+            {groupsView.parallel
+              ? `Parallel groups: ${groupsView.count} (focused plan below)`
+              : `Orchestration group: 1${
+                  groupsView.groups[0]?.reason
+                    ? ` · ${groupsView.groups[0].reason}`
+                    : ''
+                }`}
+          </p>
+          {groupsView.groups.length > 0 ? (
+            <ul className="space-y-0.5">
+              {groupsView.groups.map((g) => (
+                <li key={g.groupId}>
+                  <button
+                    type="button"
+                    className={`tn-meta w-full text-left underline-offset-2 ${
+                      g.focused ? 'font-semibold underline' : 'opacity-80 hover:underline'
+                    }`}
+                    disabled={Boolean(busy) || g.focused}
+                    onClick={() => onFocusGroup(g.groupId)}
+                  >
+                    Group {g.index}: {g.label} · {g.workflowStatus}
+                    {g.total > 0 ? ` · ${g.completed}/${g.total}` : ''}
+                    {g.focused ? ' · focused' : ''}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
       {queueLabel ? (
         <p className="tn-meta shrink-0" data-testid="orchestration-queue-progress">
           {queueLabel}

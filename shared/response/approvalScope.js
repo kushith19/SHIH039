@@ -20,17 +20,40 @@ function sortedUnique(ids = []) {
   return [...new Set((ids ?? []).map(String).filter(Boolean))].sort()
 }
 
+function filterByIncidentAllowlist(incidents, incidentIdAllowlist = null) {
+  const list = Array.isArray(incidents) ? incidents : []
+  if (incidentIdAllowlist == null) return list
+  const allowed = new Set(
+    (Array.isArray(incidentIdAllowlist) ? incidentIdAllowlist : [])
+      .map(String)
+      .filter(Boolean)
+  )
+  if (!allowed.size) return list
+  return list.filter((inc) => {
+    const a = inc?.persistentId != null ? String(inc.persistentId) : null
+    const b = inc?.id != null ? String(inc.id) : null
+    return (a && allowed.has(a)) || (b && allowed.has(b))
+  })
+}
+
 /**
  * Snapshot authorization at human approval time (STEP 17 mission scope).
  * Includes active incident IDs / endpoints plus mission-authorized capabilities
  * so the autonomous loop can escalate within the mission without re-approval.
+ *
+ * Optional `incidentIdAllowlist` scopes the mission to one orchestration group
+ * so parallel groups do not authorize each other's incidents.
  */
 export function buildApprovalScope({
   plan = null,
   detection = null,
   approvedAtMs = Date.now(),
+  incidentIdAllowlist = null,
 } = {}) {
-  const active = filterActiveResponseIncidents(detection?.incidents ?? [])
+  const active = filterByIncidentAllowlist(
+    filterActiveResponseIncidents(detection?.incidents ?? []),
+    incidentIdAllowlist
+  )
   const incidentIds = sortedUnique(
     active.map((inc) => inc.persistentId || inc.id)
   )
@@ -141,10 +164,14 @@ export function isPlanWithinApprovalScope(plan, scope) {
 /**
  * Active seed incidents whose endpoint is not yet quarantined — still need response.
  * Exposure-only / propagated-risk records are never response candidates (STEP 14).
+ * Optional `incidentIdAllowlist` limits candidates to one orchestration group.
  */
-export function remainingResponseCandidates(room) {
-  const active = filterActiveResponseIncidents(room?.detection?.incidents ?? []).filter(
-    isExecutableResponseIncident
+export function remainingResponseCandidates(room, { incidentIdAllowlist = null } = {}) {
+  const active = filterByIncidentAllowlist(
+    filterActiveResponseIncidents(room?.detection?.incidents ?? []).filter(
+      isExecutableResponseIncident
+    ),
+    incidentIdAllowlist
   )
   const quarantined = new Set()
   for (const n of room?.nodes ?? []) {
@@ -155,6 +182,6 @@ export function remainingResponseCandidates(room) {
   return active.filter((inc) => !quarantined.has(String(inc.endpointId ?? '')))
 }
 
-export function hasRemainingResponseWork(room) {
-  return remainingResponseCandidates(room).length > 0
+export function hasRemainingResponseWork(room, { incidentIdAllowlist = null } = {}) {
+  return remainingResponseCandidates(room, { incidentIdAllowlist }).length > 0
 }

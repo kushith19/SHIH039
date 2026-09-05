@@ -869,6 +869,8 @@ export function parseAndValidateLlmCommanderPlan(raw, context, opts = {}) {
   const requireRich =
     opts.requireRich === true ||
     source === 'ollama-direct' ||
+    source === 'grok' ||
+    source === 'groq' ||
     source === 'ai-com-v1'
   if (requireRich) {
     const missingTopLevel = [

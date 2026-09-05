@@ -40,6 +40,29 @@ describe('approvalScope STEP 9', () => {
     assert.ok(scope.scopeFingerprint.includes('incidents='))
   })
 
+  it('buildApprovalScope can scope to an incident allowlist (parallel groups)', () => {
+    const scope = buildApprovalScope({
+      plan: {
+        planId: 'p1',
+        affectedNodeIds: ['pay'],
+        recommendedActions: [
+          { actionId: 'isolate-node', executable: true, target: { id: 'pay' } },
+        ],
+      },
+      detection: {
+        incidents: [
+          { id: 'a', endpointId: 'pay', status: 'open' },
+          { id: 'b', endpointId: 'water', status: 'open' },
+        ],
+      },
+      incidentIdAllowlist: ['a'],
+      approvedAtMs: 1,
+    })
+    assert.deepEqual(scope.incidentIds, ['a'])
+    assert.ok(scope.targetNodeIds.includes('pay'))
+    assert.equal(scope.targetNodeIds.includes('water'), false)
+  })
+
   it('isPlanWithinApprovalScope rejects new incident / action / target', () => {
     const scope = {
       incidentIds: ['a'],

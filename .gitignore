@@ -2,3 +2,12 @@ server/data/
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm
+
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+**/.env
+!**/.env.example
+__pycache__/
+*.pyc

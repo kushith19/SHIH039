@@ -945,7 +945,7 @@ export async function requestIncidentResponsePlan(roomId, incidentId, previousPl
   return result
 }
 
-export async function postOrchestrationApprove(roomId) {
+export async function postOrchestrationApprove(roomId, { groupId = null } = {}) {
   if (!roomId) {
     return { ok: false, message: 'Room required' }
   }
@@ -954,7 +954,7 @@ export async function postOrchestrationApprove(roomId) {
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({}),
+      body: JSON.stringify(groupId ? { groupId } : {}),
     }
   )
   const json = await res.json().catch(() => ({}))
@@ -968,7 +968,7 @@ export async function postOrchestrationApprove(roomId) {
   return { ok: true, orchestration: json.orchestration, executed: json.executed === true }
 }
 
-export async function postOrchestrationExecute(roomId) {
+export async function postOrchestrationExecute(roomId, { groupId = null } = {}) {
   if (!roomId) {
     return { ok: false, message: 'Room required' }
   }
@@ -977,7 +977,7 @@ export async function postOrchestrationExecute(roomId) {
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({}),
+      body: JSON.stringify(groupId ? { groupId } : {}),
     }
   )
   const json = await res.json().catch(() => ({}))
@@ -996,6 +996,107 @@ export async function postOrchestrationExecute(roomId) {
     recovered: json.recovered === true,
     incidentsClosed: json.incidentsClosed === true,
     autoRestored: json.autoRestored === true,
+  }
+}
+
+export async function postOrchestrationFocusGroup(roomId, groupId) {
+  if (!roomId || !groupId) {
+    return { ok: false, message: 'Room and groupId required' }
+  }
+  const res = await fetch(
+    `/rooms/${encodeURIComponent(String(roomId))}/orchestration/focus-group`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ groupId }),
+    }
+  )
+  const json = await res.json().catch(() => ({}))
+  if (!res.ok || json.ok === false) {
+    return {
+      ok: false,
+      message: json.message ?? `HTTP ${res.status}`,
+      orchestration: json.orchestration ?? null,
+    }
+  }
+  return {
+    ok: true,
+    focusedGroupId: json.focusedGroupId,
+    orchestration: json.orchestration,
+  }
+}
+
+export async function postOrchestrationGroupMode(roomId, mode) {
+  if (!roomId || !mode) {
+    return { ok: false, message: 'Room and mode required' }
+  }
+  const res = await fetch(
+    `/rooms/${encodeURIComponent(String(roomId))}/orchestration/group-mode`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode }),
+    }
+  )
+  const json = await res.json().catch(() => ({}))
+  if (!res.ok || json.ok === false) {
+    return {
+      ok: false,
+      message: json.message ?? `HTTP ${res.status}`,
+      orchestration: json.orchestration ?? null,
+    }
+  }
+  return {
+    ok: true,
+    groupMode: json.groupMode,
+    modes: json.modes,
+    message: json.message,
+    orchestration: json.orchestration,
+  }
+}
+
+/** Compact parallel-group progress for the orchestration panel. */
+export function orchestrationGroupsView(orchestrationState = null) {
+  const groups = Array.isArray(orchestrationState?.orchestrationGroups)
+    ? orchestrationState.orchestrationGroups
+    : []
+  const cycle = String(orchestrationState?.orchestrationCycleStatus ?? '').toUpperCase()
+  const activeCycle =
+    cycle &&
+    cycle !== 'IDLE' &&
+    (groups.length > 0 || (orchestrationState?.orchestrationQueue || []).length > 0)
+  const groupMode = orchestrationState?.groupMode || 'sector'
+  if (!groups.length && !activeCycle) {
+    return {
+      visible: false,
+      groups: [],
+      focusedGroupId: null,
+      count: 0,
+      parallel: false,
+      groupMode,
+      modes: orchestrationState?.groupModes || ['sector', 'none', 'link'],
+    }
+  }
+  return {
+    visible: true,
+    count: groups.length,
+    parallel: groups.length > 1,
+    groupMode,
+    modes: orchestrationState?.groupModes || ['sector', 'none', 'link'],
+    focusedGroupId: orchestrationState?.focusedGroupId ?? null,
+    groups: groups.map((g) => ({
+      groupId: g.groupId,
+      index: g.index,
+      label: g.label || g.groupId,
+      reason: g.reason || '',
+      sectorKey: g.sectorKey || null,
+      workflowStatus: g.workflowStatus || 'IDLE',
+      cycleStatus: g.orchestrationCycleStatus || 'IDLE',
+      currentIncidentId: g.currentIncidentId || null,
+      completed: (g.completedIncidentIds || []).length,
+      total: g.queueTotal || (g.incidentIds || []).length || 0,
+      focused: g.focused === true || g.groupId === orchestrationState?.focusedGroupId,
+    })),
   }
 }
 

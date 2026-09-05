@@ -61,12 +61,36 @@ export function sleepMs(ms) {
 
 const loopInFlight = new Set()
 
-export function isOrchestrationLoopInFlight(roomId) {
-  return loopInFlight.has(String(roomId ?? '').toUpperCase())
+export function isOrchestrationLoopInFlight(roomIdOrKey) {
+  return loopInFlight.has(String(roomIdOrKey ?? '').toUpperCase())
 }
 
-export function clearOrchestrationLoopInFlight(roomId) {
-  if (roomId) loopInFlight.delete(String(roomId).toUpperCase())
+export function clearOrchestrationLoopInFlight(roomIdOrKey) {
+  if (roomIdOrKey) loopInFlight.delete(String(roomIdOrKey).toUpperCase())
+}
+
+function loopLockKey(room) {
+  const roomId = String(room?.id ?? '').toUpperCase()
+  if (!roomId) return ''
+  const gid = room?.responseOrchestration?.groupId
+  return gid ? `${roomId}::${String(gid)}` : `${roomId}::default`
+}
+
+function groupAllowlistFromRoom(room) {
+  const queue = room?.responseOrchestration?.orchestrationQueue
+  if (Array.isArray(queue) && queue.length > 0) return queue.map(String)
+  return null
+}
+
+function detectionForGroup(detection, allowlist) {
+  if (!allowlist) return detection
+  const allowed = new Set(allowlist.map(String))
+  const incidents = (detection?.incidents ?? []).filter((inc) => {
+    const a = inc?.persistentId != null ? String(inc.persistentId) : null
+    const b = inc?.id != null ? String(inc.id) : null
+    return (a && allowed.has(a)) || (b && allowed.has(b))
+  })
+  return { ...(detection || {}), incidents }
 }
 
 const PLAN_HISTORY_LIMIT = 5
@@ -164,11 +188,12 @@ export function buildContinuationPlan(room, {
   if (typeof resolveContext !== 'function') {
     return { ok: false, message: 'Context resolver unavailable' }
   }
-  if (!hasRemainingResponseWork(room)) {
+  if (!hasRemainingResponseWork(room, { incidentIdAllowlist: groupAllowlistFromRoom(room) })) {
     return { ok: false, message: 'No remaining response candidates', noWork: true }
   }
 
-  const detection = room.detection ?? null
+  const allowlist = groupAllowlistFromRoom(room)
+  const detection = detectionForGroup(room.detection ?? null, allowlist)
   const adaptive = selectPrimaryIncidentForReplan(detection, {
     nodes: room.nodes ?? [],
     previousAffectedNodeIds: previousPlan?.affectedNodeIds ?? [],
@@ -232,7 +257,7 @@ export function runOrchestrationContinuation(room, {
   verifyOrchestrationPlan: _unusedVerify,
   markEpisodeRecovered,
 } = {}) {
-  const roomKey = String(room?.id ?? '').toUpperCase()
+  const roomKey = loopLockKey(room)
   if (roomKey && loopInFlight.has(roomKey)) {
     return {
       ok: false,
@@ -361,7 +386,7 @@ function runOrchestrationContinuationBody(room, {
   }
 
   while (autoIteration < max) {
-    if (!hasRemainingResponseWork(room)) {
+    if (!hasRemainingResponseWork(room, { incidentIdAllowlist: groupAllowlistFromRoom(room) })) {
       pace('pacing_before_recovered')
       markEpisodeRecovered(room, {
         nowMs: Date.now(),
@@ -474,7 +499,7 @@ function runOrchestrationContinuationBody(room, {
     })
 
     if (!built.ok) {
-      if (built.noWork || !hasRemainingResponseWork(room)) {
+      if (built.noWork || !hasRemainingResponseWork(room, { incidentIdAllowlist: groupAllowlistFromRoom(room) })) {
         pace('pacing_before_recovered')
         markEpisodeRecovered(room, {
           nowMs: Date.now(),
