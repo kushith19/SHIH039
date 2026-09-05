@@ -52,8 +52,8 @@ export const DISTRICT_ANCHORS = {
   finance: { x: 1960, y: 1040, label: 'Finance' },
   urban: { x: 1220, y: 860, label: 'Urban' },
 }
-
 export function tileUrl(z, x, y, dark) {
   const style = dark ? 'dark_all' : 'light_all'
   return `https://basemaps.cartocdn.com/${style}/${z}/${x}/${y}.png`
 }
+
