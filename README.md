@@ -2,87 +2,93 @@
 
 Smart-city cyber-resilience demo: live topology and attack simulation in the browser, a Node API for rooms/telemetry, and an AI Commander that restates detector evidence (`/commander/explain` on incident lists) and composes a safety-checked briefing for correlated patterns (`/commander/analyze` → `commanderBriefing`). Live Q&A does not invent telemetry. RAG is optional; empty Qdrant is labeled **DEGRADED**.
 
-Current architecture in one page: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Current architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 The detector is a **graph residual encoder** (directed GNN, 14 features, 3-frame window, idle-window calibrator, hard gates). It is not a literature Temporal Graph Network and not Isolation Forest. Trust is a four-component posture score (25/30/25/20), not the anomaly score.
 
-## What you need
+---
+
+## How to run
+
+### Prerequisites
 
 | Requirement | Version / notes |
 |---|---|
-| **Node.js** | 20 or newer (root UI + `server/`; `tele-ingestion` also expects Node 20+) |
-| **Python** | 3.10–3.12 recommended (`ai-com-v1`) |
-| **Docker** | For Qdrant (`ai-com-v1/docker-compose.yml`) |
-| **Ollama** | Local LLM at `http://localhost:11434` |
-| **Groq API key** | Optional. Faster primary LLM; Commander falls back to Ollama if Groq is unset or fails |
-| **PostgreSQL / TimescaleDB** | Only if you run `tele-ingestion` |
+| **Node.js** | 20 or newer (root UI, `server/`, `tele-ingestion`) |
+| **Python** | 3.10–3.12 (`ai-com-v1`) |
+| **Docker** | TimescaleDB (default with `npm start`) and optional Qdrant |
+| **xAI / Groq API key** | Optional. Faster LLM for Commander; falls back to Ollama if unset |
+| **Ollama** | Optional local LLM at `http://localhost:11434` |
 
-RAM: `qwen2.5:7b-instruct` typically needs about **8 GB** free. Smaller machines can use a 3B instruct model (see below).
+### Quick start (recommended)
 
-## Ollama model
+From the repo root:
 
-The repo is wired to this model name:
+```bash
+cp server/.env.example server/.env
+cp ai-com-v1/.env.example ai-com-v1/.env
+# optional Timescale ingest:
+cp tele-ingestion/.env.example tele-ingestion/.env
 
-**`qwen2.5:7b-instruct`**
+npm install
+npm install --prefix server
 
-It is the default in:
+npm start
+```
 
-- `ai-com-v1` (`OLLAMA_MODEL`, `src/config/settings.py`)
-- `server` (`OLLAMA_MODEL` in `.env.example`)
+`npm start` will:
 
-`npm start` does **not** start Ollama. Run it separately when you want local Qwen:
+1. Copy any missing `.env` files from the examples  
+2. Start TimescaleDB + tele-ingestion on port **3000** (unless `--no-ingest`)  
+3. Create `ai-com-v1/venv`, install Python deps if needed, and run Commander on **8000**  
+4. Start the Vite UI on **5173** and the Node API on **3001**  
+5. Start Qdrant only if you pass `--with-rag`
+
+Then open **http://localhost:5173** in two tabs (defender + attacker). Wait for the **15-tick idle window** before attacking.
+
+Stop everything with `Ctrl+C`.
+
+#### Flags
+
+```bash
+npm start -- --no-ingest   # skip TimescaleDB + tele-ingestion
+npm start -- --with-rag    # also start Qdrant (lab /analyze RAG only)
+```
+
+#### Optional local LLM
+
+`npm start` does **not** start Ollama. In another terminal:
 
 ```bash
 npm run ollama:qwen
 ```
 
-That starts `ollama serve` if needed and pulls `qwen2.5:7b-instruct`. Equivalent CLI:
+That starts `ollama serve` if needed and pulls `qwen2.5:7b-instruct`.
 
-```bash
-# https://ollama.com — install the app or CLI for your OS
+### Ports
 
-ollama serve          # if the daemon is not already running
-ollama pull qwen2.5:7b-instruct
-ollama list           # confirm qwen2.5:7b-instruct is present
-```
-
-Keep the Ollama server on **port 11434** (default).
-
-If you change the model, use the **same** name in both env files:
-
-- `ai-com-v1/.env` → `OLLAMA_MODEL=...`
-- `server/.env` → `OLLAMA_MODEL=...`
-
-Example lighter alternative: `qwen2.5:3b-instruct` (set both env vars; quality of Commander JSON will be worse).
-
-Optional Groq (faster, used as primary when `LLM_PROVIDER=groq`):
-
-- Model: `openai/gpt-oss-20b`
-- Set `GROQ_API_KEY` in `ai-com-v1/.env`
-
-The Node server’s local Ollama explain path is **off** by default (`OLLAMA_FALLBACK=0`) so live attacks do not spin the laptop. Commander still uses Ollama when `LLM_PROVIDER=ollama` or as Groq fallback.
-
-## Repo layout
-
-| Path | Role | Default URL |
+| Service | Path | URL |
 |---|---|---|
-| `/` (Vite + React) | Two-role session UI (map + defender dashboard) | http://localhost:5173 |
-| `server/` | Demo room, sockets, detection, Commander `/explain` client | http://localhost:3001 |
-| `ai-com-v1/` | FastAPI Commander. Live: `/explain`. Lab: `/analyze` + RAG | http://localhost:8000 |
-| `tele-ingestion/` | Optional CitySnapshot → TimescaleDB | http://localhost:3000 |
+| Web UI | `/` (Vite + React) | http://localhost:5173 |
+| Game / detection API | `server/` | http://localhost:3001 |
+| AI Commander | `ai-com-v1/` | http://localhost:8000 |
+| Telemetry ingest | `tele-ingestion/` | http://localhost:3000 |
+| Qdrant (optional) | `ai-com-v1/docker-compose.yml` | http://localhost:6333 |
 
-## 1. Clone and env files
+### Environment
 
-```bash
-cd trustNet
+Never commit `.env` files or API keys.
 
-cp server/.env.example server/.env
-cp ai-com-v1/.env.example ai-com-v1/.env
-# optional:
-cp tele-ingestion/.env.example tele-ingestion/.env
+**Commander** (`ai-com-v1/.env`) — defaults favor Grok; Ollama works offline:
+
+```ini
+LLM_PROVIDER=grok          # grok | ollama | groq | auto
+XAI_API_KEY=               # required when LLM_PROVIDER=grok
+OLLAMA_MODEL=qwen2.5:7b-instruct
+OLLAMA_BASE_URL=http://localhost:11434
 ```
 
-In `ai-com-v1/.env` (local-only, no Groq):
+For local-only (no cloud key):
 
 ```ini
 LLM_PROVIDER=ollama
@@ -90,30 +96,21 @@ OLLAMA_MODEL=qwen2.5:7b-instruct
 OLLAMA_BASE_URL=http://localhost:11434
 ```
 
-In `server/.env`, leave `AI_COMMANDER_URL=http://localhost:8000` so the UI/API can call Commander. Keep `OLLAMA_FALLBACK=0` unless you explicitly want the Node process to call Ollama.
+**Server** (`server/.env`) — keep Commander reachable:
 
-Never commit `.env` files or API keys.
-
-## 2. Qdrant (optional — Commander `/analyze` only)
-
-The live SOC does **not** use RAG. Skip this unless you will ingest corpora and call `/analyze` with a real detection body (not `INC-001` mocks).
-
-```bash
-cd ai-com-v1
-docker compose up -d qdrant
+```ini
+AI_COMMANDER_URL=http://localhost:8000
+TELE_INGESTION_URL=http://127.0.0.1:3000
+OLLAMA_FALLBACK=0
 ```
 
-Dashboard: http://localhost:6333/dashboard
+If you change the Ollama model name, set the **same** value in both `ai-com-v1/.env` and `server/.env`.
 
-First-time knowledge ingest (from `ai-com-v1/` with the venv active):
+### Run services separately
 
-```bash
-python -m src.rag.ingest --input data/processed --batch-size 256
-```
+Use this when debugging one process, or when Commander is already up.
 
-Embeddings use **`sentence-transformers/all-MiniLM-L6-v2`** (downloaded on first run; no Ollama needed for embeddings).
-
-## 3. AI Commander
+**AI Commander**
 
 ```bash
 cd ai-com-v1
@@ -123,47 +120,17 @@ pip install -r requirements.txt
 uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Health:
+Health check: `curl http://localhost:8000/health`
+
+**UI + API only** (Commander already running):
 
 ```bash
-curl http://localhost:8000/health
-```
-
-Analyze a **mock** incident (lab only — not live match detections):
-
-```bash
-curl -X POST http://localhost:8000/commander/analyze \
-  -H "Content-Type: application/json" \
-  -d '{"incidentId": "INC-001"}'
-```
-
-## 4. Node API + web UI
-
-From the **repo root**:
-
-```bash
-npm install
-npm install --prefix server
-npm start                 # UI + API + Commander; Qdrant only with --with-rag
-npm run ollama:qwen       # optional local Qwen (Ollama); not started by npm start
-# or just the browser app + game server:
 npm run dev:all
 ```
 
-That starts Vite (`5173`) and the API (`3001`). Open http://localhost:5173
+API-only: `npm run dev:server` · UI-only: `npm run dev`
 
-API-only: `npm run dev:server`. UI-only: `npm run dev`.
-
-## 5. Telemetry ingestion (Timescale on :3000)
-
-`npm start` starts this by default:
-
-- TimescaleDB via `tele-ingestion/docker-compose.yml` (`postgres` on port 5432)
-- `npm run db:init` then the ingest API on **port 3000**
-
-The live dashboard waits for `http://127.0.0.1:3000/health`. Skip ingest with `npm start -- --no-ingest`.
-
-Manual-only:
+**Telemetry ingest only**
 
 ```bash
 cd tele-ingestion
@@ -173,34 +140,16 @@ npm run db:init
 npm run dev
 ```
 
-## Suggested start order
-
-From the **repo root**, after `npm install` and `npm install --prefix server`:
+**Qdrant + knowledge ingest** (lab `/analyze` only — live SOC `/explain` does not use RAG)
 
 ```bash
-npm start
+cd ai-com-v1
+docker compose up -d qdrant
+# with venv active:
+python -m src.rag.ingest --input data/processed --batch-size 256
 ```
 
-That one command:
-
-1. Copies missing `.env` files from the examples  
-2. Starts Qdrant only if you pass `--with-rag`  
-3. Starts TimescaleDB + tele-ingestion unless you pass `--no-ingest`  
-4. Creates `ai-com-v1/venv` and installs Python deps if needed, then runs Commander on port 8000  
-5. Starts the Vite UI (`5173`) and Node API (`3001`)
-
-Local Qwen is optional. In another terminal: `npm run ollama:qwen`.
-
-Open http://localhost:5173 as two tabs (defender + attacker). Wait for the 15-tick idle window before attacking.
-
-Ctrl+C stops Commander, the UI, and the API.
-
-```bash
-npm start -- --no-ingest
-npm start -- --with-rag
-```
-
-To run only the UI + API (Commander already up): `npm run dev:all`.  
+---
 
 ## Tests
 
