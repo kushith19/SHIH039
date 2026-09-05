@@ -516,9 +516,7 @@ function GraphCanvasInner({
         mpRole === 'defender' &&
         (mpPhase === 'lobby' || mpPhase === 'playing') &&
         payload?.provenance !== 'injected'
-      const attackerPlay =
-        mpRole === 'attacker' && mpPhase === 'playing' && payload?.provenance === 'injected'
-      if (!defenderEdit && !attackerPlay) return
+      if (!defenderEdit) return
 
       const position = reactFlowInstanceRef.current?.screenToFlowPosition({
         x: event.clientX,
@@ -530,7 +528,7 @@ function GraphCanvasInner({
         type: NODE_TYPE,
         position: position ?? { x: 0, y: 0 },
         data: dataFromAsset(asset, {
-          provenance: payload?.provenance === 'injected' ? 'injected' : 'legitimate',
+          provenance: 'legitimate',
         }),
       }
 

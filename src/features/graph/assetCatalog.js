@@ -40,7 +40,6 @@ import {
   Shield,
   ShieldAlert,
   Siren,
-  Skull,
   Store,
   Sun,
   Timer,
@@ -52,7 +51,6 @@ import {
   UtensilsCrossed,
   Waves,
   Wifi,
-  WifiOff,
   Wind,
   Zap,
 } from 'lucide-react'
@@ -927,38 +925,7 @@ export const legacyAssetCatalog = [
   }),
 ]
 
-export const attackCatalog = [
-  {
-    type: 'rogue_sensor',
-    title: 'Rogue sensor',
-    domain: 'Public Safety',
-    defaultPacketsPerSecond: 8_000,
-    defaultHttpRequestsPerMin: 120,
-    defaultFilesDownloaded: 0,
-    defaultFailedLoginsPerMin: 0,
-    intrinsicTrust: 18,
-    defaultCriticality: 'low',
-    Icon: Skull,
-    handles: HANDLES,
-    provenance: 'injected',
-  },
-  {
-    type: 'rogue_gateway',
-    title: 'Rogue gateway',
-    domain: 'Telecommunications',
-    defaultPacketsPerSecond: 22_000,
-    defaultHttpRequestsPerMin: 600,
-    defaultFilesDownloaded: 0,
-    defaultFailedLoginsPerMin: 0,
-    intrinsicTrust: 22,
-    defaultCriticality: 'low',
-    Icon: WifiOff,
-    handles: HANDLES,
-    provenance: 'injected',
-  },
-]
-
-const allAssets = [...assetCatalog, ...legacyAssetCatalog, ...attackCatalog]
+const allAssets = [...assetCatalog, ...legacyAssetCatalog]
 const assetsByType = new Map(allAssets.map((a) => [a.type, a]))
 
 export function getAssetByType(type) {

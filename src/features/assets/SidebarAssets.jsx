@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  attackCatalog,
   getAssetsGroupedByDomain,
   getLiveCityAssets,
 } from '../graph/assetCatalog'
@@ -136,19 +135,6 @@ function DomainAssetList({ assets, onDragStart }) {
   )
 }
 
-function CompactDeviceList({ assets, onDragStart }) {
-  return (
-    <div className="min-h-0 flex-1 overflow-y-auto">
-      <p className="tn-label mb-1.5">Drag onto map</p>
-      <div className="space-y-0.5">
-        {assets.map((asset) => (
-          <AssetRow key={asset.type} asset={asset} onDragStart={onDragStart} />
-        ))}
-      </div>
-    </div>
-  )
-}
-
 function isValidSpreadSource(sourceNodeId, nodes, detection, hackSimulator) {
   const source = String(sourceNodeId ?? '')
   if (!source) return false
@@ -278,7 +264,7 @@ function AttackConsole({
         </p>
         {tgnnCalibrating ? (
           <p className="mt-1 text-xs text-[var(--tn-muted)]">
-            Wait for the idle window before injecting.
+            Wait for the idle window before applying attacks.
           </p>
         ) : null}
       </div>
@@ -589,10 +575,10 @@ export default function SidebarAssets({
   onAbortCampaigns,
   onSetAttackSpreadMode,
 }) {
-  function handleDragStart(event, assetType, provenance = 'legitimate') {
+  function handleDragStart(event, assetType) {
     event.dataTransfer.setData(
       'application/reactflow',
-      JSON.stringify({ assetType, provenance })
+      JSON.stringify({ assetType, provenance: 'legitimate' })
     )
     event.dataTransfer.effectAllowed = 'move'
   }
@@ -608,16 +594,11 @@ export default function SidebarAssets({
   const canUsePresets =
     showAttackTools && selectedNodeId && onApplyAttackPreset && !tgnnCalibrating
 
-  const [sideTab, setSideTab] = useState(showAttackTools ? 'attack' : 'devices')
   const [spreadPresetId, setSpreadPresetId] = useState(
     ATTACK_PRESETS[0]?.id ?? 'traffic_flood'
   )
   const consoleEpochRef = useRef(0)
   const [, bumpConsole] = useState(0)
-
-  useEffect(() => {
-    if (showAttackTools) setSideTab('attack')
-  }, [showAttackTools])
 
   useEffect(() => {
     if (!showAttackTools || phase !== 'playing') {
@@ -634,13 +615,6 @@ export default function SidebarAssets({
     Boolean(spreadPresetId) &&
     getAttackSpreadMode(hackSimulator) !== ATTACK_SPREAD_MODE_AUTO
 
-  const tabs = showAttackTools
-    ? [
-        { id: 'attack', label: 'Attack' },
-        { id: 'inject', label: 'Inject' },
-      ]
-    : [{ id: 'devices', label: 'Sectors' }]
-
   if (showDevices || showAttackTools) {
     return (
       <div className="flex h-full min-h-0 flex-col gap-3">
@@ -650,27 +624,7 @@ export default function SidebarAssets({
           </p>
         ) : null}
 
-        {tabs.length > 1 ? (
-          <div className="flex rounded-md bg-[var(--tn-elevated)] p-0.5">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setSideTab(tab.id)}
-                className={[
-                  'flex-1 rounded-md px-2 py-1.5 text-sm font-medium',
-                  sideTab === tab.id
-                    ? 'bg-[var(--tn-ink)] text-[var(--tn-ink-fg)]'
-                    : 'text-[var(--tn-muted)] hover:text-[var(--tn-text)]',
-                ].join(' ')}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        ) : null}
-
-        {showAttackTools && sideTab === 'attack' ? (
+        {showAttackTools ? (
           <AttackConsole
             key={consoleEpochRef.current}
             selectedNodeId={selectedNodeId}
@@ -690,18 +644,6 @@ export default function SidebarAssets({
             onAbortCampaigns={onAbortCampaigns}
             onSetAttackSpreadMode={onSetAttackSpreadMode}
           />
-        ) : showAttackTools && sideTab === 'inject' ? (
-          <div className="flex min-h-0 flex-1 flex-col gap-2">
-            <p className="text-xs text-[var(--tn-muted)]">
-              Drag a rogue device onto the map.
-            </p>
-            <CompactDeviceList
-              assets={attackCatalog}
-              onDragStart={(e, asset) =>
-                handleDragStart(e, asset.type, asset.provenance ?? 'injected')
-              }
-            />
-          </div>
         ) : showDevices ? (
           <DomainAssetList
             assets={getLiveCityAssets()}

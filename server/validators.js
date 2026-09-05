@@ -107,9 +107,6 @@ export function canAddNode(socketId, room, node) {
     if (isDefender(socketId, room)) {
       return runtimeStateOf(node?.data).provenance !== 'injected'
     }
-    if (isAttacker(socketId, room)) {
-      return runtimeStateOf(node?.data).provenance === 'injected'
-    }
   }
   return false
 }
