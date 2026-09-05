@@ -130,10 +130,7 @@ function AgentHeader({ context, intel, mode, onModeChange, asset, money, risk, t
         </div>
         <div className="min-w-0">
           <dt className="tn-label">Simulated exposure</dt>
-          <dd className="flex items-center gap-1.5 font-sans">
-            <span className="truncate">{money || '—'}</span>
-            {money ? <span className="soc-role-chip soc-role-simulated">Sim</span> : null}
-          </dd>
+          <dd className="truncate font-sans">{money || '—'}</dd>
         </div>
       </dl>
       {context.campaignId ? (

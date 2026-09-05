@@ -242,10 +242,7 @@ export default function IncidentCard({
         </div>
         <div>
           <div className="tn-label">Exposure</div>
-          <div className="mt-0.5 flex items-center gap-1.5 text-base">
-            <span>{money || '—'}</span>
-            {money ? <span className="soc-role-chip soc-role-simulated">Sim</span> : null}
-          </div>
+          <div className="mt-0.5 text-base">{money || '—'}</div>
         </div>
       </div>
       {money ? (
